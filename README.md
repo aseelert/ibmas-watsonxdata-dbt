@@ -137,10 +137,58 @@ The file `spark/load_medallion_demo.py` demonstrates how a Spark job can write t
 
 Run it from a Spark environment that already has access to the watsonx.data Iceberg catalog and MinIO object storage.
 
-Example:
+For the watsonx.data Spark engine, stage the application and CSV files in object storage first. The default layout is:
+
+- `s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py`
+- `s3a://iceberg-bucket/spark_demo/raw/raw_customers.csv`
+- `s3a://iceberg-bucket/spark_demo/raw/raw_products.csv`
+- `s3a://iceberg-bucket/spark_demo/raw/raw_orders.csv`
+- `s3a://iceberg-bucket/spark_demo/raw/raw_order_items.csv`
+
+If you have S3/MinIO credentials from a place that can reach the object-store endpoint, upload the assets with:
 
 ```bash
-spark-submit spark/load_medallion_demo.py
+python scripts/upload_spark_assets.py
+```
+
+In this OpenShift environment, the lakehouse MinIO service is internal-only (`ibm-lh-lakehouse-minio-svc` has no external route). From a workstation, log in with `oc`, port-forward the service, and use the lakehouse MinIO secret:
+
+```bash
+oc login https://api.watson.ibmas-zocp-techcluster.org:6443
+oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
+```
+
+In another terminal:
+
+```bash
+export WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000
+export WXD_OBJECT_STORE_ACCESS_KEY="$(oc get secret ibm-lh-minio-secret -n cpd-instance -o jsonpath='{.data.LH_S3_ACCESS_KEY}' | base64 --decode)"
+export WXD_OBJECT_STORE_SECRET_KEY="$(oc get secret ibm-lh-minio-secret -n cpd-instance -o jsonpath='{.data.LH_S3_SECRET_KEY}' | base64 --decode)"
+export WXD_OBJECT_STORE_REGION=us-east-1
+export WXD_OBJECT_STORE_SSL_VERIFY=false
+python scripts/upload_spark_assets.py
+```
+
+If you are already logged in with `oc`, `scripts/upload_spark_assets.py` can also read `ibm-lh-minio-secret` automatically. In that case, only the endpoint/region settings are needed in `.env`; the access key and secret key can stay unset.
+
+The uploader also auto-starts the port-forward when `WXD_OBJECT_STORE_ENDPOINT` points to `127.0.0.1` or `localhost` and `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true`.
+
+Then submit to the watsonx.data Spark application endpoint. The script prints the payload first and defaults to dry-run:
+
+```bash
+python scripts/submit_spark_application.py
+```
+
+Set `WXD_SPARK_DRY_RUN=false` to actually submit. For REST authentication, provide one of:
+
+- `WXD_SPARK_BEARER_TOKEN`
+- `WXD_ZEN_API_KEY`
+- `WXD_CPD_USERNAME` and `WXD_CPD_PASSWORD`, which the script exchanges for a bearer token through `/icp4d-api/v1/authorize`
+
+Local Spark test example:
+
+```bash
+WXD_SPARK_INPUT_BASE=seeds spark-submit spark/load_medallion_demo.py
 ```
 
 The Spark job creates:

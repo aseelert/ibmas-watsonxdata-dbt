@@ -27,6 +27,7 @@ def main() -> None:
         load_dotenv(ROOT / ".env")
 
     catalog = os.getenv("WXD_SPARK_CATALOG", "iceberg_data")
+    input_base = os.getenv("WXD_SPARK_INPUT_BASE", "s3a://iceberg-bucket/spark_demo/raw").rstrip("/")
     base_schema = os.getenv("WXD_SPARK_SCHEMA", "spark_demo")
     bronze_schema = os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{base_schema}_bronze")
     silver_schema = os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{base_schema}_silver")
@@ -38,12 +39,16 @@ def main() -> None:
         spark.sql(f"create namespace if not exists {catalog}.{schema}")
 
     for table in ["customers", "products", "orders", "order_items"]:
-        source = ROOT / "seeds" / f"raw_{table}.csv"
+        source_name = f"raw_{table}.csv"
+        if input_base.startswith(("s3a://", "s3://")):
+            source = f"{input_base}/{source_name}"
+        else:
+            source = str(Path(input_base) / source_name)
         df = (
-            spark.read.option("header", "true").csv(str(source))
+            spark.read.option("header", "true").csv(source)
             .withColumn("_ingested_at", F.current_timestamp())
             .withColumn("_ingested_by", F.lit("spark job"))
-            .withColumn("_source_file", F.lit(source.name))
+            .withColumn("_source_file", F.lit(source_name))
             .withColumn("_ingest_batch_id", F.lit(os.getenv("WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch")))
         )
         df.writeTo(f"{catalog}.{bronze_schema}.bronze_{table}").using("iceberg").createOrReplace()
