@@ -161,6 +161,9 @@ def main() -> int:
     verify_value = os.getenv("WXD_OBJECT_STORE_SSL_VERIFY", "false").lower()
     verify = verify_value not in {"0", "false", "no"}
 
+    print(f"Object store endpoint: {endpoint}")
+    print(f"Target bucket/prefix: s3://{bucket}/{prefix}")
+
     try:
         s3 = boto3.client(
             "s3",
@@ -179,6 +182,7 @@ def main() -> int:
             for path in sorted((ROOT / "seeds").glob("raw_*.csv"))
         )
 
+        print(f"Uploading {len(uploads)} files for Spark demo")
         for source, key in uploads:
             s3.upload_file(str(source), bucket, key)
             print(f"uploaded s3://{bucket}/{key}")

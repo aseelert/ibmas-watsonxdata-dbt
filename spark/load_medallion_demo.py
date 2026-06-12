@@ -34,8 +34,14 @@ def main() -> None:
     gold_schema = os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{base_schema}_gold")
 
     spark = SparkSession.builder.appName("watsonxdata-medallion-demo").getOrCreate()
+    print(f"Spark catalog: {catalog}")
+    print(f"Input CSV base: {input_base}")
+    print(f"Bronze schema: {bronze_schema}")
+    print(f"Silver schema: {silver_schema}")
+    print(f"Gold schema: {gold_schema}")
 
     for schema in [bronze_schema, silver_schema, gold_schema]:
+        print(f"Ensuring namespace {catalog}.{schema}")
         spark.sql(f"create namespace if not exists {catalog}.{schema}")
 
     for table in ["customers", "products", "orders", "order_items"]:
@@ -51,6 +57,7 @@ def main() -> None:
             .withColumn("_source_file", F.lit(source_name))
             .withColumn("_ingest_batch_id", F.lit(os.getenv("WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch")))
         )
+        print(f"Writing bronze table {catalog}.{bronze_schema}.bronze_{table}")
         df.writeTo(f"{catalog}.{bronze_schema}.bronze_{table}").using("iceberg").createOrReplace()
 
     customers = spark.table(f"{catalog}.{bronze_schema}.bronze_customers")
@@ -82,17 +89,19 @@ def main() -> None:
         .using("iceberg")
         .createOrReplace()
     )
+    spark_silver_orders = orders.select(
+        F.col("order_id").cast("int").alias("order_id"),
+        F.col("customer_id").cast("int").alias("customer_id"),
+        F.to_timestamp("order_ts").alias("order_ts"),
+        F.to_date("order_ts").alias("order_date"),
+        F.lower(F.trim("status")).alias("status"),
+        F.lower(F.trim("payment_method")).alias("payment_method"),
+    )
+    print(f"Writing partitioned silver orders table {catalog}.{silver_schema}.spark_silver_orders")
     (
-        orders.select(
-            F.col("order_id").cast("int").alias("order_id"),
-            F.col("customer_id").cast("int").alias("customer_id"),
-            F.to_timestamp("order_ts").alias("order_ts"),
-            F.to_date("order_ts").alias("order_date"),
-            F.lower(F.trim("status")).alias("status"),
-            F.lower(F.trim("payment_method")).alias("payment_method"),
-        )
-        .writeTo(f"{catalog}.{silver_schema}.spark_silver_orders")
+        spark_silver_orders.writeTo(f"{catalog}.{silver_schema}.spark_silver_orders")
         .using("iceberg")
+        .partitionedBy("order_date")
         .createOrReplace()
     )
     (
@@ -123,7 +132,13 @@ def main() -> None:
             F.sum(F.col("oi.quantity") * F.col("p.unit_price") * (F.lit(1) - F.col("oi.discount_pct"))).cast("decimal(14,2)").alias("net_revenue"),
         )
     )
-    daily_sales.writeTo(f"{catalog}.{gold_schema}.spark_gold_daily_sales").using("iceberg").createOrReplace()
+    print(f"Writing partitioned gold daily sales table {catalog}.{gold_schema}.spark_gold_daily_sales")
+    (
+        daily_sales.writeTo(f"{catalog}.{gold_schema}.spark_gold_daily_sales")
+        .using("iceberg")
+        .partitionedBy("order_date")
+        .createOrReplace()
+    )
 
     spark.stop()
 

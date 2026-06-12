@@ -67,6 +67,10 @@ def main() -> int:
     ]
     location_base = os.getenv("WXD_SCHEMA_LOCATION_BASE", "").rstrip("/")
 
+    print(f"Connecting to {host}:{port}, catalog={catalog}")
+    if location_base:
+        print(f"Using schema location base: {location_base}")
+
     conn = prestodb.dbapi.connect(
         host=host,
         port=port,
@@ -83,6 +87,7 @@ def main() -> int:
         sql = f"create schema if not exists {catalog}.{schema}"
         if location_base:
             sql = f"{sql} with (location = '{location_base}/{schema}')"
+        print(f"SQL> {sql}")
         try:
             cur.execute(sql)
         except prestodb.exceptions.HttpError as exc:

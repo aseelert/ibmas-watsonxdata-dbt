@@ -83,6 +83,7 @@ def main() -> int:
         "WXD_SPARK_APPLICATIONS_ENDPOINT",
         "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/lakehouse/api/v3/spark_engines/spark656/applications",
     )
+    print(f"Checking Spark application: {app_id}")
     response = requests.get(
         f"{endpoint.rstrip('/')}/{app_id}",
         headers={

@@ -211,6 +211,8 @@ def main() -> int:
     instance_id = _env("WXD_INSTANCE_ID", "1781163689818519")
     payload = _payload()
 
+    print(f"Submitting to: {endpoint}")
+    print(f"LhInstanceId: {instance_id}")
     print(json.dumps(_redacted_payload(payload), indent=2))
     if os.getenv("WXD_SPARK_DRY_RUN", "true").lower() in {"1", "true", "yes"}:
         print("Dry run only; set WXD_SPARK_DRY_RUN=false to submit.")
