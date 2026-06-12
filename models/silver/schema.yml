@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: silver_customers
+    description: Clean, typed customer dimension.
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+  - name: silver_products
+    description: Clean, typed product dimension.
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+  - name: silver_orders
+    description: Clean, typed order headers.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('silver_customers')
+                field: customer_id
+      - name: status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['completed', 'returned', 'pending', 'cancelled']
+  - name: silver_order_items
+    description: Clean, typed order line items.
+    columns:
+      - name: order_item_id
+        tests:
+          - not_null
+          - unique
+      - name: order_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('silver_orders')
+                field: order_id
+      - name: product_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('silver_products')
+                field: product_id

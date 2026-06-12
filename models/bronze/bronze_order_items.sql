@@ -1,0 +1,11 @@
+select
+  order_item_id,
+  order_id,
+  product_id,
+  quantity,
+  discount_pct,
+  current_timestamp as _ingested_at,
+  'dbt seed' as _ingested_by,
+  'raw_order_items.csv' as _source_file,
+  '{{ env_var("WXD_INGEST_BATCH_ID", "demo_seed_batch") }}' as _ingest_batch_id
+from {{ ref('raw_order_items') }}

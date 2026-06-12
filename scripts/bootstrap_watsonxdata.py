@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Create watsonx.data demo schemas before running dbt."""
+
+from __future__ import annotations
+
+import os
+import sys
+import time
+from pathlib import Path
+
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
+
+def _env(name: str, default: str | None = None) -> str:
+    value = os.getenv(name, default)
+    if value is None or value == "":
+        raise SystemExit(f"Missing required environment variable: {name}")
+    return value
+
+
+def _ssl_verify() -> bool | str:
+    value = os.getenv("WXD_SSL_VERIFY", "certs/watsonxdata-ca.pem").strip()
+    if value.lower() in {"0", "false", "no"}:
+        return False
+    if value.lower() in {"1", "true", "yes"}:
+        return True
+
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = Path(__file__).resolve().parents[1] / path
+    return str(path)
+
+
+def _http_headers() -> dict[str, str] | None:
+    instance_id = os.getenv("WXD_INSTANCE_ID", "").strip()
+    if not instance_id:
+        return None
+    return {"LhInstanceId": instance_id}
+
+
+def main() -> int:
+    if load_dotenv is not None:
+        load_dotenv()
+
+    try:
+        import prestodb
+    except ImportError as exc:
+        raise SystemExit(
+            "Missing dependency 'presto-python-client'. Install dependencies with: python -m pip install -r requirements.txt"
+        ) from exc
+
+    user = _env("WXD_USER", "ibmlhapikey_cpadmin")
+    password = _env("WXD_API_KEY")
+    host = _env("WXD_HOST")
+    port = int(_env("WXD_PORT", "443"))
+    catalog = _env("WXD_CATALOG", "iceberg_data")
+    base_schema = _env("WXD_SCHEMA", "lakehouse_demo")
+    schemas = [
+        os.getenv("WXD_RAW_SCHEMA", f"{base_schema}_raw"),
+        os.getenv("WXD_BRONZE_SCHEMA", f"{base_schema}_bronze"),
+        os.getenv("WXD_SILVER_SCHEMA", f"{base_schema}_silver"),
+        os.getenv("WXD_GOLD_SCHEMA", f"{base_schema}_gold"),
+    ]
+    location_base = os.getenv("WXD_SCHEMA_LOCATION_BASE", "").rstrip("/")
+
+    conn = prestodb.dbapi.connect(
+        host=host,
+        port=port,
+        user=user,
+        catalog=catalog,
+        http_scheme="https",
+        http_headers=_http_headers(),
+        auth=prestodb.auth.BasicAuthentication(user, password),
+    )
+    conn._http_session.verify = _ssl_verify()
+
+    cur = conn.cursor()
+    for schema in schemas:
+        sql = f"create schema if not exists {catalog}.{schema}"
+        if location_base:
+            sql = f"{sql} with (location = '{location_base}/{schema}')"
+        try:
+            cur.execute(sql)
+        except prestodb.exceptions.HttpError as exc:
+            if "AMS_CANNOT_GET_TOKEN" not in str(exc):
+                raise
+            time.sleep(2)
+            cur.execute(sql)
+        print(f"ensured {catalog}.{schema}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

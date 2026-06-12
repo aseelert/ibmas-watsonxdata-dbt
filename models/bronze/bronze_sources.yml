@@ -1,0 +1,44 @@
+version: 2
+
+seeds:
+  - name: raw_customers
+    description: Landing customer records loaded by dbt seed into the raw schema.
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+      - name: email
+        tests:
+          - not_null
+  - name: raw_products
+    description: Landing product master data loaded by dbt seed into the raw schema.
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+  - name: raw_orders
+    description: Landing order header data loaded by dbt seed into the raw schema.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+  - name: raw_order_items
+    description: Landing order line items loaded by dbt seed into the raw schema.
+    columns:
+      - name: order_item_id
+        tests:
+          - not_null
+          - unique
+
+models:
+  - name: bronze_customers
+    description: Raw customer records plus ingestion metadata.
+  - name: bronze_products
+    description: Raw product records plus ingestion metadata.
+  - name: bronze_orders
+    description: Raw order records plus ingestion metadata.
+  - name: bronze_order_items
+    description: Raw order item records plus ingestion metadata.

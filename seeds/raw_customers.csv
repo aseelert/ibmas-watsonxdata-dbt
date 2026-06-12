@@ -1,0 +1,9 @@
+customer_id,first_name,last_name,email,signup_date,country
+1001,Amina,Khan,amina.khan@example.com,2026-05-01,DE
+1002,Lukas,Weber,lukas.weber@example.com,2026-05-03,DE
+1003,Sofia,Rossi,sofia.rossi@example.com,2026-05-06,IT
+1004,Noah,Smith,noah.smith@example.com,2026-05-10,US
+1005,Maya,Schneider,maya.schneider@example.com,2026-05-11,DE
+1006,Emma,Dubois,emma.dubois@example.com,2026-05-14,FR
+1007,Oliver,Brown,oliver.brown@example.com,2026-05-18,GB
+1008,Lea,Fischer,lea.fischer@example.com,2026-05-20,DE

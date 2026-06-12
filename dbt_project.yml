@@ -1,0 +1,36 @@
+name: watsonxdata_medallion_demo
+version: 1.0.0
+config-version: 2
+
+profile: watsonxdata_medallion_demo
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+
+target-path: target
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  watsonxdata_medallion_demo:
+    +materialized: table
+    bronze:
+      +schema: "{{ env_var('WXD_BRONZE_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_bronze') }}"
+      +tags: ["bronze"]
+    silver:
+      +schema: "{{ env_var('WXD_SILVER_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_silver') }}"
+      +tags: ["silver"]
+    gold:
+      +schema: "{{ env_var('WXD_GOLD_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_gold') }}"
+      +materialized: "{{ env_var('WXD_GOLD_MATERIALIZED', 'view') }}"
+      +tags: ["gold"]
+
+seeds:
+  watsonxdata_medallion_demo:
+    +schema: "{{ env_var('WXD_RAW_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_raw') }}"
+    +tags: ["raw", "landing"]
+    +quote_columns: false

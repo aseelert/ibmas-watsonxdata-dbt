@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: gold_daily_sales
+    description: Daily sales KPI mart by date and product category.
+    columns:
+      - name: order_date
+        tests:
+          - not_null
+      - name: category
+        tests:
+          - not_null
+  - name: gold_customer_360
+    description: Customer-level analytics mart for demo dashboards and ad hoc SQL.
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
