@@ -108,7 +108,7 @@ def main() -> None:
     (
         spark_silver_orders.writeTo(f"{catalog}.{silver_schema}.spark_silver_orders")
         .using("iceberg")
-        .partitionedBy("order_date")
+        .partitionedBy(F.months("order_date"))
         .createOrReplace()
     )
     (
@@ -161,7 +161,7 @@ def main() -> None:
         sales_enriched.writeTo(f"{catalog}.{silver_schema}.spark_silver_sales_enriched")
         .using("iceberg")
         .tableProperty("write.format.default", "parquet")
-        .partitionedBy("order_date")
+        .partitionedBy(F.months("order_date"))
         .createOrReplace()
     )
 
@@ -182,7 +182,7 @@ def main() -> None:
         daily_sales.writeTo(f"{catalog}.{gold_schema}.spark_gold_daily_sales")
         .using("iceberg")
         .tableProperty("write.format.default", "parquet")
-        .partitionedBy("order_date")
+        .partitionedBy(F.months("order_date"))
         .createOrReplace()
     )
 

@@ -2,7 +2,7 @@
   config(
     properties={
       "format": "'PARQUET'",
-      "partitioning": "ARRAY['day(order_date)']"
+      "partitioning": "ARRAY['month(order_date)']"
     }
   )
 }}

@@ -2,7 +2,7 @@
     materialized="table",
     properties={
         "format": "'PARQUET'",
-        "partitioning": "ARRAY['order_date']"
+        "partitioning": "ARRAY['month(order_date)']"
     }
 ) }}
 
