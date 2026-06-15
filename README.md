@@ -197,6 +197,34 @@ The dbt and Spark gold outputs use different names to keep lineage obvious:
 
 dbt gold is configured as views by default, while Spark writes physical Iceberg tables.
 
+## OpenMetadata (dbt Lineage UI)
+
+This repo includes a local OpenMetadata setup that reads the dbt artifacts and draws the Bronze → Silver → Gold lineage graph in a browser UI. OpenMetadata and dbt/Spark run independently — OpenMetadata only reads the JSON files that dbt produces, so no live Presto connection is needed for the catalog UI.
+
+```bash
+# 1. Start OpenMetadata in Docker (first run downloads ~3 GB, takes 5–10 min)
+mkdir -p openmetadata
+curl -fsSL \
+  "https://github.com/open-metadata/OpenMetadata/releases/download/1.13.0-release/docker-compose.yml" \
+  -o openmetadata/docker-compose.yml
+docker compose -f openmetadata/docker-compose.yml up --detach
+
+# 2. Wait until the server is ready (~3–5 min)
+until curl -sf http://localhost:8585/api/v1/system/version; do sleep 20; done
+
+# 3. Generate dbt artifacts and run ingestion (re-runnable after every dbt run)
+bash scripts/dbt_env.sh docs generate --no-compile
+cp target/manifest.json target/catalog.json target/run_results.json openmetadata/dbt-artifacts/
+source .venv/bin/activate
+bash openmetadata/ingestion/run-ingestion.sh
+```
+
+Open **http://localhost:8585** — login with email `admin@open-metadata.org` / password `admin`.
+
+Navigate to **Explore → Databases → watsonxdata-presto → iceberg_data → lakehouse_demo_gold → gold_daily_sales → Lineage** to see the full medallion graph. The full walkthrough is in [docs/openmetadata.md](docs/openmetadata.md) and in the MkDocs site under **OpenMetadata dbt UI**.
+
+Stop OpenMetadata: `docker compose -f openmetadata/docker-compose.yml down`
+
 ## Security note
 
 Do not commit watsonx.data API keys. Put credentials in your shell environment or a local `.env` file. If an API key was pasted into chat or committed anywhere, rotate it before customer demos.

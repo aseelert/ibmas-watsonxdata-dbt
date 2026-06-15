@@ -1,0 +1,26 @@
+source:
+  type: dbt
+  serviceName: watsonxdata-presto
+  serviceConnection:
+    config:
+      type: Presto
+      hostPort: ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
+      catalog: iceberg_data
+      username: ibmlhadmin
+  sourceConfig:
+    config:
+      type: DBT
+      dbtConfigSource:
+        dbtConfigType: local
+        dbtCatalogFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/catalog.json
+        dbtManifestFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/manifest.json
+        dbtRunResultsFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/run_results.json
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: __JWT_TOKEN__
