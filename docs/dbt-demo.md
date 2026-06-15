@@ -551,6 +551,74 @@ The semantic model definitions live in `models/semantic_models.yml`. See [Semant
 
 ---
 
+## Optional: Iceberg time travel demo
+
+Iceberg records every `dbt run` as an immutable snapshot. The time travel script connects directly to Presto, reads the `$snapshots`, `$history`, and `$partitions` metadata tables, and issues a `FOR VERSION AS OF` query so you can see what the table looked like at a past snapshot — without restoring a backup.
+
+```bash
+# load env then run
+set -a && source .env && set +a
+python scripts/demo_time_travel.py
+```
+
+Expected output:
+
+```
+------------------------------------------------------------
+Step 1: Capture the current snapshot ID (our undo point)
+------------------------------------------------------------
+  Latest snapshot : 5531925961270514674
+  Committed at    : 2026-06-15 11:32:57.622 UTC
+  Operation       : append
+
+------------------------------------------------------------
+Step 2: Current state of the table
+------------------------------------------------------------
+  Total rows: 500
+
+  Status breakdown:
+    completed          380  ############################################################################
+    returned            70  ##############
+    cancelled           33  ######
+    pending             17  ###
+
+------------------------------------------------------------
+Step 3: Time travel — query the previous snapshot
+------------------------------------------------------------
+  Querying: SELECT COUNT(*) FROM silver_orders FOR VERSION AS OF 5531925961270514674
+  Row count at snapshot 5531925961270514674: 500
+  Row count now                            : 500
+  (Counts match — no data changes between snapshots in this session.)
+  Tip: run dbt run then re-run this script to see snapshot divergence.
+
+------------------------------------------------------------
+Step 4: Inspect full snapshot history
+------------------------------------------------------------
+  made_current_at                  snapshot_id            is_current_ancestor
+  2026-06-15 11:32:57.622 UTC      5531925961270514674    True
+
+------------------------------------------------------------
+Step 5: Inspect partition layout
+------------------------------------------------------------
+  month           records    files
+  2026-01              85        1
+  2026-02              84        1
+  2026-03             109        1
+  2026-04              86        1
+  2026-05              97        1
+  2026-06              39        1
+
+Done. Key takeaway: Iceberg never deletes old snapshots automatically —
+every dbt run, seed, or INSERT creates a new snapshot you can query back to.
+```
+
+!!! tip "See diverging snapshots"
+    Run `bash scripts/dbt_env.sh run --full-refresh` then run the script again.
+    Step 3 will show a different row count at the old snapshot vs. the current state,
+    proving the old data is still accessible via `FOR VERSION AS OF`.
+
+---
+
 ## What to Do Next
 
 You have completed Path A. The Bronze, Silver, and Gold layers are built, tested, and queryable.

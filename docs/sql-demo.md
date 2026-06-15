@@ -429,12 +429,25 @@ FROM iceberg_data.lakehouse_demo_silver."silver_orders$history"
 ORDER BY made_current_at DESC;
 ```
 
-**Partition layout — how data is distributed across `order_date` partitions:**
+**Partition layout — how data is distributed across `month(order_date)` partitions:**
 
 ```sql
-SELECT *
+SELECT order_date_month, row_count, file_count, total_size
 FROM iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
-ORDER BY order_date;
+ORDER BY order_date_month;
+```
+
+Expected output (month values are months since Unix epoch; 672 = 2026-01):
+
+```
+ order_date_month | row_count | file_count | total_size
+------------------+-----------+------------+------------
+              672 |        85 |          1 |       3607
+              673 |        84 |          1 |       3545
+              674 |       109 |          1 |       3963
+              675 |        86 |          1 |       3576
+              676 |        97 |          1 |       3759
+              677 |        39 |          1 |       2485
 ```
 
 **Full DDL — see exactly how the table was created, including file format and partition spec:**
