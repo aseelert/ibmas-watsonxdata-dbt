@@ -64,15 +64,21 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 nav:
-  - Overview: index.md
-  - Architecture & Lineage: lineage.md
-  - Semantic Models: semantic-models.md
-  - Setup Order: setup.md
-  - Beginner Glossary: glossary.md
-  - File Guide: files.md
-  - dbt Demo Path: dbt-demo.md
-  - OpenMetadata dbt UI: openmetadata.md
-  - Spark Demo Path: spark-demo.md
-  - Native Ingestion (cpdctl): ingestion.md
-  - SQL Demo: sql-demo.md
-  - Troubleshooting: troubleshooting.md
+  - Workshop:
+    - Welcome: index.md
+    - "1 · Prepare Your Machine": setup.md
+  - Understand:
+    - "Architecture & Data Flow": lineage.md
+    - "3 Ingestion Paths Compared": ingestion.md
+    - Glossary: glossary.md
+  - Demo Paths:
+    - "A · dbt — SQL Governance": dbt-demo.md
+    - "B · Spark — Python ETL": spark-demo.md
+    - "C · cpdctl — Native Ingestion": ingestion.md
+    - "SQL — Compare All Paths": sql-demo.md
+  - Governance:
+    - "Lineage UI (OpenMetadata)": openmetadata.md
+    - "Semantic Models": semantic-models.md
+  - Reference:
+    - "File Guide": files.md
+    - Troubleshooting: troubleshooting.md

@@ -1,11 +1,11 @@
 <section class="hero">
-  <span class="eyebrow">Medallion Architecture</span>
-  <h1>From four CSV files to governed gold marts — traced column by column</h1>
+  <span class="eyebrow">Architecture</span>
+  <h1>How watsonx.data works — storage, engines, catalog, and layers</h1>
   <p>
-    This page shows the full <strong>medallion lineage</strong> of the demo: how the raw
-    CSV files flow through bronze, silver, and gold, and exactly which column becomes
-    which. Use it to explain to a customer how a single field — say a discount percentage —
-    travels from a spreadsheet cell into <code>net_revenue</code> on a dashboard.
+    watsonx.data is a lakehouse: object storage for data, a metadata catalog for structure, and
+    SQL or Spark engines that run queries on top. This page explains what that looks like in
+    practice, traces every column from CSV to gold mart, and shows why data moves through layers
+    instead of going straight to a dashboard.
   </p>
 </section>
 
@@ -18,103 +18,161 @@
 ![Apache Iceberg](assets/images/iceberg.svg)
 </div>
 
-## The Four Medallion Layers
+## The watsonx.data building blocks
 
-<p class="lede">Each layer has one job. Data only ever moves left to right, and every layer keeps the one before it intact — so you can always trace a number back to the file it came from.</p>
+A lakehouse has four moving parts. Every tool in this workshop touches at least one of them.
+
+```mermaid
+flowchart LR
+  classDef storage fill:#edf5ff,stroke:#0f62fe,color:#161616;
+  classDef format  fill:#f6f2ff,stroke:#6929c4,color:#161616;
+  classDef engine  fill:#fbf1e8,stroke:#b46d3c,color:#161616;
+  classDef catalog fill:#defbe6,stroke:#198038,color:#161616;
+
+  minio["MinIO\nObject Storage"]:::storage
+  iceberg["Apache Iceberg\nTable Format"]:::format
+  presto["Presto\nSQL Engine"]:::engine
+  spark["Spark\nETL Engine"]:::engine
+  catalog["Catalog\niceberg_data"]:::catalog
+
+  minio -->|stores Parquet files| iceberg
+  iceberg -->|provides table metadata| presto
+  iceberg -->|provides table metadata| spark
+  catalog -->|registers schemas + tables| presto
+  catalog -->|registers schemas + tables| spark
+```
+
+| Building block | What it is | Plain-English role |
+|---|---|---|
+| **MinIO** | S3-compatible object storage | The filing cabinet — holds the actual data files on disk |
+| **Apache Iceberg** | Open table format specification | The index card — tracks which files belong to which table, and what the schema is |
+| **Presto** | Distributed SQL query engine | The SQL interpreter — takes your SELECT and turns it into file reads |
+| **Spark** | Distributed compute engine | The Python ETL runner — reads, transforms, and writes data at scale |
+| **Catalog (`iceberg_data`)** | Hive Metastore-compatible registry | The phonebook — tells both engines where every schema and table lives |
+
+!!! info "Why separate storage from compute?"
+    Traditional databases keep data and the query engine in the same box. A lakehouse splits them apart: data lives in object storage (cheap, durable, infinite), and you pick whichever engine fits the job — SQL for analysts, Spark for engineers. Both engines read the exact same files. That is the core lakehouse idea.
+
+!!! note "This workshop's connection endpoint"
+    The Presto engine for this workshop runs at:
+    ```text
+    ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
+    ```
+    The catalog is named `iceberg_data`. Every schema and table you create lands under that catalog.
+
+---
+
+## Why the medallion pattern?
+
+If you dump a raw CSV directly into a gold table, you have no way to fix bad data without
+reprocessing everything from scratch. The medallion pattern solves this by keeping each stage
+of processing in a separate, immutable layer. Each layer adds value without destroying what
+came before — so when something goes wrong (and it will), you can replay from bronze without
+re-ingesting the CSV.
+
+!!! abstract "What each layer adds"
+    **Raw** preserves the original files exactly as received — no cleaning, no casting. **Bronze**
+    makes the data queryable for the first time (Iceberg tables, plus ingest metadata so you know
+    when and how each row arrived). **Silver** makes it trustworthy — types are correct, strings
+    are trimmed, nulls are filtered, and all four entities are joined into one enriched fact.
+    **Gold** makes it answerable — aggregations and business metrics that a dashboard can read
+    directly, with no extra joins required.
 
 <div class="layer-grid">
   <div class="card raw">
     <span class="layer-tag">Raw</span>
     <h3>Source files</h3>
-    <p>The original CSV exports. The true landing zone — strings only, nothing cleaned. Kept for full traceability.</p>
+    <p>The original CSV exports. The true landing zone — strings only, nothing cleaned. Kept for full traceability. In this demo: 50 customers, 20 products, 500 orders, 1134 order items.</p>
   </div>
   <div class="card bronze">
     <span class="layer-tag">Bronze</span>
     <h3>Ingested copy</h3>
-    <p>First managed Iceberg tables. Same columns as the source, plus ingest metadata (when, by what, from which file, which batch).</p>
+    <p>First managed Iceberg tables. Same columns as the source, plus ingest metadata: when the row arrived, which tool loaded it, which file it came from, and which batch run it belongs to.</p>
   </div>
   <div class="card silver">
     <span class="layer-tag">Silver</span>
     <h3>Clean &amp; typed</h3>
-    <p>Strings become real dates, integers, and decimals. Trimmed, lower-cased, validated, deduplicated business entities.</p>
+    <p>Strings become real dates, integers, and decimals. Values are trimmed, lower-cased, and validated. All four entities are joined into one enriched fact table — <code>silver_sales_enriched</code> — so gold never has to re-join anything.</p>
   </div>
   <div class="card gold">
     <span class="layer-tag">Gold</span>
     <h3>Business marts</h3>
-    <p>Views that answer questions: daily sales by category, and a customer 360 with lifetime value. What dashboards read.</p>
+    <p>Pre-aggregated answers to business questions: daily sales by category, per-category performance totals, and a customer 360 with lifetime value. What dashboards and BI tools read.</p>
   </div>
 </div>
 
-!!! info "How to read the object types"
+!!! info "How to read object types"
     Every box in this demo is one of three things:
     <span class="obj csv">CSV</span> a flat file in object storage &nbsp;·&nbsp;
     <span class="obj table">TABLE</span> a physical Iceberg table &nbsp;·&nbsp;
     <span class="obj view">VIEW</span> a logical query that runs on read.
     Raw → bronze → silver are **tables**; gold is a **mix** — `gold_daily_sales` is a table, and the other gold marts are views built on top of it.
 
-## End-to-End Lineage
+---
 
-This is the whole pipeline at a glance. The four sources fan in through the layers and converge into the two gold marts.
+## Data flow in this demo
+
+Three separate ingestion paths — dbt, Spark, and cpdctl — each read the same source CSVs and
+produce the same medallion shape, but write to different schemas so you can compare them.
 
 ```mermaid
-flowchart LR
+flowchart TB
   classDef csv    fill:#edf5ff,stroke:#0f62fe,color:#161616;
+  classDef tool   fill:#f6f2ff,stroke:#6929c4,color:#161616;
   classDef bronze fill:#fbf1e8,stroke:#b46d3c,color:#161616;
   classDef silver fill:#f1f2f4,stroke:#6f7079,color:#161616;
   classDef gold   fill:#fcf4d6,stroke:#b28600,color:#161616;
+  classDef ingest fill:#defbe6,stroke:#198038,color:#161616;
 
-  subgraph RAW["RAW · CSV files"]
-    direction TB
-    c0["raw_customers.csv"]:::csv
-    p0["raw_products.csv"]:::csv
-    o0["raw_orders.csv"]:::csv
-    i0["raw_order_items.csv"]:::csv
+  subgraph SRC["Source CSVs (MinIO / dbt seeds)"]
+    direction LR
+    c0["raw_customers.csv\n50 rows"]:::csv
+    p0["raw_products.csv\n20 rows"]:::csv
+    o0["raw_orders.csv\n500 rows"]:::csv
+    i0["raw_order_items.csv\n1134 rows"]:::csv
   end
 
-  subgraph BRZ["BRONZE · Iceberg tables"]
+  subgraph DBT["dbt path · Presto SQL · lakehouse_demo_*"]
     direction TB
-    c1["bronze_customers"]:::bronze
-    p1["bronze_products"]:::bronze
-    o1["bronze_orders"]:::bronze
-    i1["bronze_order_items"]:::bronze
+    db["bronze_customers/products/orders/order_items\nlakehouse_demo_bronze"]:::bronze
+    ds["silver_customers/products/orders/order_items\nsilver_sales_enriched\nlakehouse_demo_silver"]:::silver
+    dg1["gold_daily_sales · TABLE\nlakehouse_demo_gold"]:::gold
+    dg2["gold_category_performance · VIEW\nlakehouse_demo_gold"]:::gold
+    dg3["gold_customer_360 · VIEW\nlakehouse_demo_gold"]:::gold
+    db --> ds --> dg1 --> dg2
+    ds --> dg3
   end
 
-  subgraph SLV["SILVER · Iceberg tables"]
+  subgraph SPARK["Spark path · PySpark · spark_demo_*"]
     direction TB
-    c2["silver_customers"]:::silver
-    p2["silver_products"]:::silver
-    o2["silver_orders"]:::silver
-    i2["silver_order_items"]:::silver
-    se["silver_sales_enriched"]:::silver
+    sb["spark_demo_bronze.*"]:::bronze
+    ss["spark_demo_silver.*\nspark_silver_sales_enriched"]:::silver
+    sg["spark_gold_daily_sales\nspark_gold_category_performance\nspark_gold_customer_360\nspark_demo_gold"]:::gold
+    sb --> ss --> sg
   end
 
-  subgraph GLD["GOLD · tables + views"]
+  subgraph CPDCTL["cpdctl path · IBM CLI · lakehouse_demo_ingest"]
     direction TB
-    g1["gold_daily_sales · TABLE"]:::gold
-    g3["gold_category_performance · VIEW"]:::gold
-    g2["gold_customer_360 · VIEW"]:::gold
+    ci["lakehouse_demo_ingest.*\n(UI-tracked, native ingestion)"]:::ingest
   end
 
-  c0 --> c1 --> c2
-  p0 --> p1 --> p2
-  o0 --> o1 --> o2
-  i0 --> i1 --> i2
-
-  c2 --> se
-  o2 --> se
-  i2 --> se
-  p2 --> se
-
-  se --> g1
-  g1 -->|TABLE → VIEW| g3
-
-  se --> g2
-  c2 --> g2
+  SRC -->|dbt seed + SQL models| DBT
+  SRC -->|PySpark DataFrame API| SPARK
+  SRC -->|cpdctl ingest command| CPDCTL
 ```
 
-## Column-Level Lineage
+!!! tip "All three paths, same data"
+    After running all three paths you will have three independent medallion stacks in the same
+    `iceberg_data` catalog. The [SQL comparison page](sql-demo.md) runs queries across all three
+    so you can verify they produce identical numbers.
 
-Below, each entity is traced field by field. <span class="new">Green</span> marks a column that is **created** in that layer (it has no upstream source).
+---
+
+## Column-by-column lineage
+
+Every field is traced from the original CSV cell to the final gold column. Green marks a column
+that is **created** in that layer — it has no upstream source, it is computed or added by the
+pipeline itself.
 
 ### Customers
 
@@ -196,7 +254,7 @@ Below, each entity is traced field by field. <span class="new">Green</span> mark
 </div>
 
 !!! note "Filter + partitioning at silver"
-    `where order_id is not null`. The table is **partitioned by `day(order_date)`** (PARQUET) so date-range queries prune files.
+    `where order_id is not null`. The table is **partitioned by `day(order_date)`** (PARQUET) so date-range queries prune files automatically.
 
 ### Order items
 
@@ -227,12 +285,11 @@ Below, each entity is traced field by field. <span class="new">Green</span> mark
 
 ### Silver enrichment (the join layer)
 
-The four tables above are clean, but they are still *separate*. In a lakehouse medallion design,
-silver does one more job: it **conforms and joins** the four entities into a single wide
-fact table — <code>silver_sales_enriched</code> (Spark: <code>spark_silver_sales_enriched</code>).
-Every row is one **order line** (one product on one order), with the customer, order, and
-product details already attached. Downstream gold no longer has to re-join anything — it
-just reads this one table. Two columns are **computed** here so the math lives in one place.
+The four clean tables above are still separate entities. Silver's final job is to **join all four
+into one wide fact table** — `silver_sales_enriched` — so downstream gold never has to re-join
+anything. Every row is one order line (one product on one order) with the customer, order, and
+product details already attached. Two columns are computed here so the revenue math lives in one
+authoritative place.
 
 <div class="lineage-table-wrap" markdown>
 <table class="lineage">
@@ -269,27 +326,27 @@ just reads this one table. Two columns are **computed** here so the math lives i
     `silver_order_items ⋈ silver_orders` on `order_id`, then `⋈ silver_products` on `product_id`,
     then `⋈ silver_customers` on `customer_id`. The result is one tidy fact at order-line grain.
 
-## Silver → Gold: where columns are computed
+---
 
-The gold layer turns the enriched silver fact into business answers. Because the join already
-happened at silver, gold mostly **aggregates and reshapes**. Following the medallion pattern,
-gold mixes physical **tables** (computed rows stored on disk) with **views** (saved queries that
-run on read).
+## The two gold output types
 
-!!! abstract "Table vs. view at the gold layer"
-    A <span class="obj table">TABLE</span> **stores the computed rows on disk**. The numbers are
-    crunched once, written down, and every read after that is fast and identical — ideal for BI
-    dashboards that hit the same data over and over. A <span class="obj view">VIEW</span> stores
-    **only the query text**, not the rows; each time you read it, the database re-runs the query
-    against its source table. That means a view is always fresh and costs no extra storage, but
-    it does the work again on every read. Here `gold_daily_sales` is a **table** (heavy aggregation,
-    read often), while `gold_category_performance` and `gold_customer_360` are **views** on top of
-    it / the enriched fact. This table-plus-view mix is the standard **medallion gold pattern**.
+Gold is where data becomes an answer. The two output types — TABLE and VIEW — exist for different
+reasons and have different performance characteristics.
 
-### `gold_daily_sales` <span class="obj table">TABLE</span>
+!!! abstract "TABLE vs VIEW at the gold layer"
+    A <span class="obj table">TABLE</span> **stores the computed rows on disk**. The aggregation runs once during the dbt build, the result is written as Parquet files, and every subsequent read is instant — the math is already done. A <span class="obj view">VIEW</span> stores **only the query text**, not the rows. Each time you read a view, the engine re-runs the query against whatever its source tables currently contain. That means a view is always fresh and costs no extra storage, but it does the work again on every read.
 
-A physical table built **from `silver_sales_enriched`** — one row per `order_date` × `category`.
-The aggregation is materialized to disk so dashboards read it instantly.
+| Gold object | Type | Storage cost | Freshness | When to use |
+|---|---|---|---|---|
+| `gold_daily_sales` | TABLE | Parquet files written to MinIO, partitioned by `order_date` | Reflects the last `dbt run` | Heavy aggregation read often by dashboards — pre-compute it |
+| `gold_category_performance` | VIEW | None — query text only | Always current against `gold_daily_sales` | Rolls up the daily table; light enough to recompute on read |
+| `gold_customer_360` | VIEW | None — query text only | Always current against silver | Per-customer profile with lifetime metrics; simple grouping |
+
+### `gold_daily_sales` — TABLE
+
+`gold_daily_sales` is built from `silver_sales_enriched`. It aggregates completed orders to one
+row per `order_date` × `category`. Because this is a physical table, Presto reads it from
+pre-written Parquet files — no joins, no re-aggregation.
 
 ```mermaid
 flowchart LR
@@ -318,13 +375,13 @@ flowchart LR
   nr --> G
 ```
 
-Source: `silver_sales_enriched`. Filter `status = 'completed'`, grouped by `order_date, category`.
+Filter: `status = 'completed'`. Grouped by `order_date, category`. Partitioned by `order_date`.
 
-### `gold_category_performance` <span class="obj view">VIEW</span>
+### `gold_category_performance` — VIEW
 
-A view built **on top of the `gold_daily_sales` table** — it rolls the daily rows up to one row
-per category. Nothing is stored; it recomputes from the table on every read, so it is always in
-sync with `gold_daily_sales`.
+`gold_category_performance` reads from `gold_daily_sales` (the table above) and rolls the
+daily rows up to one row per category. Nothing is stored; every read re-executes the aggregation
+against the latest version of the underlying table.
 
 ```mermaid
 flowchart LR
@@ -352,20 +409,11 @@ flowchart LR
   ar --> V
 ```
 
-The table-to-view relationship at a glance:
+### `gold_customer_360` — VIEW
 
-```mermaid
-flowchart LR
-  classDef gold fill:#fcf4d6,stroke:#b28600,color:#161616;
-  T["gold_daily_sales · TABLE"]:::gold
-  V["gold_category_performance · VIEW"]:::gold
-  T -->|TABLE → VIEW · recomputed on read| V
-```
-
-### `gold_customer_360` <span class="obj view">VIEW</span>
-
-A view built **from `silver_sales_enriched` joined to `silver_customers`** — one row per customer
-with their profile and lifetime metrics. As a view it stays fresh automatically as silver changes.
+`gold_customer_360` joins `silver_customers` to `silver_sales_enriched` and groups by customer.
+Each row is one customer with their profile and lifetime metrics. Because it is a view, it
+automatically reflects any changes made to the silver tables without needing a refresh.
 
 ```mermaid
 flowchart LR
@@ -392,7 +440,7 @@ flowchart LR
   ts --> G
 ```
 
-Joins: `silver_customers` LEFT JOIN `silver_sales_enriched` on `customer_id`. Grouped per customer.
+Join: `silver_customers` LEFT JOIN `silver_sales_enriched` on `customer_id`. Grouped per customer.
 
 !!! tip "Trace one number end to end"
     `net_revenue` on the daily-sales dashboard = `sum(net_amount)`, where
@@ -401,28 +449,42 @@ Joins: `silver_customers` LEFT JOIN `silver_sales_enriched` on `customer_id`. Gr
     summed for `completed` orders on a given `order_date` and `category`.
     Every factor is visible at every layer — that is the point of medallion.
 
-## Two engines, same blueprint
+---
 
-dbt and Spark build the **same medallion shape** from the same CSVs, into separate schemas so you can compare them side by side.
+## Iceberg + Parquet: what is actually stored
 
-| Layer | dbt path (Presto) | Spark path (PySpark) |
-| --- | --- | --- |
-| Raw | `dbt seed` → `lakehouse_demo_raw.*` <span class="obj table">TABLE</span> | CSVs read from `s3a://iceberg-bucket/spark_demo/raw` <span class="obj csv">CSV</span> |
-| Bronze | `lakehouse_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | `spark_demo_bronze.*` <span class="obj table">TABLE</span> |
-| Silver | `lakehouse_demo_silver.silver_*` <span class="obj table">TABLE</span>, incl. the enriched fact `silver_sales_enriched` | `spark_demo_silver.*` <span class="obj table">TABLE</span>, incl. `spark_silver_sales_enriched` |
-| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> in `lakehouse_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` in `spark_demo_gold` — all physical Iceberg <span class="obj table">TABLE</span>s |
-{: .comparison-table }
+When dbt or Spark writes a table, data lands in MinIO as Parquet files. Iceberg is the metadata
+layer that tracks which files belong to which table and in which partition. Understanding both
+explains why lakehouse queries are fast even on large datasets.
 
-Next: see the [dbt Demo Path](dbt-demo.md) or [Spark Demo Path](spark-demo.md) to build these layers yourself, then [compare them in SQL](sql-demo.md).
+### Why Parquet (not CSV, not ORC)
 
-## Why we partition tables
+Parquet stores data **by column**, not by row. If your query only needs `net_revenue` and
+`order_date`, Parquet skips every other column's bytes entirely — the disk I/O is proportional
+to how many columns you ask for, not how many exist.
+
+!!! info "Row storage vs column storage"
+    A row-oriented format (CSV, JSON) stores `row1_col1, row1_col2, row1_col3, row2_col1, ...`.
+    To read one column across all rows you must scan every byte. A column-oriented format (Parquet)
+    stores `col1_row1, col1_row2, col1_row3 ... col2_row1, col2_row2, ...`. To read one column you
+    jump straight to its block — all other columns are physically skipped.
+
+All tables in this demo use **PARQUET** format. ORC is not used.
+
+### Why partitioning matters
+
+Partitioning tells Iceberg to group files by a column value, creating sub-folders in object
+storage. When a query filters on that column, the engine skips every partition that cannot match.
 
 !!! tip "Think of it like filing folders"
-    Imagine you have thousands of paper receipts and you need to find all receipts from January 2026. If they are all dumped in one big box, you have to flip through every single one. But if you filed them into folders labelled by month — `January 2026`, `February 2026`, and so on — you just grab the right folder and you are done in seconds. Partitioning does exactly that for data: the engine skips every folder (partition) that cannot possibly contain the rows you asked for, so your query only touches the data it actually needs.
+    Imagine thousands of paper receipts in one big box. Finding January 2026 means flipping through
+    every single one. If you filed them by month — `January 2026/`, `February 2026/` — you grab
+    the right folder and you are done in seconds. Partitioning does the same thing for data files
+    in MinIO.
 
-Both `silver_sales_enriched` and `gold_daily_sales` are partitioned by `order_date`. That means object storage (the lakehouse equivalent of a filing cabinet) organises each table's Parquet files into date-stamped sub-folders automatically:
+Both `silver_sales_enriched` and `gold_daily_sales` are partitioned by `order_date`:
 
-```
+```text
 iceberg-bucket/
 └── lakehouse_demo_gold/
     └── gold_daily_sales/
@@ -434,40 +496,47 @@ iceberg-bucket/
             └── part-00000-ghi789.parquet
 ```
 
-A query like `WHERE order_date = '2026-02-14'` reads only the `order_date=2026-02/` folder — every other month's files are skipped entirely. On top of that, Parquet is **column-oriented**: instead of reading whole rows, the engine fetches only the columns your query references, ignoring all others. The combination of partition pruning and column projection means even a multi-year table answers a single-day question by reading a tiny fraction of the stored data.
+A query with `WHERE order_date = '2026-02-14'` reads only the `order_date=2026-02/` folder.
+Every other month's files are skipped entirely by Presto before a single byte is read.
 
-| Table | Partition column | Benefit |
-| --- | --- | --- |
+| Table | Partition column | What it skips |
+|---|---|---|
 | `silver_sales_enriched` | `order_date` | Date-range queries skip irrelevant months; Iceberg tracks file statistics per partition |
 | `gold_daily_sales` | `order_date` | BI tools filtering by date read only the matching folder; row counts per partition stay small and consistent |
 
-## The semantic layer
+### Iceberg metadata: what makes it a "table format"
 
-!!! info "What is a semantic layer?"
-    A **semantic layer** (sometimes called a presentation layer) sits on top of the gold marts and acts as the single source of truth for every BI tool, dashboard, and analyst in the organisation. Instead of everyone writing their own slightly-different SQL to calculate `net_revenue`, the semantic layer pre-aggregates and exposes the result using plain business-language column names. One definition, everywhere — no more "whose number is right?" arguments in Monday morning meetings.
+Iceberg keeps a **metadata tree** alongside the data files. That tree records the schema, the
+partition spec, the list of data files, and row-level statistics for each file. When Presto plans
+a query it reads the metadata first, uses the statistics to eliminate files, and only then opens
+Parquet. This is called **partition pruning + file skipping**, and it is what separates an Iceberg
+table from a raw folder of Parquet files.
 
-The gold objects that make up this layer are:
+!!! warning "Always use the Iceberg catalog — never query MinIO paths directly"
+    Querying `s3a://iceberg-bucket/lakehouse_demo_gold/...` directly bypasses all metadata and
+    forces a full scan of every file. Always go through the `iceberg_data` catalog so Presto can
+    use the Iceberg statistics to skip irrelevant files.
 
-| Object | Type | Format | Partitioned? |
-| --- | --- | --- | --- |
-| `gold_daily_sales` | Table | Parquet (Iceberg) | Yes — by `order_date` |
-| `gold_category_performance` | Materialized view | — (derived from table) | No |
-| `gold_customer_360` | View | — (query on read) | No |
+---
 
-!!! info "View vs. materialized view — the cooking analogy"
-    Think of a regular **view** like ordering a meal at a restaurant: every time you ask for it, the kitchen cooks it fresh from raw ingredients right then and there. It is always up to date, but you wait for it each time.
+## Two engines, same blueprint
 
-    A **materialized view** is like meal-prepping on Sunday: you cook a big batch, store it in labelled containers, and just grab one whenever you are hungry. It is instant because the work is already done — but the containers show what was cooked on Sunday, not what is in the fridge today. To get fresh results you have to cook (refresh) again.
+dbt (Presto SQL) and Spark (PySpark) produce the same medallion shape from the same CSVs, written
+to separate schemas so you can compare them side by side in the same catalog.
 
-    In this pipeline, `gold_category_performance` is a materialized view. dbt runs `REFRESH MATERIALIZED VIEW gold_category_performance` automatically after every successful build, so the pre-computed results stay in sync with the latest `gold_daily_sales` data without you having to do anything manually.
+| Layer | dbt path (Presto) | Spark path (PySpark) |
+|---|---|---|
+| Raw | `dbt seed` → `lakehouse_demo_raw.*` <span class="obj table">TABLE</span> | CSVs read from `s3a://iceberg-bucket/spark_demo/raw` <span class="obj csv">CSV</span> |
+| Bronze | `lakehouse_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | `spark_demo_bronze.*` <span class="obj table">TABLE</span> |
+| Silver | `lakehouse_demo_silver.silver_*` <span class="obj table">TABLE</span>, incl. `silver_sales_enriched` | `spark_demo_silver.*` <span class="obj table">TABLE</span>, incl. `spark_silver_sales_enriched` |
+| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> in `lakehouse_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` in `spark_demo_gold` — all physical Iceberg <span class="obj table">TABLE</span>s |
+{: .comparison-table }
 
-### dbt semantic models
+!!! info "Why Spark gold uses tables, not views"
+    dbt has first-class VIEW materialization built in. PySpark's DataFrame API writes physical
+    tables natively, so the Spark gold layer materializes all three objects as Iceberg tables
+    rather than SQL views. The query results are identical; only the materialization strategy
+    differs.
 
-!!! info "MetricFlow-compatible definitions in semantic_models.yml"
-    dbt ships a sub-framework called **MetricFlow** that lets you describe your data in business terms — dimensions (things you can filter or group by, like `category` or `order_date`) and measures (numbers you aggregate, like `net_revenue` or `order_count`) — inside a file called `semantic_models.yml`.
-
-    Once those definitions exist, connected BI tools (Tableau, Looker, Power BI, and others) can query the semantic layer by picking dimensions and measures from a menu instead of writing raw SQL. The tool generates the correct, consistent SQL for them every time. That means:
-
-    - A junior analyst and a senior data scientist will always get the same `net_revenue` number for the same filters.
-    - Renaming a column in dbt only needs to be updated in one place — the semantic model — and every downstream report picks up the change automatically.
-    - New metrics can be added to `semantic_models.yml` and become available to all tools instantly, with no dashboard rewiring required.
+Next: see the [dbt Demo Path](dbt-demo.md) or [Spark Demo Path](spark-demo.md) to build these
+layers yourself, then [compare them in SQL](sql-demo.md).

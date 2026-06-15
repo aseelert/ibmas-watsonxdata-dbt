@@ -1,33 +1,105 @@
-# SQL Demo
+# SQL — Compare All Three Paths
 
-Run these statements in the watsonx.data SQL editor against the Presto engine.
+!!! abstract "What this page does"
+    All three ingestion paths (dbt, Spark, cpdctl) write to different schemas but represent the
+    same four source CSV files. This page gives you ready-to-run SQL to inspect each path and
+    compare their gold-layer outputs side by side. Use the watsonx.data SQL editor or any
+    Presto client.
 
-!!! note "Raw in SQL vs raw files"
-    The original raw data is the CSV files. The `lakehouse_demo_raw` tables exist because dbt seed loads those CSV files into queryable Presto tables. Spark reads the CSV files directly from object storage, so there is no `spark_demo_raw` schema in this demo.
+---
 
-## Inspect dbt Schemas
+## Where to run these queries
 
-```sql
-show schemas from iceberg_data like 'lakehouse_demo%';
+Every query on this page runs against the **Presto engine** in the watsonx.data UI.
 
-show tables from iceberg_data.lakehouse_demo_raw;
-show tables from iceberg_data.lakehouse_demo_bronze;
-show tables from iceberg_data.lakehouse_demo_silver;
-show tables from iceberg_data.lakehouse_demo_gold;
+**Option 1 — watsonx.data SQL editor (browser)**
+
+Open the watsonx.data console, navigate to **SQL editor**, and set the catalog to `iceberg_data`.
+Paste any query from this page and click **Run**.
+
+**Option 2 — Python script (gold tables only)**
+
+The repo includes a convenience script that connects to Presto and queries the gold marts.
+
+```bash
+python scripts/query_gold.py
 ```
 
-## Raw Landing
+!!! info "Catalog to use"
+    All schemas in this demo live in the `iceberg_data` catalog. Always select `iceberg_data`
+    before running queries. The Presto endpoint is
+    `ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443`.
 
-```sql
-select *
-from iceberg_data.lakehouse_demo_raw.raw_orders
-order by order_id;
+!!! note "Why there is no spark_demo_raw schema"
+    The `lakehouse_demo_raw` tables exist because dbt seed loads CSV files into queryable Presto
+    tables. Spark reads the same CSV files directly from MinIO object storage, so there is no
+    `spark_demo_raw` schema — the Spark path starts at bronze.
+
+---
+
+## Schema map — all three paths at a glance
+
+Each path ingests the same source data but lands it in a different schema hierarchy.
+
+| Source CSV | Row count | dbt schema | Spark schema | cpdctl schema |
+|---|---|---|---|---|
+| `raw_customers.csv` | 50 | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.customers` | `lakehouse_demo_ingest.customers` |
+| `raw_products.csv` | 20 | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.products` | `lakehouse_demo_ingest.products` |
+| `raw_orders.csv` | 500 | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.orders` | `lakehouse_demo_ingest.orders` |
+| `raw_order_items.csv` | 1,134 | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.order_items` | `lakehouse_demo_ingest.order_items` |
+
+```mermaid
+flowchart LR
+    CSV["CSV files\n(MinIO)"]
+
+    CSV --> dbt_raw["lakehouse_demo_raw\n(dbt seed)"]
+    CSV --> sp_bz["spark_demo_bronze\n(Spark ETL)"]
+    CSV --> ingest["lakehouse_demo_ingest\n(cpdctl)"]
+
+    dbt_raw --> dbt_bz["lakehouse_demo_bronze"]
+    dbt_bz  --> dbt_sv["lakehouse_demo_silver"]
+    dbt_sv  --> dbt_gd["lakehouse_demo_gold"]
+
+    sp_bz   --> sp_sv["spark_demo_silver"]
+    sp_sv   --> sp_gd["spark_demo_gold"]
+
+    style dbt_gd fill:#0f62fe,color:#fff
+    style sp_gd  fill:#0f62fe,color:#fff
+    style ingest fill:#6929c4,color:#fff
 ```
 
-## Bronze Metadata
+---
+
+## Explore each path
+
+### Path A — dbt
+
+dbt builds a full four-layer medallion: raw → bronze → silver → gold. Each layer adds
+governance metadata, clean column types, and finally aggregated business metrics.
+
+**Discover what schemas and tables exist:**
 
 ```sql
-select
+SHOW SCHEMAS FROM iceberg_data LIKE 'lakehouse_demo%';
+
+SHOW TABLES FROM iceberg_data.lakehouse_demo_raw;
+SHOW TABLES FROM iceberg_data.lakehouse_demo_bronze;
+SHOW TABLES FROM iceberg_data.lakehouse_demo_silver;
+SHOW TABLES FROM iceberg_data.lakehouse_demo_gold;
+```
+
+**Raw layer — the original CSV data loaded as-is by `dbt seed`:**
+
+```sql
+SELECT *
+FROM iceberg_data.lakehouse_demo_raw.raw_orders
+ORDER BY order_id;
+```
+
+**Bronze layer — same rows, plus four dbt audit columns added by the bronze model:**
+
+```sql
+SELECT
   order_id,
   customer_id,
   order_ts,
@@ -37,14 +109,19 @@ select
   _ingested_by,
   _source_file,
   _ingest_batch_id
-from iceberg_data.lakehouse_demo_bronze.bronze_orders
-order by order_id;
+FROM iceberg_data.lakehouse_demo_bronze.bronze_orders
+ORDER BY order_id;
 ```
 
-## Silver Orders
+!!! tip "What the underscore columns are"
+    `_ingested_at`, `_ingested_by`, `_source_file`, and `_ingest_batch_id` are metadata columns
+    that dbt adds in the bronze model. They record when the row arrived, which process wrote it,
+    and which batch it belongs to — this is the core of data governance lineage.
+
+**Silver layer — cleaned column types, `order_date` extracted as a proper date partition key:**
 
 ```sql
-select
+SELECT
   order_id,
   customer_id,
   order_ts,
@@ -52,128 +129,333 @@ select
   status,
   payment_method,
   transformed_at
-from iceberg_data.lakehouse_demo_silver.silver_orders
-order by order_id;
+FROM iceberg_data.lakehouse_demo_silver.silver_orders
+ORDER BY order_id;
 ```
 
-## Gold Marts
+**Gold layer — aggregated business marts ready for dashboards and analytics:**
+
+`gold_daily_sales` is a **TABLE** (materialized, partitioned by `order_date`).
+`gold_customer_360` and `gold_category_performance` are **VIEWs** (computed on read).
 
 ```sql
-select *
-from iceberg_data.lakehouse_demo_gold.gold_daily_sales
-order by order_date, category;
+SELECT *
+FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+ORDER BY order_date, category;
 
-select *
-from iceberg_data.lakehouse_demo_gold.gold_customer_360
-order by lifetime_value desc, customer_id;
+SELECT *
+FROM iceberg_data.lakehouse_demo_gold.gold_customer_360
+ORDER BY lifetime_value DESC, customer_id;
 ```
 
-## Iceberg Metadata
+---
+
+### Path B — Spark
+
+The Spark path uses a Python ETL script to produce bronze, silver, and gold layers in separate
+`spark_demo_*` schemas. The column names and aggregation logic mirror the dbt gold marts so
+the two paths can be compared directly.
+
+**Discover what schemas and tables exist:**
 
 ```sql
-select
+SHOW SCHEMAS FROM iceberg_data LIKE 'spark_demo%';
+
+SHOW TABLES FROM iceberg_data.spark_demo_bronze;
+SHOW TABLES FROM iceberg_data.spark_demo_silver;
+SHOW TABLES FROM iceberg_data.spark_demo_gold;
+```
+
+**Bronze layer — raw ingestion into Spark-managed Iceberg tables:**
+
+```sql
+SELECT *
+FROM iceberg_data.spark_demo_bronze.orders
+ORDER BY order_id;
+```
+
+**Silver layer — cleaned and enriched by the Spark ETL:**
+
+```sql
+SELECT *
+FROM iceberg_data.spark_demo_silver.orders
+ORDER BY order_id;
+```
+
+**Gold layer — aggregated marts matching the dbt gold schema:**
+
+```sql
+SELECT *
+FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
+ORDER BY order_date, category;
+
+SELECT *
+FROM iceberg_data.spark_demo_gold.spark_gold_customer_360
+ORDER BY lifetime_value DESC, customer_id;
+```
+
+---
+
+### Path C — cpdctl
+
+cpdctl ingestion loads CSV files directly into Iceberg tables under `lakehouse_demo_ingest`
+with no transformation — this is the platform's native ingestion service. Runs appear in the
+watsonx.data console under **Data manager → Ingestion**.
+
+**Discover what tables exist:**
+
+```sql
+SHOW TABLES FROM iceberg_data.lakehouse_demo_ingest;
+```
+
+**Row counts — verify all four tables loaded correctly:**
+
+```sql
+SELECT 'customers'   AS tbl, COUNT(*) AS rows FROM iceberg_data.lakehouse_demo_ingest.customers
+UNION ALL SELECT 'products',    COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.products
+UNION ALL SELECT 'orders',      COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
+UNION ALL SELECT 'order_items', COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.order_items;
+```
+
+**Inspect the raw customer rows:**
+
+```sql
+SELECT *
+FROM iceberg_data.lakehouse_demo_ingest.customers
+ORDER BY customer_id;
+```
+
+!!! note "cpdctl has no gold layer"
+    The cpdctl path loads raw CSV data as-is and stops there. It demonstrates the platform's
+    built-in ingestion audit trail, not a full medallion pipeline. To compute gold-level
+    aggregations from cpdctl data, run the ad-hoc join below.
+
+**Ad-hoc gold-equivalent query over cpdctl tables:**
+
+This join reproduces the daily sales metric using the raw cpdctl tables — no ETL pipeline needed.
+
+```sql
+SELECT
+  CAST(o.order_date AS DATE)          AS order_date,
+  p.category                          AS category,
+  COUNT(DISTINCT o.order_id)          AS order_count,
+  SUM(oi.quantity)                    AS units_sold,
+  SUM(oi.quantity * oi.unit_price)    AS net_revenue
+FROM iceberg_data.lakehouse_demo_ingest.orders      o
+JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id  = oi.order_id
+JOIN iceberg_data.lakehouse_demo_ingest.products    p  ON oi.product_id = p.product_id
+WHERE o.status = 'completed'
+GROUP BY CAST(o.order_date AS DATE), p.category
+ORDER BY order_date, category;
+```
+
+---
+
+## Side-by-side comparison — the money shot
+
+This is the core demo moment: two completely independent pipelines (dbt and Spark) reading the
+same source data through different engines and code — and producing identical business answers.
+
+### Daily sales — dbt vs Spark
+
+Run this single UNION ALL query to see both paths in one result set. Identical rows confirm
+the pipelines agree.
+
+```sql
+SELECT
+  'dbt'         AS path,
+  order_date,
+  category,
+  order_count,
+  units_sold,
+  net_revenue
+FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+
+UNION ALL
+
+SELECT
+  'spark'       AS path,
+  order_date,
+  category,
+  order_count,
+  units_sold,
+  net_revenue
+FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
+
+ORDER BY order_date, category, path;
+```
+
+!!! tip "What to look for"
+    For every `(order_date, category)` combination you should see exactly two rows — one with
+    `path = 'dbt'` and one with `path = 'spark'`. The `order_count`, `units_sold`, and
+    `net_revenue` values must match. If they do not match, the silver-layer filter logic differs
+    between the two pipelines.
+
+**Verify mathematically — check for any row where the two paths disagree:**
+
+```sql
+WITH dbt_gold AS (
+  SELECT order_date, category, order_count, units_sold, net_revenue
+  FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+),
+spark_gold AS (
+  SELECT order_date, category, order_count, units_sold, net_revenue
+  FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
+)
+SELECT
+  d.order_date,
+  d.category,
+  d.order_count        AS dbt_orders,
+  s.order_count        AS spark_orders,
+  d.net_revenue        AS dbt_revenue,
+  s.net_revenue        AS spark_revenue,
+  d.net_revenue - s.net_revenue AS delta
+FROM dbt_gold   d
+JOIN spark_gold s USING (order_date, category)
+WHERE d.order_count != s.order_count
+   OR d.net_revenue != s.net_revenue
+ORDER BY ABS(d.net_revenue - s.net_revenue) DESC;
+```
+
+!!! example "Expected result"
+    Zero rows returned — both pipelines produce identical aggregations from the same source data.
+
+---
+
+### Customer 360 — dbt vs Spark
+
+```sql
+SELECT
+  'dbt'         AS path,
+  customer_id,
+  completed_orders,
+  returned_orders,
+  pending_orders,
+  cancelled_orders,
+  lifetime_value
+FROM iceberg_data.lakehouse_demo_gold.gold_customer_360
+
+UNION ALL
+
+SELECT
+  'spark'       AS path,
+  customer_id,
+  completed_orders,
+  returned_orders,
+  pending_orders,
+  cancelled_orders,
+  lifetime_value
+FROM iceberg_data.spark_demo_gold.spark_gold_customer_360
+
+ORDER BY customer_id, path;
+```
+
+---
+
+### Three-way row count — all paths, all layers
+
+Use this query at any time to get a quick health check across every schema in the demo.
+
+```sql
+SELECT 'dbt raw'           AS path_layer, 'raw_orders'        AS tbl, COUNT(*) AS rows FROM iceberg_data.lakehouse_demo_raw.raw_orders
+UNION ALL SELECT 'dbt bronze', 'bronze_orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_bronze.bronze_orders
+UNION ALL SELECT 'dbt silver', 'silver_orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_silver.silver_orders
+UNION ALL SELECT 'dbt gold',   'gold_daily_sales',  COUNT(*) FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+UNION ALL SELECT 'spark bz',   'orders',            COUNT(*) FROM iceberg_data.spark_demo_bronze.orders
+UNION ALL SELECT 'spark sv',   'orders',            COUNT(*) FROM iceberg_data.spark_demo_silver.orders
+UNION ALL SELECT 'spark gold', 'spark_gold_daily_sales', COUNT(*) FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
+UNION ALL SELECT 'cpdctl',     'orders',            COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
+ORDER BY path_layer, tbl;
+```
+
+---
+
+## Iceberg time travel
+
+Iceberg records every write as a new snapshot. Time travel lets you query any historical version
+of a table using either a snapshot ID or a timestamp — without restoring a backup.
+
+!!! tip "How to get a snapshot ID"
+    Run the snapshot query in the next section first. Copy a `snapshot_id` value, then paste it
+    into the query below.
+
+**Query by snapshot ID:**
+
+```sql
+SELECT *
+FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FOR VERSION AS OF <snapshot_id>
+ORDER BY order_id;
+```
+
+**Query by timestamp** — use any timestamp after a `committed_at` value from the snapshots table:
+
+```sql
+SELECT *
+FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FOR TIMESTAMP AS OF TIMESTAMP '2026-06-12 12:46:47 UTC'
+ORDER BY order_id;
+```
+
+!!! warning "Replace the placeholder values"
+    `<snapshot_id>` must be replaced with an actual integer from the snapshots query.
+    The timestamp example above is illustrative — use a real `committed_at` value from your
+    instance.
+
+---
+
+## Iceberg table history
+
+Iceberg maintains a full audit log of every change to a table. These metadata queries work on
+any Iceberg table in the catalog.
+
+**Snapshot history — every write operation recorded:**
+
+```sql
+SELECT
   committed_at,
   snapshot_id,
   operation,
   summary
-from iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
-order by committed_at desc;
-
-select *
-from iceberg_data.lakehouse_demo_silver."silver_orders$history"
-order by made_current_at desc;
-
-select *
-from iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
-order by order_date;
-
-show create table iceberg_data.lakehouse_demo_silver.silver_orders;
+FROM iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
+ORDER BY committed_at DESC;
 ```
 
-## Time Travel
-
-Replace `<snapshot_id>` with a value from `"silver_orders$snapshots"`.
+**Change history — which snapshot is currently active:**
 
 ```sql
-select *
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for version as of <snapshot_id>
-order by order_id;
+SELECT *
+FROM iceberg_data.lakehouse_demo_silver."silver_orders$history"
+ORDER BY made_current_at DESC;
 ```
 
-Use a timestamp after one of the `committed_at` values.
+**Partition layout — how data is distributed across `order_date` partitions:**
 
 ```sql
-select *
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for timestamp as of timestamp '2026-06-12 12:46:47 UTC'
-order by order_id;
+SELECT *
+FROM iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
+ORDER BY order_date;
 ```
 
-## Spark Output
+**Full DDL — see exactly how the table was created, including file format and partition spec:**
 
 ```sql
-show schemas from iceberg_data like 'spark_demo%';
-
-show tables from iceberg_data.spark_demo_bronze;
-show tables from iceberg_data.spark_demo_silver;
-show tables from iceberg_data.spark_demo_gold;
-
-select *
-from iceberg_data.spark_demo_gold.spark_gold_daily_sales
-order by order_date, category;
-
-select *
-from iceberg_data.spark_demo_gold.spark_gold_customer_360
-order by lifetime_value desc, customer_id;
+SHOW CREATE TABLE iceberg_data.lakehouse_demo_silver.silver_orders;
 ```
 
-## Compare dbt and Spark Gold
+!!! info "Why Iceberg metadata matters for demos"
+    These metadata tables are what separate a lakehouse from a plain data lake. You can show an
+    audience exactly when data changed, run point-in-time queries, and inspect partition pruning
+    — all without touching the underlying PARQUET files in MinIO.
 
-```sql
-select
-  'dbt' as path,
-  order_date,
-  category,
-  order_count,
-  units_sold,
-  net_revenue
-from iceberg_data.lakehouse_demo_gold.gold_daily_sales
-union all
-select
-  'spark' as path,
-  order_date,
-  category,
-  order_count,
-  units_sold,
-  net_revenue
-from iceberg_data.spark_demo_gold.spark_gold_daily_sales
-order by order_date, category, path;
-```
+---
 
-## Compare dbt and Spark Customer 360
+## What to do next
 
-```sql
-select
-  'dbt' as path,
-  customer_id,
-  completed_orders,
-  returned_orders,
-  pending_orders,
-  cancelled_orders,
-  lifetime_value
-from iceberg_data.lakehouse_demo_gold.gold_customer_360
-union all
-select
-  'spark' as path,
-  customer_id,
-  completed_orders,
-  returned_orders,
-  pending_orders,
-  cancelled_orders,
-  lifetime_value
-from iceberg_data.spark_demo_gold.spark_gold_customer_360
-order by customer_id, path;
-```
+The full SQL script used in this page is also available as a standalone file at
+`docs/watsonxdata_sql_demo.sql` for use with any Presto client.
 
-The full SQL script is also available in `docs/watsonxdata_sql_demo.sql`.
+After comparing results across all three paths, see the lineage graph that traces each row
+from source CSV to gold mart:
+
+[Lineage UI (OpenMetadata)](openmetadata.md){ .md-button }

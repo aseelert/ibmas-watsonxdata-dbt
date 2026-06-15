@@ -1,83 +1,138 @@
-# Setup Order
+# Workshop Setup
 
-This page gets your laptop ready. Run every command from the repository root:
+!!! abstract "What this step does"
+    This page installs the tools, creates the Python environment, and connects your machine to watsonx.data. When this step is done your laptop can run dbt models, submit Spark jobs, and use the cpdctl CLI.
+
+Run every command from the repository root unless a step says otherwise. The whole process takes about 15 minutes on a typical laptop with a decent internet connection.
+
+---
+
+## Prerequisites checklist
+
+Before you start, confirm that each item below is in place. The "How to verify" column shows the exact command to run.
+
+| Requirement | Why you need it | How to verify | Expected output |
+|---|---|---|---|
+| Python 3.11 | The virtual environment and all scripts require exactly 3.11 | `python3.11 --version` | `Python 3.11.x` |
+| Git | Cloning the repo | `git --version` | Any version is fine |
+| Docker Desktop | Only needed for the OpenMetadata lineage demo | `docker --version` | Any version is fine |
+| watsonx.data connection JSON | Contains Presto host, instance ID, and SSL certificate | `ls watsonx_data/instance_details.json` | File must exist |
+| watsonx.data Software Hub API key | Your personal authentication credential | Provided by your administrator | Keep this secret |
+
+!!! warning "Python version matters"
+    The `dbt-watsonx-presto` adapter has been tested against Python 3.11 only. Using 3.12 or 3.10 may produce dependency conflicts. If `python3.11 --version` fails, install Python 3.11 from [python.org](https://www.python.org/downloads/) before continuing.
+
+---
+
+## Step 1: Clone and enter the repo
+
+A Git repository holds all the dbt models, scripts, and configuration files for this workshop. Clone it once and work from that directory for every subsequent step.
 
 ```bash
-cd /Users/aseelert/GitHub/ibmas-watsonxdata-dbt
+git clone https://github.com/aseelert/ibmas-watsonxdata-dbt.git
+cd ibmas-watsonxdata-dbt
 ```
 
-!!! tip "What you are setting up"
-    The local machine runs Python helpers and dbt. watsonx.data runs Presto and Spark remotely. MinIO stores the files that Spark reads.
+Expected output:
 
-## Step 1: Create Python Environment
+```text
+Cloning into 'ibmas-watsonxdata-dbt'...
+remote: Enumerating objects: ...
+Resolving deltas: 100% (...)
+```
+
+!!! tip "Already cloned?"
+    If you already have the repo, just `cd` into it and run `git pull` to make sure you have the latest version.
+
+---
+
+## Step 2: Create Python 3.11 virtual environment
+
+A virtual environment is an isolated Python installation that keeps this workshop's packages separate from anything else on your laptop. This prevents version conflicts with other Python projects.
 
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-This installs:
+Your prompt will change to show `(.venv)` when the environment is active. You must activate it again (`source .venv/bin/activate`) whenever you open a new terminal.
 
-- dbt and the watsonx.data Presto adapter
-- Python clients for Presto, S3/MinIO, and REST calls
-- MkDocs and Material for this documentation site
+The `requirements.txt` installs these packages:
 
-## Step 2: Create dbt Profile
+| Package | Version pinned | Plain-English role |
+|---|---|---|
+| `dbt-core` | >=1.8,<2.0 | The dbt engine that compiles and runs SQL models |
+| `dbt-watsonx-presto` | 0.1.2 | Adapter that translates dbt calls into Presto-compatible SQL |
+| `presto-python-client` | 0.8.4 | Low-level Python driver for talking to the Presto endpoint |
+| `boto3` / `requests` | >=1.34 / >=2.31 | S3-compatible client for MinIO uploads and REST calls |
+| `mkdocs` + `mkdocs-material` | >=1.6 / >=9.5 | Builds this documentation site locally |
 
-dbt looks for connection profiles in `~/.dbt/profiles.yml`.
+!!! note "pip install takes a minute"
+    The total download is around 80 MB. This is normal — dbt pulls in a lot of SQL parsing libraries.
 
-```bash
-mkdir -p ~/.dbt
-cp profiles/profiles.example.yml ~/.dbt/profiles.yml
-```
+---
 
-## Step 3: Create Local `.env`
+## Step 3: Create local `.env`
+
+The `.env` file holds environment-specific values such as hostnames, usernames, and your API key. Keeping them in a file rather than hard-coding them means you never accidentally commit secrets to Git.
 
 ```bash
 cp .env.example .env
 ```
 
-Open `.env` and set your Software Hub API key:
+Open `.env` in any text editor and set your Software Hub API key on this line:
 
 ```bash
 WXD_API_KEY=<your-software-hub-api-key>
 ```
 
-!!! warning "Do not commit secrets"
-    `.env` is ignored by Git. Keep real API keys only in `.env` or your shell environment.
+The key looks like a long alphanumeric string provided by your workshop administrator. Every other value in `.env` will be filled in automatically by Step 5.
 
-## Step 4: Add watsonx.data Connection JSON
+!!! warning "Never commit .env"
+    `.env` is already listed in `.gitignore`, so Git will not track it. Still, double-check by running `git status` — `.env` should never appear as a file to commit. Real API keys belong only in `.env` or your shell environment, never in source code.
 
-Export the watsonx.data Presto connection JSON and save it here:
+---
+
+## Step 4: Add the watsonx.data connection JSON
+
+The connection JSON is a file you export from the watsonx.data console. It contains the Presto endpoint address, your instance ID, and the SSL certificate chain needed to establish a trusted TLS connection. It does **not** contain your API key.
+
+To get the file:
+
+1. Open the watsonx.data console in your browser.
+2. Go to **Infrastructure manager** and click your Presto engine (`presto651`).
+3. Click **Download connection details** (or the equivalent export button your administrator points you to).
+4. Save the downloaded file as `watsonx_data/instance_details.json` inside the repo root.
+
+The JSON contains fields similar to these:
 
 ```text
-watsonx_data/instance_details.json
+Field                   Plain-English meaning
+─────────────────────── ──────────────────────────────────────────────────
+Presto host / port      Where dbt sends SQL queries
+                        (ibm-lh-lakehouse-presto651-presto-svc.apps...
+                        :443)
+instance_id             Identifies your watsonx.data tenant on the cluster
+cpd_host                The IBM Software Hub (CPD) base URL
+ssl_certificate         PEM-encoded CA certificate chain for TLS
 ```
 
-That JSON contains values such as:
+!!! info "One JSON per environment"
+    The administrator may give you a pre-exported JSON for the workshop cluster. If so, just copy it to `watsonx_data/instance_details.json` and skip the export steps above.
 
-- Presto host and port
-- watsonx.data instance id
-- CPD / Software Hub host
-- SSL certificate chain
+---
 
-It does **not** contain your API key.
+## Step 5: Import connection values
 
-## Step 5: Import Connection Values
+The `prepare_watsonx_env.py` script reads `watsonx_data/instance_details.json`, extracts the non-secret values, writes the SSL certificate to disk, and updates your `.env` file automatically. You only need to run this once (or again if the JSON changes).
 
 ```bash
 python scripts/prepare_watsonx_env.py
 ```
 
-This updates `.env` with non-secret values and writes the SSL certificate to:
-
-```text
-certs/watsonxdata-ca.pem
-```
-
-Expected output looks like this:
+Expected output:
 
 ```text
 Read connection details from: watsonx_data/instance_details.json
@@ -85,55 +140,134 @@ Wrote certificate chain to: certs/watsonxdata-ca.pem
 Updated env file: .env
 ```
 
-## Step 6: Optional JSON Path
+After this step two things will have changed on disk:
 
-Use this if your exported JSON is somewhere else:
+- `certs/watsonxdata-ca.pem` — the CA certificate that both dbt and cpdctl use to verify the cluster's TLS certificate.
+- `.env` — now contains the Presto host, port, instance ID, and CPD host in addition to your API key.
 
-```bash
-python scripts/prepare_watsonx_env.py --connection-json /path/to/presto-connection.json
-```
+!!! tip "JSON file in a different location?"
+    If your exported JSON lives somewhere else on your laptop, pass the path explicitly:
 
-## Step 7: Optional Overwrite
+    ```bash
+    python scripts/prepare_watsonx_env.py --connection-json /path/to/presto-connection.json
+    ```
 
-Use this when the JSON changed and you want to replace old non-secret values in `.env`:
+    If the JSON changed (for example, the administrator rotated the certificate) and you want to overwrite the values already in `.env`, add the `--overwrite` flag:
 
-```bash
-python scripts/prepare_watsonx_env.py --overwrite
-```
+    ```bash
+    python scripts/prepare_watsonx_env.py --overwrite
+    ```
 
-## Step 8: Build The Documentation Site
+---
 
-```bash
-mkdocs build --strict
-```
+## Step 6: Create the dbt profile
 
-Serve the docs locally:
-
-```bash
-mkdocs serve -a 127.0.0.1:8001
-```
-
-Open:
-
-```text
-http://127.0.0.1:8001
-```
-
-## Step 9: Continue
-
-Run the dbt path next:
+dbt reads connection details from a profiles file in your home directory. The repo ships an example profile that uses the environment variables you set in Steps 3 and 5.
 
 ```bash
-python scripts/bootstrap_watsonxdata.py
-scripts/dbt_env.sh seed --full-refresh
-scripts/dbt_env.sh run
-scripts/dbt_env.sh test
+mkdir -p ~/.dbt
+cp profiles/profiles.example.yml ~/.dbt/profiles.yml
+```
+
+The profile connects dbt to Presto using `BasicAuth`. It picks up every value — host, port, catalog, schema, SSL cert path — from the environment variables already in your `.env`, so you do not need to edit the file manually.
+
+!!! note "Why ~/.dbt and not the project folder?"
+    dbt looks for `profiles.yml` in `~/.dbt` by default. Keeping it there means your API key is never inside the project directory where you might accidentally commit it.
+
+---
+
+## Step 7: Verify the connection (recommended)
+
+Before running any dbt models, confirm that your laptop can actually reach the Presto engine. This catches typos in the API key, wrong certificate paths, or network firewall issues before they interrupt the main workshop flow.
+
+Run either of these two checks (they test the same connection from different angles):
+
+```bash
+# Option A: run a small gold-layer query via Python
 python scripts/query_gold.py
 ```
 
-Then run the Spark path:
+```bash
+# Option B: ask dbt to verify its own profile
+bash scripts/dbt_env.sh debug
+```
+
+Successful output for Option A looks like:
+
+```text
+Connecting to Presto at ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
+Query: SELECT count(*) FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+Result: 1 row(s) returned
+```
+
+Successful output for Option B ends with:
+
+```text
+Connection test: OK
+```
+
+!!! warning "Connection refused or SSL error?"
+    See the [Troubleshooting](troubleshooting.md) page. The most common causes are a missing `certs/watsonxdata-ca.pem` (re-run Step 5) or a wrong API key (check `.env`).
+
+---
+
+## Step 8: Install cpdctl (Path C only)
+
+!!! info "Skip this step unless you plan to run Path C"
+    Path C uses the IBM `cpdctl` CLI to submit native ingestion jobs that appear in the watsonx.data console under **Data manager → Ingestion**. If you are only running the dbt path or the Spark path, skip to the "Ready to go?" section below.
+
+`cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data ingestion service directly, bypassing dbt and Spark.
+
+Install on macOS (Apple Silicon):
 
 ```bash
-python scripts/upload_spark_assets.py
-python scripts/submit_spark_application.py
+curl -fsSL -o cpdctl.tar.gz \
+  https://github.com/IBM/cpdctl/releases/download/v1.8.233/cpdctl_darwin_arm64.tar.gz
+tar -xzf cpdctl.tar.gz -C ~/.local/bin && chmod +x ~/.local/bin/cpdctl
+cpdctl version
 ```
+
+Expected output:
+
+```text
+cpdctl version 1.8.233 ...
+```
+
+!!! tip "Other operating systems"
+    Find the correct binary for your OS at [github.com/IBM/cpdctl/releases](https://github.com/IBM/cpdctl/releases). Replace `cpdctl_darwin_arm64.tar.gz` with the filename for your platform (for example, `cpdctl_linux_amd64.tar.gz` for Linux x86-64).
+
+After installing the binary, configure a profile for this workshop environment. The values come from `.env`:
+
+```bash
+set -a; source .env; set +a
+
+cpdctl config profile set wxd-demo \
+  --url "https://${WXD_CPD_HOST}" \
+  --username "${WXD_CPD_USERNAME}" \
+  --apikey "${WXD_API_KEY}" \
+  --env "WATSONX_DATA_INSTANCE_ID=${WXD_INSTANCE_ID}"
+```
+
+Then tell cpdctl to trust the cluster CA certificate:
+
+```bash
+export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
+```
+
+!!! note "Add SSL_CERT_FILE to your shell profile"
+    If you close and reopen the terminal, you will need to re-export `SSL_CERT_FILE`. Consider adding it to `~/.zshrc` or `~/.bashrc` so it persists across sessions.
+
+---
+
+## Ready to go?
+
+Before moving on, confirm all four items below:
+
+- [ ] `(.venv)` appears in your terminal prompt (virtual environment is active).
+- [ ] `python scripts/query_gold.py` or `bash scripts/dbt_env.sh debug` printed `OK` or returned a row count.
+- [ ] `certs/watsonxdata-ca.pem` exists (run `ls certs/watsonxdata-ca.pem`).
+- [ ] `.env` contains a real value for `WXD_API_KEY` (not the placeholder `replace-with-your-software-hub-api-key`).
+
+If every item above is checked, your laptop is fully configured.
+
+Next: [Architecture & Data Flow](lineage.md)

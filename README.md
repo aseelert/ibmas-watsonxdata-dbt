@@ -1,650 +1,207 @@
-# watsonx.data dbt and Spark medallion demo
+# watsonx.data Ingestion Workshop — dbt · Spark · cpdctl
 
-> **New to all of this? Read this first (plain words).**
->
-> Imagine a small online shop that exports four spreadsheet files: customers, products, orders, and the items inside each order. On their own, those files can't answer simple questions like *"how much did we sell on Tuesday?"* This demo turns those raw files into clean, trustworthy tables you can query — and it does it **twice**, with two different tools, so you can compare them:
->
-> - **Lakehouse** — cheap file storage (a "lake") that you can still query with SQL like a database (a "warehouse"). Both at once.
-> - **watsonx.data** — IBM's lakehouse product: the building that holds the storage, the engines, and the catalog of tables.
-> - **Medallion (bronze → silver → gold)** — organising data by quality, like refining metal: raw → kept & labelled → cleaned → ready for business use.
-> - **dbt** — clean data with SQL, the safe way: each transformation is a file, run in order, tested, and documented. It stores no data; it tells the database what to build.
-> - **Spark** — an engine that splits big data jobs across many computers at once. The heavy-duty option for large or complex work.
-> - **Iceberg** — the open table format under the hood that gives plain files database superpowers (safe updates, version history, time travel).
-> - **Table vs. view** — a *table* is data stored on disk; a *view* is a saved question that re-runs every time you look.
->
-> Full beginner walkthrough and a column-by-column lineage diagram live in the docs site (`mkdocs serve`).
+A hands-on demo showing three ways to load and transform data in an IBM watsonx.data lakehouse.
+The same four CSV files (customers, products, orders, order items) flow through the Bronze → Silver → Gold
+medallion pattern via dbt, Spark, and cpdctl. No prior watsonx.data experience needed.
 
-This repo is a technical customer demo for IBM watsonx.data with an Iceberg lakehouse catalog. It shows the same ecommerce dataset moving through a medallion pattern: CSV landing data, bronze tables with ingestion metadata, silver tables with typed and conformed data, and gold marts for analytics.
+---
 
-There are two separated demo paths:
+## Quick Start (5 commands)
 
-- **dbt path:** Uses dbt with the watsonx.data Presto engine to create and test SQL models.
-- **Spark path:** Uses the watsonx.data Spark engine to run a PySpark application against the same CSV files.
+```bash
+git clone <repo-url> && cd ibmas-watsonxdata-dbt
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/prepare_watsonx_env.py     # reads watsonx_data/instance_details.json
+bash scripts/dbt_env.sh run               # runs the full dbt medallion pipeline
+```
 
-The two paths intentionally write to different schemas, so you can compare them side by side without one demo overwriting the other.
+!!! info "Python version"
+    Python 3.11 is required. Python 3.14 currently breaks dbt through a transitive dependency.
 
-The default catalog is `iceberg_data`. Set `WXD_CATALOG=hive_data` if you want to run the dbt path against the Hive catalog instead. Gold dbt models are views by default; set `WXD_GOLD_MATERIALIZED=table` if you want physical gold marts for a performance-oriented demo.
+---
 
-## dbt and Spark
+## What You Will Build
 
-dbt is a SQL transformation framework. It is good for turning data already available in the lakehouse into governed, tested, documented models. In this demo, dbt runs through Presto, builds the raw, bronze, silver, and gold layers, and validates relationships and accepted values with dbt tests.
+Three independent ingestion paths — all writing to the same `iceberg_data` catalog, all using Iceberg table format and MinIO object storage, all queryable through the Presto SQL engine.
 
-Spark is a distributed data processing engine. It is usually chosen for larger ingestion jobs, heavy ETL, file processing, ML feature engineering, or transformations that need Spark libraries and cluster execution. In this demo, Spark implements the same medallion idea with the same CSV files, but writes to separate `spark_demo_*` schemas.
+| Path | Tool | Schemas written | Gold objects created |
+|------|------|-----------------|----------------------|
+| **A — dbt** | dbt + Presto (SQL) | `lakehouse_demo_raw/bronze/silver/gold` | `gold_daily_sales` (table), `gold_category_performance` (view), `gold_customer_360` (view) |
+| **B — Spark** | PySpark on watsonx.data Spark engine | `spark_demo_bronze/silver/gold` | `spark_gold_daily_sales` (table), `spark_gold_category_performance` (view), `spark_gold_customer_360` (table) |
+| **C — cpdctl** | IBM cpdctl CLI (native ingestion service) | `lakehouse_demo_ingest` | `customers`, `products`, `orders`, `order_items` |
 
-For customer demos, lead with dbt when the story is governed SQL analytics on watsonx.data. Use Spark as a second path when the story includes distributed ingestion or larger engineering workloads. Both are valid lakehouse approaches; the important point is that both land open tables in watsonx.data that can be queried through the lakehouse catalog.
+The paths write to separate schemas so you can compare them side by side without one overwriting another.
 
-## How They Fit Together
+!!! tip "Which path to lead with?"
+    Lead with **dbt** when the story is governed SQL analytics. Use **Spark** when the story includes distributed ingestion or large-scale ETL. Use **cpdctl** when you want to show the built-in ingestion jobs that appear in the watsonx.data console under **Data manager → Ingestion (history)**.
+
+---
+
+## The Medallion Pattern
+
+The medallion pattern organises data by quality — raw CSV arrives first, then each layer refines it further until it is ready for analytics.
+
+```mermaid
+flowchart LR
+  CSV["CSV files\n(seeds/ or object storage)"]
+  RAW["Raw\nlanding tables"]
+  BRONZE["Bronze\n+ingestion metadata"]
+  SILVER["Silver\ntyped & conformed"]
+  GOLD["Gold\nanalytics marts"]
+  SQL["Presto SQL\nBI · notebooks · demos"]
+
+  CSV --> RAW --> BRONZE --> SILVER --> GOLD --> SQL
+```
+
+| Layer | Plain-language description | Format |
+|-------|---------------------------|--------|
+| Raw | Original CSV payload, unchanged, for traceability | dbt seeds / direct CSV read |
+| Bronze | First managed copy in the lakehouse; adds `_ingested_at`, `_source_file`, `_ingest_batch_id` | Iceberg PARQUET table |
+| Silver | Typed, cleaned, conformed entities; validated with dbt tests; orders partitioned by `order_date` | Iceberg PARQUET table |
+| Gold | Business-facing aggregates ready for SQL, BI, or demos | Table or view (see path) |
+
+The three paths handle Raw differently:
+
+```text
+dbt path:   seeds/ CSV → lakehouse_demo_raw → bronze → silver → gold
+Spark path: object storage CSV → spark_demo_bronze → silver → gold
+cpdctl:     seeds/ CSV → lakehouse_demo_ingest (single-step, no medallion)
+```
+
+---
+
+## Three Paths Compared
 
 ```mermaid
 flowchart TB
-  persona["Technical user or demo presenter"]
-  csv["CSV demo files"]
-  objectStore["MinIO object storage"]
+  persona["Workshop participant"]
+  csv["CSV demo files\n(50 customers · 20 products\n500 orders · 1134 order items)"]
+  minio["MinIO object storage"]
   catalog["watsonx.data catalog: iceberg_data"]
-  presto["Presto engine"]
-  sparkEngine["Spark engine"]
-  dbt["dbt project: SQL models, tests, lineage"]
-  sparkJob["PySpark application: distributed file processing"]
-  dbtSchemas["dbt schemas: lakehouse_demo_raw, bronze, silver, gold"]
-  sparkSchemas["Spark schemas: spark_demo_bronze, silver, gold"]
-  handoff["Optional real-project handoff: Spark prepares large assets"]
-  governance["Optional governance layer: dbt models and tests prepared data"]
-  consumers["SQL editor, BI, notebooks, customer demo"]
+  presto["Presto SQL engine"]
+  sparkEngine["watsonx.data Spark engine"]
+
+  dbt["Path A — dbt\nSQL models · tests · lineage"]
+  sparkJob["Path B — Spark\nPySpark distributed ETL"]
+  cpdctl["Path C — cpdctl\nnative ingestion CLI"]
+
+  dbtSchemas["lakehouse_demo_raw/bronze/silver/gold"]
+  sparkSchemas["spark_demo_bronze/silver/gold"]
+  ingestSchema["lakehouse_demo_ingest"]
+
+  consumers["SQL · BI · OpenMetadata · demos"]
 
   persona --> dbt
   persona --> sparkJob
+  persona --> cpdctl
 
   csv --> dbt
-  dbt --> presto
-  presto --> catalog
-  catalog --> dbtSchemas
+  dbt --> presto --> catalog --> dbtSchemas
 
-  csv --> objectStore
-  objectStore --> sparkEngine
-  sparkJob --> sparkEngine
-  sparkEngine --> catalog
-  catalog --> sparkSchemas
+  csv --> minio
+  minio --> sparkEngine
+  sparkJob --> sparkEngine --> catalog --> sparkSchemas
+
+  csv --> minio
+  cpdctl --> presto --> catalog --> ingestSchema
 
   dbtSchemas --> consumers
   sparkSchemas --> consumers
-
-  sparkSchemas -.-> handoff
-  handoff -.-> dbt
-  dbt -.-> governance
-  governance -.-> dbtSchemas
+  ingestSchema --> consumers
 ```
 
-In this repo, dbt and Spark are separated on purpose. They use the same source data and the same medallion idea, but they write to different schemas so the customer can compare the approaches clearly. In a real project, they can also work together: Spark can ingest or prepare large datasets, and dbt can model, test, document, and publish SQL-friendly tables for analytics.
+| Tool | Language | Best for | Docs |
+|------|----------|----------|------|
+| dbt | SQL | Governed transformations, tests, lineage, repeatable analytics models | [dbt-watsonx-presto adapter](https://docs.getdbt.com/docs/core/connect-data-platform/watsonx-presto-setup) |
+| Spark | Python (PySpark) | Large-scale ingestion, complex ETL, ML feature engineering, file processing | [watsonx.data Spark docs](https://www.ibm.com/docs/en/watsonx/watsonxdata) |
+| cpdctl | CLI (YAML/REST) | Built-in ingestion jobs tracked in the watsonx.data UI console | [cpdctl reference](https://github.com/IBM/cpdctl) |
 
-| Tool | Strong at | Weaker at | Demo role |
-| --- | --- | --- | --- |
-| dbt | SQL transformations, tests, documentation, lineage, repeatable analytics models, team review workflows. | Heavy file processing, complex distributed compute, non-SQL transformations, ML-style processing. | Shows governed medallion modeling through Presto into `lakehouse_demo_*` schemas. |
-| Spark | Distributed processing, large files, complex ETL, schema evolution handling, ML/feature jobs, batch jobs near object storage. | SQL model governance, built-in documentation, lightweight analyst workflows, simple marts that do not need a cluster. | Shows an alternative medallion implementation with PySpark into `spark_demo_*` schemas. |
-| watsonx.data | Shared open table access, Iceberg metadata, Presto SQL, Spark execution, object storage-backed lakehouse data. | It is the platform rather than the transformation framework; dbt or Spark still define the transformation logic. | Provides the catalog, engines, storage, and query surface for both paths. |
+---
 
 ## Documentation Site (MkDocs)
 
-This repo ships a full, beginner-friendly documentation site (built with
-[MkDocs](https://www.mkdocs.org/) + [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)).
-It explains every concept in plain language and includes a column-by-column medallion
-lineage diagram. Here is how to run it locally after cloning.
+After cloning and installing dependencies, serve the full beginner-friendly docs locally.
 
 ```bash
-# 1. Clone and enter the repo
-git clone <repo-url>
-cd ibmas-watsonxdata-dbt
-
-# 2. Create the Python 3.11 virtual environment and install dependencies
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt   # includes mkdocs + mkdocs-material
-```
-
-```bash
-# 3. Serve the docs with live reload, then open the printed URL
 mkdocs serve
 # -> http://127.0.0.1:8000
 ```
 
-`mkdocs serve` watches the `docs/` folder and `mkdocs.yml`, so edits show up instantly
-in the browser. To pick a different port: `mkdocs serve -a 127.0.0.1:8123`.
+`mkdocs serve` watches `docs/` and `mkdocs.yml` — edits appear instantly in the browser.
+To use a different port: `mkdocs serve -a 127.0.0.1:8123`.
 
 ```bash
-# 4. (Optional) Build a static site into ./site for hosting
-mkdocs build            # output in ./site (git-ignored)
-mkdocs build --strict   # fail on broken links or warnings (use in CI)
+mkdocs build           # static output in ./site (git-ignored)
+mkdocs build --strict  # fail on broken links or warnings — use in CI
 ```
 
-> The `site/` build output and the local `.venv/` are git-ignored, so they never get
-> committed. You only need `mkdocs serve` to read the docs locally.
+What the docs site covers:
 
-What you get:
+- **Overview** — watsonx.data, dbt, Spark, Iceberg, and the medallion pattern in plain words
+- **Architecture & Lineage** — full medallion design with a column-by-column lineage diagram
+- **Setup** — virtual environment, `.env`, certificates, dbt profiles
+- **dbt path** — seed, run, test, query gold
+- **Spark path** — upload assets, submit job, query Spark gold tables
+- **cpdctl / native ingestion** — install, configure, run ingestion jobs
+- **SQL demo** — copy-paste Presto queries for every layer
+- **OpenMetadata** — lineage UI walkthrough
+- **Glossary, File Guide, Troubleshooting**
 
-- **Overview** — what watsonx.data, dbt, Spark, Iceberg, and the medallion pattern are, in plain words.
-- **Architecture & Lineage** — the full medallion design with a column-by-column lineage diagram (CSV → bronze → silver → gold), showing where joins happen and which gold object is a table vs. a view.
-- **Setup, dbt, Spark, and SQL demo paths** — step-by-step runbooks.
-- **Glossary, File Guide, and Troubleshooting**.
-
-## Medallion Pattern
-
-```mermaid
-flowchart LR
-  A["CSV files in seeds/ or object storage"] --> B["Raw landing data"]
-  B --> C["Bronze managed tables with ingestion metadata"]
-  C --> D["Silver clean/conformed tables"]
-  D --> E["Gold analytics marts"]
-  E --> F["Presto SQL, Spark, notebooks, BI, demos"]
-```
-
-Layer meaning:
-
-| Layer | Meaning | Demo implementation |
-| --- | --- | --- |
-| Raw landing | Original CSV payload exactly as it arrives for the demo. It is useful for traceability but should not be the main layer for business logic. | dbt seeds or Spark CSV reads. |
-| Bronze | First managed lakehouse copy. Keeps source fields close to the original and adds operational metadata such as ingest time, source file, and batch id. | Iceberg tables. |
-| Silver | Cleaned and conformed entities. Columns are typed, statuses are standardized, keys are validated, and tables are ready for reuse. | Iceberg tables with dbt tests; orders are partitioned by date. |
-| Gold | Business-facing aggregates and marts for demos, SQL, BI, or notebooks. | dbt views by default; Spark writes a physical daily sales table. |
-
-Raw is intentionally handled differently by the two paths:
-
-```text
-CSV files = true raw landing data
-
-dbt path:
-CSV files -> lakehouse_demo_raw tables -> bronze -> silver -> gold
-
-Spark path:
-CSV files in object storage -> bronze -> silver -> gold
-```
-
-dbt creates `lakehouse_demo_raw` tables because dbt transforms SQL tables. Spark reads CSV files directly, so this demo does not create a separate `spark_demo_raw` schema.
-
-Default dbt schemas:
-
-- `lakehouse_demo_raw`
-- `lakehouse_demo_bronze`
-- `lakehouse_demo_silver`
-- `lakehouse_demo_gold`
-
-Set `WXD_SCHEMA` to change the prefix, or set `WXD_BRONZE_SCHEMA`, `WXD_SILVER_SCHEMA`, and `WXD_GOLD_SCHEMA` explicitly.
-
-The demo sets `WXD_SCHEMA_LOCATION_BASE=s3a://iceberg-bucket/lakehouse_demo` for Iceberg schema/table locations. For `hive_data`, change it to `s3a://hive-bucket/lakehouse_demo`. The bootstrap creates layer-specific locations below the base path.
-
-Layer behavior:
-
-| Layer | Schema | Materialization | Purpose |
-| --- | --- | --- | --- |
-| Raw | `iceberg_data.lakehouse_demo_raw` | dbt seeds as tables | Direct CSV landing zone for the demo. |
-| Bronze | `iceberg_data.lakehouse_demo_bronze` | Tables | Raw business columns plus `_ingested_at`, `_ingested_by`, `_source_file`, `_ingest_batch_id`. |
-| Silver | `iceberg_data.lakehouse_demo_silver` | Tables | Typed, cleaned, conformed entities with tests. `silver_orders` is partitioned by `day(order_date)`. |
-| Gold | `iceberg_data.lakehouse_demo_gold` | Views by default | Business-facing marts: `gold_daily_sales` and `gold_customer_360`. |
-
-Default Spark schemas:
-
-| Layer | Schema |
-| --- | --- |
-| Spark bronze | `iceberg_data.spark_demo_bronze` |
-| Spark silver | `iceberg_data.spark_demo_silver` |
-| Spark gold | `iceberg_data.spark_demo_gold` |
-
-The dbt and Spark gold outputs use different names to keep lineage obvious:
-
-| dbt gold | Spark gold |
-| --- | --- |
-| `gold_daily_sales` | `spark_gold_daily_sales` |
-| `gold_customer_360` | `spark_gold_customer_360` |
-
-dbt gold is configured as views by default, while Spark writes physical Iceberg tables.
+---
 
 ## OpenMetadata (dbt Lineage UI)
 
-This repo includes a local OpenMetadata setup that reads the dbt artifacts and draws the Bronze → Silver → Gold lineage graph in a browser UI. OpenMetadata and dbt/Spark run independently — OpenMetadata only reads the JSON files that dbt produces, so no live Presto connection is needed for the catalog UI.
+OpenMetadata is an open-source data catalog that reads the JSON files dbt produces and draws the Bronze → Silver → Gold lineage graph in a browser UI. No live Presto connection is needed for the catalog UI — it only reads dbt artifact files.
 
 ```bash
-# 1. Start OpenMetadata in Docker (first run downloads ~3 GB, takes 5–10 min)
+# Start OpenMetadata in Docker (first run downloads ~3 GB, takes 5-10 min)
 mkdir -p openmetadata
 curl -fsSL \
   "https://github.com/open-metadata/OpenMetadata/releases/download/1.13.0-release/docker-compose.yml" \
   -o openmetadata/docker-compose.yml
 docker compose -f openmetadata/docker-compose.yml up --detach
 
-# 2. Wait until the server is ready (~3–5 min)
+# Wait until the server is ready (~3-5 min)
 until curl -sf http://localhost:8585/api/v1/system/version; do sleep 20; done
 
-# 3. Generate dbt artifacts and run ingestion (re-runnable after every dbt run)
+# Generate dbt artifacts and run ingestion (re-runnable after every dbt run)
 bash scripts/dbt_env.sh docs generate --no-compile
 cp target/manifest.json target/catalog.json target/run_results.json openmetadata/dbt-artifacts/
 source .venv/bin/activate
 bash openmetadata/ingestion/run-ingestion.sh
 ```
 
-Open **http://localhost:8585** — login with email `admin@open-metadata.org` / password `admin`.
+Open **http://localhost:8585** and log in with `admin@open-metadata.org` / `admin`.
 
-Navigate to **Explore → Databases → watsonxdata-presto → iceberg_data → lakehouse_demo_gold → gold_daily_sales → Lineage** to see the full medallion graph. The full walkthrough is in [docs/openmetadata.md](docs/openmetadata.md) and in the MkDocs site under **OpenMetadata dbt UI**.
-
-Stop OpenMetadata: `docker compose -f openmetadata/docker-compose.yml down`
-
-## Security note
-
-Do not commit watsonx.data API keys. Put credentials in your shell environment or a local `.env` file. If an API key was pasted into chat or committed anywhere, rotate it before customer demos.
-
-## Setup
-
-Create a local Python 3.11 virtual environment:
+Navigate to **Explore → Databases → watsonxdata-presto → iceberg_data → lakehouse_demo_gold → gold_daily_sales → Lineage** to see the full medallion graph.
 
 ```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+# Stop OpenMetadata when done
+docker compose -f openmetadata/docker-compose.yml down
 ```
 
-Python 3.11 is recommended for this demo. Python 3.14 currently breaks dbt through a transitive dependency during startup.
+!!! note "Version"
+    This repo is tested against OpenMetadata 1.13.0. The full walkthrough is in `docs/openmetadata.md`.
 
-The `requirements.txt` file installs dbt Core, `dbt-watsonx-presto`, `presto-python-client`, `boto3`, `requests`, `python-dotenv`, and MkDocs (for the docs site).
+---
 
-It also installs MkDocs and Material for MkDocs. To view the nicer documentation site:
+## Prerequisites
 
-```bash
-mkdocs serve
-```
+Before cloning, confirm you have:
 
-Then open:
+- [ ] **Python 3.11** — `python3.11 --version`
+- [ ] **Git** — `git --version`
+- [ ] **Docker Desktop** — running (needed for OpenMetadata only)
+- [ ] **watsonx.data credentials** — API key, Presto host, instance ID, and the connection JSON exported from the watsonx.data console
+- [ ] **OpenShift CLI (`oc`)** — needed for MinIO port-forward (Spark and cpdctl paths)
 
-```text
-http://127.0.0.1:8000
-```
+!!! info "Connection JSON"
+    Export the Presto connection JSON from the watsonx.data console and save it as `watsonx_data/instance_details.json`.
+    Then run `python scripts/prepare_watsonx_env.py` — it populates `.env` and writes `certs/watsonxdata-ca.pem` automatically.
 
-This project profile uses `type: watsonx_presto`, matching the IBM watsonx.data dbt adapter configuration.
+---
 
-Copy the example profile into your dbt profiles directory:
+## Security Note
 
-```bash
-mkdir -p ~/.dbt
-cp profiles/profiles.example.yml ~/.dbt/profiles.yml
-```
-
-Create your local `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-Then edit `.env` and set `WXD_API_KEY`. The `.env` file is ignored by Git.
-
-If you export the watsonx.data Presto connection JSON, save it as:
-
-```text
-watsonx_data/instance_details.json
-```
-
-Then import the connection values into `.env` and write the embedded certificate chain to `certs/watsonxdata-ca.pem`:
-
-```bash
-python scripts/prepare_watsonx_env.py
-```
-
-The script imports non-secret values such as `WXD_HOST`, `WXD_PORT`, `WXD_INSTANCE_ID`, `WXD_PRESTO_ENGINE_ID`, `WXD_CPD_HOST`, and `WXD_SSL_VERIFY`. It preserves existing secrets in `.env`. The API key is not part of the connection JSON, so keep `WXD_API_KEY` in `.env`.
-
-For a different file path:
-
-```bash
-python scripts/prepare_watsonx_env.py --connection-json /path/to/presto-connection.json
-```
-
-Use `--overwrite` if you want values from the JSON to replace existing `.env` values. Local connection JSON files under `watsonx_data/` are ignored by Git.
-
-For this on-prem watsonx.data connection, `.env.example` also includes `WXD_INSTANCE_ID=1781163689818519`. The Python helpers and dbt profile pass it as the `LhInstanceId` header, which is used by watsonx.data native/on-prem APIs.
-
-## Where Values Come From
-
-Use `.env.example` as the map for all local settings. The important values come from these places:
-
-| Variable | Where to get it |
-| --- | --- |
-| `WXD_HOST` | watsonx.data Presto connection JSON, property `engine_host`. |
-| `WXD_PORT` | watsonx.data Presto connection JSON, property `engine_port`. |
-| `WXD_INSTANCE_ID` | watsonx.data connection JSON, property `instance_id`. This is sent as `LhInstanceId`. |
-| `WXD_PRESTO_ENGINE_ID` | watsonx.data Presto connection JSON, property `engine_id`. |
-| `WXD_CATALOG` | watsonx.data catalog name, usually `iceberg_data` for this demo. |
-| `WXD_SCHEMA` | Demo schema prefix. The default is `lakehouse_demo`. |
-| `WXD_USER` | For API-key auth, use `ibmlhapikey_<software-hub-username>`, for example `ibmlhapikey_cpadmin`. |
-| `WXD_API_KEY` | IBM Software Hub / CPD API key for the user. The same key is used by the Presto/dbt path and the Spark submission helper. |
-| `WXD_SSL_VERIFY` | Path to the certificate chain exported from the connection JSON `ssl_certificate`; this repo uses `certs/watsonxdata-ca.pem`. |
-| `WXD_CPD_HOST` | IBM Software Hub route, visible in the browser URL and Spark engine endpoint. |
-| `WXD_SPARK_ENGINE_ENDPOINT` | watsonx.data Spark engine details page. |
-| `WXD_SPARK_APPLICATIONS_ENDPOINT` | watsonx.data Spark engine details page, usually the engine endpoint plus `/applications`. |
-| `WXD_OBJECT_STORE_INTERNAL_ENDPOINT` | watsonx.data storage details for the MinIO bucket. |
-| `WXD_OBJECT_STORE_ENDPOINT` | Reachable S3 endpoint from your workstation. In this environment it is usually `http://127.0.0.1:19000` through `oc port-forward`. |
-| `WXD_OBJECT_STORE_ACCESS_KEY` and `WXD_OBJECT_STORE_SECRET_KEY` | MinIO credentials. The upload script can read them from the OpenShift secret `ibm-lh-minio-secret` when you are logged in with `oc`. |
-
-The current environment uses an internal MinIO service, so the workstation upload flow normally starts with:
-
-```bash
-oc login https://api.watson.ibmas-zocp-techcluster.org:6443
-oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
-```
-
-The uploader can start the port-forward automatically when `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true`.
-
-The OpenShift ingress certificate chain is stored in `certs/watsonxdata-ca.pem`, and `.env.example` sets:
-
-```bash
-WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
-```
-
-Both dbt and the Python helpers use that value for TLS verification. For quick local troubleshooting only, you can set `WXD_SSL_VERIFY=false`, but keep certificate verification enabled for demos.
-
-## dbt Demo Path
-
-Activate the virtual environment:
-
-```bash
-source .venv/bin/activate
-```
-
-Create the dbt medallion schemas:
-
-```bash
-python scripts/bootstrap_watsonxdata.py
-```
-
-This creates:
-
-- `iceberg_data.lakehouse_demo_raw`
-- `iceberg_data.lakehouse_demo_bronze`
-- `iceberg_data.lakehouse_demo_silver`
-- `iceberg_data.lakehouse_demo_gold`
-
-The script prints each `create schema if not exists` statement before it runs it.
-
-Load raw landing data from the CSV seeds:
-
-```bash
-scripts/dbt_env.sh seed --full-refresh
-```
-
-Build bronze, silver, and gold:
-
-```bash
-scripts/dbt_env.sh run
-scripts/dbt_env.sh test
-```
-
-Gold builds as views unless you set `WXD_GOLD_MATERIALIZED=table`. Views make sense for this demo because the gold layer is small and always reflects the current silver tables. Tables make sense when you want to discuss persisted marts, performance tuning, or downstream workload isolation.
-
-Query the gold layer from Python:
-
-```bash
-python scripts/query_gold.py
-```
-
-Show one gold mart at a time:
-
-```bash
-python scripts/query_gold.py daily_sales
-python scripts/query_gold.py customer_360
-```
-
-Or run a dbt macro for schema creation instead of the Python bootstrap:
-
-```bash
-scripts/dbt_env.sh run-operation create_medallion_schemas
-```
-
-## Customer Demo Storyline
-
-1. Show `seeds/` as CSV data arriving from an application, partner feed, or object storage export.
-2. Run `dbt seed` to load the raw landing tables.
-3. Run `dbt run --select tag:bronze` and point out ingestion metadata such as `_ingested_at`, `_ingested_by`, `_source_file`, and `_ingest_batch_id`.
-4. Run `dbt run --select tag:silver` to show typing, standardization, relationship checks, and the partitioned `silver_orders` Iceberg table.
-5. Run `dbt run --select tag:gold` to publish business marts.
-6. Query `gold_daily_sales` and `gold_customer_360` through Presto to show open lakehouse access.
-7. Use the Spark path as a second, separate approach that writes comparable medallion tables into `spark_demo_*` schemas.
-
-## watsonx.data SQL
-
-The full copy-paste SQL script is in `docs/watsonxdata_sql_demo.sql`.
-
-Inspect schemas and tables:
-
-```sql
-show schemas from iceberg_data like 'lakehouse_demo%';
-
-show tables from iceberg_data.lakehouse_demo_raw;
-show tables from iceberg_data.lakehouse_demo_bronze;
-show tables from iceberg_data.lakehouse_demo_silver;
-show tables from iceberg_data.lakehouse_demo_gold;
-```
-
-Raw landing data:
-
-```sql
-select *
-from iceberg_data.lakehouse_demo_raw.raw_orders
-order by order_id;
-```
-
-Bronze with ingestion metadata:
-
-```sql
-select
-  order_id,
-  customer_id,
-  order_ts,
-  status,
-  payment_method,
-  _ingested_at,
-  _ingested_by,
-  _source_file,
-  _ingest_batch_id
-from iceberg_data.lakehouse_demo_bronze.bronze_orders
-order by order_id;
-```
-
-Silver cleaned and typed:
-
-```sql
-select
-  order_id,
-  customer_id,
-  order_ts,
-  order_date,
-  status,
-  payment_method,
-  transformed_at
-from iceberg_data.lakehouse_demo_silver.silver_orders
-order by order_id;
-```
-
-Gold marts:
-
-```sql
-select *
-from iceberg_data.lakehouse_demo_gold.gold_daily_sales
-order by order_date, category;
-
-select *
-from iceberg_data.lakehouse_demo_gold.gold_customer_360
-order by lifetime_value desc, customer_id;
-```
-
-Spark output:
-
-```sql
-show schemas from iceberg_data like 'spark_demo%';
-
-show tables from iceberg_data.spark_demo_bronze;
-show tables from iceberg_data.spark_demo_silver;
-show tables from iceberg_data.spark_demo_gold;
-
-select *
-from iceberg_data.spark_demo_gold.spark_gold_daily_sales
-order by order_date, category;
-```
-
-## Iceberg Metadata
-
-Iceberg tables expose metadata tables. Use quoted table names because of the `$` character:
-
-```sql
-select
-  committed_at,
-  snapshot_id,
-  operation,
-  summary
-from iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
-order by committed_at desc;
-
-select *
-from iceberg_data.lakehouse_demo_silver."silver_orders$history"
-order by made_current_at desc;
-
-select *
-from iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
-order by order_date;
-
-show create table iceberg_data.lakehouse_demo_silver.silver_orders;
-```
-
-`silver_orders` is partitioned by `day(order_date)` using the dbt model config in `models/silver/silver_orders.sql`. This is useful for demos because most analytical order queries filter or aggregate by date. The dataset is intentionally tiny, so partitioning is educational here rather than a performance necessity.
-
-Gold is a view, so it does not have its own Iceberg snapshots or partitions. The physical Iceberg history lives in the raw, bronze, and silver tables below it.
-
-## Time Travel
-
-watsonx.data Presto supports Iceberg time travel on Iceberg tables. First get a snapshot id:
-
-```sql
-select
-  committed_at,
-  snapshot_id,
-  operation
-from iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
-order by committed_at desc;
-```
-
-Then query by snapshot id:
-
-```sql
-select *
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for version as of <snapshot_id>
-order by order_id;
-
-select *
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for system_version as of <snapshot_id>
-order by order_id;
-```
-
-Or query by timestamp. Use a timestamp after one of the `committed_at` values:
-
-```sql
-select *
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for timestamp as of timestamp '2026-06-12 12:46:47 UTC'
-order by order_id;
-
-select *
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for system_time as of timestamp '2026-06-12 12:46:47 UTC'
-order by order_id;
-```
-
-If the timestamp is earlier than the first retained snapshot, Presto returns `ICEBERG_INVALID_TABLE_TIMESTAMP`. That is expected and is a good way to explain that time travel depends on retained Iceberg snapshots.
-
-## Spark Demo Path
-
-The file `spark/load_medallion_demo.py` demonstrates how a Spark job writes the same CSV demo data into separate Iceberg schemas. This is not required for the dbt demo; it is a parallel approach for customers who want to see distributed ingestion and transformation with the watsonx.data Spark engine.
-
-- `spark_demo_bronze`
-- `spark_demo_silver`
-- `spark_demo_gold`
-
-The Spark path follows the same medallion logic:
-
-| Layer | Spark behavior |
-| --- | --- |
-| Raw landing | Reads the uploaded CSV files from `s3a://iceberg-bucket/spark_demo/raw`. |
-| Bronze | Writes `bronze_*` Iceberg tables with `_ingested_at`, `_ingested_by`, `_source_file`, and `_ingest_batch_id`. |
-| Silver | Writes typed `spark_silver_*` Iceberg tables. `spark_silver_orders` is partitioned by `order_date`. |
-| Gold | Writes `spark_gold_daily_sales`, also partitioned by `order_date`. |
-
-For the watsonx.data Spark engine, stage the application and CSV files in object storage first. The default layout is:
-
-- `s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py`
-- `s3a://iceberg-bucket/spark_demo/raw/raw_customers.csv`
-- `s3a://iceberg-bucket/spark_demo/raw/raw_products.csv`
-- `s3a://iceberg-bucket/spark_demo/raw/raw_orders.csv`
-- `s3a://iceberg-bucket/spark_demo/raw/raw_order_items.csv`
-
-If you have S3/MinIO credentials from a place that can reach the object-store endpoint, upload the assets with:
-
-```bash
-python scripts/upload_spark_assets.py
-```
-
-In this OpenShift environment, the lakehouse MinIO service is internal-only (`ibm-lh-lakehouse-minio-svc` has no external route). From a workstation, log in with `oc`, port-forward the service, and use the lakehouse MinIO secret:
-
-```bash
-oc login https://api.watson.ibmas-zocp-techcluster.org:6443
-oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
-```
-
-In another terminal:
-
-```bash
-export WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000
-export WXD_OBJECT_STORE_ACCESS_KEY="$(oc get secret ibm-lh-minio-secret -n cpd-instance -o jsonpath='{.data.LH_S3_ACCESS_KEY}' | base64 --decode)"
-export WXD_OBJECT_STORE_SECRET_KEY="$(oc get secret ibm-lh-minio-secret -n cpd-instance -o jsonpath='{.data.LH_S3_SECRET_KEY}' | base64 --decode)"
-export WXD_OBJECT_STORE_REGION=us-east-1
-export WXD_OBJECT_STORE_SSL_VERIFY=false
-python scripts/upload_spark_assets.py
-```
-
-If you are already logged in with `oc`, `scripts/upload_spark_assets.py` can also read `ibm-lh-minio-secret` automatically. In that case, only the endpoint/region settings are needed in `.env`; the access key and secret key can stay unset.
-
-The uploader also auto-starts the port-forward when `WXD_OBJECT_STORE_ENDPOINT` points to `127.0.0.1` or `localhost` and `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true`.
-
-Then submit to the watsonx.data Spark application endpoint. The script prints the payload first and defaults to dry-run:
-
-```bash
-python scripts/submit_spark_application.py
-```
-
-Set `WXD_SPARK_DRY_RUN=false` to actually submit. For REST authentication, the script can derive `ZenApiKey` auth from `WXD_CPD_USERNAME` and `WXD_API_KEY`. You can also provide one of:
-
-- `WXD_SPARK_BEARER_TOKEN`
-- `WXD_ZEN_API_KEY`
-- `WXD_CPD_USERNAME` and `WXD_CPD_PASSWORD`, which the script exchanges for a bearer token through `/icp4d-api/v1/authorize`
-
-Local Spark test example:
-
-```bash
-WXD_SPARK_INPUT_BASE=seeds spark-submit spark/load_medallion_demo.py
-```
-
-The Spark job creates:
-
-- `spark_demo_bronze.bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items`
-- `spark_demo_silver.spark_silver_customers`, `spark_silver_products`, `spark_silver_orders`, `spark_silver_order_items`, `spark_silver_sales_enriched`
-- `spark_demo_gold.spark_gold_daily_sales` (table), `spark_gold_category_performance` (view-equivalent), `spark_gold_customer_360`
-
-Use Spark for larger ingestion, file processing, ML/ETL jobs, or transformations that benefit from distributed execution. Use dbt when the main story is governed SQL models, tests, documentation, and analytics marts. In real projects, teams often combine them: Spark lands or prepares large assets, and dbt governs the SQL transformation layer consumed by analysts and BI.
-
-## Native Ingestion (cpdctl)
-
-Besides dbt and Spark, the same CSV files can be loaded with the **built-in watsonx.data ingestion service** using `cpdctl wx-data ingestion`. This is the only one of the three paths whose jobs appear in the console under **Data manager → Ingestion (history)**.
-
-```bash
-# one-time: install + configure cpdctl (see docs/ingestion.md), then:
-set -a; source .env; set +a
-export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
-export WXD_CPDCTL_PROFILE=wxd-demo
-python scripts/upload_spark_assets.py        # stage CSVs in object storage
-python scripts/ingest_with_cpdctl.py         # ingest each CSV into lakehouse_demo_ingest.*
-```
-
-Full setup and the exact command (and the `--storage-name` pitfall for registered buckets) are documented in `docs/ingestion.md`.
+Do not commit watsonx.data API keys. Put credentials in your shell environment or a local `.env` file (which is git-ignored). If an API key was pasted into chat or committed anywhere, rotate it before customer demos.

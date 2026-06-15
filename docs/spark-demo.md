@@ -1,39 +1,54 @@
-# Spark Demo Path
+# Path B — Spark: Python ETL
 
-!!! abstract "What is Spark, in plain words?"
-    **Apache Spark** is an engine for processing data across **many computers at the same time**. When a job is too big or too heavy for one machine, Spark splits the work into pieces, hands them to a cluster of workers, and combines the results.
+!!! abstract "What you will do in this path"
+    - Upload the PySpark script and four raw CSV files to MinIO object storage
+    - Submit the PySpark job to the watsonx.data Spark engine
+    - Watch the job progress from RUNNING to FINISHED
+    - Query the Spark gold tables through Presto SQL
 
-    A useful picture: if dbt is **one careful cook** writing SQL recipes, Spark is a **whole kitchen brigade** — more setup, but it can handle a mountain of ingredients at once. You write the job once (here, a small **PySpark** script in Python), and Spark runs it at scale.
+    Estimated time: ~15 minutes.
 
-    Spark is the right tool when the work is larger than simple SQL: many files, very big data, complex processing, or machine-learning feature preparation.
+---
 
-In this demo, the Spark path shows the **same medallion idea** (raw → bronze → silver → gold) but built by a distributed job instead of SQL models. It writes to its own `spark_demo_*` schemas so you can compare it against the dbt results without one overwriting the other.
+## Why Spark for this?
+
+!!! info "The short version"
+    Spark runs Python code (PySpark) across multiple workers in parallel. This demo uses a single PySpark script that reads raw CSV files from MinIO, transforms them through bronze, silver, and gold layers, and writes Iceberg tables back to watsonx.data.
+
+    Spark is the right choice when data is large, complex, or needs Python libraries beyond plain SQL — think joins across billions of rows, ML feature engineering, or custom parsing logic.
+
+    **Compared to dbt:** dbt needs SQL and a Presto connection; Spark can handle anything Python can.
 
 ```mermaid
 flowchart LR
-  local["Local repo: CSV files and PySpark script"]
-  minio["MinIO bucket"]
-  raw["Raw CSV files in object storage"]
-  spark["watsonx.data Spark engine"]
-  catalog["watsonx.data Iceberg catalog"]
-  tables["spark_demo_bronze, silver, gold"]
+    A["Local repo\nCSV files + PySpark script"]
+    B["MinIO\ns3a://iceberg-bucket/"]
+    C["Raw CSV layer\nspark_demo/raw/"]
+    D["watsonx.data\nSpark engine"]
+    E["Iceberg catalog\niceberg_data"]
+    F["spark_demo_bronze\nspark_demo_silver\nspark_demo_gold"]
 
-  local --> minio --> raw --> spark --> catalog --> tables
+    A --> B --> C --> D --> D --> E --> F
 ```
 
-!!! important "Why there is no spark_demo_raw schema"
-    Spark can read CSV files directly from object storage. In this demo, the raw Spark landing layer is the uploaded CSV folder `s3a://iceberg-bucket/spark_demo/raw`, not a separate `spark_demo_raw` table schema. Spark starts writing managed Iceberg tables at bronze.
+!!! note "Why there is no spark_demo_raw schema"
+    Spark reads CSV files directly from object storage. The raw landing zone in this demo is the uploaded folder `s3a://iceberg-bucket/spark_demo/raw/` — not a managed Iceberg schema. Spark only starts writing managed Iceberg tables at the bronze layer.
 
-## What Spark Builds
+---
 
-!!! info "How Spark writes Parquet+Iceberg tables"
-    Think of an Iceberg table like a folder in a filing cabinet. Spark does three things every time it saves data:
+## What Spark Builds in This Demo
 
-    **1. It uses the Iceberg writer API**
-    Instead of a plain file save, Spark calls a special Iceberg command so watsonx.data tracks the table in its catalog (like adding a new file to the cabinet index).
+!!! info "How Spark writes Parquet + Iceberg tables"
+    Every time Spark saves a layer, it does three things:
 
-    **2. It sets the file format to Parquet**
-    Parquet is a compressed, column-friendly file format — like a ZIP file that is also super fast to search. We tell Spark to use it explicitly:
+    **1. It uses the Iceberg writer API.**
+    Instead of writing raw files, Spark calls the Iceberg command so watsonx.data registers the table in its catalog. Think of it as filing a new document into an indexed cabinet rather than leaving it on a desk.
+
+    **2. It sets the file format to Parquet.**
+    Parquet is a compressed, column-oriented format — like a ZIP file that is also optimised for fast column lookups. We set it explicitly so the table is always Parquet, never ORC or CSV.
+
+    **3. It partitions by date.**
+    `.partitionedBy("order_date")` tells Iceberg to create one sub-folder per date on MinIO. When Presto later queries `WHERE order_date = '2024-01-15'`, it opens only that folder and skips all others — like going straight to the right drawer in a filing cabinet.
 
     ```python
     (
@@ -45,56 +60,56 @@ flowchart LR
     )
     ```
 
-    **3. It splits data into date folders (partitioning)**
-    `.partitionedBy("order_date")` tells Iceberg to create one sub-folder on MinIO for each date, for example:
+    The resulting folder layout on MinIO looks like this:
 
-    ```
+    ```text
     s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-15/
     s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-16/
+    s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-17/
+    ...
     ```
 
-    When Presto later queries `WHERE order_date = '2024-01-15'`, it only opens that one folder and skips all others — like going straight to the right drawer in the filing cabinet instead of searching every single file.
+**Which tables are partitioned?**
 
-    **Which tables are partitioned?**
+| Spark table | Schema | Partition column |
+|---|---|---|
+| `spark_silver_orders` | `spark_demo_silver` | `order_date` |
+| `spark_silver_sales_enriched` | `spark_demo_silver` | `order_date` |
+| `spark_gold_daily_sales` | `spark_demo_gold` | `order_date` |
 
-    | Spark table | Partition column |
-    | --- | --- |
-    | `spark_silver_orders` | `order_date` |
-    | `spark_silver_sales_enriched` | `order_date` |
-    | `spark_gold_daily_sales` | `order_date` |
+**All objects the Spark path creates:**
 
-| Layer | Schema | Objects |
-| --- | --- | --- |
+| Layer | Schema | Tables |
+|---|---|---|
 | Bronze | `spark_demo_bronze` | `bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items` |
 | Silver | `spark_demo_silver` | `spark_silver_customers`, `spark_silver_products`, `spark_silver_orders`, `spark_silver_order_items`, `spark_silver_sales_enriched` |
 | Gold | `spark_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` |
 
-## Step 1: Confirm Settings
+---
 
-These are the important `.env` values:
+## Step 1: Confirm Environment Settings
 
-```bash
-WXD_SPARK_CATALOG=iceberg_data
-WXD_SPARK_SCHEMA=spark_demo
-WXD_SPARK_ASSET_BUCKET=iceberg-bucket
-WXD_SPARK_ASSET_PREFIX=spark_demo
-WXD_SPARK_APPLICATION=s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py
-WXD_SPARK_INPUT_BASE=s3a://iceberg-bucket/spark_demo/raw
-```
+Your project stores connection details in a `.env` file. These are the variables that drive the Spark path.
 
-Dry run should be `true` when you only want to inspect the payload:
+| Variable | Example value | What it means |
+|---|---|---|
+| `WXD_SPARK_CATALOG` | `iceberg_data` | The Iceberg catalog registered in watsonx.data |
+| `WXD_SPARK_SCHEMA` | `spark_demo` | Base schema prefix for all Spark layers |
+| `WXD_SPARK_ASSET_BUCKET` | `iceberg-bucket` | MinIO bucket where assets are uploaded |
+| `WXD_SPARK_ASSET_PREFIX` | `spark_demo` | Folder prefix inside the bucket |
+| `WXD_SPARK_APPLICATION` | `s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py` | Full S3 path to the PySpark script after upload |
+| `WXD_SPARK_INPUT_BASE` | `s3a://iceberg-bucket/spark_demo/raw` | Base S3 path where the raw CSV files live |
+| `WXD_CPD_USERNAME` | `<your-username>` | IBM Software Hub (CPD) user for Spark REST auth |
+| `WXD_API_KEY` | `<your-api-key>` | IBM Software Hub API key for Spark REST auth |
 
-```bash
-WXD_SPARK_DRY_RUN=true
-```
+!!! tip "Dry run flag"
+    `WXD_SPARK_DRY_RUN=true` prints the full Spark job payload without submitting anything. Use it to verify your config before spending time on a real run. Set it to `false` when you are ready to submit.
 
-Set it to `false` when you want to submit for real:
+---
 
-```bash
-WXD_SPARK_DRY_RUN=false
-```
+## Step 2: Upload Spark Assets to MinIO
 
-## Step 2: Upload Spark Assets
+Before the Spark engine can run the job, both the PySpark script and the CSV source files must be in MinIO. This single command uploads everything.
 
 ```bash
 cd /Users/aseelert/GitHub/ibmas-watsonxdata-dbt
@@ -102,7 +117,7 @@ source .venv/bin/activate
 python scripts/upload_spark_assets.py
 ```
 
-This uploads:
+The script uploads four files to the expected S3 paths:
 
 ```text
 s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py
@@ -112,69 +127,145 @@ s3a://iceberg-bucket/spark_demo/raw/raw_orders.csv
 s3a://iceberg-bucket/spark_demo/raw/raw_order_items.csv
 ```
 
-## Step 3: If MinIO Is Internal
+!!! note "If MinIO has no external route"
+    In some OpenShift deployments, MinIO is not exposed outside the cluster. In that case, open a port-forward in a separate terminal before running the upload:
 
-If MinIO has no external route, use OpenShift port-forwarding:
+    ```bash
+    oc login https://api.watson.ibmas-zocp-techcluster.org:6443
+    oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
+    ```
 
-```bash
-oc login https://api.watson.ibmas-zocp-techcluster.org:6443
-oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
-```
+    Then, in your working terminal, override the endpoint before uploading:
 
-In another terminal:
+    ```bash
+    source .venv/bin/activate
+    export WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000
+    python scripts/upload_spark_assets.py
+    ```
 
-```bash
-cd /Users/aseelert/GitHub/ibmas-watsonxdata-dbt
-source .venv/bin/activate
-export WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000
-python scripts/upload_spark_assets.py
-```
+    The upload script also supports automatic port-forwarding when `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true` is set in `.env`.
 
-The upload script can also start the port-forward automatically when `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true`.
+---
 
-## Step 4: Submit Spark Application
+## Step 3: Dry Run First
 
-Dry run first:
-
-```bash
-python scripts/submit_spark_application.py
-```
-
-Submit for real:
+A dry run assembles the complete Spark job payload and prints it to the terminal — it does not submit anything to the cluster. This is the fastest way to catch config errors before committing to a real job run.
 
 ```bash
-export WXD_SPARK_DRY_RUN=false
-python scripts/submit_spark_application.py
+WXD_SPARK_DRY_RUN=true python scripts/submit_spark_application.py
 ```
 
-The script can derive Spark REST auth from:
+!!! tip "What to look for in the dry-run output"
+    Check that `application_details.application` points to `s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py` and that the `arguments` array lists your S3 input paths correctly. If anything looks wrong, fix the `.env` values and re-run the dry run.
+
+---
+
+## Step 4: Submit the Spark Job
+
+Once the dry run looks correct, submit the job to the watsonx.data Spark engine by setting `WXD_SPARK_DRY_RUN=false`.
+
+```bash
+WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
+```
+
+The script authenticates to the Spark REST API using the credentials from your `.env`:
 
 ```bash
 WXD_CPD_USERNAME=<software-hub-user>
 WXD_API_KEY=<software-hub-api-key>
 ```
 
-## Step 5: Check Status
+!!! info "Capturing the application ID"
+    The submit command prints an application ID when it succeeds, for example:
 
-Use the application id returned by the submit command:
+    ```text
+    Application submitted: spark-abc123def456
+    ```
+
+    Copy this ID — you need it in the next step to check status.
+
+---
+
+## Step 5: Check Job Status
+
+Pass the application ID from the previous step to the status script. You can run this command repeatedly; it returns the current state each time.
 
 ```bash
 python scripts/spark_application_status.py <application-id>
 ```
 
-Final success looks like:
+!!! example "What each state means"
 
-```text
-state: FINISHED
-return_code: 0
-```
+    | State | What it means | What to do |
+    |---|---|---|
+    | `RUNNING` | The job is actively processing data on the Spark workers | Wait and re-check in 30–60 seconds |
+    | `FINISHED` with `return_code: 0` | All medallion layers were written successfully | Proceed to Step 6 |
+    | `FAILED` | The job encountered an error | Check the Spark application logs under Infrastructure manager → Spark → Applications in the watsonx.data UI |
 
-## Step 6: Compare With dbt
+    A successful completion looks like this:
 
-After Spark finishes, use the [SQL Demo](sql-demo.md) page to compare:
+    ```text
+    state: FINISHED
+    return_code: 0
+    ```
 
-- `gold_daily_sales` with `spark_gold_daily_sales`
-- `gold_customer_360` with `spark_gold_customer_360`
+!!! warning "Jobs can take 3–5 minutes on first run"
+    The first submission takes longer because the Spark engine must pull the PySpark runtime image. Subsequent runs on the same cluster are faster.
 
-!!! example "Simple explanation"
-    Spark is the bigger-engine path. It reads files from object storage, runs a distributed job, and writes Iceberg tables. In this demo it creates the same business gold outputs as dbt, but with Spark-prefixed table names.
+---
+
+## Step 6: Query the Spark Gold Tables
+
+Once the job finishes, the gold tables are immediately queryable through the Presto endpoint. Connect to Presto and run these queries.
+
+!!! example "Row count check across all gold objects"
+
+    ```sql
+    SELECT COUNT(*) AS row_count, 'spark_gold_daily_sales' AS table_name
+    FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
+    UNION ALL
+    SELECT COUNT(*), 'spark_gold_category_performance'
+    FROM iceberg_data.spark_demo_gold.spark_gold_category_performance
+    UNION ALL
+    SELECT COUNT(*), 'spark_gold_customer_360'
+    FROM iceberg_data.spark_demo_gold.spark_gold_customer_360;
+    ```
+
+!!! example "Daily revenue from the Spark gold layer"
+
+    ```sql
+    SELECT
+        order_date,
+        total_orders,
+        total_revenue,
+        avg_order_value
+    FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
+    ORDER BY order_date DESC
+    LIMIT 10;
+    ```
+
+!!! example "Category performance — Spark vs dbt side by side"
+
+    ```sql
+    -- Spark path
+    SELECT category, total_revenue, total_orders
+    FROM iceberg_data.spark_demo_gold.spark_gold_category_performance
+    ORDER BY total_revenue DESC;
+
+    -- dbt path (run separately to compare)
+    SELECT category, total_revenue, total_orders
+    FROM iceberg_data.lakehouse_demo_gold.gold_category_performance
+    ORDER BY total_revenue DESC;
+    ```
+
+!!! tip "Partition pruning in action"
+    Add a `WHERE order_date = '2024-01-15'` filter to the `spark_gold_daily_sales` query. Presto reads only the single date partition folder instead of scanning the whole table — you can observe the reduced data scanned in the query stats.
+
+---
+
+## What to Do Next
+
+You have completed the Spark path. The `spark_demo_gold` tables now live alongside the `lakehouse_demo_gold` tables (from Path A — dbt) in the same Iceberg catalog.
+
+- **Try Path C** — [Ingestion Paths: dbt · Spark · cpdctl](ingestion.md) walks through the cpdctl native ingestion method, which creates UI-tracked load history in the watsonx.data Data manager.
+- **Compare all three paths** — [SQL Demo](sql-demo.md) has queries that run against dbt gold, Spark gold, and cpdctl tables in the same session so you can verify the outputs match.

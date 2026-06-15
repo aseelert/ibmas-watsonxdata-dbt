@@ -1,73 +1,249 @@
-# Native Ingestion (cpdctl)
+# Ingestion Paths: dbt · Spark · cpdctl
 
-!!! abstract "What this page adds"
-    The dbt and Spark paths both *transform* data. This page shows the third way to
-    get raw CSV files **into** watsonx.data: the built-in **ingestion service**, driven
-    from the command line with **`cpdctl wx-data ingestion`**. Unlike the other two
-    paths, every ingestion job shows up in the watsonx.data console under
-    **Data manager → Ingestion (history)**.
+!!! abstract "The central question"
+    You have four CSV files. You want them in watsonx.data as clean, queryable Iceberg tables.
+    There are three ways to do this. This page compares all three at a glance, then walks through
+    **Path C — cpdctl native ingestion** in step-by-step detail.
 
-## Three ways to load the same CSVs
+---
 
-| Method | Tool | Engine | Shows in UI **Ingestion** history? |
-| --- | --- | --- | --- |
-| `dbt seed` | dbt → Presto | Presto | No (it is a Presto write) |
-| Custom Spark app | `submit_spark_application.py` | Spark | No — appears under **Infrastructure manager → Spark → Applications** |
-| **Native ingestion** | **`cpdctl wx-data ingestion`** | Spark | **Yes** — as `ingestion-<id>` / your `--job-id` |
+## At a glance — the three paths
 
-So if you want the load to appear in the **Ingestion** history (the page most people
-look at first), use this native ingestion path.
+Each path is a completely different philosophy. One uses SQL, one uses Python, one uses an IBM CLI
+that talks directly to the platform's ingestion service.
 
-## Prerequisites
+| Path | Tool | Language | Who uses it | Shows in UI Ingestion history? | Best for | Schema written to |
+|------|------|----------|-------------|-------------------------------|----------|-------------------|
+| A · dbt | dbt-watsonx-presto adapter | SQL | Analytics engineers, data teams | No — visible in dbt logs and OpenMetadata lineage | Governed SQL transforms, tests, documentation, pull-request review | `lakehouse_demo_raw`, `bronze`, `silver`, `gold` |
+| B · Spark | `submit_spark_application.py` | Python | Data engineers, ML engineers | No — visible under Infrastructure manager → Spark → Applications | Large data, Python libraries, distributed joins, ML feature prep | `spark_demo_bronze`, `spark_demo_silver`, `spark_demo_gold` |
+| C · cpdctl | `cpdctl wx-data ingestion` | CLI (drives Spark) | Platform operators, anyone who wants UI-tracked loads | **Yes** — appears under Data manager → Ingestion | IBM-native loads that appear in the platform audit history | `lakehouse_demo_ingest` |
 
-1. **Install cpdctl** (the IBM Cloud Pak for Data CLI) — download the build for your OS
-   from the [cpdctl releases](https://github.com/IBM/cpdctl/releases) and put it on `PATH`.
-   On macOS (Apple silicon):
+All three paths produce **Apache Iceberg tables** stored in **MinIO** (the S3-compatible object
+store) and queryable through **Presto SQL** at the same endpoint.
 
-    ```bash
-    curl -fsSL -o cpdctl.tar.gz \
-      https://github.com/IBM/cpdctl/releases/download/v1.8.233/cpdctl_darwin_arm64.tar.gz
-    tar -xzf cpdctl.tar.gz -C ~/.local/bin && chmod +x ~/.local/bin/cpdctl
-    cpdctl version
-    ```
+```mermaid
+flowchart LR
+    CSV["CSV files\nin MinIO\ns3://iceberg-bucket/"]
 
-2. **Configure a profile** for this instance (values come from your `.env`):
+    subgraph A["Path A — dbt"]
+        direction TB
+        A1["dbt seed\n(SQL via Presto)"]
+        A2["lakehouse_demo_raw\nBronze / Silver / Gold"]
+        A1 --> A2
+    end
 
-    ```bash
-    set -a; source .env; set +a
-    cpdctl config profile set wxd-demo \
-      --url "https://${WXD_CPD_HOST}" \
-      --username "${WXD_CPD_USERNAME}" \
-      --apikey "${WXD_API_KEY}" \
-      --env "WATSONX_DATA_INSTANCE_ID=${WXD_INSTANCE_ID}"
-    ```
+    subgraph B["Path B — Spark"]
+        direction TB
+        B1["submit_spark_application.py\n(PySpark job)"]
+        B2["spark_demo_bronze\nSilver / Gold"]
+        B1 --> B2
+    end
 
-3. **Trust the cluster CA.** Point cpdctl at the certificate this repo already manages:
+    subgraph C["Path C — cpdctl"]
+        direction TB
+        C1["cpdctl wx-data ingestion create\n(drives Spark engine)"]
+        C2["lakehouse_demo_ingest\n.customers / .products\n.orders / .order_items"]
+        C1 --> C2
+    end
 
-    ```bash
-    export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
-    ```
+    CSV --> A1
+    CSV --> B1
+    CSV --> C1
 
-4. **Stage the CSVs in object storage** (same upload the Spark path uses):
+    A2 --> Presto["Presto SQL\niceberg_data catalog"]
+    B2 --> Presto
+    C2 --> Presto
+```
 
-    ```bash
-    python scripts/upload_spark_assets.py
-    ```
+---
 
-## Run it
+## When to use each path
+
+### Path A · dbt — SQL governance
+
+Use dbt when your team needs to **review every transformation** as code. dbt compiles SQL
+`SELECT` statements into Presto-executed `CREATE TABLE AS` or `INSERT` statements, runs
+configurable data tests, generates a documentation website, and emits lineage metadata that
+OpenMetadata can consume.
+
+- Seeds 1,134 rows from CSV into `lakehouse_demo_raw` (customers, products, orders, order_items)
+- Bronze models clean nulls and cast types; silver models join and enrich; gold models aggregate
+- `gold_daily_sales` is a TABLE; `gold_category_performance` and `gold_customer_360` are VIEWs
+- Every model is version-controlled SQL — reviewable in a pull request
+
+!!! tip "Best fit"
+    Analytics engineering teams that treat data transformations as software: code review, CI tests,
+    documentation-as-code.
+
+### Path B · Spark — Python ETL
+
+Use Spark when the volume or complexity exceeds what a single Presto query can do efficiently.
+The Spark engine inside watsonx.data is a distributed compute cluster; you submit a PySpark
+application that reads raw CSV, applies Python logic, and writes partitioned Iceberg tables.
+
+- Writes PARQUET format, partitioned by `order_date`
+- Medallion layers: `spark_demo_bronze` (raw copy), `spark_demo_silver` (cleaned and joined),
+  `spark_demo_gold` (aggregated)
+- You can import any Python library available on the Spark cluster
+
+!!! tip "Best fit"
+    Data engineers processing large files, binary formats, ML feature engineering, or complex
+    multi-dataset joins.
+
+### Path C · cpdctl — native ingestion
+
+Use the cpdctl ingestion path when you want the load to appear in the **watsonx.data console
+under Data manager → Ingestion**. This is the platform's native ingestion service — it runs on
+the Spark engine, but you do not write any Spark code. You point the CLI at a CSV in object
+storage, name a target Iceberg table, and the service does the rest.
+
+- No transformation logic — loads raw CSV as-is into `lakehouse_demo_ingest.<table>`
+- Jobs appear in the platform UI audit history immediately
+- Same result is achievable from the watsonx.data web console without a terminal
+
+!!! tip "Best fit"
+    Platform operators who want a traceable, UI-visible load without writing transformation code,
+    or anyone demonstrating the platform's built-in ingestion capability.
+
+---
+
+## The same data, three schemas
+
+Each path ingests the same four source CSV files but writes to a different catalog schema.
+
+| Source CSV | dbt schema | Spark schema | cpdctl schema |
+|-----------|-----------|-------------|--------------|
+| `raw_customers.csv` (50 rows) | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.customers` | `lakehouse_demo_ingest.customers` |
+| `raw_products.csv` (20 rows) | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.products` | `lakehouse_demo_ingest.products` |
+| `raw_orders.csv` (500 rows) | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.orders` | `lakehouse_demo_ingest.orders` |
+| `raw_order_items.csv` (1,134 rows) | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.order_items` | `lakehouse_demo_ingest.order_items` |
+
+All three catalogs sit inside `iceberg_data` on the same Presto engine. You can `JOIN` across
+schemas in a single query.
+
+---
+
+---
+
+## Path C Walkthrough — cpdctl Native Ingestion
+
+!!! info "What cpdctl is"
+    `cpdctl` is the IBM Cloud Pak for Data command-line interface. The `wx-data` plugin lets you
+    manage watsonx.data objects — buckets, engines, catalogs, and ingestion jobs — without opening
+    a browser. When you run an ingestion job via `cpdctl`, it shows up in the watsonx.data console
+    under **Data manager → Ingestion**, exactly like jobs started from the UI. The underlying
+    compute engine is Spark; you do not write any Spark code.
+
+---
+
+### Step 1 — Install cpdctl
+
+`cpdctl` is a single binary distributed as a `.tar.gz` archive from GitHub releases. Download it,
+extract it to a directory on your `PATH`, and verify the version.
+
+!!! note "Skip this step if cpdctl is already on PATH"
+    Run `cpdctl version` first. If you get a version string back, jump to Step 2.
+
+```bash
+# macOS (Apple Silicon — arm64)
+curl -fsSL -o cpdctl.tar.gz \
+  https://github.com/IBM/cpdctl/releases/download/v1.8.233/cpdctl_darwin_arm64.tar.gz
+tar -xzf cpdctl.tar.gz -C ~/.local/bin && chmod +x ~/.local/bin/cpdctl
+cpdctl version
+```
+
+!!! tip "Other operating systems"
+    Replace `darwin_arm64` with `linux_amd64`, `linux_arm64`, or `windows_amd64` for your
+    platform. The full list is at
+    [github.com/IBM/cpdctl/releases](https://github.com/IBM/cpdctl/releases).
+
+---
+
+### Step 2 — Configure the profile
+
+A `cpdctl` profile stores the connection details for one watsonx.data instance. You create it
+once; every subsequent command uses `--profile wxd-demo` (or sets it as the default).
+
+The values come from your `.env` file in the project root.
+
+```bash
+# Load all environment variables from .env
+set -a; source .env; set +a
+
+# Create (or overwrite) the profile named wxd-demo
+cpdctl config profile set wxd-demo \
+  --url "https://${WXD_CPD_HOST}" \
+  --username "${WXD_CPD_USERNAME}" \
+  --apikey "${WXD_API_KEY}" \
+  --env "WATSONX_DATA_INSTANCE_ID=${WXD_INSTANCE_ID}"
+```
+
+What each flag does:
+
+| Flag | What it sets | Example value |
+|------|-------------|---------------|
+| `--url` | HTTPS endpoint of the Cloud Pak for Data cluster | `https://cpd.apps.watson.ibmas-zocp-techcluster.org` |
+| `--username` | CPD username for this instance | `admin` |
+| `--apikey` | API key that authenticates this user | `<your-key>` |
+| `--env WATSONX_DATA_INSTANCE_ID` | The internal ID of the watsonx.data service on this CPD cluster | `1234-abcd-...` |
+
+---
+
+### Step 3 — Trust the cluster CA
+
+watsonx.data runs on OpenShift with a custom TLS certificate that was not issued by a public
+certificate authority. Without this step, `cpdctl` will reject the connection with an SSL
+verification error.
+
+```bash
+export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
+```
+
+This environment variable tells the Go TLS library (used by `cpdctl`) to trust the CA certificate
+bundled in this repository's `certs/` directory. Set it in every terminal session before running
+`cpdctl` commands, or add it to your shell profile.
+
+!!! note "Where the certificate comes from"
+    The `certs/watsonxdata-ca.pem` file is included in this repo. It was exported from the
+    OpenShift cluster's ingress CA. Do not use `--insecure` as an alternative — it disables all
+    TLS verification and is not safe in a workshop environment with real credentials.
+
+---
+
+### Step 4 — Stage CSV files in object storage
+
+The watsonx.data ingestion service reads CSV files from MinIO (the S3-compatible object store
+inside the cluster). The CSV files need to be uploaded there before the ingestion job can read
+them.
+
+The Spark demo path already uploads these files — run the same upload script:
+
+```bash
+python scripts/upload_spark_assets.py
+```
+
+This uploads the four CSV files to `s3://iceberg-bucket/spark_demo/raw/` under the paths the
+ingestion script expects. If you already ran the Spark demo, the files are already there.
+
+!!! info "What MinIO is"
+    MinIO is an open-source object store that is API-compatible with Amazon S3. watsonx.data
+    uses it as the backing store for Iceberg table data and as a staging area for file ingestion.
+    The `s3://iceberg-bucket/` path maps to a bucket registered in the watsonx.data catalog.
+
+---
+
+### Step 5 — Run the ingestion script
+
+The ingestion script creates the target schema if it does not exist, then submits one ingestion
+job per CSV file.
 
 ```bash
 export WXD_CPDCTL_PROFILE=wxd-demo
 python scripts/ingest_with_cpdctl.py
 ```
 
-This creates the target schema (`lakehouse_demo_ingest` by default) and submits one
-ingestion job per CSV into `iceberg_data.lakehouse_demo_ingest.<table>`. The script
-prints each `job_id` and the console link to watch them.
-
-### The command it runs
-
-For each file it calls, in effect:
+Internally, for each CSV file the script calls `cpdctl wx-data ingestion create`. The equivalent
+bare CLI command for the customers file looks like this:
 
 ```bash
 cpdctl wx-data ingestion create \
@@ -79,25 +255,138 @@ cpdctl wx-data ingestion create \
   --job-id ingest-customers-demo
 ```
 
-!!! warning "Do not pass `--storage-name` for a registered bucket"
-    `iceberg-bucket` is already **registered** in watsonx.data, so the service
-    auto-detects it from the `s3://` path. Passing `--storage-name` then triggers the
-    *unregistered/transient* storage flow and the job fails with
-    `I002 Invalid input provided`. Only set `WXD_INGEST_STORAGE_NAME` (which adds
-    `--storage-name`) when ingesting from storage that is **not** registered.
+The script runs this pattern for all four CSVs (`customers`, `products`, `orders`, `order_items`)
+and prints each `job_id` and the console link to monitor progress.
 
-## Watch the jobs
+Expected output:
 
-```bash
-# list recent ingestion jobs (these are exactly what the UI history shows)
-cpdctl wx-data ingestion list --instance-id "${WXD_INSTANCE_ID}" --jobs-per-page 10
+```text
+Submitting ingestion job for: raw_customers.csv
+  job_id: ingest-customers-demo
+  target: iceberg_data.lakehouse_demo_ingest.customers
+  console: https://cpd.apps.watson.ibmas-zocp-techcluster.org/...
+
+Submitting ingestion job for: raw_products.csv
+  job_id: ingest-products-demo
+  target: iceberg_data.lakehouse_demo_ingest.products
+  ...
+
+All 4 ingestion jobs submitted.
 ```
 
-Or open the console: **Data manager → Ingestion**. Each job moves
-`starting → running → FINISHED`. The same files then exist as Iceberg tables you can
-query through Presto, e.g. `select * from iceberg_data.lakehouse_demo_ingest.customers`.
+!!! warning "Do not pass `--storage-name` for a registered bucket"
+    `iceberg-bucket` is already **registered** in watsonx.data, so the service auto-detects it
+    from the `s3://` path. Passing `--storage-name` then triggers the *unregistered/transient*
+    storage flow and the job fails with `I002 Invalid input provided`. Only set
+    `WXD_INGEST_STORAGE_NAME` (which adds `--storage-name` to the command) when ingesting from
+    storage that is **not** registered in the watsonx.data catalog.
 
-!!! note "Engine note"
-    Ingestion runs on the **Spark** engine (`spark656` here). Folder ingestion (a whole
-    directory of same-shape files into one table) is Spark-only; our four CSVs have
-    different shapes, so each is ingested into its own table.
+---
+
+### Step 6 — Watch the jobs
+
+Poll the ingestion job list from the terminal, or open the UI to watch job state move from
+`starting` to `running` to `FINISHED`.
+
+```bash
+# List the 10 most recent ingestion jobs
+cpdctl wx-data ingestion list \
+  --instance-id "${WXD_INSTANCE_ID}" \
+  --jobs-per-page 10
+```
+
+To watch a specific job:
+
+```bash
+cpdctl wx-data ingestion get \
+  --instance-id "${WXD_INSTANCE_ID}" \
+  --job-id ingest-customers-demo
+```
+
+In the UI: open the watsonx.data console, navigate to **Data manager → Ingestion**. Each job
+listed there is exactly what `cpdctl wx-data ingestion list` returns — the CLI and the UI share
+the same job store.
+
+!!! note "Ingestion runs on the Spark engine"
+    The jobs execute on the Spark engine (`spark656` in this cluster). Folder ingestion — loading
+    an entire directory of identically shaped files into one table — is a Spark-only capability.
+    Because the four CSVs in this demo have different column shapes, each is ingested into its own
+    table.
+
+---
+
+## What to query after ingestion
+
+Once all four jobs show `FINISHED`, the tables are live Iceberg tables queryable through Presto.
+Connect to the Presto endpoint and run:
+
+```sql
+-- Confirm the tables exist
+SHOW TABLES IN iceberg_data.lakehouse_demo_ingest;
+```
+
+```text
+     Table
+------------
+ customers
+ order_items
+ orders
+ products
+(4 rows)
+```
+
+```sql
+-- Spot-check row counts (should match seed data)
+SELECT
+    'customers'   AS tbl, COUNT(*) AS rows FROM iceberg_data.lakehouse_demo_ingest.customers
+UNION ALL SELECT 'products',   COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.products
+UNION ALL SELECT 'orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
+UNION ALL SELECT 'order_items',COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.order_items;
+```
+
+```text
+    tbl      | rows
+-------------+------
+ customers   |   50
+ products    |   20
+ orders      |  500
+ order_items | 1134
+(4 rows)
+```
+
+```sql
+-- Join across the cpdctl schema — same Presto catalog, same Iceberg format
+SELECT
+    c.company_name,
+    COUNT(DISTINCT o.order_id)  AS total_orders,
+    SUM(oi.quantity * oi.unit_price) AS total_revenue
+FROM iceberg_data.lakehouse_demo_ingest.customers   c
+JOIN iceberg_data.lakehouse_demo_ingest.orders      o  ON c.customer_id = o.customer_id
+JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id    = oi.order_id
+GROUP BY c.company_name
+ORDER BY total_revenue DESC
+LIMIT 10;
+```
+
+!!! example "Cross-schema join"
+    Because all three ingestion paths write to the same `iceberg_data` catalog, you can join the
+    `lakehouse_demo_ingest` tables against `lakehouse_demo_raw` (dbt) or `spark_demo_bronze`
+    (Spark) in a single query — useful for comparing results across paths.
+
+```sql
+-- Compare customer counts across all three paths in one query
+SELECT 'dbt'    AS path, COUNT(*) AS customers FROM iceberg_data.lakehouse_demo_raw.raw_customers
+UNION ALL
+SELECT 'spark',  COUNT(*) FROM iceberg_data.spark_demo_bronze.customers
+UNION ALL
+SELECT 'cpdctl', COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.customers;
+```
+
+---
+
+## Next step
+
+All three ingestion paths are now loaded. The SQL demo page runs queries that span all three
+schemas and compares the gold-layer aggregations side by side.
+
+[SQL — Compare All Paths →](sql-demo.md){ .md-button .md-button--primary }
