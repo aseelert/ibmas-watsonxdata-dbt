@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 48" role="img" aria-label="Apache Iceberg">
+  <g transform="translate(22 24)">
+    <path d="M0 -15 L13 6 L0 13 L-13 6 Z" fill="#1192e8"/>
+    <path d="M0 -15 L0 13 L-13 6 Z" fill="#0072c3"/>
+    <path d="M0 -15 L6.5 -4.5 L0 -1 L-6.5 -4.5 Z" fill="#a6e3ff"/>
+  </g>
+  <text x="44" y="32" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif"
+        font-weight="600" font-size="25" fill="currentColor">Iceberg</text>
+</svg>

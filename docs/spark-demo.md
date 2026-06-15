@@ -1,8 +1,13 @@
 # Spark Demo Path
 
-The Spark path shows the same medallion idea with a distributed job.
+!!! abstract "What is Spark, in plain words?"
+    **Apache Spark** is an engine for processing data across **many computers at the same time**. When a job is too big or too heavy for one machine, Spark splits the work into pieces, hands them to a cluster of workers, and combines the results.
 
-Spark is useful when the work is larger than simple SQL models: many files, big data, complex ETL logic, or machine-learning-style feature preparation.
+    A useful picture: if dbt is **one careful cook** writing SQL recipes, Spark is a **whole kitchen brigade** — more setup, but it can handle a mountain of ingredients at once. You write the job once (here, a small **PySpark** script in Python), and Spark runs it at scale.
+
+    Spark is the right tool when the work is larger than simple SQL: many files, very big data, complex processing, or machine-learning feature preparation.
+
+In this demo, the Spark path shows the **same medallion idea** (raw → bronze → silver → gold) but built by a distributed job instead of SQL models. It writes to its own `spark_demo_*` schemas so you can compare it against the dbt results without one overwriting the other.
 
 ```mermaid
 flowchart LR

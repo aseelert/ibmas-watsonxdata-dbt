@@ -1,8 +1,17 @@
 # dbt Demo Path
 
-The dbt path is the easiest way to explain governed SQL transformations.
+!!! abstract "What is dbt, in plain words?"
+    **dbt (data build tool)** is a way to clean and reshape data using plain **SQL**, but organised like proper software. Instead of running SQL by hand in an editor, you save each transformation as a small file. dbt then:
 
-dbt does not store the data itself. It sends SQL to Presto. Presto writes and queries the tables in watsonx.data.
+    - runs all the files **in the correct order** (it works out what depends on what),
+    - **tests** the results (for example: "every order must belong to a real customer"),
+    - and **documents** the whole pipeline so anyone can see how a number was built.
+
+    A useful picture: dbt is a **recipe book with version control**. The recipes are SQL; dbt makes sure they run in order and the dish comes out right every time. Crucially, **dbt does not store any data itself** — it just tells the database what to build.
+
+In this demo, the dbt path is the easiest way to explain governed SQL transformations.
+
+dbt does not store the data itself. It writes SQL and sends it to **Presto** (the SQL engine inside watsonx.data). Presto then creates and queries the tables. So the chain is: *your SQL files → dbt → Presto → tables in watsonx.data.*
 
 ```mermaid
 flowchart LR

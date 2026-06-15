@@ -1,26 +1,41 @@
-site_name: watsonx.data dbt and Spark Medallion Demo
-site_description: Customer demo for dbt, Spark, Iceberg, and watsonx.data.
+site_name: watsonx.data · dbt · Spark Medallion Demo
+site_description: A beginner-friendly customer demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.
 repo_name: ibmas-watsonxdata-dbt
 theme:
   name: material
+  favicon: assets/images/logo.svg
   palette:
-    - scheme: default
-      primary: indigo
-      accent: teal
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
   font:
-    text: Inter
+    text: IBM Plex Sans
     code: IBM Plex Mono
-  icon:
-    logo: material/database
   features:
+    - navigation.instant
+    - navigation.tracking
     - navigation.sections
-    - navigation.expand
     - navigation.top
     - navigation.tabs
     - navigation.indexes
+    - navigation.footer
+    - toc.follow
     - content.code.copy
     - content.code.select
-    - toc.follow
+    - content.tooltips
+    - search.highlight
+    - search.suggest
 extra_css:
   - assets/stylesheets/extra.css
 markdown_extensions:
@@ -28,7 +43,12 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - tables
+  - footnotes
   - pymdownx.details
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.caret
+  - pymdownx.tilde
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
@@ -45,6 +65,7 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 nav:
   - Overview: index.md
+  - Architecture & Lineage: lineage.md
   - Setup Order: setup.md
   - Beginner Glossary: glossary.md
   - File Guide: files.md

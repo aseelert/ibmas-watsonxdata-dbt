@@ -1,5 +1,19 @@
 # watsonx.data dbt and Spark medallion demo
 
+> **New to all of this? Read this first (plain words).**
+>
+> Imagine a small online shop that exports four spreadsheet files: customers, products, orders, and the items inside each order. On their own, those files can't answer simple questions like *"how much did we sell on Tuesday?"* This demo turns those raw files into clean, trustworthy tables you can query — and it does it **twice**, with two different tools, so you can compare them:
+>
+> - **Lakehouse** — cheap file storage (a "lake") that you can still query with SQL like a database (a "warehouse"). Both at once.
+> - **watsonx.data** — IBM's lakehouse product: the building that holds the storage, the engines, and the catalog of tables.
+> - **Medallion (bronze → silver → gold)** — organising data by quality, like refining metal: raw → kept & labelled → cleaned → ready for business use.
+> - **dbt** — clean data with SQL, the safe way: each transformation is a file, run in order, tested, and documented. It stores no data; it tells the database what to build.
+> - **Spark** — an engine that splits big data jobs across many computers at once. The heavy-duty option for large or complex work.
+> - **Iceberg** — the open table format under the hood that gives plain files database superpowers (safe updates, version history, time travel).
+> - **Table vs. view** — a *table* is data stored on disk; a *view* is a saved question that re-runs every time you look.
+>
+> Full beginner walkthrough and a column-by-column lineage diagram live in the docs site (`mkdocs serve`).
+
 This repo is a technical customer demo for IBM watsonx.data with an Iceberg lakehouse catalog. It shows the same ecommerce dataset moving through a medallion pattern: CSV landing data, bronze tables with ingestion metadata, silver tables with typed and conformed data, and gold marts for analytics.
 
 There are two separated demo paths:

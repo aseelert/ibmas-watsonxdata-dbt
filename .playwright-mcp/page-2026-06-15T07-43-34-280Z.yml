@@ -1,0 +1,332 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: http://127.0.0.1:8123/#the-idea-in-one-minute
+  - banner [ref=e3]:
+    - navigation "Header" [ref=e4]:
+      - link "watsonx.data · dbt · Spark Medallion Demo" [ref=e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8123/
+        - img "logo" [ref=e6]
+      - generic [ref=e8]:
+        - generic [ref=e10]: watsonx.data · dbt · Spark Medallion Demo
+        - generic:
+          - generic: Overview
+      - generic [ref=e11]:
+        - radio "Switch to dark mode"
+        - generic "Switch to dark mode" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - radio "Switch to light mode"
+      - dialog [ref=e15]:
+        - search [ref=e16]:
+          - generic [ref=e17]:
+            - textbox "Search" [ref=e18]
+            - generic:
+              - img
+            - navigation "Search":
+              - button "Clear":
+                - img
+          - generic [ref=e21]: Type to start searching
+  - generic [ref=e22]:
+    - navigation "Tabs" [ref=e23]:
+      - list [ref=e25]:
+        - listitem [ref=e26]:
+          - link "Overview" [ref=e27] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/
+        - listitem [ref=e28]:
+          - link "Architecture & Lineage" [ref=e29] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/lineage/
+        - listitem [ref=e30]:
+          - link "Setup Order" [ref=e31] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/setup/
+        - listitem [ref=e32]:
+          - link "Beginner Glossary" [ref=e33] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/glossary/
+        - listitem [ref=e34]:
+          - link "File Guide" [ref=e35] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/files/
+        - listitem [ref=e36]:
+          - link "dbt Demo Path" [ref=e37] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/dbt-demo/
+        - listitem [ref=e38]:
+          - link "Spark Demo Path" [ref=e39] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/spark-demo/
+        - listitem [ref=e40]:
+          - link "SQL Demo" [ref=e41] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/sql-demo/
+        - listitem [ref=e42]:
+          - link "Troubleshooting" [ref=e43] [cursor=pointer]:
+            - /url: http://127.0.0.1:8123/troubleshooting/
+    - main [ref=e44]:
+      - generic [ref=e45]:
+        - navigation "Navigation" [ref=e49]:
+          - list [ref=e50]:
+            - listitem [ref=e51]:
+              - link "Overview":
+                - /url: http://127.0.0.1:8123/
+                - generic: Overview
+        - navigation "Table of contents" [ref=e55]:
+          - generic [ref=e56]: Table of contents
+          - list [ref=e57]:
+            - listitem [ref=e58]:
+              - link "The Idea In One Minute" [ref=e59] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#the-idea-in-one-minute
+                - generic [ref=e60]: The Idea In One Minute
+            - listitem [ref=e61]:
+              - link "Raw Means Files First" [ref=e62] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#raw-means-files-first
+                - generic [ref=e63]: Raw Means Files First
+            - listitem [ref=e64]:
+              - link "What Each Technology Does" [ref=e65] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#what-each-technology-does
+                - generic [ref=e66]: What Each Technology Does
+            - listitem [ref=e67]:
+              - link "How The Demo Flows" [ref=e68] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#how-the-demo-flows
+                - generic [ref=e69]: How The Demo Flows
+            - listitem [ref=e70]:
+              - link "Medallion Layers" [ref=e71] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#medallion-layers
+                - generic [ref=e72]: Medallion Layers
+            - listitem [ref=e73]:
+              - link "Why Table Names Look Different" [ref=e74] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#why-table-names-look-different
+                - generic [ref=e75]: Why Table Names Look Different
+            - listitem [ref=e76]:
+              - link "Strengths And Limits" [ref=e77] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#strengths-and-limits
+                - generic [ref=e78]: Strengths And Limits
+            - listitem [ref=e79]:
+              - link "The Best Demo Order" [ref=e80] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/#the-best-demo-order
+                - generic [ref=e81]: The Best Demo Order
+        - article [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]: IBM watsonx.data · medallion lakehouse demo
+            - heading "Learn watsonx.data, dbt, Spark, and lakehouse layers in one demo" [level=1] [ref=e86]
+            - paragraph [ref=e87]: "This guide is for a technical beginner: someone who can run commands, but has never seen watsonx.data, dbt, Spark, or a medallion lakehouse before. You will load small CSV files, build clean lakehouse tables, run tests, submit a Spark job, and compare the results."
+            - generic [ref=e88]:
+              - link "Start the setup" [ref=e89] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/setup/
+              - link "See the architecture" [ref=e90] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/lineage/
+              - link "Run dbt path" [ref=e91] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/dbt-demo/
+              - link "Run Spark path" [ref=e92] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/spark-demo/
+              - link "Copy SQL demo" [ref=e93] [cursor=pointer]:
+                - /url: http://127.0.0.1:8123/sql-demo/
+          - generic [ref=e94]:
+            - generic [ref=e95]: Built on
+            - img "IBM" [ref=e96]
+            - img "watsonx.data" [ref=e97]
+            - img "dbt" [ref=e98]
+            - img "Apache Spark" [ref=e99]
+            - img "Apache Iceberg" [ref=e100]
+          - heading "The Idea In One Minute" [level=2] [ref=e101]
+          - paragraph [ref=e102]: "Imagine a shop exports four CSV files: customers, products, orders, and order lines. Those files are useful, but they are not yet a proper analytics system."
+          - paragraph [ref=e103]: "This demo turns those files into a lakehouse:"
+          - generic [ref=e104]:
+            - generic [ref=e105]:
+              - generic [ref=e106]: "1"
+              - heading "Land the data" [level=3] [ref=e107]
+              - paragraph [ref=e108]: Keep the original CSV-shaped data visible so you can trace where records came from.
+            - generic [ref=e109]:
+              - generic [ref=e110]: "2"
+              - heading "Add metadata" [level=3] [ref=e111]
+              - paragraph [ref=e112]: Bronze tables record ingest time, source file, and batch id.
+            - generic [ref=e113]:
+              - generic [ref=e114]: "3"
+              - heading "Clean and type" [level=3] [ref=e115]
+              - paragraph [ref=e116]: Silver tables turn strings into dates, numbers, statuses, and reusable entities.
+            - generic [ref=e117]:
+              - generic [ref=e118]: "4"
+              - heading "Publish marts" [level=3] [ref=e119]
+              - paragraph [ref=e120]: Gold tables answer business questions like daily sales and customer value.
+          - heading "Raw Means Files First" [level=2] [ref=e121]
+          - paragraph [ref=e122]:
+            - text: In this demo, the
+            - strong [ref=e123]: true raw layer
+            - text: "is the original CSV files:"
+          - generic [ref=e125]:
+            - navigation [ref=e126]:
+              - button "Copy to clipboard" [ref=e127] [cursor=pointer]
+            - code [ref=e128]: seeds/raw_customers.csv seeds/raw_products.csv seeds/raw_orders.csv seeds/raw_order_items.csv
+          - paragraph [ref=e129]: "dbt and Spark use those raw files differently:"
+          - table [ref=e132]:
+            - rowgroup [ref=e133]:
+              - row "Path What happens to raw CSV files? Why" [ref=e134]:
+                - columnheader "Path" [ref=e135]
+                - columnheader "What happens to raw CSV files?" [ref=e136]
+                - columnheader "Why" [ref=e137]
+            - rowgroup [ref=e138]:
+              - row "dbt dbt seed loads the CSV files into lakehouse_demo_raw tables. dbt transforms data with SQL, so the CSVs need to become queryable tables first." [ref=e139]:
+                - cell "dbt" [ref=e140]
+                - cell "dbt seed loads the CSV files into lakehouse_demo_raw tables." [ref=e141]:
+                  - code [ref=e142]: dbt seed
+                  - text: loads the CSV files into
+                  - code [ref=e143]: lakehouse_demo_raw
+                  - text: tables.
+                - cell "dbt transforms data with SQL, so the CSVs need to become queryable tables first." [ref=e144]
+              - row "Spark Spark reads the uploaded CSV files directly from s3a://iceberg-bucket/spark_demo/raw. Spark can read files from object storage directly, so it does not need a separate spark_demo_raw table schema." [ref=e145]:
+                - cell "Spark" [ref=e146]
+                - cell "Spark reads the uploaded CSV files directly from s3a://iceberg-bucket/spark_demo/raw." [ref=e147]:
+                  - text: Spark reads the uploaded CSV files directly from
+                  - code [ref=e148]: s3a://iceberg-bucket/spark_demo/raw
+                  - text: .
+                - cell "Spark can read files from object storage directly, so it does not need a separate spark_demo_raw table schema." [ref=e149]:
+                  - text: Spark can read files from object storage directly, so it does not need a separate
+                  - code [ref=e150]: spark_demo_raw
+                  - text: table schema.
+          - paragraph [ref=e151]: "So the raw flow is:"
+          - generic [ref=e153]:
+            - navigation [ref=e154]:
+              - button "Copy to clipboard" [ref=e155] [cursor=pointer]
+            - code [ref=e156]: "CSV files = true raw landing data dbt path: CSV files -> dbt seed raw tables -> bronze -> silver -> gold Spark path: CSV files in object storage -> bronze -> silver -> gold"
+          - heading "What Each Technology Does" [level=2] [ref=e157]
+          - generic [ref=e158]:
+            - generic [ref=e159]:
+              - heading "watsonx.data" [level=3] [ref=e160]
+              - paragraph [ref=e161]: The lakehouse platform. It provides the catalog, engines, object storage access, and SQL surface.
+            - generic [ref=e162]:
+              - heading "Iceberg" [level=3] [ref=e163]
+              - paragraph [ref=e164]: The open table format. It gives tables metadata, snapshots, partitions, and time travel.
+            - generic [ref=e165]:
+              - heading "Presto" [level=3] [ref=e166]
+              - paragraph [ref=e167]: The SQL query engine used by dbt and the watsonx.data SQL editor in this demo.
+            - generic [ref=e168]:
+              - heading "dbt" [level=3] [ref=e169]
+              - paragraph [ref=e170]: The SQL modeling tool. It builds, tests, and documents transformations.
+            - generic [ref=e171]:
+              - heading "Spark" [level=3] [ref=e172]
+              - paragraph [ref=e173]: The distributed processing engine. It is strong for larger file and ETL jobs.
+            - generic [ref=e174]:
+              - heading "MinIO" [level=3] [ref=e175]
+              - paragraph [ref=e176]: The S3-compatible object store where the Spark job reads its application and CSV files.
+          - heading "How The Demo Flows" [level=2] [ref=e177]
+          - paragraph [ref=e179]: "The same source files are used in two different execution paths:"
+          - generic [ref=e181]:
+            - paragraph [ref=e182]: Why two paths?
+            - paragraph [ref=e183]: "The demo keeps dbt and Spark separate so customers can compare them clearly. In real projects they often work together: Spark prepares big or complex data assets, then dbt governs the SQL models consumed by analytics teams."
+          - heading "Medallion Layers" [level=2] [ref=e184]
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - generic [ref=e187]: Raw
+              - heading "Raw" [level=3] [ref=e188]
+              - paragraph [ref=e189]: Original CSV payload, kept close to the source. Useful for traceability.
+            - generic [ref=e190]:
+              - generic [ref=e191]: Bronze
+              - heading "Bronze" [level=3] [ref=e192]
+              - paragraph [ref=e193]: First managed Iceberg copy. Adds metadata like source file and batch id.
+            - generic [ref=e194]:
+              - generic [ref=e195]: Silver
+              - heading "Silver" [level=3] [ref=e196]
+              - paragraph [ref=e197]: Typed, cleaned, reusable business entities with validation tests.
+            - generic [ref=e198]:
+              - generic [ref=e199]: Gold
+              - heading "Gold" [level=3] [ref=e200]
+              - paragraph [ref=e201]: Business-facing marts for dashboards, SQL demos, and customer conversations.
+          - paragraph [ref=e202]:
+            - text: For the full
+            - strong [ref=e203]: column-by-column lineage
+            - text: — how each CSV field becomes a typed silver column and feeds the gold marts — see
+            - link "Architecture & Lineage" [ref=e204] [cursor=pointer]:
+              - /url: http://127.0.0.1:8123/lineage/
+            - text: .
+          - heading "Why Table Names Look Different" [level=2] [ref=e205]
+          - paragraph [ref=e206]: "The dbt and Spark outputs are separated on purpose:"
+          - table [ref=e209]:
+            - rowgroup [ref=e210]:
+              - row "dbt object Spark object Why" [ref=e211]:
+                - columnheader "dbt object" [ref=e212]
+                - columnheader "Spark object" [ref=e213]
+                - columnheader "Why" [ref=e214]
+            - rowgroup [ref=e215]:
+              - row "lakehouse_demo_gold.gold_daily_sales spark_demo_gold.spark_gold_daily_sales Same business result, separate schema and Spark prefix." [ref=e216]:
+                - cell "lakehouse_demo_gold.gold_daily_sales" [ref=e217]:
+                  - code [ref=e218]: lakehouse_demo_gold.gold_daily_sales
+                - cell "spark_demo_gold.spark_gold_daily_sales" [ref=e219]:
+                  - code [ref=e220]: spark_demo_gold.spark_gold_daily_sales
+                - cell "Same business result, separate schema and Spark prefix." [ref=e221]
+              - row "lakehouse_demo_gold.gold_customer_360 spark_demo_gold.spark_gold_customer_360 Same customer mart, separate schema and Spark prefix." [ref=e222]:
+                - cell "lakehouse_demo_gold.gold_customer_360" [ref=e223]:
+                  - code [ref=e224]: lakehouse_demo_gold.gold_customer_360
+                - cell "spark_demo_gold.spark_gold_customer_360" [ref=e225]:
+                  - code [ref=e226]: spark_demo_gold.spark_gold_customer_360
+                - cell "Same customer mart, separate schema and Spark prefix." [ref=e227]
+          - paragraph [ref=e228]:
+            - text: dbt gold models are
+            - strong [ref=e229]: views
+            - text: by default. Spark gold outputs are
+            - strong [ref=e230]: physical Iceberg tables
+            - text: because the Spark job writes dataframes into the catalog. That is normal.
+          - heading "Strengths And Limits" [level=2] [ref=e231]
+          - table [ref=e234]:
+            - rowgroup [ref=e235]:
+              - row "Tool Strong at Weaker at In this demo" [ref=e236]:
+                - columnheader "Tool" [ref=e237]
+                - columnheader "Strong at" [ref=e238]
+                - columnheader "Weaker at" [ref=e239]
+                - columnheader "In this demo" [ref=e240]
+            - rowgroup [ref=e241]:
+              - row "dbt SQL transformations, tests, documentation, lineage, repeatable analytics models. Heavy file processing, distributed non-SQL ETL, ML-style processing. Builds lakehouse_demo_* schemas through Presto." [ref=e242]:
+                - cell "dbt" [ref=e243]
+                - cell "SQL transformations, tests, documentation, lineage, repeatable analytics models." [ref=e244]
+                - cell "Heavy file processing, distributed non-SQL ETL, ML-style processing." [ref=e245]
+                - cell "Builds lakehouse_demo_* schemas through Presto." [ref=e246]:
+                  - text: Builds
+                  - code [ref=e247]: lakehouse_demo_*
+                  - text: schemas through Presto.
+              - row "Spark Distributed processing, large files, complex ETL, feature engineering, batch jobs near object storage. Lightweight SQL governance, built-in model documentation, analyst-friendly review workflows. Builds spark_demo_* schemas from uploaded CSV files." [ref=e248]:
+                - cell "Spark" [ref=e249]
+                - cell "Distributed processing, large files, complex ETL, feature engineering, batch jobs near object storage." [ref=e250]
+                - cell "Lightweight SQL governance, built-in model documentation, analyst-friendly review workflows." [ref=e251]
+                - cell "Builds spark_demo_* schemas from uploaded CSV files." [ref=e252]:
+                  - text: Builds
+                  - code [ref=e253]: spark_demo_*
+                  - text: schemas from uploaded CSV files.
+              - row "watsonx.data Shared Iceberg catalog, Presto SQL, Spark execution, object storage-backed lakehouse tables. Transformation logic itself; dbt and Spark provide that logic. Hosts the catalog, engines, and tables." [ref=e254]:
+                - cell "watsonx.data" [ref=e255]
+                - cell "Shared Iceberg catalog, Presto SQL, Spark execution, object storage-backed lakehouse tables." [ref=e256]
+                - cell "Transformation logic itself; dbt and Spark provide that logic." [ref=e257]
+                - cell "Hosts the catalog, engines, and tables." [ref=e258]
+              - 'row "{: .comparison-table }" [ref=e259]':
+                - 'cell "{: .comparison-table }" [ref=e260]'
+                - cell [ref=e261]
+                - cell [ref=e262]
+                - cell [ref=e263]
+          - heading "The Best Demo Order" [level=2] [ref=e264]
+          - generic [ref=e265]:
+            - generic [ref=e267]:
+              - strong [ref=e268]: Prepare the Python environment
+              - text: Create the virtual environment and install requirements.
+            - generic [ref=e270]:
+              - strong [ref=e271]: Import the connection JSON
+              - text: Read watsonx.data host, instance id, and SSL certificate into local config.
+            - generic [ref=e273]:
+              - strong [ref=e274]: Run the dbt path
+              - text: Create schemas, load seeds, build models, run tests, query gold.
+            - generic [ref=e276]:
+              - strong [ref=e277]: Run the Spark path
+              - text: Upload Spark assets, submit the job, check status.
+            - generic [ref=e279]:
+              - strong [ref=e280]: Compare outputs
+              - text: Use SQL to compare dbt and Spark gold results side by side.
+          - paragraph [ref=e281]:
+            - text: "Start here:"
+            - link "Setup Order" [ref=e282] [cursor=pointer]:
+              - /url: http://127.0.0.1:8123/setup/
+            - text: .
+      - button "Back to top":
+        - img
+        - text: Back to top
+    - contentinfo [ref=e283]:
+      - navigation "Footer" [ref=e284]:
+        - 'link "Next: Architecture & Lineage" [ref=e285] [cursor=pointer]':
+          - /url: http://127.0.0.1:8123/lineage/
+          - generic [ref=e286]:
+            - text: Next
+            - generic [ref=e287]: Architecture & Lineage
+          - img [ref=e289]
+      - generic [ref=e293]:
+        - text: Made with
+        - link "Material for MkDocs" [ref=e294] [cursor=pointer]:
+          - /url: https://squidfunk.github.io/mkdocs-material/
