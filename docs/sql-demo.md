@@ -236,16 +236,16 @@ This join reproduces the daily sales metric using the raw cpdctl tables — no E
 
 ```sql
 SELECT
-  CAST(o.order_date AS DATE)          AS order_date,
+  CAST(o.order_ts AS DATE)            AS order_date,
   p.category                          AS category,
   COUNT(DISTINCT o.order_id)          AS order_count,
   SUM(oi.quantity)                    AS units_sold,
-  SUM(oi.quantity * oi.unit_price)    AS net_revenue
+  SUM(oi.quantity * p.unit_price)     AS net_revenue
 FROM iceberg_data.lakehouse_demo_ingest.orders      o
-JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id  = oi.order_id
+JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id   = oi.order_id
 JOIN iceberg_data.lakehouse_demo_ingest.products    p  ON oi.product_id = p.product_id
 WHERE o.status = 'completed'
-GROUP BY CAST(o.order_date AS DATE), p.category
+GROUP BY CAST(o.order_ts AS DATE), p.category
 ORDER BY order_date, category;
 ```
 

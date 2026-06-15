@@ -377,10 +377,11 @@ SELECT
     c.first_name || ' ' || c.last_name AS customer_name,
     c.country,
     COUNT(DISTINCT o.order_id)         AS total_orders,
-    SUM(oi.quantity * oi.unit_price)   AS total_revenue
+    SUM(oi.quantity * p.unit_price)    AS total_revenue
 FROM iceberg_data.lakehouse_demo_ingest.customers   c
-JOIN iceberg_data.lakehouse_demo_ingest.orders      o  ON c.customer_id = o.customer_id
-JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id    = oi.order_id
+JOIN iceberg_data.lakehouse_demo_ingest.orders      o  ON c.customer_id  = o.customer_id
+JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id     = oi.order_id
+JOIN iceberg_data.lakehouse_demo_ingest.products    p  ON oi.product_id  = p.product_id
 GROUP BY c.first_name, c.last_name, c.country
 ORDER BY total_revenue DESC
 LIMIT 10;
@@ -395,7 +396,7 @@ LIMIT 10;
 -- Compare customer counts across all three paths in one query
 SELECT 'dbt'    AS path, COUNT(*) AS customers FROM iceberg_data.lakehouse_demo_raw.raw_customers
 UNION ALL
-SELECT 'spark',  COUNT(*) FROM iceberg_data.spark_demo_bronze.customers
+SELECT 'spark',  COUNT(*) FROM iceberg_data.spark_demo_bronze.bronze_customers
 UNION ALL
 SELECT 'cpdctl', COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.customers;
 ```
