@@ -386,6 +386,18 @@ The Presto endpoint being queried is:
 
 ---
 
+## One-command alternative: `dbt build`
+
+`dbt build` is the modern single-command equivalent of seed + run + test. It executes everything in dependency order and runs tests right after each model is created — not as a separate step at the end.
+
+```bash
+bash scripts/dbt_env.sh build --full-refresh
+```
+
+The pipeline steps above (seed → run → test) are shown individually because they make it easier to explain what each phase does during a workshop. In day-to-day use `dbt build` is preferred.
+
+---
+
 ## Layer-by-Layer Commands
 
 !!! tip "Presenting slowly? Build one layer at a time."
@@ -403,6 +415,131 @@ The Presto endpoint being queried is:
     ```
 
     The tags are defined in `dbt_project.yml` under the `models:` section. Each layer has its own tag, so you can rebuild any single layer without touching the others.
+
+---
+
+## Demo: What happens when data quality fails?
+
+This optional scenario shows how dbt tests catch bad data before it reaches the gold layer. It is designed to be run during a live demo.
+
+**Step 1 — Introduce a bad row**
+
+Open `seeds/raw_orders.csv` and add one row with a duplicate `order_id` value:
+
+```text
+9999,1001,2026-01-10 08:00:00,completed,credit_card
+9999,1002,2026-01-11 09:00:00,pending,paypal
+```
+
+Save the file, then reload the seed:
+
+```bash
+bash scripts/dbt_env.sh seed --full-refresh
+```
+
+**Step 2 — Run only the tests (models already exist)**
+
+```bash
+bash scripts/dbt_env.sh test --select raw_orders
+```
+
+Expected failure output:
+
+```text
+1 of 1 START test unique_raw_orders_order_id ..................................... [RUN]
+1 of 1 FAIL 1 unique_raw_orders_order_id ......................................... [FAIL 1 in X.XXs]
+
+Completed with 1 error, 0 partial successes, and 0 warnings:
+
+Failure in test unique_raw_orders_order_id (models/bronze/bronze_sources.yml)
+  Got 1 result, configured to fail if != 0
+  compiled SQL at target/compiled/.../unique_raw_orders_order_id.sql
+```
+
+**Step 3 — Examine the failing SQL**
+
+The compiled SQL shows exactly which rows violated the rule:
+
+```sql
+select order_id, count(*) as n
+from iceberg_data.lakehouse_demo_raw.raw_orders
+group by order_id
+having count(*) > 1
+```
+
+**Step 4 — Fix and verify**
+
+Remove the duplicate row from `seeds/raw_orders.csv`, reload, and re-run the test:
+
+```bash
+bash scripts/dbt_env.sh seed --full-refresh
+bash scripts/dbt_env.sh test --select raw_orders
+```
+
+```text
+1 of 1 PASS unique_raw_orders_order_id .......................................... [PASS in X.XXs]
+Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=1
+```
+
+The key point: the failing test did not break the existing tables. The data in `lakehouse_demo_bronze` still has the last good values. Tests are a safety gate — they catch problems before bad data propagates downstream to Silver and Gold.
+
+---
+
+## Note on dbt sources
+
+In standard dbt, raw tables loaded from outside dbt (via cpdctl, Fivetran, etc.) are declared in a `sources:` YAML block, and bronze models reference them with `{{ source('raw', 'raw_orders') }}` instead of `{{ ref() }}`. This makes the lineage graph accurate — it shows an external source layer feeding into bronze, rather than seeds feeding directly into bronze models.
+
+The IBM `dbt-watsonx-presto 0.1.2` adapter does not support the `sources:` YAML declaration or `{{ source() }}` in model SQL. Bronze models in this demo therefore use `{{ ref('raw_orders') }}` to reference the seed-created raw tables. When IBM updates the adapter to support standard dbt sources, switching is a two-step change: add a `sources.yml` and replace `ref('raw_*')` with `source('raw', 'raw_*')` in all bronze models.
+
+---
+
+## Optional: Iceberg incremental model pattern
+
+dbt supports **incremental models** that only process new or changed rows rather than rebuilding from scratch on every run. This is the core value proposition of dbt for large datasets — instead of reprocessing all 500 orders every time, you process only orders added since the last run.
+
+The pattern uses the `is_incremental()` macro:
+
+```sql
+{{ config(
+    materialized='incremental',
+    unique_key='order_id',
+    properties={
+      "format": "'PARQUET'",
+      "partitioning": "ARRAY['month(order_date)']"
+    }
+) }}
+
+select
+  cast(order_id as integer)                       as order_id,
+  cast(customer_id as integer)                    as customer_id,
+  cast(order_ts as timestamp)                     as order_ts,
+  cast(cast(order_ts as timestamp) as date)       as order_date,
+  lower(trim(status))                             as status,
+  lower(trim(payment_method))                     as payment_method,
+  current_timestamp                               as transformed_at
+from {{ source('raw', 'raw_orders') }}
+where order_id is not null
+{% if is_incremental() %}
+  -- Only rows newer than the latest timestamp already in this table
+  and order_ts > (select max(order_ts) from {{ this }})
+{% endif %}
+```
+
+- **First run** (`--full-refresh`): the `is_incremental()` block is skipped — all rows are loaded.
+- **Subsequent runs**: only rows where `order_ts > max(order_ts in the existing table)` are processed.
+
+To try it, save this as `models/silver/silver_orders_incremental.sql` and run:
+
+```bash
+# First run — full load
+bash scripts/dbt_env.sh run --select silver_orders_incremental --full-refresh
+
+# Subsequent runs — incremental (only new rows)
+bash scripts/dbt_env.sh run --select silver_orders_incremental
+```
+
+!!! note "Adapter support"
+    Incremental model support depends on the `dbt-watsonx-presto` adapter version. The `append` strategy is most broadly supported. Check the adapter changelog if you encounter errors.
 
 ---
 

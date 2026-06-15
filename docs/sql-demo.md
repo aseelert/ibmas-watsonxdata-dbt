@@ -43,10 +43,10 @@ Each path ingests the same source data but lands it in a different schema hierar
 
 | Source CSV | Row count | dbt schema | Spark schema | cpdctl schema |
 |---|---|---|---|---|
-| `raw_customers.csv` | 50 | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.customers` | `lakehouse_demo_ingest.customers` |
-| `raw_products.csv` | 20 | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.products` | `lakehouse_demo_ingest.products` |
-| `raw_orders.csv` | 500 | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.orders` | `lakehouse_demo_ingest.orders` |
-| `raw_order_items.csv` | 1,134 | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.order_items` | `lakehouse_demo_ingest.order_items` |
+| `raw_customers.csv` | 50 | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.bronze_customers` | `lakehouse_demo_ingest.customers` |
+| `raw_products.csv` | 20 | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.bronze_products` | `lakehouse_demo_ingest.products` |
+| `raw_orders.csv` | 500 | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.bronze_orders` | `lakehouse_demo_ingest.orders` |
+| `raw_order_items.csv` | 1,134 | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.bronze_order_items` | `lakehouse_demo_ingest.order_items` |
 
 ```mermaid
 flowchart LR
@@ -170,7 +170,7 @@ SHOW TABLES FROM iceberg_data.spark_demo_gold;
 
 ```sql
 SELECT *
-FROM iceberg_data.spark_demo_bronze.orders
+FROM iceberg_data.spark_demo_bronze.bronze_orders
 ORDER BY order_id;
 ```
 
@@ -178,7 +178,7 @@ ORDER BY order_id;
 
 ```sql
 SELECT *
-FROM iceberg_data.spark_demo_silver.orders
+FROM iceberg_data.spark_demo_silver.spark_silver_orders
 ORDER BY order_id;
 ```
 
@@ -361,8 +361,8 @@ SELECT 'dbt raw'           AS path_layer, 'raw_orders'        AS tbl, COUNT(*) A
 UNION ALL SELECT 'dbt bronze', 'bronze_orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_bronze.bronze_orders
 UNION ALL SELECT 'dbt silver', 'silver_orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_silver.silver_orders
 UNION ALL SELECT 'dbt gold',   'gold_daily_sales',  COUNT(*) FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
-UNION ALL SELECT 'spark bz',   'orders',            COUNT(*) FROM iceberg_data.spark_demo_bronze.orders
-UNION ALL SELECT 'spark sv',   'orders',            COUNT(*) FROM iceberg_data.spark_demo_silver.orders
+UNION ALL SELECT 'spark bz',   'bronze_orders',      COUNT(*) FROM iceberg_data.spark_demo_bronze.bronze_orders
+UNION ALL SELECT 'spark sv',   'spark_silver_orders', COUNT(*) FROM iceberg_data.spark_demo_silver.spark_silver_orders
 UNION ALL SELECT 'spark gold', 'spark_gold_daily_sales', COUNT(*) FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
 UNION ALL SELECT 'cpdctl',     'orders',            COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
 ORDER BY path_layer, tbl;

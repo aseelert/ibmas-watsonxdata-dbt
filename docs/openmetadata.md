@@ -240,6 +240,35 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
 
 ---
 
+## Lightweight alternative: Presto built-in metadata tables
+
+OpenMetadata requires Docker and is best for showing a full lineage UI. If you only need to demonstrate **Iceberg's audit trail** without any extra infrastructure, Presto exposes metadata tables directly — no additional services needed.
+
+Run these queries in the watsonx.data SQL editor or via `python scripts/query_gold.py`:
+
+```sql
+-- Full snapshot history: every dbt run creates a new snapshot
+SELECT committed_at, snapshot_id, operation, summary
+FROM iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
+ORDER BY committed_at DESC;
+
+-- Active history: which snapshot is the current read pointer
+SELECT * FROM iceberg_data.lakehouse_demo_silver."silver_orders$history"
+ORDER BY made_current_at DESC;
+
+-- Partition layout: how rows are distributed across month buckets
+SELECT partition, record_count, file_count
+FROM iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
+ORDER BY partition;
+
+-- Full DDL: exact CREATE TABLE including format and partition spec
+SHOW CREATE TABLE iceberg_data.lakehouse_demo_silver.silver_orders;
+```
+
+These are available on **any Iceberg table** in the catalog — bronze, silver, gold — with no setup beyond the tables already existing. See the [SQL Demo](sql-demo.md#iceberg-table-history) page for a full walkthrough with time travel.
+
+---
+
 ## What Students Learn from This Demo
 
 !!! info "Key learning outcomes"

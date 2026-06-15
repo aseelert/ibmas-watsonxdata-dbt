@@ -105,6 +105,23 @@ storage, name a target Iceberg table, and the service does the rest.
     Platform operators who want a traceable, UI-visible load without writing transformation code,
     or anyone demonstrating the platform's built-in ingestion capability.
 
+**Why cpdctl instead of `dbt seed` or Spark?**
+
+| Question | Answer |
+|---|---|
+| Speed for a one-off load | cpdctl is faster to set up than either path — no Python environment, no PySpark script. Point at a file and go. |
+| Works from your laptop | You upload the CSV from your local machine directly into MinIO and trigger the load via CLI — no cluster-side code to write or deploy. |
+| Audit history in the UI | Every cpdctl ingestion run appears under **Data manager → Ingestion** in the watsonx.data console. Neither dbt seed nor Spark jobs appear there — they are visible only in dbt logs or the Spark engine's own UI. |
+| No code to maintain | `dbt seed` requires a CSV to live in the dbt project and be committed to Git. `Spark` requires a Python script. cpdctl needs only a command and a file path — nothing to version or review. |
+| Enterprise operator workflow | A DBA or data steward who does not know Python or SQL can run cpdctl from a terminal or trigger the same action from the console GUI. |
+
+**When NOT to use cpdctl:**
+
+- You need transformation logic during load (use dbt or Spark).
+- You need to load data on a schedule or in a pipeline (use dbt + Airflow, or Spark).
+- You need the load to appear in dbt lineage or OpenMetadata (use dbt seed + source declarations).
+- The source file is not a flat CSV (use Spark for JSON, Parquet, binary formats).
+
 ---
 
 ## The same data, three schemas
@@ -113,10 +130,10 @@ Each path ingests the same four source CSV files but writes to a different catal
 
 | Source CSV | dbt schema | Spark schema | cpdctl schema |
 |-----------|-----------|-------------|--------------|
-| `raw_customers.csv` (50 rows) | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.customers` | `lakehouse_demo_ingest.customers` |
-| `raw_products.csv` (20 rows) | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.products` | `lakehouse_demo_ingest.products` |
-| `raw_orders.csv` (500 rows) | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.orders` | `lakehouse_demo_ingest.orders` |
-| `raw_order_items.csv` (1,134 rows) | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.order_items` | `lakehouse_demo_ingest.order_items` |
+| `raw_customers.csv` (50 rows) | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.bronze_customers` | `lakehouse_demo_ingest.customers` |
+| `raw_products.csv` (20 rows) | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.bronze_products` | `lakehouse_demo_ingest.products` |
+| `raw_orders.csv` (500 rows) | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.bronze_orders` | `lakehouse_demo_ingest.orders` |
+| `raw_order_items.csv` (1,134 rows) | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.bronze_order_items` | `lakehouse_demo_ingest.order_items` |
 
 All three catalogs sit inside `iceberg_data` on the same Presto engine. You can `JOIN` across
 schemas in a single query.
@@ -357,13 +374,14 @@ UNION ALL SELECT 'order_items',COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.
 ```sql
 -- Join across the cpdctl schema — same Presto catalog, same Iceberg format
 SELECT
-    c.company_name,
-    COUNT(DISTINCT o.order_id)  AS total_orders,
-    SUM(oi.quantity * oi.unit_price) AS total_revenue
+    c.first_name || ' ' || c.last_name AS customer_name,
+    c.country,
+    COUNT(DISTINCT o.order_id)         AS total_orders,
+    SUM(oi.quantity * oi.unit_price)   AS total_revenue
 FROM iceberg_data.lakehouse_demo_ingest.customers   c
 JOIN iceberg_data.lakehouse_demo_ingest.orders      o  ON c.customer_id = o.customer_id
 JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id    = oi.order_id
-GROUP BY c.company_name
+GROUP BY c.first_name, c.last_name, c.country
 ORDER BY total_revenue DESC
 LIMIT 10;
 ```
