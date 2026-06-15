@@ -257,9 +257,9 @@ SELECT * FROM iceberg_data.lakehouse_demo_silver."silver_orders$history"
 ORDER BY made_current_at DESC;
 
 -- Partition layout: how rows are distributed across month buckets
-SELECT partition, record_count, file_count
+SELECT order_date_month, row_count, file_count
 FROM iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
-ORDER BY partition;
+ORDER BY order_date_month;
 
 -- Full DDL: exact CREATE TABLE including format and partition spec
 SHOW CREATE TABLE iceberg_data.lakehouse_demo_silver.silver_orders;

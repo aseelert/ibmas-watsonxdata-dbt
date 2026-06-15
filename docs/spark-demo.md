@@ -236,9 +236,10 @@ Once the job finishes, the gold tables are immediately queryable through the Pre
     ```sql
     SELECT
         order_date,
-        total_orders,
-        total_revenue,
-        avg_order_value
+        category,
+        order_count,
+        units_sold,
+        net_revenue
     FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
     ORDER BY order_date DESC
     LIMIT 10;
@@ -259,7 +260,7 @@ Once the job finishes, the gold tables are immediately queryable through the Pre
     ```
 
 !!! tip "Partition pruning in action"
-    Add a `WHERE order_date = '2024-01-15'` filter to the `spark_gold_daily_sales` query. Presto reads only the single date partition folder instead of scanning the whole table — you can observe the reduced data scanned in the query stats.
+    Add a `WHERE order_date BETWEEN DATE '2026-03-01' AND DATE '2026-03-31'` filter to the `spark_gold_daily_sales` query. Presto reads only the March 2026 partition folder instead of scanning the whole table — you can observe the reduced data scanned in the query stats.
 
 ---
 
