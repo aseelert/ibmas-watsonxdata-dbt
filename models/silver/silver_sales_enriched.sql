@@ -1,4 +1,4 @@
--- Silver enrichment (Databricks-style "augmented" layer):
+-- Silver enrichment (the augmented/joined layer):
 -- conform + join the four clean silver entities into one analytics-ready
 -- fact at order-line grain. Gold marts read from this single table.
 select

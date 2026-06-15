@@ -74,6 +74,47 @@ Then submit:
 python scripts/submit_spark_application.py
 ```
 
+## Spark Application Not Showing In The watsonx.data History
+
+If you submitted the demo Spark job but cannot find it in the UI, you are probably
+looking at the **Ingestion** history. These are two different lists:
+
+| Where you look | What it shows | Does the demo job appear? |
+| --- | --- | --- |
+| **Data manager → Ingestion → History** | Only jobs created by the built-in **Ingestion** feature (named `ingestion-<id>`). | **No** — by design. |
+| **Infrastructure manager → Spark engine `spark656` → Applications** | Every application submitted to the Spark engine, with its state. | **Yes** — look here. |
+
+The demo submits a full **PySpark application** (named `watsonxdata-medallion-demo`)
+through the Spark applications API, not through the Ingestion service — so it is tracked
+as a **Spark application**, not an ingestion entry. It will not show up under Ingestion
+history no matter the state.
+
+Find it under the engine's **Applications** tab, or from the command line:
+
+```bash
+# the submit script prints the application id and this command for you
+python scripts/spark_application_status.py <application-id>
+```
+
+Notes:
+
+- Spark application states are `accepted`, `running`, `finished`, `failed`, and `stopped`.
+  There is no "approved" state for a Spark application — that belongs to other watsonx.data
+  workflows, not Spark submissions.
+- The engine runs the job in `deploy_mode: stand-alone`; the per-application Spark UI and
+  driver logs are reachable from that Applications tab entry.
+
+If you specifically want a CSV load that **does** appear in the Ingestion history, use the
+native ingestion path instead — see [Native Ingestion (cpdctl)](ingestion.md). Those jobs
+are created through the ingestion service and show up under Data manager → Ingestion.
+
+## Ingestion Fails With "I002 Invalid input provided"
+
+This usually means `--storage-name` was passed for a bucket that is already **registered**
+in watsonx.data (like `iceberg-bucket`). For registered storage, omit `--storage-name` and
+let the service detect the bucket from the `s3://` path. Only use `--storage-name` (via
+`WXD_INGEST_STORAGE_NAME`) for **unregistered/transient** storage.
+
 ## MkDocs Port Already in Use
 
 Use another port:

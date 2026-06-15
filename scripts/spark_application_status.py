@@ -56,6 +56,30 @@ def _authorization_header() -> str:
     return f"ZenApiKey {encoded}"
 
 
+def _watsonx_ui_url(endpoint: str, instance_id: str) -> str:
+    """Build the watsonx.data console URL dynamically from the environment."""
+    from urllib.parse import urlparse
+
+    base = os.getenv("WXD_CONSOLE_URL")
+    if not base:
+        host = os.getenv("WXD_CPD_HOST") or urlparse(endpoint).netloc
+        base = f"https://{host}/watsonx-data/#"
+    base = base.rstrip("/")
+    view = os.getenv("WXD_CONSOLE_VIEW", "infrastructure-manager")
+    return f"{base}/{view}?instanceId={instance_id}"
+
+
+def _spark_app_ui_url(endpoint: str, instance_id: str, engine_id: str, app_id: str) -> str:
+    """Direct deep link to a single Spark application's UI (driver/Spark UI)."""
+    from urllib.parse import urlparse
+
+    host = os.getenv("WXD_CPD_HOST") or urlparse(endpoint).netloc
+    return (
+        f"https://{host}/lakehouse/api/v3/{instance_id}"
+        f"/spark_engines/{engine_id}/applications/{app_id}/ui"
+    )
+
+
 def _redact(data):
     if isinstance(data, dict):
         return {
@@ -83,21 +107,35 @@ def main() -> int:
         "WXD_SPARK_APPLICATIONS_ENDPOINT",
         "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/lakehouse/api/v3/spark_engines/spark656/applications",
     )
+    instance_id = _env("WXD_INSTANCE_ID", "1781163689818519")
     print(f"Checking Spark application: {app_id}")
     response = requests.get(
         f"{endpoint.rstrip('/')}/{app_id}",
         headers={
             "Authorization": _authorization_header(),
-            "LhInstanceId": _env("WXD_INSTANCE_ID", "1781163689818519"),
+            "LhInstanceId": instance_id,
         },
         verify=_ssl_verify(),
         timeout=60,
     )
     print(response.status_code)
+    state = None
     try:
-        print(json.dumps(_redact(response.json()), indent=2))
-    except Exception:
+        body = response.json()
+        state = body.get("state") if isinstance(body, dict) else None
+        print(json.dumps(_redact(body), indent=2))
+    except ValueError:
         print(response.text)
+
+    engine_id = os.getenv("WXD_SPARK_ENGINE_ID", "spark656")
+    print("\n" + "=" * 74)
+    print(f"Application ID: {app_id}" + (f"   State: {state}" if state else ""))
+    print(
+        f"Spark application UI: {_spark_app_ui_url(endpoint, instance_id, engine_id, app_id)}"
+    )
+    print(f"watsonx.data UI: {_watsonx_ui_url(endpoint, instance_id)}")
+    print(f"  Infrastructure manager -> Spark engine '{engine_id}' -> Applications tab")
+    print("=" * 74)
     response.raise_for_status()
     return 0
 

@@ -38,6 +38,33 @@ def _ssl_verify() -> bool | str:
     return str(path)
 
 
+def _watsonx_ui_url(endpoint: str, instance_id: str) -> str:
+    """Build the watsonx.data console URL dynamically from the environment.
+
+    Pattern: https://<cpd-host>/watsonx-data/#/<view>?instanceId=<instance-id>
+    """
+    from urllib.parse import urlparse
+
+    base = os.getenv("WXD_CONSOLE_URL")
+    if not base:
+        host = os.getenv("WXD_CPD_HOST") or urlparse(endpoint).netloc
+        base = f"https://{host}/watsonx-data/#"
+    base = base.rstrip("/")
+    view = os.getenv("WXD_CONSOLE_VIEW", "infrastructure-manager")
+    return f"{base}/{view}?instanceId={instance_id}"
+
+
+def _spark_app_ui_url(endpoint: str, instance_id: str, engine_id: str, app_id: str) -> str:
+    """Direct deep link to a single Spark application's UI (driver/Spark UI)."""
+    from urllib.parse import urlparse
+
+    host = os.getenv("WXD_CPD_HOST") or urlparse(endpoint).netloc
+    return (
+        f"https://{host}/lakehouse/api/v3/{instance_id}"
+        f"/spark_engines/{engine_id}/applications/{app_id}/ui"
+    )
+
+
 def _authorization_header() -> str:
     if token := os.getenv("WXD_SPARK_BEARER_TOKEN"):
         return f"Bearer {token}"
@@ -232,6 +259,38 @@ def main() -> int:
     print(response.status_code)
     print(response.text)
     response.raise_for_status()
+
+    # Pull the application id out of the response so the next step is obvious.
+    app_id = None
+    state = None
+    try:
+        body = response.json()
+        app_id = body.get("id") or body.get("application_id") or body.get("application_uuid")
+        state = body.get("state")
+    except ValueError:
+        pass
+
+    engine_id = os.getenv("WXD_SPARK_ENGINE_ID", "spark656")
+    ui_url = _watsonx_ui_url(endpoint, instance_id)
+
+    print("\n" + "=" * 74)
+    if app_id:
+        print(f"Spark application submitted.  Application ID: {app_id}")
+        if state:
+            print(f"Initial state: {state}")
+        print("\nCheck status / poll until FINISHED:")
+        print(f"  python scripts/spark_application_status.py {app_id}")
+        print(f"\nStatus API: {endpoint.rstrip('/')}/{app_id}")
+        print(
+            f"Spark application UI: {_spark_app_ui_url(endpoint, instance_id, engine_id, app_id)}"
+        )
+    else:
+        print("Submitted, but no application id was found in the response body above.")
+    print(f"\nwatsonx.data UI: {ui_url}")
+    print(
+        f"  Infrastructure manager -> Spark engine '{engine_id}' -> Applications tab"
+    )
+    print("=" * 74)
     return 0
 
 

@@ -71,5 +71,6 @@ nav:
   - File Guide: files.md
   - dbt Demo Path: dbt-demo.md
   - Spark Demo Path: spark-demo.md
+  - Native Ingestion (cpdctl): ingestion.md
   - SQL Demo: sql-demo.md
   - Troubleshooting: troubleshooting.md

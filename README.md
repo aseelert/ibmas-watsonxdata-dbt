@@ -214,7 +214,7 @@ python -m pip install -r requirements.txt
 
 Python 3.11 is recommended for this demo. Python 3.14 currently breaks dbt through a transitive dependency during startup.
 
-The `requirements.txt` file installs dbt Core, `dbt-watsonx-presto`, `presto-python-client`, `trino`, and `python-dotenv`.
+The `requirements.txt` file installs dbt Core, `dbt-watsonx-presto`, `presto-python-client`, `boto3`, `requests`, `python-dotenv`, and MkDocs (for the docs site).
 
 It also installs MkDocs and Material for MkDocs. To view the nicer documentation site:
 
@@ -601,7 +601,22 @@ WXD_SPARK_INPUT_BASE=seeds spark-submit spark/load_medallion_demo.py
 The Spark job creates:
 
 - `spark_demo_bronze.bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items`
-- `spark_demo_silver.spark_silver_customers`, `spark_silver_products`, `spark_silver_orders`, `spark_silver_order_items`
-- `spark_demo_gold.spark_gold_daily_sales`, `spark_gold_customer_360`
+- `spark_demo_silver.spark_silver_customers`, `spark_silver_products`, `spark_silver_orders`, `spark_silver_order_items`, `spark_silver_sales_enriched`
+- `spark_demo_gold.spark_gold_daily_sales` (table), `spark_gold_category_performance` (view-equivalent), `spark_gold_customer_360`
 
 Use Spark for larger ingestion, file processing, ML/ETL jobs, or transformations that benefit from distributed execution. Use dbt when the main story is governed SQL models, tests, documentation, and analytics marts. In real projects, teams often combine them: Spark lands or prepares large assets, and dbt governs the SQL transformation layer consumed by analysts and BI.
+
+## Native Ingestion (cpdctl)
+
+Besides dbt and Spark, the same CSV files can be loaded with the **built-in watsonx.data ingestion service** using `cpdctl wx-data ingestion`. This is the only one of the three paths whose jobs appear in the console under **Data manager → Ingestion (history)**.
+
+```bash
+# one-time: install + configure cpdctl (see docs/ingestion.md), then:
+set -a; source .env; set +a
+export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
+export WXD_CPDCTL_PROFILE=wxd-demo
+python scripts/upload_spark_assets.py        # stage CSVs in object storage
+python scripts/ingest_with_cpdctl.py         # ingest each CSV into lakehouse_demo_ingest.*
+```
+
+Full setup and the exact command (and the `--storage-name` pitfall for registered buckets) are documented in `docs/ingestion.md`.

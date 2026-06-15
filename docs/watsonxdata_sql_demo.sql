@@ -1,7 +1,7 @@
 -- watsonx.data dbt and Spark medallion demo SQL
 -- Run these in the watsonx.data SQL editor against the Presto engine.
 --
--- Medallion layers (Databricks-style):
+-- Medallion layers:
 -- - Raw landing is the CSV payload loaded as-is for traceability.
 -- - Bronze is the first managed Iceberg copy with ingestion metadata.
 -- - Silver is typed, cleaned, conformed data, including one ENRICHED fact

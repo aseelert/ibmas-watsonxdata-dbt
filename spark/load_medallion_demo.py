@@ -4,7 +4,7 @@
 Run this inside an environment that already has Spark configured for the
 watsonx.data Iceberg catalog and MinIO object storage.
 
-Medallion layers (Databricks-style):
+Medallion layers:
 - bronze: raw CSVs ingested as-is plus ingestion metadata.
 - silver: cleaned/typed dimensions and facts, plus one enriched fact
   (spark_silver_sales_enriched) that joins all four entities.
@@ -130,7 +130,7 @@ def main() -> None:
     silver_customers = spark.table(f"{catalog}.{silver_schema}.spark_silver_customers")
 
     # Silver enrichment: conform + join all four entities into one fact at
-    # order-line grain (Databricks-style "augmented" silver).
+    # order-line grain (the augmented/joined silver layer).
     sales_enriched = (
         silver_items.alias("oi")
         .join(silver_orders.alias("o"), F.col("oi.order_id") == F.col("o.order_id"))

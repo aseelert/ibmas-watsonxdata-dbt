@@ -227,7 +227,7 @@ Below, each entity is traced field by field. <span class="new">Green</span> mark
 
 ### Silver enrichment (the join layer)
 
-The four tables above are clean, but they are still *separate*. Just like in Databricks,
+The four tables above are clean, but they are still *separate*. In a lakehouse medallion design,
 silver does one more job: it **conforms and joins** the four entities into a single wide
 fact table — <code>silver_sales_enriched</code> (Spark: <code>spark_silver_sales_enriched</code>).
 Every row is one **order line** (one product on one order), with the customer, order, and
@@ -272,7 +272,7 @@ just reads this one table. Two columns are **computed** here so the math lives i
 ## Silver → Gold: where columns are computed
 
 The gold layer turns the enriched silver fact into business answers. Because the join already
-happened at silver, gold mostly **aggregates and reshapes**. Following the Databricks pattern,
+happened at silver, gold mostly **aggregates and reshapes**. Following the medallion pattern,
 gold mixes physical **tables** (computed rows stored on disk) with **views** (saved queries that
 run on read).
 
@@ -284,7 +284,7 @@ run on read).
     against its source table. That means a view is always fresh and costs no extra storage, but
     it does the work again on every read. Here `gold_daily_sales` is a **table** (heavy aggregation,
     read often), while `gold_category_performance` and `gold_customer_360` are **views** on top of
-    it / the enriched fact. This table-plus-view mix is the standard **Databricks gold pattern**.
+    it / the enriched fact. This table-plus-view mix is the standard **medallion gold pattern**.
 
 ### `gold_daily_sales` <span class="obj table">TABLE</span>
 

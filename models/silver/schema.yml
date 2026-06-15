@@ -53,7 +53,7 @@ models:
                 to: ref('silver_products')
                 field: product_id
   - name: silver_sales_enriched
-    description: Conformed, joined order-line fact (Databricks-style augmented silver). One row per order item, enriched with order, product, and customer attributes. Single source for the gold marts.
+    description: Conformed, joined order-line fact (the augmented/enriched silver layer). One row per order item, enriched with order, product, and customer attributes. Single source for the gold marts.
     columns:
       - name: order_item_id
         tests:
