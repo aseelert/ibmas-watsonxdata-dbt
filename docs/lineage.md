@@ -112,8 +112,10 @@ re-ingesting the CSV.
 
 ## Data flow in this demo
 
-Three separate ingestion paths — dbt, Spark, and cpdctl — each read the same source CSVs and
-produce the same medallion shape, but write to different schemas so you can compare them.
+dbt and Spark are two full ingest+transform medallion pipelines that read the same CSVs and produce
+the same Bronze/Silver/Gold shape in different schemas. cpdctl is an ingestion-only loader (like
+`dbt seed`) that lands the raw CSVs in `lakehouse_demo_ingest`; it needs a dbt or Spark transform on
+that data to become a medallion.
 
 ```mermaid
 flowchart TB
@@ -151,20 +153,27 @@ flowchart TB
     sb --> ss --> sg
   end
 
-  subgraph CPDCTL["cpdctl path · IBM CLI · lakehouse_demo_ingest"]
+  subgraph CPDCTL["cpdctl ingest (raw landing) · IBM CLI · lakehouse_demo_ingest"]
     direction TB
-    ci["lakehouse_demo_ingest.*\n(UI-tracked, native ingestion)"]:::ingest
+    ci["lakehouse_demo_ingest.*\n(raw, UI-tracked native ingestion)"]:::ingest
   end
 
   SRC -->|dbt seed + SQL models| DBT
   SRC -->|PySpark DataFrame API| SPARK
   SRC -->|cpdctl ingest command| CPDCTL
+  ci -. "transform with dbt or Spark\n(post-action)" .-> DBT
+  ci -. "transform with dbt or Spark\n(post-action)" .-> SPARK
 ```
 
-!!! tip "All three paths, same data"
-    After running all three paths you will have three independent medallion stacks in the same
-    `iceberg_data` catalog. The [SQL comparison page](sql-demo.md) runs queries across all three
-    so you can verify they produce identical numbers.
+!!! tip "Two full pipelines plus one native loader"
+    After running the dbt and Spark paths you will have **two full medallion stacks** (dbt:
+    `lakehouse_demo_bronze/silver/gold`; Spark: `spark_demo_bronze/silver/gold`) plus **one raw
+    ingest landing** (cpdctl: `lakehouse_demo_ingest`). The raw ingest landing becomes a medallion
+    only if you run dbt or Spark transforms over it. dbt and Spark are self-contained — each ingests
+    and transforms on its own; cpdctl is the ingest front-end you pair with a dbt or Spark transform
+    back-end (**cpdctl + dbt/Spark = one full pipeline**). The [SQL comparison page](sql-demo.md)
+    runs queries across the dbt and Spark gold layers to verify they produce identical numbers, and
+    shows how to inspect the cpdctl raw ingest tables.
 
 ---
 
@@ -254,7 +263,7 @@ pipeline itself.
 </div>
 
 !!! note "Filter + partitioning at silver"
-    `where order_id is not null`. The table is **partitioned by `day(order_date)`** (PARQUET) so date-range queries prune files automatically.
+    `where order_id is not null`. The table is **partitioned by `month(order_date)`** (PARQUET; partition column `order_date_month`) so date-range queries prune files automatically.
 
 ### Order items
 
@@ -338,7 +347,7 @@ reasons and have different performance characteristics.
 
 | Gold object | Type | Storage cost | Freshness | When to use |
 |---|---|---|---|---|
-| `gold_daily_sales` | TABLE | Parquet files written to MinIO, partitioned by `order_date` | Reflects the last `dbt run` | Heavy aggregation read often by dashboards — pre-compute it |
+| `gold_daily_sales` | TABLE | Parquet files written to MinIO, partitioned by `month(order_date)` (partition column `order_date_month`) | Reflects the last `dbt run` | Heavy aggregation read often by dashboards — pre-compute it |
 | `gold_category_performance` | VIEW | None — query text only | Always current against `gold_daily_sales` | Rolls up the daily table; light enough to recompute on read |
 | `gold_customer_360` | VIEW | None — query text only | Always current against silver | Per-customer profile with lifetime metrics; simple grouping |
 
@@ -375,7 +384,7 @@ flowchart LR
   nr --> G
 ```
 
-Filter: `status = 'completed'`. Grouped by `order_date, category`. Partitioned by `order_date`.
+Filter: `status = 'completed'`. Grouped by `order_date, category`. Partitioned by `month(order_date)` (partition column `order_date_month`).
 
 ### `gold_category_performance` — VIEW
 
@@ -482,27 +491,27 @@ storage. When a query filters on that column, the engine skips every partition t
     the right folder and you are done in seconds. Partitioning does the same thing for data files
     in MinIO.
 
-Both `silver_sales_enriched` and `gold_daily_sales` are partitioned by `order_date`:
+Both `silver_sales_enriched` and `gold_daily_sales` are partitioned by `month(order_date)` (partition column `order_date_month`):
 
 ```text
 iceberg-bucket/
 └── lakehouse_demo_gold/
     └── gold_daily_sales/
-        ├── order_date=2026-01/
+        ├── order_date_month=2026-01/
         │   └── part-00000-abc123.parquet
-        ├── order_date=2026-02/
+        ├── order_date_month=2026-02/
         │   └── part-00000-def456.parquet
-        └── order_date=2026-03/
+        └── order_date_month=2026-03/
             └── part-00000-ghi789.parquet
 ```
 
-A query with `WHERE order_date = '2026-02-14'` reads only the `order_date=2026-02/` folder.
+A query with `WHERE order_date = DATE '2026-02-14'` reads only the `order_date_month=2026-02/` folder.
 Every other month's files are skipped entirely by Presto before a single byte is read.
 
 | Table | Partition column | What it skips |
 |---|---|---|
-| `silver_sales_enriched` | `order_date` | Date-range queries skip irrelevant months; Iceberg tracks file statistics per partition |
-| `gold_daily_sales` | `order_date` | BI tools filtering by date read only the matching folder; row counts per partition stay small and consistent |
+| `silver_sales_enriched` | `order_date_month` | Date-range queries skip irrelevant months; Iceberg tracks file statistics per partition |
+| `gold_daily_sales` | `order_date_month` | BI tools filtering by date read only the matching folder; row counts per partition stay small and consistent |
 
 ### Iceberg metadata: what makes it a "table format"
 

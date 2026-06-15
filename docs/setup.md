@@ -243,7 +243,7 @@ All checks passed!
 !!! info "Skip this step unless you plan to run Path C"
     Path C uses the IBM `cpdctl` CLI to submit native ingestion jobs that appear in the watsonx.data console under **Data manager → Ingestion**. If you are only running the dbt path or the Spark path, skip to the "Ready to go?" section below.
 
-`cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data ingestion service directly, bypassing dbt and Spark.
+`cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data ingestion service directly, bypassing dbt/Spark for the LOAD step (you still use dbt or Spark to transform the loaded data). cpdctl only INGESTS raw CSV into lakehouse_demo_ingest — it is a loader, not a transformation engine. To build a medallion on top you run the dbt or Spark transforms against the ingest schema afterward.
 
 Install on macOS (Apple Silicon):
 

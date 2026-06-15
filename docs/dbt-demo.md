@@ -17,7 +17,7 @@
 !!! info "The analytics engineering approach"
     dbt turns SQL into a software project: each transformation is a versioned `.sql` file, dbt runs them in dependency order, and every model gets tested and documented automatically. This is the "analytics engineering" approach — strong governance, readable lineage, but limited to what SQL can express.
 
-    Contrast that with Path B (Spark), which uses Python for complex ETL that SQL cannot easily express, and with Path C (cpdctl), which uses the IBM CLI to ingest data into natively tracked Iceberg tables through the watsonx.data UI.
+    Contrast that with Path B (Spark), which uses Python for complex ETL that SQL cannot easily express, and with Path C (cpdctl), which uses the IBM CLI to ingest data into natively tracked Iceberg tables through the watsonx.data UI. Note that cpdctl is an ingestion-only loader (like `dbt seed`): it lands raw CSV in `lakehouse_demo_ingest` and stops there — you build a medallion on it by running dbt or Spark over `lakehouse_demo_ingest` afterward. Paths A and B, by contrast, are complete ingest+transform pipelines.
 
     dbt does not store any data itself. It writes SQL and sends it to **Presto** — the SQL engine inside watsonx.data. Presto then creates and populates the tables. The chain is:
 
@@ -303,7 +303,7 @@ bash scripts/dbt_env.sh test
 | `not_null` | Every `order_id` must have a value | Bronze, Silver |
 | `unique` | No two rows share the same `customer_id` | Bronze, Silver |
 | `relationships` | Every `order_id` in order items must exist in orders | Silver |
-| `accepted_values` | `status` must be one of: `pending`, `completed`, `cancelled` | Silver |
+| `accepted_values` | `status` must be one of: `pending`, `completed`, `cancelled`, `returned` | Silver |
 
 Expected output (abbreviated):
 
@@ -517,7 +517,7 @@ select
   lower(trim(status))                             as status,
   lower(trim(payment_method))                     as payment_method,
   current_timestamp                               as transformed_at
-from {{ source('raw', 'raw_orders') }}
+from {{ ref('raw_orders') }}
 where order_id is not null
 {% if is_incremental() %}
   -- Only rows newer than the latest timestamp already in this table
@@ -624,4 +624,4 @@ every dbt run, seed, or INSERT creates a new snapshot you can query back to.
 You have completed Path A. The Bronze, Silver, and Gold layers are built, tested, and queryable.
 
 - **Run Path B** — [Path B — Spark: Python ETL](spark-demo.md): build the same layers using a Spark application instead of SQL. Compare the resulting tables with the dbt output.
-- **Compare results now** — [SQL Demo](sql-demo.md): run cross-path queries to confirm that dbt and Spark produce identical gold metrics.
+- **Compare results now** — [SQL Demo](sql-demo.md): run cross-path queries to confirm that dbt and Spark produce identical gold metrics. Path C (cpdctl) is excluded from this gold comparison because it has no gold layer until a dbt or Spark post-action runs over its ingested data.

@@ -70,7 +70,7 @@ dbt reads these files and runs `INSERT` statements to populate the `lakehouse_de
 | `seeds/raw_order_items.csv` | 1 134 | Order line items: item ID, order ID, product ID, quantity, amounts |
 
 !!! note "Total seed volume"
-    All four files together contain 1 134 data rows (counting only `raw_order_items`). The dataset is intentionally small so every query returns in seconds on the shared Presto cluster.
+    The four files together contain 1,704 data rows (50 customers, 20 products, 500 orders, 1,134 order items). The dataset is intentionally small so every query returns in seconds on the shared Presto cluster.
 
 To load the seeds into watsonx.data:
 
@@ -78,7 +78,7 @@ To load the seeds into watsonx.data:
 dbt seed
 ```
 
-dbt writes the rows into `iceberg_data.lakehouse_demo_raw` as Parquet-backed Iceberg tables, partitioned by `order_date` where applicable.
+dbt writes the rows into `iceberg_data.lakehouse_demo_raw` as Parquet-backed Iceberg tables, partitioned by `month(order_date)` (partition column `order_date_month`) where applicable.
 
 !!! example "Verify the seed loaded"
     ```sql
@@ -115,7 +115,7 @@ Bronze models copy data from the raw seed tables and add ingestion metadata colu
 | `bronze_orders.sql` | `raw_orders` | Ingestion timestamp and source tag |
 | `bronze_order_items.sql` | `raw_order_items` | Ingestion timestamp and source tag |
 
-`bronze_sources.yml` declares the seed tables as dbt sources and defines `not_null` and `unique` tests on every primary key. dbt runs these tests automatically when you run `dbt test`.
+`bronze_sources.yml` documents the seed tables (via a `seeds:` block) and defines `not_null`/`unique` tests on every primary key. Bronze models reference seeds via `{{ ref('raw_*') }}` rather than dbt sources (the adapter does not support sources). dbt runs these tests automatically when you run `dbt test`.
 
 ### `models/silver/`
 
@@ -141,7 +141,7 @@ Gold models are the analytics-ready outputs — the tables and views that a BI t
 
 | Model | Materialization | What it contains |
 |---|---|---|
-| `gold_daily_sales.sql` | TABLE | Aggregated daily sales KPIs by date and product category — order count, units sold, gross revenue, net revenue, return count |
+| `gold_daily_sales.sql` | TABLE | Aggregated daily sales KPIs — order count, units sold, net revenue (by date and product category) |
 | `gold_category_performance.sql` | VIEW | Revenue and units rolled up to one row per product category, queried on demand from `gold_daily_sales` |
 | `gold_customer_360.sql` | VIEW | Customer-level analytics — total orders, lifetime value, average order value, days since last order |
 
@@ -212,7 +212,7 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 | `submit_spark_application.py` | Spark demo step | Submits `load_medallion_demo.py` to the watsonx.data Spark engine REST endpoint; prints the application ID you need for the status check |
 | `spark_application_status.py` | After submission | Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by `submit_spark_application.py` |
 | `query_gold.py` | After any demo path | Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI |
-| `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `lakehouse_demo_ingest` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)** |
+| `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `lakehouse_demo_ingest` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `lakehouse_demo_ingest` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `lakehouse_demo_ingest` as a post-action (cpdctl + dbt/Spark = full pipeline) |
 | `prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | Runs `dbt docs generate` then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage |
 | `upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
 | `cleanup_watsonxdata.py` | After the demo | Drops all tables and views in `lakehouse_demo_raw/bronze/silver/gold` and `spark_demo_bronze/silver/gold`; use this to reset the environment between runs |

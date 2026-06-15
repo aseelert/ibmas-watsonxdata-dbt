@@ -439,6 +439,8 @@ python scripts/spark_application_status.py <application-id>
 
 These errors occur while running the cpdctl native ingestion path.
 
+Note: Path C (cpdctl) is an ingestion loader, not a transformation engine like Paths A/B. Its output (lakehouse_demo_ingest) is raw and must be transformed by dbt or Spark to become a medallion.
+
 ---
 
 ### I002 Invalid input provided — `--storage-name` on a registered bucket

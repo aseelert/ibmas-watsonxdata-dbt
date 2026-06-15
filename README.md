@@ -1,8 +1,10 @@
 # watsonx.data Ingestion Workshop — dbt · Spark · cpdctl
 
-A hands-on demo showing three ways to load and transform data in an IBM watsonx.data lakehouse.
-The same four CSV files (customers, products, orders, order items) flow through the Bronze → Silver → Gold
-medallion pattern via dbt, Spark, and cpdctl. No prior watsonx.data experience needed.
+A hands-on demo showing **two full ingest+transform pipelines (dbt, Spark)** plus **one native
+ingestion loader (cpdctl)** in an IBM watsonx.data lakehouse. The same four CSV files (customers,
+products, orders, order items) flow through the Bronze → Silver → Gold medallion pattern via **dbt
+and Spark**. **cpdctl** lands the same CSVs as raw tables in `lakehouse_demo_ingest`, which you then
+transform with dbt or Spark to build a medallion. No prior watsonx.data experience needed.
 
 ---
 
@@ -23,15 +25,15 @@ bash scripts/dbt_env.sh run               # runs the full dbt medallion pipeline
 
 ## What You Will Build
 
-Three independent ingestion paths — all writing to the same `iceberg_data` catalog, all using Iceberg table format and MinIO object storage, all queryable through the Presto SQL engine.
+**Two full medallion pipelines (dbt, Spark) plus one native ingestion loader (cpdctl)** — all writing to the same `iceberg_data` catalog, all using Iceberg table format and MinIO object storage, all queryable through the Presto SQL engine. dbt and Spark are interchangeable, self-contained ingest+transform engines; cpdctl ingests raw only and is paired with dbt or Spark to build a medallion.
 
-| Path | Tool | Schemas written | Gold objects created |
-|------|------|-----------------|----------------------|
-| **A — dbt** | dbt + Presto (SQL) | `lakehouse_demo_raw/bronze/silver/gold` | `gold_daily_sales` (table), `gold_category_performance` (view), `gold_customer_360` (view) |
-| **B — Spark** | PySpark on watsonx.data Spark engine | `spark_demo_bronze/silver/gold` | `spark_gold_daily_sales` (table), `spark_gold_category_performance` (view), `spark_gold_customer_360` (table) |
-| **C — cpdctl** | IBM cpdctl CLI (native ingestion service) | `lakehouse_demo_ingest` | `customers`, `products`, `orders`, `order_items` |
+| Path | Tool | Schemas written | Objects created |
+|------|------|-----------------|-----------------|
+| **A — dbt** (full pipeline) | dbt + Presto (SQL) | `lakehouse_demo_raw/bronze/silver/gold` | `gold_daily_sales` (table), `gold_category_performance` (view), `gold_customer_360` (view) |
+| **B — Spark** (full pipeline) | PySpark on watsonx.data Spark engine | `spark_demo_bronze/silver/gold` | `spark_gold_daily_sales` (table), `spark_gold_category_performance` (view), `spark_gold_customer_360` (table) |
+| **C — cpdctl** (ingest loader only) | IBM cpdctl CLI (native ingestion service) | `lakehouse_demo_ingest` | raw ingest tables (no gold): `customers`, `products`, `orders`, `order_items` |
 
-The paths write to separate schemas so you can compare them side by side without one overwriting another.
+dbt and Spark are self-contained full pipelines you can run independently and compare gold-to-gold. cpdctl is an ingest front-end — run dbt or Spark over `lakehouse_demo_ingest` afterward to turn its raw data into a medallion (cpdctl + dbt/Spark = one full pipeline).
 
 !!! tip "Which path to lead with?"
     Lead with **dbt** when the story is governed SQL analytics. Use **Spark** when the story includes distributed ingestion or large-scale ETL. Use **cpdctl** when you want to show the built-in ingestion jobs that appear in the watsonx.data console under **Data manager → Ingestion (history)**.
@@ -58,10 +60,10 @@ flowchart LR
 |-------|---------------------------|--------|
 | Raw | Original CSV payload, unchanged, for traceability | dbt seeds / direct CSV read |
 | Bronze | First managed copy in the lakehouse; adds `_ingested_at`, `_source_file`, `_ingest_batch_id` | Iceberg PARQUET table |
-| Silver | Typed, cleaned, conformed entities; validated with dbt tests; orders partitioned by `order_date` | Iceberg PARQUET table |
+| Silver | Typed, cleaned, conformed entities; validated with dbt tests; orders partitioned by `month(order_date)` (partition column `order_date_month`) | Iceberg PARQUET table |
 | Gold | Business-facing aggregates ready for SQL, BI, or demos | Table or view (see path) |
 
-The three paths handle Raw differently:
+dbt and Spark continue from Raw through Bronze → Silver → Gold. cpdctl stops at Raw (`lakehouse_demo_ingest`) — it is a loader, not a full pipeline; pair it with dbt or Spark to go further:
 
 ```text
 dbt path:   seeds/ CSV → lakehouse_demo_raw → bronze → silver → gold

@@ -1,10 +1,11 @@
-# SQL — Compare All Three Paths
+# SQL — Compare dbt vs Spark Gold (+ inspect cpdctl raw)
 
 !!! abstract "What this page does"
-    All three ingestion paths (dbt, Spark, cpdctl) write to different schemas but represent the
-    same four source CSV files. This page gives you ready-to-run SQL to inspect each path and
-    compare their gold-layer outputs side by side. Use the watsonx.data SQL editor or any
-    Presto client.
+    dbt and Spark are two full pipelines that build gold layers (`lakehouse_demo_gold`,
+    `spark_demo_gold`); cpdctl is an ingest-only loader that lands raw tables in
+    `lakehouse_demo_ingest`. This page compares the **dbt and Spark gold outputs side by side** and
+    shows how to **inspect the cpdctl raw tables**. Use the watsonx.data SQL editor or any Presto
+    client.
 
 ---
 
@@ -39,7 +40,7 @@ python scripts/query_gold.py
 
 ## Schema map — all three paths at a glance
 
-Each path ingests the same source data but lands it in a different schema hierarchy.
+dbt and Spark build multi-layer schema hierarchies (raw/bronze/silver/gold and bronze/silver/gold). cpdctl lands a single raw schema (`lakehouse_demo_ingest`) with no hierarchy until a dbt or Spark transform is applied.
 
 | Source CSV | Row count | dbt schema | Spark schema | cpdctl schema |
 |---|---|---|---|---|
@@ -54,7 +55,7 @@ flowchart LR
 
     CSV --> dbt_raw["lakehouse_demo_raw\n(dbt seed)"]
     CSV --> sp_bz["spark_demo_bronze\n(Spark ETL)"]
-    CSV --> ingest["lakehouse_demo_ingest\n(cpdctl)"]
+    CSV --> ingest["lakehouse_demo_ingest\n(cpdctl — raw only)"]
 
     dbt_raw --> dbt_bz["lakehouse_demo_bronze"]
     dbt_bz  --> dbt_sv["lakehouse_demo_silver"]
@@ -62,6 +63,9 @@ flowchart LR
 
     sp_bz   --> sp_sv["spark_demo_silver"]
     sp_sv   --> sp_gd["spark_demo_gold"]
+
+    ingest -. "transform with dbt or Spark\n(post-action)" .-> dbt_bz
+    ingest -. "transform with dbt or Spark\n(post-action)" .-> sp_sv
 
     style dbt_gd fill:#0f62fe,color:#fff
     style sp_gd  fill:#0f62fe,color:#fff
@@ -135,7 +139,7 @@ ORDER BY order_id;
 
 **Gold layer — aggregated business marts ready for dashboards and analytics:**
 
-`gold_daily_sales` is a **TABLE** (materialized, partitioned by `order_date`).
+`gold_daily_sales` is a **TABLE** (materialized, partitioned by `month(order_date)`; partition column `order_date_month`).
 `gold_customer_360` and `gold_category_performance` are **VIEWs** (computed on read).
 
 ```sql
@@ -227,12 +231,17 @@ ORDER BY customer_id;
 
 !!! note "cpdctl has no gold layer"
     The cpdctl path loads raw CSV data as-is and stops there. It demonstrates the platform's
-    built-in ingestion audit trail, not a full medallion pipeline. To compute gold-level
-    aggregations from cpdctl data, run the ad-hoc join below.
+    built-in ingestion audit trail, not a full medallion pipeline. You *can* query the raw cpdctl
+    tables directly with an ad-hoc join (below), but to build a **real, governed** Silver/Gold on
+    cpdctl-ingested data you run dbt or Spark transformations against `lakehouse_demo_ingest` as a
+    post-action — cpdctl provides the raw ingest, dbt/Spark provide the transform. See
+    [What cpdctl does NOT do — and how to finish the job](ingestion.md#what-cpdctl-does-not-do-and-how-to-finish-the-job).
 
 **Ad-hoc gold-equivalent query over cpdctl tables:**
 
-This join reproduces the daily sales metric using the raw cpdctl tables — no ETL pipeline needed.
+This is a one-off ad-hoc query for inspection — it reproduces the daily sales metric directly from
+the raw cpdctl tables, without a governed pipeline. (For a real pipeline, run dbt or Spark over
+`lakehouse_demo_ingest` as shown in the link above.)
 
 ```sql
 SELECT
@@ -255,6 +264,12 @@ ORDER BY order_date, category;
 
 This is the core demo moment: two completely independent pipelines (dbt and Spark) reading the
 same source data through different engines and code — and producing identical business answers.
+
+!!! info "Why only dbt and Spark here?"
+    cpdctl is excluded from this gold-vs-gold comparison because it has **no gold layer** — it is an
+    ingest loader, not a medallion. Only the two full pipelines (dbt, Spark) produce comparable gold
+    marts. To bring cpdctl data into this comparison, first transform it with dbt or Spark (see the
+    [post-action section](ingestion.md#what-cpdctl-does-not-do-and-how-to-finish-the-job)).
 
 ### Daily sales — dbt vs Spark
 
@@ -468,7 +483,7 @@ SHOW CREATE TABLE iceberg_data.lakehouse_demo_silver.silver_orders;
 The full SQL script used in this page is also available as a standalone file at
 `docs/watsonxdata_sql_demo.sql` for use with any Presto client.
 
-After comparing results across all three paths, see the lineage graph that traces each row
-from source CSV to gold mart:
+After comparing the dbt and Spark gold layers (and inspecting the cpdctl raw tables), see the
+lineage graph that traces each row from source CSV to gold mart:
 
 [Lineage UI (OpenMetadata)](openmetadata.md){ .md-button }

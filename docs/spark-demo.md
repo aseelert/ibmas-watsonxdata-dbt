@@ -47,8 +47,8 @@ flowchart LR
     **2. It sets the file format to Parquet.**
     Parquet is a compressed, column-oriented format — like a ZIP file that is also optimised for fast column lookups. We set it explicitly so the table is always Parquet, never ORC or CSV.
 
-    **3. It partitions by date.**
-    `.partitionedBy("order_date")` tells Iceberg to create one sub-folder per date on MinIO. When Presto later queries `WHERE order_date = '2024-01-15'`, it opens only that folder and skips all others — like going straight to the right drawer in a filing cabinet.
+    **3. It partitions by month.**
+    `.partitionedBy(F.months("order_date"))` tells Iceberg to apply the `month(order_date)` transform and create one sub-folder per month on MinIO (`order_date_month=2026-01`, `order_date_month=2026-02`, ...). When Presto later queries `WHERE order_date = DATE '2026-01-15'`, it reads only the `order_date_month=2026-01` folder and skips all others — like going straight to the right drawer in a filing cabinet.
 
     ```python
     (
@@ -268,5 +268,8 @@ Once the job finishes, the gold tables are immediately queryable through the Pre
 
 You have completed the Spark path. The `spark_demo_gold` tables now live alongside the `lakehouse_demo_gold` tables (from Path A — dbt) in the same Iceberg catalog.
 
-- **Try Path C** — [Ingestion Paths: dbt · Spark · cpdctl](ingestion.md) walks through the cpdctl native ingestion method, which creates UI-tracked load history in the watsonx.data Data manager.
-- **Compare all three paths** — [SQL Demo](sql-demo.md) has queries that run against dbt gold, Spark gold, and cpdctl tables in the same session so you can verify the outputs match.
+- **Try cpdctl ingestion** — [Ingestion Paths: dbt · Spark · cpdctl](ingestion.md) walks through the cpdctl native ingestion method, which creates UI-tracked load history in the watsonx.data Data manager.
+- **Compare the two full pipelines** — [SQL Demo](sql-demo.md) has queries that run against dbt gold and Spark gold in the same session so you can verify those two outputs match, plus queries to inspect the cpdctl RAW ingest tables. Note that cpdctl has no gold layer of its own — it would need a dbt or Spark transform before it could be compared to gold.
+
+!!! note "cpdctl is an ingestion loader, not a full medallion path"
+    Unlike dbt and Spark — which are two interchangeable, self-contained full pipelines that each ingest *and* transform CSVs through Bronze → Silver → Gold — cpdctl is an ingestion loader. It lands raw CSV in `lakehouse_demo_ingest` and stops at raw; to build bronze/silver/gold on top you run dbt or Spark over that data.

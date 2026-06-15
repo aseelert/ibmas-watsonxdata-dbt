@@ -69,13 +69,14 @@ nav:
     - "1 · Prepare Your Machine": setup.md
   - Understand:
     - "Architecture & Data Flow": lineage.md
-    - "3 Ingestion Paths Compared": ingestion.md
+    - "When to Use Which (dbt · Spark · cpdctl)": choosing.md
     - Glossary: glossary.md
-  - Demo Paths:
-    - "A · dbt — SQL Governance": dbt-demo.md
-    - "B · Spark — Python ETL": spark-demo.md
-    - "C · cpdctl — Native Ingestion": ingestion.md
-    - "SQL — Compare All Paths": sql-demo.md
+  - Build a Medallion (dbt or Spark):
+    - "A · dbt — SQL Governance (full pipeline)": dbt-demo.md
+    - "B · Spark — Python ETL (full pipeline)": spark-demo.md
+  - Ingest & Compare:
+    - "Ingest Raw Data — cpdctl (loader)": ingestion.md
+    - "SQL — Compare dbt vs Spark Gold": sql-demo.md
   - Governance:
     - "Lineage UI (OpenMetadata)": openmetadata.md
     - "Semantic Models": semantic-models.md
