@@ -148,12 +148,15 @@ def main() -> int:
     print(DIVIDER)
     try:
         partitions = run(
-            f'SELECT partition, record_count, file_count '
-            f'FROM "{TABLE}$partitions" ORDER BY partition'
+            f'SELECT order_date_month, row_count, file_count '
+            f'FROM "{TABLE}$partitions" ORDER BY order_date_month'
         )
-        print(f"  {'partition':<20} {'records':>10} {'files':>8}")
+        def _month_label(m: int) -> str:
+            return f"{1970 + m // 12}-{(m % 12) + 1:02d}"
+
+        print(f"  {'month':<12} {'records':>10} {'files':>8}")
         for p, recs, files in partitions[:8]:
-            print(f"  {str(p):<20} {recs:>10,} {files:>8,}")
+            print(f"  {_month_label(p):<12} {recs:>10,} {files:>8,}")
         if len(partitions) > 8:
             print(f"  ... and {len(partitions) - 8} more partitions")
     except Exception as exc:
