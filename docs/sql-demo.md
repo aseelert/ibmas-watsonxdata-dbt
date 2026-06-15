@@ -311,7 +311,7 @@ SELECT
   s.net_revenue        AS spark_revenue,
   d.net_revenue - s.net_revenue AS delta
 FROM dbt_gold   d
-JOIN spark_gold s USING (order_date, category)
+JOIN spark_gold s ON d.order_date = s.order_date AND d.category = s.category
 WHERE d.order_count != s.order_count
    OR d.net_revenue != s.net_revenue
 ORDER BY ABS(d.net_revenue - s.net_revenue) DESC;
