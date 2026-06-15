@@ -55,7 +55,7 @@ flowchart LR
         df.writeTo("iceberg_data.spark_demo_silver.spark_silver_orders")
           .using("iceberg")
           .tableProperty("write.format.default", "parquet")
-          .partitionedBy("order_date")
+          .partitionedBy(F.months("order_date"))
           .createOrReplace()
     )
     ```
@@ -63,19 +63,19 @@ flowchart LR
     The resulting folder layout on MinIO looks like this:
 
     ```text
-    s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-15/
-    s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-16/
-    s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-17/
+    s3a://iceberg-bucket/.../spark_silver_orders/order_date_month=2026-01/
+    s3a://iceberg-bucket/.../spark_silver_orders/order_date_month=2026-02/
+    s3a://iceberg-bucket/.../spark_silver_orders/order_date_month=2026-03/
     ...
     ```
 
 **Which tables are partitioned?**
 
-| Spark table | Schema | Partition column |
+| Spark table | Schema | Partition transform |
 |---|---|---|
-| `spark_silver_orders` | `spark_demo_silver` | `order_date` |
-| `spark_silver_sales_enriched` | `spark_demo_silver` | `order_date` |
-| `spark_gold_daily_sales` | `spark_demo_gold` | `order_date` |
+| `spark_silver_orders` | `spark_demo_silver` | `month(order_date)` |
+| `spark_silver_sales_enriched` | `spark_demo_silver` | `month(order_date)` |
+| `spark_gold_daily_sales` | `spark_demo_gold` | `month(order_date)` |
 
 **All objects the Spark path creates:**
 

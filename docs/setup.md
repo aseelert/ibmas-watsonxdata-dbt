@@ -138,6 +138,17 @@ Expected output:
 Read connection details from: watsonx_data/instance_details.json
 Wrote certificate chain to: certs/watsonxdata-ca.pem
 Updated env file: .env
+
+Imported values:
+  WXD_INSTANCE_ID=<your-instance-id>
+  WXD_HOST=ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
+  WXD_PORT=443
+  WXD_PRESTO_ENGINE_ID=presto651
+  WXD_CPD_HOST=cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+  WXD_CPD_AUTH_URL=https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/icp4d-api/v1/authorize
+  WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
+  WXD_CATALOG=iceberg_data
+  WXD_SCHEMA=lakehouse_demo
 ```
 
 After this step two things will have changed on disk:
@@ -192,18 +203,34 @@ python scripts/query_gold.py
 bash scripts/dbt_env.sh debug
 ```
 
-Successful output for Option A looks like:
+Successful output for Option A shows the gold mart tables (run it after completing the full pipeline in [Path A — dbt](dbt-demo.md)):
 
 ```text
-Connecting to Presto at ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
-Query: SELECT count(*) FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
-Result: 1 row(s) returned
+Daily Sales
+===========
++------------+-------------+-------------+------------+-------------+
+| ORDER_DATE | CATEGORY    | ORDER_COUNT | UNITS_SOLD | NET_REVENUE |
++------------+-------------+-------------+------------+-------------+
+| 2026-01-03 | Electronics |           1 |          4 |      392.00 |
+| 2026-01-03 | Home        |           2 |          6 |      182.40 |
+...
+494 rows
 ```
 
 Successful output for Option B ends with:
 
 ```text
-Connection test: OK
+Connection:
+  host: ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
+  port: 443
+  user: ibmlhapikey_cpadmin
+  database: iceberg_data
+  schema: lakehouse_demo
+  ssl_verify: certs/watsonxdata-ca.pem
+Registered adapter: watsonx_presto=0.1.2
+  Connection test: [OK connection ok]
+
+All checks passed!
 ```
 
 !!! warning "Connection refused or SSL error?"

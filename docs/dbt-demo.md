@@ -43,10 +43,13 @@ flowchart LR
 
 **Partitioning in this demo**
 
-Two models are partitioned by `order_date`:
+Three models are partitioned by `month(order_date)`:
 
+- `silver_orders` — typed order headers
 - `silver_sales_enriched` — the joined fact table at order-line grain
 - `gold_daily_sales` — the aggregated daily sales mart
+
+The `month()` Iceberg transform groups all rows for a given calendar month into one partition folder. With 500 orders spanning 6 months (Jan–Jun 2026), this gives 6 partitions instead of 157 — well within Presto's 100 simultaneous open-writer cap.
 
 The dbt config that enables Iceberg + Parquet + partitioning is written directly in the SQL model file:
 
@@ -55,7 +58,7 @@ The dbt config that enables Iceberg + Parquet + partitioning is written directly
     materialized='table',
     properties={
       "format": "'PARQUET'",
-      "partitioning": "ARRAY['order_date']"
+      "partitioning": "ARRAY['month(order_date)']"
     }
 ) }}
 select order_date, category, ...
@@ -72,8 +75,10 @@ The `properties` dict passes through to Presto's `CREATE TABLE … WITH (…)` s
 |-------|--------|---------|---------------|
 | Raw | `lakehouse_demo_raw` | `raw_customers`, `raw_products`, `raw_orders`, `raw_order_items` | Exact copies of the four CSV seed files as Iceberg tables |
 | Bronze | `lakehouse_demo_bronze` | `bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items` | Source-like tables with ingest metadata columns added |
-| Silver | `lakehouse_demo_silver` | `silver_customers`, `silver_orders`, `silver_products`, `silver_order_items`, `silver_sales_enriched` | Cleaned, typed, joined fact table — the single source of truth for Gold |
-| Gold | `lakehouse_demo_gold` | `gold_daily_sales` (TABLE), `gold_category_performance` (VIEW), `gold_customer_360` (VIEW) | Analytics-ready aggregates for BI consumption |
+| Silver | `lakehouse_demo_silver` | `time_spine_daily`, `silver_customers`, `silver_orders`\*, `silver_products`, `silver_order_items`, `silver_sales_enriched`\* | Cleaned, typed; `silver_sales_enriched` joins all four entities as the single source for Gold |
+| Gold | `lakehouse_demo_gold` | `gold_daily_sales`\* (TABLE), `gold_category_performance` (VIEW), `gold_customer_360` (VIEW) | Analytics-ready aggregates for BI consumption |
+
+\* partitioned by `month(order_date)`
 
 ---
 
@@ -107,9 +112,20 @@ python scripts/prepare_watsonx_env.py
 Expected output:
 
 ```text
-Watsonx endpoint: ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
-SSL certificate written to certs/lh-ssl-ts.crt
-Environment file .env updated
+Read connection details from: watsonx_data/instance_details.json
+Wrote certificate chain to: certs/watsonxdata-ca.pem
+Updated env file: .env
+
+Imported values:
+  WXD_INSTANCE_ID=<your-instance-id>
+  WXD_HOST=ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
+  WXD_PORT=443
+  WXD_PRESTO_ENGINE_ID=presto651
+  WXD_CPD_HOST=cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+  WXD_CPD_AUTH_URL=https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/icp4d-api/v1/authorize
+  WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
+  WXD_CATALOG=iceberg_data
+  WXD_SCHEMA=lakehouse_demo
 ```
 
 ---
@@ -125,11 +141,16 @@ python scripts/bootstrap_watsonxdata.py
 Expected output:
 
 ```text
-Creating schema iceberg_data.lakehouse_demo_raw     ... OK
-Creating schema iceberg_data.lakehouse_demo_bronze  ... OK
-Creating schema iceberg_data.lakehouse_demo_silver  ... OK
-Creating schema iceberg_data.lakehouse_demo_gold    ... OK
-4 schemas ready.
+Connecting to ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443, catalog=iceberg_data
+Using schema location base: s3a://iceberg-bucket/lakehouse_demo
+SQL> create schema if not exists iceberg_data.lakehouse_demo_raw with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_raw')
+ensured iceberg_data.lakehouse_demo_raw
+SQL> create schema if not exists iceberg_data.lakehouse_demo_bronze with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_bronze')
+ensured iceberg_data.lakehouse_demo_bronze
+SQL> create schema if not exists iceberg_data.lakehouse_demo_silver with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_silver')
+ensured iceberg_data.lakehouse_demo_silver
+SQL> create schema if not exists iceberg_data.lakehouse_demo_gold with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_gold')
+ensured iceberg_data.lakehouse_demo_gold
 ```
 
 !!! note "Run this once per environment"
@@ -151,12 +172,12 @@ bash scripts/dbt_env.sh seed --full-refresh
 **Source CSV files:**
 
 ```text
-seeds/raw_customers.csv      →   50 rows
-seeds/raw_products.csv       →   20 rows
-seeds/raw_orders.csv         →  500 rows
-seeds/raw_order_items.csv    →  564 rows
+seeds/raw_customers.csv      →     50 rows
+seeds/raw_products.csv       →     20 rows
+seeds/raw_orders.csv         →    500 rows
+seeds/raw_order_items.csv    →  1 134 rows
                                  ─────────
-                         total:  1 134 rows
+                         total:  1 704 rows
 ```
 
 **Iceberg tables created in `lakehouse_demo_raw`:**
@@ -168,21 +189,29 @@ iceberg_data.lakehouse_demo_raw.raw_orders
 iceberg_data.lakehouse_demo_raw.raw_order_items
 ```
 
-Expected dbt output (abbreviated):
+Expected dbt output:
 
 ```text
-Running with dbt=1.8.x
-Found 4 seeds, 9 models, 18 tests
+Running with dbt=1.11.7
+Registered adapter: watsonx_presto=0.1.2
+Found 13 models, 4 seeds, 34 data tests, 446 macros, 2 semantic models
 
-Concurrency: 1 threads
+Concurrency: 4 threads (target='dev')
 
-1 of 4 START seed file lakehouse_demo_raw.raw_customers ... [OK]
-2 of 4 START seed file lakehouse_demo_raw.raw_products  ... [OK]
-3 of 4 START seed file lakehouse_demo_raw.raw_orders    ... [OK]
-4 of 4 START seed file lakehouse_demo_raw.raw_order_items ... [OK]
+1 of 4 START seed file lakehouse_demo_raw.raw_customers ........................ [RUN]
+2 of 4 START seed file lakehouse_demo_raw.raw_order_items ...................... [RUN]
+3 of 4 START seed file lakehouse_demo_raw.raw_orders ........................... [RUN]
+4 of 4 START seed file lakehouse_demo_raw.raw_products ......................... [RUN]
+4 of 4 OK loaded seed file lakehouse_demo_raw.raw_products ..................... [CREATE 20 in 5.02s]
+1 of 4 OK loaded seed file lakehouse_demo_raw.raw_customers .................... [CREATE 50 in 6.21s]
+3 of 4 OK loaded seed file lakehouse_demo_raw.raw_orders ....................... [CREATE 500 in 10.50s]
+2 of 4 OK loaded seed file lakehouse_demo_raw.raw_order_items .................. [CREATE 1134 in 13.60s]
 
-Finished running 4 seeds in X.XX seconds.
-PASS=4 WARN=0 ERROR=0 SKIP=0 TOTAL=4
+Finished running 4 seeds in 0 hours 0 minutes and 17.22 seconds (17.22s).
+
+Completed successfully
+
+Done. PASS=4 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=4
 ```
 
 ---
@@ -203,24 +232,55 @@ bash scripts/dbt_env.sh run
 | Model | Layer | Materialization | What it adds |
 |-------|-------|-----------------|--------------|
 | `bronze_customers`, `bronze_orders`, `bronze_products`, `bronze_order_items` | Bronze | TABLE | Ingest metadata: `_ingested_at`, `_ingested_by`, `_source_file`, `_ingest_batch_id` |
-| `silver_customers`, `silver_orders`, `silver_products`, `silver_order_items` | Silver | TABLE | Typed fields, cleaned nulls, business-ready column names |
-| `silver_sales_enriched` | Silver | TABLE (partitioned by `order_date`) | Full join across orders, order items, products, and customers — one row per order line |
-| `gold_daily_sales` | Gold | TABLE (partitioned by `order_date`) | Aggregated revenue and units by date and category — completed orders only |
+| `time_spine_daily` | Silver | TABLE | Calendar spine for MetricFlow semantic models |
+| `silver_customers`, `silver_products`, `silver_order_items` | Silver | TABLE | Typed fields, cleaned nulls, business-ready column names |
+| `silver_orders` | Silver | TABLE (partitioned by `month(order_date)`) | Typed order headers; month partitioning keeps Presto writers within the 100-partition cap |
+| `silver_sales_enriched` | Silver | TABLE (partitioned by `month(order_date)`) | Full join across orders, order items, products, and customers — one row per order line |
+| `gold_daily_sales` | Gold | TABLE (partitioned by `month(order_date)`) | Aggregated revenue and units by date and category — completed orders only |
 | `gold_category_performance` | Gold | VIEW | Category-level performance metrics reading from `gold_daily_sales` |
 | `gold_customer_360` | Gold | VIEW | Customer lifetime value and order history reading from Silver |
 
-Expected dbt output (abbreviated):
+Expected dbt output:
 
 ```text
-1 of 9 START table model lakehouse_demo_bronze.bronze_customers ... [OK]
-2 of 9 START table model lakehouse_demo_bronze.bronze_orders    ... [OK]
-...
-7 of 9 START table model lakehouse_demo_gold.gold_daily_sales   ... [OK]
-8 of 9 START view  model lakehouse_demo_gold.gold_category_performance ... [OK]
-9 of 9 START view  model lakehouse_demo_gold.gold_customer_360  ... [OK]
+Running with dbt=1.11.7
+Registered adapter: watsonx_presto=0.1.2
+Found 13 models, 4 seeds, 34 data tests, 446 macros, 2 semantic models
 
-Finished running 7 table models, 2 view models in X.XX seconds.
-PASS=9 WARN=0 ERROR=0 SKIP=0 TOTAL=9
+Concurrency: 4 threads (target='dev')
+
+ 1 of 13 START sql table model lakehouse_demo_bronze.bronze_customers ........... [RUN]
+ 2 of 13 START sql table model lakehouse_demo_bronze.bronze_order_items ......... [RUN]
+ 3 of 13 START sql table model lakehouse_demo_bronze.bronze_orders .............. [RUN]
+ 4 of 13 START sql table model lakehouse_demo_bronze.bronze_products ............ [RUN]
+ 1 of 13 OK created sql table model lakehouse_demo_bronze.bronze_customers ...... [SUCCESS in 7.19s]
+ 3 of 13 OK created sql table model lakehouse_demo_bronze.bronze_orders ......... [SUCCESS in 7.19s]
+ 5 of 13 START sql table model lakehouse_demo_silver.time_spine_daily ........... [RUN]
+ 6 of 13 START sql table model lakehouse_demo_silver.silver_customers ........... [RUN]
+ 4 of 13 OK created sql table model lakehouse_demo_bronze.bronze_products ....... [SUCCESS in 7.78s]
+ 7 of 13 START sql table model lakehouse_demo_silver.silver_orders .............. [RUN]
+ 2 of 13 OK created sql table model lakehouse_demo_bronze.bronze_order_items .... [SUCCESS in 8.98s]
+ 8 of 13 START sql table model lakehouse_demo_silver.silver_products ............ [RUN]
+ 5 of 13 OK created sql table model lakehouse_demo_silver.time_spine_daily ...... [SUCCESS in 6.69s]
+ 9 of 13 START sql table model lakehouse_demo_silver.silver_order_items ......... [RUN]
+ 6 of 13 OK created sql table model lakehouse_demo_silver.silver_customers ...... [SUCCESS in 7.98s]
+ 8 of 13 OK created sql table model lakehouse_demo_silver.silver_products ....... [SUCCESS in 7.30s]
+ 7 of 13 OK created sql table model lakehouse_demo_silver.silver_orders ......... [SUCCESS in 8.80s]
+ 9 of 13 OK created sql table model lakehouse_demo_silver.silver_order_items .... [SUCCESS in 5.65s]
+10 of 13 START sql table model lakehouse_demo_silver.silver_sales_enriched ..... [RUN]
+10 of 13 OK created sql table model lakehouse_demo_silver.silver_sales_enriched  [SUCCESS in 6.63s]
+11 of 13 START sql view  model lakehouse_demo_gold.gold_customer_360 ............ [RUN]
+12 of 13 START sql table model lakehouse_demo_gold.gold_daily_sales ............ [RUN]
+11 of 13 OK created sql view  model lakehouse_demo_gold.gold_customer_360 ....... [SUCCESS in 4.31s]
+12 of 13 OK created sql table model lakehouse_demo_gold.gold_daily_sales ....... [SUCCESS in 6.21s]
+13 of 13 START sql view  model lakehouse_demo_gold.gold_category_performance .... [RUN]
+13 of 13 OK created sql view  model lakehouse_demo_gold.gold_category_performance [SUCCESS in 1.30s]
+
+Finished running 11 table models, 2 view models in 0 hours 0 minutes and 38.08 seconds (38.08s).
+
+Completed successfully
+
+Done. PASS=13 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=13
 ```
 
 ---
@@ -245,13 +305,25 @@ bash scripts/dbt_env.sh test
 | `relationships` | Every `order_id` in order items must exist in orders | Silver |
 | `accepted_values` | `status` must be one of: `pending`, `completed`, `cancelled` | Silver |
 
-Expected output (snippet):
+Expected output (abbreviated):
 
 ```text
-18 of 18 PASS accepted_values silver_orders__status ... [PASS in X.XXs]
+Running with dbt=1.11.7
+Registered adapter: watsonx_presto=0.1.2
+Found 13 models, 4 seeds, 34 data tests, 446 macros, 2 semantic models
 
-Finished running 18 tests in X.XX seconds.
-PASS=18 WARN=0 ERROR=0 SKIP=0 TOTAL=18
+Concurrency: 4 threads (target='dev')
+
+ 1 of 34 START test accepted_values_silver_orders_status__completed__returned__pending__cancelled  [RUN]
+ 2 of 34 START test not_null_gold_category_performance_category ................. [RUN]
+ ...
+34 of 34 PASS unique_time_spine_daily_date_day ................................. [PASS in 2.30s]
+
+Finished running 34 data tests in 0 hours 0 minutes and 27.95 seconds (27.95s).
+
+Completed successfully
+
+Done. PASS=34 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=34
 ```
 
 !!! warning "If a test fails"
@@ -276,21 +348,37 @@ python scripts/query_gold.py customer_360
 
 !!! example "Sample output: gold_daily_sales"
     ```text
-    order_date   | category      | order_count | units_sold | net_revenue
-    -------------|---------------|-------------|------------|------------
-    2024-01-15   | Electronics   |           3 |          5 |    1 247.50
-    2024-01-15   | Home & Garden |           2 |          4 |      312.00
-    2024-01-16   | Electronics   |           1 |          2 |      899.00
+    Daily Sales
+    ===========
+    +------------+-------------+-------------+------------+-------------+
+    | ORDER_DATE | CATEGORY    | ORDER_COUNT | UNITS_SOLD | NET_REVENUE |
+    +------------+-------------+-------------+------------+-------------+
+    | 2026-01-03 | Electronics |           1 |          4 |      392.00 |
+    | 2026-01-03 | Home        |           2 |          6 |      182.40 |
+    | 2026-01-03 | Outdoor     |           1 |          2 |      102.10 |
+    | 2026-01-05 | Electronics |           1 |          2 |      261.00 |
+    | 2026-01-06 | Electronics |           3 |          4 |      344.80 |
+    | 2026-01-06 | Home        |           2 |          3 |       64.93 |
+    | 2026-01-06 | Office      |           2 |          3 |      158.25 |
+    | 2026-01-06 | Outdoor     |           1 |          3 |      226.95 |
     ...
+    494 rows
     ```
 
 !!! example "Sample output: gold_customer_360"
     ```text
-    customer_id | customer_name   | total_orders | lifetime_value | last_order_date
-    ------------|-----------------|--------------|----------------|----------------
-    C-0001      | Alice Nguyen    |            7 |       2 341.20 | 2024-03-18
-    C-0002      | Bob Stein       |            3 |         487.50 | 2024-02-01
+    Customer 360
+    ============
+    +-------------+------------+-----------+-----------------------------+---------+-------------+------------------+-----------------+----------------+------------------+----------------+
+    | CUSTOMER_ID | FIRST_NAME | LAST_NAME | EMAIL                       | COUNTRY | SIGNUP_DATE | COMPLETED_ORDERS | RETURNED_ORDERS | PENDING_ORDERS | CANCELLED_ORDERS | LIFETIME_VALUE |
+    +-------------+------------+-----------+-----------------------------+---------+-------------+------------------+-----------------+----------------+------------------+----------------+
+    |       1,042 | Sora       | Yamamoto  | sora.yamamoto@example.com   | GB      | 2026-01-26  |               15 |               1 |              0 |                0 |        3485.96 |
+    |       1,004 | Noah       | Smith     | noah.smith@example.com      | DE      | 2025-12-02  |               13 |               1 |              0 |                2 |        3443.59 |
+    |       1,048 | Rita       | Moreau    | rita.moreau@example.com     | ES      | 2025-12-15  |               11 |               0 |              0 |                1 |        3227.60 |
+    |       1,039 | Ben        | Taylor    | ben.taylor@example.com      | FR      | 2025-12-28  |               13 |               1 |              0 |                1 |        3120.76 |
+    |       1,033 | Kwame      | Mensah    | kwame.mensah@example.com    | IT      | 2025-12-26  |                9 |               2 |              1 |                1 |        3099.22 |
     ...
+    50 rows
     ```
 
 The Presto endpoint being queried is:
