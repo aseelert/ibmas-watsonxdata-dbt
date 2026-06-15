@@ -104,9 +104,9 @@ select *
 from iceberg_data.lakehouse_demo_silver."silver_orders$history"
 order by made_current_at desc;
 
-select *
+select order_date_month, row_count, file_count, total_size
 from iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
-order by order_date;
+order by order_date_month;
 
 show create table iceberg_data.lakehouse_demo_silver.silver_orders;
 

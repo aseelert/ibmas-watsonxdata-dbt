@@ -183,7 +183,7 @@ In this demo, MinIO holds the raw CSV seed files and the Parquet data files that
 
 ```bash
 # Example MinIO bucket path for an Iceberg data file
-s3a://iceberg-bucket/lakehouse_demo_gold/gold_daily_sales/order_date=2024-03-15/data-00000.parquet
+s3a://iceberg-bucket/lakehouse_demo_gold/gold_daily_sales/order_date_month=2026-03/data-00000.parquet
 ```
 
 !!! info
@@ -229,23 +229,27 @@ models:
 
 Partitioning splits a table's files into sub-folders by a column value, so a query that filters on that column only reads the relevant files.
 
-In this demo, `gold_daily_sales` is partitioned by `order_date`. A query for a single day reads one partition folder instead of scanning the entire table.
+In this demo, `gold_daily_sales` is partitioned by `month(order_date)`. A query that filters on `order_date` lets Presto skip partition folders for months that don't match.
 
 ```sql
 -- Presto uses partition pruning automatically
 SELECT *
 FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
-WHERE order_date = DATE '2024-03-15';
--- Only reads the partition: .../order_date=2024-03-15/
+WHERE order_date BETWEEN DATE '2026-03-01' AND DATE '2026-03-31';
+-- Only reads the March 2026 partition folder
 ```
 
 !!! info "File layout on MinIO"
     ```text
     gold_daily_sales/
-      order_date=2024-03-01/  ← one Parquet file per partition
-      order_date=2024-03-02/
-      order_date=2024-03-15/
+      order_date_month=2026-01/  ← one Parquet file per month partition
+      order_date_month=2026-02/
+      order_date_month=2026-03/
     ```
+
+    The `month()` Iceberg transform groups all rows for a calendar month into one folder.
+    With 500 orders across 6 months (Jan–Jun 2026), there are 6 partition folders instead
+    of 157 daily folders — keeping well within Presto's 100 simultaneous open-writer cap.
 
 ---
 
