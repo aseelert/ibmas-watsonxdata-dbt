@@ -120,6 +120,7 @@ def main() -> None:
     silver_orders = spark.table(f"{catalog}.{silver_schema}.spark_silver_orders")
     silver_items = spark.table(f"{catalog}.{silver_schema}.spark_silver_order_items")
     silver_products = spark.table(f"{catalog}.{silver_schema}.spark_silver_products")
+    silver_customers = spark.table(f"{catalog}.{silver_schema}.spark_silver_customers")
     daily_sales = (
         silver_orders.alias("o")
         .join(silver_items.alias("oi"), F.col("o.order_id") == F.col("oi.order_id"))
@@ -137,6 +138,44 @@ def main() -> None:
         daily_sales.writeTo(f"{catalog}.{gold_schema}.spark_gold_daily_sales")
         .using("iceberg")
         .partitionedBy("order_date")
+        .createOrReplace()
+    )
+
+    customer_360 = (
+        silver_customers.alias("c")
+        .join(silver_orders.alias("o"), F.col("c.customer_id") == F.col("o.customer_id"), "left")
+        .join(silver_items.alias("oi"), F.col("o.order_id") == F.col("oi.order_id"), "left")
+        .join(silver_products.alias("p"), F.col("oi.product_id") == F.col("p.product_id"), "left")
+        .groupBy(
+            F.col("c.customer_id"),
+            F.col("c.first_name"),
+            F.col("c.last_name"),
+            F.col("c.email"),
+            F.col("c.country"),
+            F.col("c.signup_date"),
+        )
+        .agg(
+            F.countDistinct(F.when(F.col("o.status") == "completed", F.col("o.order_id"))).alias("completed_orders"),
+            F.countDistinct(F.when(F.col("o.status") == "returned", F.col("o.order_id"))).alias("returned_orders"),
+            F.countDistinct(F.when(F.col("o.status") == "pending", F.col("o.order_id"))).alias("pending_orders"),
+            F.countDistinct(F.when(F.col("o.status") == "cancelled", F.col("o.order_id"))).alias("cancelled_orders"),
+            F.coalesce(
+                F.sum(
+                    F.when(
+                        F.col("o.status") == "completed",
+                        F.col("oi.quantity") * F.col("p.unit_price") * (F.lit(1) - F.col("oi.discount_pct")),
+                    ).otherwise(F.lit(0))
+                ),
+                F.lit(0),
+            ).cast("decimal(14,2)").alias("lifetime_value"),
+            F.max(F.when(F.col("o.status") == "completed", F.col("o.order_ts"))).alias("last_completed_order_ts"),
+            F.max(F.col("o.order_ts")).alias("last_activity_ts"),
+        )
+    )
+    print(f"Writing gold customer 360 table {catalog}.{gold_schema}.spark_gold_customer_360")
+    (
+        customer_360.writeTo(f"{catalog}.{gold_schema}.spark_gold_customer_360")
+        .using("iceberg")
         .createOrReplace()
     )
 

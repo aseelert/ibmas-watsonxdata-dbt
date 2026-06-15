@@ -1,34 +1,32 @@
--- watsonx.data dbt and Spark medallion demo SQL
--- Run these in the watsonx.data SQL editor against the Presto engine.
---
--- Demo idea:
--- - Raw landing is the CSV payload loaded as-is for traceability.
--- - Bronze is the first managed Iceberg copy with ingestion metadata.
--- - Silver is typed, cleaned, conformed data for reuse.
--- - Gold is a business-facing mart for analytics.
---
--- The dbt path writes to lakehouse_demo_* schemas.
--- The Spark path writes to spark_demo_* schemas.
--- Both use the same CSV files so customers can compare the approaches.
+# SQL Demo
 
--- 1. Inspect the dbt medallion schemas.
+Run these statements in the watsonx.data SQL editor against the Presto engine.
+
+!!! note "Raw in SQL vs raw files"
+    The original raw data is the CSV files. The `lakehouse_demo_raw` tables exist because dbt seed loads those CSV files into queryable Presto tables. Spark reads the CSV files directly from object storage, so there is no `spark_demo_raw` schema in this demo.
+
+## Inspect dbt Schemas
+
+```sql
 show schemas from iceberg_data like 'lakehouse_demo%';
 
 show tables from iceberg_data.lakehouse_demo_raw;
 show tables from iceberg_data.lakehouse_demo_bronze;
 show tables from iceberg_data.lakehouse_demo_silver;
 show tables from iceberg_data.lakehouse_demo_gold;
+```
 
--- 2. Raw landing data: this is the direct CSV load.
--- It is intentionally close to the source file and should not carry business
--- logic for a production project.
+## Raw Landing
+
+```sql
 select *
 from iceberg_data.lakehouse_demo_raw.raw_orders
 order by order_id;
+```
 
--- 3. Bronze data: same business payload plus ingestion metadata.
--- This is the historical/audit-friendly layer. Downstream models can use it,
--- and operators can still answer when and how a record entered the lakehouse.
+## Bronze Metadata
+
+```sql
 select
   order_id,
   customer_id,
@@ -41,10 +39,11 @@ select
   _ingest_batch_id
 from iceberg_data.lakehouse_demo_bronze.bronze_orders
 order by order_id;
+```
 
--- 4. Silver data: cleaned, typed, conformed.
--- This is where the demo standardizes data types and creates a reusable
--- order_date column for analytics and partitioning.
+## Silver Orders
+
+```sql
 select
   order_id,
   customer_id,
@@ -55,9 +54,11 @@ select
   transformed_at
 from iceberg_data.lakehouse_demo_silver.silver_orders
 order by order_id;
+```
 
--- 5. Gold marts: business-facing views.
--- Gold is query-ready for customers, BI tools, notebooks, or application demos.
+## Gold Marts
+
+```sql
 select *
 from iceberg_data.lakehouse_demo_gold.gold_daily_sales
 order by order_date, category;
@@ -65,8 +66,11 @@ order by order_date, category;
 select *
 from iceberg_data.lakehouse_demo_gold.gold_customer_360
 order by lifetime_value desc, customer_id;
+```
 
--- 6. Iceberg metadata: snapshots, history, and partitions.
+## Iceberg Metadata
+
+```sql
 select
   committed_at,
   snapshot_id,
@@ -84,32 +88,31 @@ from iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
 order by order_date;
 
 show create table iceberg_data.lakehouse_demo_silver.silver_orders;
+```
 
--- 7. Iceberg time travel by snapshot id.
--- Replace <snapshot_id> with a value from "silver_orders$snapshots".
-select count(*)
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for version as of <snapshot_id>;
+## Time Travel
 
+Replace `<snapshot_id>` with a value from `"silver_orders$snapshots"`.
+
+```sql
 select *
 from iceberg_data.lakehouse_demo_silver.silver_orders
-for system_version as of <snapshot_id>
+for version as of <snapshot_id>
 order by order_id;
+```
 
--- 8. Iceberg time travel by timestamp.
--- Use a timestamp after a snapshot commit time from "silver_orders$snapshots".
-select count(*)
-from iceberg_data.lakehouse_demo_silver.silver_orders
-for timestamp as of timestamp '2026-06-12 12:46:47 UTC';
+Use a timestamp after one of the `committed_at` values.
 
+```sql
 select *
 from iceberg_data.lakehouse_demo_silver.silver_orders
-for system_time as of timestamp '2026-06-12 12:46:47 UTC'
+for timestamp as of timestamp '2026-06-12 12:46:47 UTC'
 order by order_id;
+```
 
--- 9. Spark demo output: separate schemas, same CSV data.
--- The Spark tables are separate on purpose. This makes the Spark job a clean
--- alternative path instead of modifying the dbt demo output.
+## Spark Output
+
+```sql
 show schemas from iceberg_data like 'spark_demo%';
 
 show tables from iceberg_data.spark_demo_bronze;
@@ -123,10 +126,11 @@ order by order_date, category;
 select *
 from iceberg_data.spark_demo_gold.spark_gold_customer_360
 order by lifetime_value desc, customer_id;
+```
 
--- 10. Compare dbt gold and Spark gold for the same source data.
--- The result sets should match for daily sales when both paths have been run
--- from the same CSV files.
+## Compare dbt and Spark Gold
+
+```sql
 select
   'dbt' as path,
   order_date,
@@ -145,8 +149,11 @@ select
   net_revenue
 from iceberg_data.spark_demo_gold.spark_gold_daily_sales
 order by order_date, category, path;
+```
 
--- 11. Compare dbt and Spark customer 360.
+## Compare dbt and Spark Customer 360
+
+```sql
 select
   'dbt' as path,
   customer_id,
@@ -167,3 +174,6 @@ select
   lifetime_value
 from iceberg_data.spark_demo_gold.spark_gold_customer_360
 order by customer_id, path;
+```
+
+The full SQL script is also available in `docs/watsonxdata_sql_demo.sql`.

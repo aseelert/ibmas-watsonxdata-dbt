@@ -5,8 +5,10 @@
 venv/
 logs/
 target/
+site/
 dbt_packages/
 profiles.yml
 **/profiles.yml
+watsonx_data/*.json
 *.pyc
 __pycache__/

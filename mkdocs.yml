@@ -1,0 +1,54 @@
+site_name: watsonx.data dbt and Spark Medallion Demo
+site_description: Customer demo for dbt, Spark, Iceberg, and watsonx.data.
+repo_name: ibmas-watsonxdata-dbt
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: teal
+  font:
+    text: Inter
+    code: IBM Plex Mono
+  icon:
+    logo: material/database
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tabs
+    - navigation.indexes
+    - content.code.copy
+    - content.code.select
+    - toc.follow
+extra_css:
+  - assets/stylesheets/extra.css
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+nav:
+  - Overview: index.md
+  - Setup Order: setup.md
+  - Beginner Glossary: glossary.md
+  - File Guide: files.md
+  - dbt Demo Path: dbt-demo.md
+  - Spark Demo Path: spark-demo.md
+  - SQL Demo: sql-demo.md
+  - Troubleshooting: troubleshooting.md
