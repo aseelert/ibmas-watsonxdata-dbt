@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: gold_daily_sales
-    description: Daily sales KPI mart by date and product category.
+    description: Daily sales KPI mart by date and product category. Materialized as a physical table, built from silver_sales_enriched.
     columns:
       - name: order_date
         tests:
@@ -10,6 +10,13 @@ models:
       - name: category
         tests:
           - not_null
+  - name: gold_category_performance
+    description: Gold VIEW layered on the gold_daily_sales table. Revenue and units rolled up to one row per product category.
+    columns:
+      - name: category
+        tests:
+          - not_null
+          - unique
   - name: gold_customer_360
     description: Customer-level analytics mart for demo dashboards and ad hoc SQL.
     columns:

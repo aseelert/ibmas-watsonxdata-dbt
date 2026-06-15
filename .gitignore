@@ -12,3 +12,5 @@ profiles.yml
 watsonx_data/*.json
 *.pyc
 __pycache__/
+.playwright-mcp/
+shot_*.png

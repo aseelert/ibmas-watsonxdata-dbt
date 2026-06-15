@@ -186,8 +186,8 @@ flowchart LR
   sparkRaw["Spark reads CSVs from object storage"]
   dbt["dbt path: SQL through Presto"]
   spark["Spark path: PySpark job"]
-  dbtGold["dbt gold views: gold_daily_sales, gold_customer_360"]
-  sparkGold["Spark gold tables: spark_gold_daily_sales, spark_gold_customer_360"]
+  dbtGold["dbt gold: gold_daily_sales (table), gold_category_performance (view), gold_customer_360 (view)"]
+  sparkGold["Spark gold tables: spark_gold_daily_sales, spark_gold_category_performance, spark_gold_customer_360"]
   compare["Compare results in watsonx.data SQL"]
 
   csv --> dbtRaw --> dbt --> dbtGold --> compare
@@ -231,9 +231,10 @@ The dbt and Spark outputs are separated on purpose:
 | dbt object | Spark object | Why |
 | --- | --- | --- |
 | `lakehouse_demo_gold.gold_daily_sales` | `spark_demo_gold.spark_gold_daily_sales` | Same business result, separate schema and Spark prefix. |
+| `lakehouse_demo_gold.gold_category_performance` | `spark_demo_gold.spark_gold_category_performance` | Same category rollup, separate schema and Spark prefix. |
 | `lakehouse_demo_gold.gold_customer_360` | `spark_demo_gold.spark_gold_customer_360` | Same customer mart, separate schema and Spark prefix. |
 
-dbt gold models are **views** by default. Spark gold outputs are **physical Iceberg tables** because the Spark job writes dataframes into the catalog. That is normal.
+The dbt gold layer is now a **mix**: `gold_daily_sales` is a **table**, while `gold_category_performance` and `gold_customer_360` are **views**. Spark gold outputs are **physical Iceberg tables** because the Spark job writes dataframes into the catalog. That is normal.
 
 ## Strengths And Limits
 

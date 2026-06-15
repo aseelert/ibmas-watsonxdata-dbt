@@ -50,7 +50,7 @@
     <span class="obj csv">CSV</span> a flat file in object storage &nbsp;·&nbsp;
     <span class="obj table">TABLE</span> a physical Iceberg table &nbsp;·&nbsp;
     <span class="obj view">VIEW</span> a logical query that runs on read.
-    Raw → bronze → silver are **tables**; gold is **views**.
+    Raw → bronze → silver are **tables**; gold is a **mix** — `gold_daily_sales` is a table, and the other gold marts are views built on top of it.
 
 ## End-to-End Lineage
 
@@ -85,12 +85,14 @@ flowchart LR
     p2["silver_products"]:::silver
     o2["silver_orders"]:::silver
     i2["silver_order_items"]:::silver
+    se["silver_sales_enriched"]:::silver
   end
 
-  subgraph GLD["GOLD · views"]
+  subgraph GLD["GOLD · tables + views"]
     direction TB
-    g1["gold_daily_sales"]:::gold
-    g2["gold_customer_360"]:::gold
+    g1["gold_daily_sales · TABLE"]:::gold
+    g3["gold_category_performance · VIEW"]:::gold
+    g2["gold_customer_360 · VIEW"]:::gold
   end
 
   c0 --> c1 --> c2
@@ -98,14 +100,16 @@ flowchart LR
   o0 --> o1 --> o2
   i0 --> i1 --> i2
 
-  o2 --> g1
-  i2 --> g1
-  p2 --> g1
+  c2 --> se
+  o2 --> se
+  i2 --> se
+  p2 --> se
 
+  se --> g1
+  g1 -->|TABLE → VIEW| g3
+
+  se --> g2
   c2 --> g2
-  o2 --> g2
-  i2 --> g2
-  p2 --> g2
 ```
 
 ## Column-Level Lineage
@@ -221,11 +225,71 @@ Below, each entity is traced field by field. <span class="new">Green</span> mark
 !!! note "Filter applied at silver"
     `where quantity > 0`.
 
+### Silver enrichment (the join layer)
+
+The four tables above are clean, but they are still *separate*. Just like in Databricks,
+silver does one more job: it **conforms and joins** the four entities into a single wide
+fact table — <code>silver_sales_enriched</code> (Spark: <code>spark_silver_sales_enriched</code>).
+Every row is one **order line** (one product on one order), with the customer, order, and
+product details already attached. Downstream gold no longer has to re-join anything — it
+just reads this one table. Two columns are **computed** here so the math lives in one place.
+
+<div class="lineage-table-wrap" markdown>
+<table class="lineage">
+  <thead>
+    <tr>
+      <th class="silver">upstream silver column</th>
+      <th class="arrow"></th>
+      <th class="silver">silver_sales_enriched (order-line grain)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>silver_order_items.order_item_id</code></td><td class="arrow">→</td><td><code>order_item_id</code></td></tr>
+    <tr><td><code>silver_order_items.order_id</code></td><td class="arrow">→</td><td><code>order_id</code></td></tr>
+    <tr><td><code>silver_orders.order_date</code></td><td class="arrow">→</td><td><code>order_date</code></td></tr>
+    <tr><td><code>silver_orders.order_ts</code></td><td class="arrow">→</td><td><code>order_ts</code></td></tr>
+    <tr><td><code>silver_orders.status</code></td><td class="arrow">→</td><td><code>status</code></td></tr>
+    <tr><td><code>silver_orders.payment_method</code></td><td class="arrow">→</td><td><code>payment_method</code></td></tr>
+    <tr><td><code>silver_customers.customer_id</code></td><td class="arrow">→</td><td><code>customer_id</code></td></tr>
+    <tr><td><code>silver_customers.country</code></td><td class="arrow">→</td><td><code>customer_country</code></td></tr>
+    <tr><td><code>silver_products.product_id</code></td><td class="arrow">→</td><td><code>product_id</code></td></tr>
+    <tr><td><code>silver_products.product_name</code></td><td class="arrow">→</td><td><code>product_name</code></td></tr>
+    <tr><td><code>silver_products.category</code></td><td class="arrow">→</td><td><code>category</code></td></tr>
+    <tr><td><code>silver_order_items.quantity</code></td><td class="arrow">→</td><td><code>quantity</code></td></tr>
+    <tr><td><code>silver_products.unit_price</code></td><td class="arrow">→</td><td><code>unit_price</code></td></tr>
+    <tr><td><code>silver_order_items.discount_pct</code></td><td class="arrow">→</td><td><code>discount_pct</code></td></tr>
+    <tr><td><code>quantity × unit_price</code></td><td class="arrow">→</td><td class="new">gross_amount · computed</td></tr>
+    <tr><td><code>quantity × unit_price × (1 − discount_pct)</code></td><td class="arrow">→</td><td class="new">net_amount · computed</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new">transformed_at</td></tr>
+  </tbody>
+</table>
+</div>
+
+!!! note "Joins behind silver_sales_enriched"
+    `silver_order_items ⋈ silver_orders` on `order_id`, then `⋈ silver_products` on `product_id`,
+    then `⋈ silver_customers` on `customer_id`. The result is one tidy fact at order-line grain.
+
 ## Silver → Gold: where columns are computed
 
-The gold layer is where four clean tables combine into business answers. These columns are **derived** — they don't exist upstream, they are calculated from joined silver columns.
+The gold layer turns the enriched silver fact into business answers. Because the join already
+happened at silver, gold mostly **aggregates and reshapes**. Following the Databricks pattern,
+gold mixes physical **tables** (computed rows stored on disk) with **views** (saved queries that
+run on read).
 
-### `gold_daily_sales` <span class="obj view">VIEW</span>
+!!! abstract "Table vs. view at the gold layer"
+    A <span class="obj table">TABLE</span> **stores the computed rows on disk**. The numbers are
+    crunched once, written down, and every read after that is fast and identical — ideal for BI
+    dashboards that hit the same data over and over. A <span class="obj view">VIEW</span> stores
+    **only the query text**, not the rows; each time you read it, the database re-runs the query
+    against its source table. That means a view is always fresh and costs no extra storage, but
+    it does the work again on every read. Here `gold_daily_sales` is a **table** (heavy aggregation,
+    read often), while `gold_category_performance` and `gold_customer_360` are **views** on top of
+    it / the enriched fact. This table-plus-view mix is the standard **Databricks gold pattern**.
+
+### `gold_daily_sales` <span class="obj table">TABLE</span>
+
+A physical table built **from `silver_sales_enriched`** — one row per `order_date` × `category`.
+The aggregation is materialized to disk so dashboards read it instantly.
 
 ```mermaid
 flowchart LR
@@ -233,33 +297,75 @@ flowchart LR
   classDef gold   fill:#fcf4d6,stroke:#b28600,color:#161616;
   classDef col    fill:#ffffff,stroke:#c0c0c8,color:#161616;
 
-  o["silver_orders"]:::silver
-  i["silver_order_items"]:::silver
-  p["silver_products"]:::silver
+  se["silver_sales_enriched"]:::silver
 
   od["order_date"]:::col
   cat["category"]:::col
   oc["order_count = count(distinct order_id)"]:::col
   us["units_sold = sum(quantity)"]:::col
-  nr["net_revenue = sum(quantity × unit_price × (1 − discount_pct))"]:::col
+  nr["net_revenue = sum(net_amount)"]:::col
 
-  o -->|order_date| od
-  p -->|category| cat
-  o -->|order_id| oc
-  i -->|quantity| us
-  i -->|quantity, discount_pct| nr
-  p -->|unit_price| nr
+  se -->|order_date| od
+  se -->|category| cat
+  se -->|order_id| oc
+  se -->|quantity| us
+  se -->|net_amount| nr
 
-  od --> G["gold_daily_sales"]:::gold
+  od --> G["gold_daily_sales · TABLE"]:::gold
   cat --> G
   oc --> G
   us --> G
   nr --> G
 ```
 
-Joins: `silver_orders ⋈ silver_order_items` on `order_id`, then `⋈ silver_products` on `product_id`. Filter `status = 'completed'`, grouped by `order_date, category`.
+Source: `silver_sales_enriched`. Filter `status = 'completed'`, grouped by `order_date, category`.
+
+### `gold_category_performance` <span class="obj view">VIEW</span>
+
+A view built **on top of the `gold_daily_sales` table** — it rolls the daily rows up to one row
+per category. Nothing is stored; it recomputes from the table on every read, so it is always in
+sync with `gold_daily_sales`.
+
+```mermaid
+flowchart LR
+  classDef gold fill:#fcf4d6,stroke:#b28600,color:#161616;
+  classDef col  fill:#ffffff,stroke:#c0c0c8,color:#161616;
+
+  T["gold_daily_sales · TABLE"]:::gold
+
+  cat["category"]:::col
+  to["total_orders = sum(order_count)"]:::col
+  tu["total_units = sum(units_sold)"]:::col
+  tr["total_revenue = sum(net_revenue)"]:::col
+  ar["avg_revenue_per_unit = total_revenue / total_units"]:::col
+
+  T -->|category| cat
+  T -->|order_count| to
+  T -->|units_sold| tu
+  T -->|net_revenue| tr
+  T -->|net_revenue, units_sold| ar
+
+  cat --> V["gold_category_performance · VIEW"]:::gold
+  to --> V
+  tu --> V
+  tr --> V
+  ar --> V
+```
+
+The table-to-view relationship at a glance:
+
+```mermaid
+flowchart LR
+  classDef gold fill:#fcf4d6,stroke:#b28600,color:#161616;
+  T["gold_daily_sales · TABLE"]:::gold
+  V["gold_category_performance · VIEW"]:::gold
+  T -->|TABLE → VIEW · recomputed on read| V
+```
 
 ### `gold_customer_360` <span class="obj view">VIEW</span>
+
+A view built **from `silver_sales_enriched` joined to `silver_customers`** — one row per customer
+with their profile and lifetime metrics. As a view it stays fresh automatically as silver changes.
 
 ```mermaid
 flowchart LR
@@ -268,32 +374,29 @@ flowchart LR
   classDef col    fill:#ffffff,stroke:#c0c0c8,color:#161616;
 
   c["silver_customers"]:::silver
-  o["silver_orders"]:::silver
-  i["silver_order_items"]:::silver
-  p["silver_products"]:::silver
+  se["silver_sales_enriched"]:::silver
 
   prof["customer_id, first_name, last_name,<br>email, country, signup_date"]:::col
   cnt["completed / returned / pending /<br>cancelled_orders = count(distinct order_id)<br>filtered by status"]:::col
-  ltv["lifetime_value = sum(quantity ×<br>unit_price × (1 − discount_pct))<br>where status = completed"]:::col
+  ltv["lifetime_value = sum(net_amount)<br>where status = completed"]:::col
   ts["last_completed_order_ts,<br>last_activity_ts = max(order_ts)"]:::col
 
   c -->|profile columns| prof
-  o -->|order_id, status| cnt
-  o -->|status, order_id| ltv
-  i -->|quantity, discount_pct| ltv
-  p -->|unit_price| ltv
-  o -->|order_ts, status| ts
+  se -->|order_id, status| cnt
+  se -->|net_amount, status| ltv
+  se -->|order_ts, status| ts
 
-  prof --> G["gold_customer_360"]:::gold
+  prof --> G["gold_customer_360 · VIEW"]:::gold
   cnt --> G
   ltv --> G
   ts --> G
 ```
 
-Joins: `silver_customers` LEFT JOIN `silver_orders` on `customer_id`, LEFT JOIN `silver_order_items` on `order_id`, LEFT JOIN `silver_products` on `product_id`. Grouped per customer.
+Joins: `silver_customers` LEFT JOIN `silver_sales_enriched` on `customer_id`. Grouped per customer.
 
 !!! tip "Trace one number end to end"
-    `net_revenue` on the daily-sales dashboard =
+    `net_revenue` on the daily-sales dashboard = `sum(net_amount)`, where
+    `net_amount` (computed in `silver_sales_enriched`) =
     `raw_order_items.csv:quantity` × `raw_products.csv:unit_price` × (1 − `raw_order_items.csv:discount_pct`),
     summed for `completed` orders on a given `order_date` and `category`.
     Every factor is visible at every layer — that is the point of medallion.
@@ -306,8 +409,8 @@ dbt and Spark build the **same medallion shape** from the same CSVs, into separa
 | --- | --- | --- |
 | Raw | `dbt seed` → `lakehouse_demo_raw.*` <span class="obj table">TABLE</span> | CSVs read from `s3a://iceberg-bucket/spark_demo/raw` <span class="obj csv">CSV</span> |
 | Bronze | `lakehouse_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | `spark_demo_bronze.*` <span class="obj table">TABLE</span> |
-| Silver | `lakehouse_demo_silver.silver_*` <span class="obj table">TABLE</span> | `spark_demo_silver.*` <span class="obj table">TABLE</span> |
-| Gold | `lakehouse_demo_gold.gold_*` <span class="obj view">VIEW</span> | `spark_demo_gold.spark_gold_*` <span class="obj table">TABLE</span> |
+| Silver | `lakehouse_demo_silver.silver_*` <span class="obj table">TABLE</span>, incl. the enriched fact `silver_sales_enriched` | `spark_demo_silver.*` <span class="obj table">TABLE</span>, incl. `spark_silver_sales_enriched` |
+| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> in `lakehouse_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` in `spark_demo_gold` — all physical Iceberg <span class="obj table">TABLE</span>s |
 {: .comparison-table }
 
 Next: see the [dbt Demo Path](dbt-demo.md) or [Spark Demo Path](spark-demo.md) to build these layers yourself, then [compare them in SQL](sql-demo.md).

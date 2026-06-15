@@ -34,8 +34,10 @@ flowchart LR
 | --- | --- | --- |
 | Raw | `lakehouse_demo_raw` | `raw_customers`, `raw_products`, `raw_orders`, `raw_order_items` |
 | Bronze | `lakehouse_demo_bronze` | Source-like tables plus ingest metadata |
-| Silver | `lakehouse_demo_silver` | Clean typed reusable tables |
-| Gold | `lakehouse_demo_gold` | `gold_daily_sales`, `gold_customer_360` |
+| Silver | `lakehouse_demo_silver` | Clean typed reusable tables, plus `silver_sales_enriched` (the joined/enriched fact at order-line grain) |
+| Gold | `lakehouse_demo_gold` | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> |
+
+`gold_daily_sales` is materialized as a physical **table**, while `gold_category_performance` and `gold_customer_360` are **views** that read from it (and from Silver). Silver is where the joins happen: `silver_sales_enriched` stitches together order items, orders, products, and customers so Gold can stay simple.
 
 ## Step 1: Activate Environment
 

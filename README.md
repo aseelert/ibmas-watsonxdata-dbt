@@ -82,6 +82,50 @@ In this repo, dbt and Spark are separated on purpose. They use the same source d
 | Spark | Distributed processing, large files, complex ETL, schema evolution handling, ML/feature jobs, batch jobs near object storage. | SQL model governance, built-in documentation, lightweight analyst workflows, simple marts that do not need a cluster. | Shows an alternative medallion implementation with PySpark into `spark_demo_*` schemas. |
 | watsonx.data | Shared open table access, Iceberg metadata, Presto SQL, Spark execution, object storage-backed lakehouse data. | It is the platform rather than the transformation framework; dbt or Spark still define the transformation logic. | Provides the catalog, engines, storage, and query surface for both paths. |
 
+## Documentation Site (MkDocs)
+
+This repo ships a full, beginner-friendly documentation site (built with
+[MkDocs](https://www.mkdocs.org/) + [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)).
+It explains every concept in plain language and includes a column-by-column medallion
+lineage diagram. Here is how to run it locally after cloning.
+
+```bash
+# 1. Clone and enter the repo
+git clone <repo-url>
+cd ibmas-watsonxdata-dbt
+
+# 2. Create the Python 3.11 virtual environment and install dependencies
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt   # includes mkdocs + mkdocs-material
+```
+
+```bash
+# 3. Serve the docs with live reload, then open the printed URL
+mkdocs serve
+# -> http://127.0.0.1:8000
+```
+
+`mkdocs serve` watches the `docs/` folder and `mkdocs.yml`, so edits show up instantly
+in the browser. To pick a different port: `mkdocs serve -a 127.0.0.1:8123`.
+
+```bash
+# 4. (Optional) Build a static site into ./site for hosting
+mkdocs build            # output in ./site (git-ignored)
+mkdocs build --strict   # fail on broken links or warnings (use in CI)
+```
+
+> The `site/` build output and the local `.venv/` are git-ignored, so they never get
+> committed. You only need `mkdocs serve` to read the docs locally.
+
+What you get:
+
+- **Overview** — what watsonx.data, dbt, Spark, Iceberg, and the medallion pattern are, in plain words.
+- **Architecture & Lineage** — the full medallion design with a column-by-column lineage diagram (CSV → bronze → silver → gold), showing where joins happen and which gold object is a table vs. a view.
+- **Setup, dbt, Spark, and SQL demo paths** — step-by-step runbooks.
+- **Glossary, File Guide, and Troubleshooting**.
+
 ## Medallion Pattern
 
 ```mermaid

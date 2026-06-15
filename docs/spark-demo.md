@@ -29,8 +29,8 @@ flowchart LR
 | Layer | Schema | Objects |
 | --- | --- | --- |
 | Bronze | `spark_demo_bronze` | `bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items` |
-| Silver | `spark_demo_silver` | `spark_silver_customers`, `spark_silver_products`, `spark_silver_orders`, `spark_silver_order_items` |
-| Gold | `spark_demo_gold` | `spark_gold_daily_sales`, `spark_gold_customer_360` |
+| Silver | `spark_demo_silver` | `spark_silver_customers`, `spark_silver_products`, `spark_silver_orders`, `spark_silver_order_items`, `spark_silver_sales_enriched` |
+| Gold | `spark_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` |
 
 ## Step 1: Confirm Settings
 
