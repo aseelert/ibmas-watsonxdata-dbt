@@ -11,7 +11,7 @@ models:
         tests:
           - not_null
   - name: gold_category_performance
-    description: Gold VIEW layered on the gold_daily_sales table. Revenue and units rolled up to one row per product category.
+    description: "Gold VIEW layered on the gold_daily_sales TABLE. Revenue and units rolled up to one row per product category. Computed on demand. The custom macro macros/materialized_view.sql implements CREATE MATERIALIZED VIEW for when the Iceberg connector adds support."
     columns:
       - name: category
         tests:

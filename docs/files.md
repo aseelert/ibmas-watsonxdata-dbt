@@ -38,6 +38,8 @@ flowchart TB
 | `scripts/prepare_watsonx_env.py` | Imports Presto connection JSON values into `.env` and writes the SSL certificate. |
 | `scripts/bootstrap_watsonxdata.py` | Creates raw, bronze, silver, and gold schemas in watsonx.data. |
 | `scripts/dbt_env.sh` | Loads `.env` and runs dbt with the local virtual environment. |
+| `scripts/prepare_openmetadata_dbt_artifacts.py` | Generates and stages dbt artifacts for OpenMetadata ingestion. |
+| `scripts/upload_dbt_artifacts.py` | Uploads dbt artifacts to MinIO/S3 for OpenMetadata. |
 | `scripts/query_gold.py` | Queries gold marts and prints formatted terminal tables. |
 | `scripts/upload_spark_assets.py` | Uploads the Spark application and CSV files to MinIO/S3. |
 | `scripts/submit_spark_application.py` | Submits the PySpark application to the watsonx.data Spark application endpoint. |
@@ -62,6 +64,7 @@ flowchart TB
 | `target/` | dbt compiled artifacts. Ignored by Git. |
 | `site/` | MkDocs generated site. Ignored by Git if added locally or regenerated in CI. |
 | `logs/` | Port-forward and helper logs. Ignored by Git. |
+| `openmetadata/dbt-artifacts/` | Local staged dbt artifacts for OpenMetadata. Ignored by Git. |
 
 ## Safe To Commit
 
@@ -86,3 +89,4 @@ These are local only:
 - `site/`
 - `target/`
 - `logs/`
+- `openmetadata/dbt-artifacts/`

@@ -1,0 +1,68 @@
+semantic_models:
+  - name: daily_sales
+    description: >
+      Pre-aggregated daily sales grain semantic model — the BI-ready presentation layer.
+    model: ref("gold_daily_sales")
+    defaults:
+      agg_time_dimension: order_date
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: category
+        type: categorical
+    measures:
+      - name: total_orders
+        agg: sum
+        expr: order_count
+        description: "completed orders per day/category"
+      - name: total_units_sold
+        agg: sum
+        expr: units_sold
+      - name: total_net_revenue
+        agg: sum
+        expr: net_revenue
+
+  - name: sales_orders
+    description: >
+      Order-line-item grain fact for flexible ad-hoc analysis.
+    model: ref("silver_sales_enriched")
+    defaults:
+      agg_time_dimension: order_date
+    entities:
+      - name: order_id
+        type: foreign
+        expr: order_id
+      - name: customer_id
+        type: foreign
+        expr: customer_id
+      - name: product_id
+        type: foreign
+        expr: product_id
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: category
+        type: categorical
+      - name: customer_country
+        type: categorical
+      - name: payment_method
+        type: categorical
+      - name: status
+        type: categorical
+    measures:
+      - name: order_line_count
+        agg: count
+        description: "individual order line items"
+      - name: gross_revenue
+        agg: sum
+        expr: gross_amount
+      - name: net_revenue
+        agg: sum
+        expr: net_amount
+      - name: units_sold
+        agg: sum
+        expr: quantity

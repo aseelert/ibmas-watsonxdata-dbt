@@ -26,6 +26,43 @@ flowchart LR
 
 ## What Spark Builds
 
+!!! info "How Spark writes Parquet+Iceberg tables"
+    Think of an Iceberg table like a folder in a filing cabinet. Spark does three things every time it saves data:
+
+    **1. It uses the Iceberg writer API**
+    Instead of a plain file save, Spark calls a special Iceberg command so watsonx.data tracks the table in its catalog (like adding a new file to the cabinet index).
+
+    **2. It sets the file format to Parquet**
+    Parquet is a compressed, column-friendly file format — like a ZIP file that is also super fast to search. We tell Spark to use it explicitly:
+
+    ```python
+    (
+        df.writeTo("iceberg_data.spark_demo_silver.spark_silver_orders")
+          .using("iceberg")
+          .tableProperty("write.format.default", "parquet")
+          .partitionedBy("order_date")
+          .createOrReplace()
+    )
+    ```
+
+    **3. It splits data into date folders (partitioning)**
+    `.partitionedBy("order_date")` tells Iceberg to create one sub-folder on MinIO for each date, for example:
+
+    ```
+    s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-15/
+    s3a://iceberg-bucket/.../spark_silver_orders/order_date=2024-01-16/
+    ```
+
+    When Presto later queries `WHERE order_date = '2024-01-15'`, it only opens that one folder and skips all others — like going straight to the right drawer in the filing cabinet instead of searching every single file.
+
+    **Which tables are partitioned?**
+
+    | Spark table | Partition column |
+    | --- | --- |
+    | `spark_silver_orders` | `order_date` |
+    | `spark_silver_sales_enriched` | `order_date` |
+    | `spark_gold_daily_sales` | `order_date` |
+
 | Layer | Schema | Objects |
 | --- | --- | --- |
 | Bronze | `spark_demo_bronze` | `bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items` |

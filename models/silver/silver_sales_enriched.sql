@@ -1,3 +1,11 @@
+{{ config(
+    materialized="table",
+    properties={
+      "format": "'PARQUET'",
+      "partitioning": "ARRAY['order_date']"
+    }
+) }}
+
 -- Silver enrichment (the augmented/joined layer):
 -- conform + join the four clean silver entities into one analytics-ready
 -- fact at order-line grain. Gold marts read from this single table.

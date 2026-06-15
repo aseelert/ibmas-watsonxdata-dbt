@@ -414,3 +414,60 @@ dbt and Spark build the **same medallion shape** from the same CSVs, into separa
 {: .comparison-table }
 
 Next: see the [dbt Demo Path](dbt-demo.md) or [Spark Demo Path](spark-demo.md) to build these layers yourself, then [compare them in SQL](sql-demo.md).
+
+## Why we partition tables
+
+!!! tip "Think of it like filing folders"
+    Imagine you have thousands of paper receipts and you need to find all receipts from January 2026. If they are all dumped in one big box, you have to flip through every single one. But if you filed them into folders labelled by month — `January 2026`, `February 2026`, and so on — you just grab the right folder and you are done in seconds. Partitioning does exactly that for data: the engine skips every folder (partition) that cannot possibly contain the rows you asked for, so your query only touches the data it actually needs.
+
+Both `silver_sales_enriched` and `gold_daily_sales` are partitioned by `order_date`. That means object storage (the lakehouse equivalent of a filing cabinet) organises each table's Parquet files into date-stamped sub-folders automatically:
+
+```
+iceberg-bucket/
+└── lakehouse_demo_gold/
+    └── gold_daily_sales/
+        ├── order_date=2026-01/
+        │   └── part-00000-abc123.parquet
+        ├── order_date=2026-02/
+        │   └── part-00000-def456.parquet
+        └── order_date=2026-03/
+            └── part-00000-ghi789.parquet
+```
+
+A query like `WHERE order_date = '2026-02-14'` reads only the `order_date=2026-02/` folder — every other month's files are skipped entirely. On top of that, Parquet is **column-oriented**: instead of reading whole rows, the engine fetches only the columns your query references, ignoring all others. The combination of partition pruning and column projection means even a multi-year table answers a single-day question by reading a tiny fraction of the stored data.
+
+| Table | Partition column | Benefit |
+| --- | --- | --- |
+| `silver_sales_enriched` | `order_date` | Date-range queries skip irrelevant months; Iceberg tracks file statistics per partition |
+| `gold_daily_sales` | `order_date` | BI tools filtering by date read only the matching folder; row counts per partition stay small and consistent |
+
+## The semantic layer
+
+!!! info "What is a semantic layer?"
+    A **semantic layer** (sometimes called a presentation layer) sits on top of the gold marts and acts as the single source of truth for every BI tool, dashboard, and analyst in the organisation. Instead of everyone writing their own slightly-different SQL to calculate `net_revenue`, the semantic layer pre-aggregates and exposes the result using plain business-language column names. One definition, everywhere — no more "whose number is right?" arguments in Monday morning meetings.
+
+The gold objects that make up this layer are:
+
+| Object | Type | Format | Partitioned? |
+| --- | --- | --- | --- |
+| `gold_daily_sales` | Table | Parquet (Iceberg) | Yes — by `order_date` |
+| `gold_category_performance` | Materialized view | — (derived from table) | No |
+| `gold_customer_360` | View | — (query on read) | No |
+
+!!! info "View vs. materialized view — the cooking analogy"
+    Think of a regular **view** like ordering a meal at a restaurant: every time you ask for it, the kitchen cooks it fresh from raw ingredients right then and there. It is always up to date, but you wait for it each time.
+
+    A **materialized view** is like meal-prepping on Sunday: you cook a big batch, store it in labelled containers, and just grab one whenever you are hungry. It is instant because the work is already done — but the containers show what was cooked on Sunday, not what is in the fridge today. To get fresh results you have to cook (refresh) again.
+
+    In this pipeline, `gold_category_performance` is a materialized view. dbt runs `REFRESH MATERIALIZED VIEW gold_category_performance` automatically after every successful build, so the pre-computed results stay in sync with the latest `gold_daily_sales` data without you having to do anything manually.
+
+### dbt semantic models
+
+!!! info "MetricFlow-compatible definitions in semantic_models.yml"
+    dbt ships a sub-framework called **MetricFlow** that lets you describe your data in business terms — dimensions (things you can filter or group by, like `category` or `order_date`) and measures (numbers you aggregate, like `net_revenue` or `order_count`) — inside a file called `semantic_models.yml`.
+
+    Once those definitions exist, connected BI tools (Tableau, Looker, Power BI, and others) can query the semantic layer by picking dimensions and measures from a menu instead of writing raw SQL. The tool generates the correct, consistent SQL for them every time. That means:
+
+    - A junior analyst and a senior data scientist will always get the same `net_revenue` number for the same filters.
+    - Renaming a column in dbt only needs to be updated in one place — the semantic model — and every downstream report picks up the change automatically.
+    - New metrics can be added to `semantic_models.yml` and become available to all tools instantly, with no dashboard rewiring required.

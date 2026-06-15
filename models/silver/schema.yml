@@ -77,3 +77,14 @@ models:
               arguments:
                 to: ref('silver_products')
                 field: product_id
+  - name: time_spine_daily
+    description: Daily time spine used by dbt Semantic Layer / MetricFlow validation and OpenMetadata-friendly dbt artifacts.
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        description: One row per calendar day for 2026.
+        granularity: day
+        tests:
+          - not_null
+          - unique

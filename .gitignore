@@ -6,6 +6,7 @@ venv/
 logs/
 target/
 site/
+openmetadata/dbt-artifacts/
 dbt_packages/
 profiles.yml
 **/profiles.yml

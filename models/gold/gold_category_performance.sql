@@ -1,7 +1,10 @@
 {{ config(materialized='view') }}
 
 -- Gold VIEW built on top of the gold_daily_sales TABLE.
--- It stores no data and recomputes from the gold table on every read.
+-- Category-level roll-up computed on demand; no data stored in this object.
+-- NOTE: Presto's Iceberg connector does not yet support CREATE MATERIALIZED VIEW.
+-- When that feature becomes available, change materialized='view' to 'materialized_view'
+-- and the custom macro in macros/materialized_view.sql will handle the DDL automatically.
 select
   category,
   sum(order_count) as total_orders,

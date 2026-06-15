@@ -30,6 +30,55 @@ flowchart LR
 
 ## What dbt Builds
 
+!!! info "Iceberg + Parquet: how dbt stores data"
+    **Where does the data actually live?**
+
+    Your source data starts as plain **CSV files** (think: a spreadsheet saved as text). When dbt runs, it converts those CSV files into **Iceberg tables** stored in **Parquet format** inside watsonx.data. Here is what that means in plain terms:
+
+    **Parquet — a smarter way to store a table**
+
+    A regular CSV file stores one *row* at a time, like a list. Parquet stores one *column* at a time. Imagine a spreadsheet: instead of saving "row 1, row 2, row 3 …", Parquet saves "all the prices, all the dates, all the names …" separately. This matters because most analytics queries only need a few columns (e.g. just `price` and `date`), so the database can skip the columns it does not need and read much less data. On top of that, Parquet is **binary** (not human-readable text) and **compressed**, so files are far smaller and faster to scan than CSV.
+
+    **Iceberg — a smart layer on top of Parquet**
+
+    Apache Iceberg sits on top of those Parquet files and adds three superpowers:
+
+    - **Table history** — every change is recorded, so you always know what the table looked like.
+    - **Time travel** — you can query the table *as it was* at any point in the past (e.g. "show me sales as of last Tuesday").
+    - **Partitioning** — the table is split into folders by a column value (e.g. by date) so queries that filter on that column read only the matching folder instead of the whole table.
+
+    **Partitioning in this demo**
+
+    Two tables in this demo are partitioned by `order_date`:
+
+    - `silver_sales_enriched` — the joined fact table at order-line grain
+    - `gold_daily_sales` — the aggregated daily sales mart
+
+    Partitioning means that if you query "sales in May 2024", Iceberg only reads the May 2024 folder — not every row in the table. For big datasets this is a huge speed win.
+
+    The dbt config that enables Iceberg + Parquet + partitioning is written directly in the SQL model file:
+
+    ```sql
+    {{ config(
+        materialized='table',
+        properties={
+          "format": "'PARQUET'",
+          "partitioning": "ARRAY['order_date']"
+        }
+    ) }}
+    select order_date, category, ...
+    from {{ ref('silver_sales_enriched') }}
+    ```
+
+    The `properties` dict is passed through to Presto's `CREATE TABLE … WITH (…)` statement, which the
+    Iceberg connector uses to set file format and partitioning at the storage level.
+
+    **What about `gold_category_performance`?**
+
+    This model uses a regular **VIEW** on top of `gold_daily_sales`. A view stores no data of its own —
+    it computes the answer each time you query it by reading from the physical gold table. Because
+    `gold_daily_sales` is already small (one row per day and category), the view query is fast.
+
 | Layer | Schema | Objects |
 | --- | --- | --- |
 | Raw | `lakehouse_demo_raw` | `raw_customers`, `raw_products`, `raw_orders`, `raw_order_items` |

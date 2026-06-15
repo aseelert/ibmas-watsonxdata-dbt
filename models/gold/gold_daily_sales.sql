@@ -1,4 +1,10 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized="table",
+    properties={
+        "format": "'PARQUET'",
+        "partitioning": "ARRAY['order_date']"
+    }
+) }}
 
 -- Gold business aggregate, materialized as a PHYSICAL TABLE.
 -- Built from the enriched silver fact (single source, no re-joining here).

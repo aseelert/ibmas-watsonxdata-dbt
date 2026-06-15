@@ -123,3 +123,24 @@ Use another port:
 mkdocs serve -a 127.0.0.1:8001
 ```
 
+## OpenMetadata dbt Artifacts Missing `catalog.json`
+
+`catalog.json` is created by:
+
+```bash
+scripts/dbt_env.sh docs generate
+```
+
+That command queries Presto for column metadata. If Presto returns a temporary gateway or authenticator error, stage the artifacts that already exist:
+
+```bash
+python scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt
+python scripts/upload_dbt_artifacts.py
+```
+
+Then rerun the full artifact prep when Presto is healthy:
+
+```bash
+python scripts/prepare_openmetadata_dbt_artifacts.py
+python scripts/upload_dbt_artifacts.py
+```
