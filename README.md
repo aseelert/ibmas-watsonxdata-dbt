@@ -194,9 +194,13 @@ Before cloning, confirm you have:
 
 - [ ] **Python 3.11** — `python3.11 --version`
 - [ ] **Git** — `git --version`
+- [ ] **OpenShift CLI (`oc`)** — Spark + cpdctl paths (reads the MinIO secret and port-forwards to object storage). Install the **latest** in [Setup → Step 8](docs/setup.md#step-8-install-command-line-tools-oc-cpdctl).
+- [ ] **IBM `cpdctl`** — cpdctl path only. Install the **latest** in [Setup → Step 8](docs/setup.md#step-8-install-command-line-tools-oc-cpdctl).
 - [ ] **Docker Desktop** — running (needed for OpenMetadata only)
 - [ ] **watsonx.data credentials** — API key, Presto host, instance ID, and the connection JSON exported from the watsonx.data console
-- [ ] **OpenShift CLI (`oc`)** — needed for MinIO port-forward (Spark and cpdctl paths)
+
+See the [full setup guide](docs/setup.md) for which tools each path needs and the complete
+`.env` / dbt-profile reference.
 
 !!! info "Connection JSON"
     Export the Presto connection JSON from the watsonx.data console and save it as `watsonx_data/instance_details.json`.

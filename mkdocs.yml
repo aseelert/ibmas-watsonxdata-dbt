@@ -82,5 +82,6 @@ nav:
     - "Lineage UI (OpenMetadata)": openmetadata.md
     - "Semantic Models": semantic-models.md
   - Reference:
+    - "Configuration & Files": configuration.md
     - "File Guide": files.md
     - Troubleshooting: troubleshooting.md

@@ -85,6 +85,14 @@ def _object_store_credentials() -> tuple[str, str]:
     )
 
 
+def _existing_object_size(s3, bucket: str, key: str) -> int | None:
+    """Return the size of an existing object, or None if it does not exist yet."""
+    try:
+        return s3.head_object(Bucket=bucket, Key=key)["ContentLength"]
+    except Exception:
+        return None
+
+
 def _port_is_open(host: str, port: int) -> bool:
     try:
         with socket.create_connection((host, port), timeout=0.5):
@@ -182,10 +190,22 @@ def main() -> int:
             for path in sorted((ROOT / "seeds").glob("raw_*.csv"))
         )
 
-        print(f"Uploading {len(uploads)} files for Spark demo")
+        print(f"Uploading {len(uploads)} files for Spark demo (existing objects are overwritten)")
         for source, key in uploads:
+            local_size = source.stat().st_size
+            prior_size = _existing_object_size(s3, bucket, key)
+            # PutObject is overwrite-by-key: re-running always replaces the prior object,
+            # so the Spark engine reads the freshly uploaded application/CSV on every run.
             s3.upload_file(str(source), bucket, key)
-            print(f"uploaded s3://{bucket}/{key}")
+            # Verify the object now in MinIO matches the local file we just sent.
+            remote_size = s3.head_object(Bucket=bucket, Key=key)["ContentLength"]
+            if remote_size != local_size:
+                raise SystemExit(
+                    f"Upload verification failed for s3://{bucket}/{key}: "
+                    f"local {local_size} bytes != remote {remote_size} bytes"
+                )
+            action = "overwrote" if prior_size is not None else "created"
+            print(f"{action} s3://{bucket}/{key}  ({remote_size} bytes, verified)")
 
         print()
         print(f"WXD_SPARK_APPLICATION=s3a://{bucket}/{prefix}/app/load_medallion_demo.py")

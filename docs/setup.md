@@ -15,9 +15,17 @@ Before you start, confirm that each item below is in place. The "How to verify" 
 |---|---|---|---|
 | Python 3.11 | The virtual environment and all scripts require exactly 3.11 | `python3.11 --version` | `Python 3.11.x` |
 | Git | Cloning the repo | `git --version` | Any version is fine |
+| OpenShift CLI (`oc`) | **Spark + cpdctl paths only:** reads the MinIO secret and opens the port-forward to object storage. Not needed for the dbt path. Install in [Step 8](#step-8-install-command-line-tools-oc-cpdctl). | `oc version --client` | `Client Version: 4.x.x` |
+| IBM `cpdctl` | **cpdctl path only:** submits native ingestion jobs. Install in [Step 8](#step-8-install-command-line-tools-oc-cpdctl). | `cpdctl version` | `cpdctl version 1.x.x ...` |
 | Docker Desktop | Only needed for the OpenMetadata lineage demo | `docker --version` | Any version is fine |
 | watsonx.data connection JSON | Contains Presto host, instance ID, and SSL certificate | `ls watsonx_data/instance_details.json` | File must exist |
 | watsonx.data Software Hub API key | Your personal authentication credential | Provided by your administrator | Keep this secret |
+
+!!! info "Which tools does each path need?"
+    - **dbt path** — Python 3.11 + the `.venv` packages only. No `oc`, no `cpdctl`.
+    - **Spark path** — also needs **`oc`** (to read the MinIO credentials secret and port-forward to object storage when uploading the PySpark app and CSVs).
+    - **cpdctl path** — also needs **`oc`** and **`cpdctl`**.
+    - **OpenMetadata** — also needs **Docker**.
 
 !!! warning "Python version matters"
     The `dbt-watsonx-presto` adapter has been tested against Python 3.11 only. Using 3.12 or 3.10 may produce dependency conflicts. If `python3.11 --version` fails, install Python 3.11 from [python.org](https://www.python.org/downloads/) before continuing.
@@ -50,14 +58,28 @@ Resolving deltas: 100% (...)
 
 A virtual environment is an isolated Python installation that keeps this workshop's packages separate from anything else on your laptop. This prevents version conflicts with other Python projects.
 
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
+=== "macOS / Linux"
 
-Your prompt will change to show `(.venv)` when the environment is active. You must activate it again (`source .venv/bin/activate`) whenever you open a new terminal.
+    ```bash
+    python3.11 -m venv .venv
+    source .venv/bin/activate
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    py -3.11 -m venv .venv
+    .venv\Scripts\Activate.ps1
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+
+    If `Activate.ps1` is blocked, run PowerShell as your user and allow local scripts once:
+    `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+Your prompt will change to show `(.venv)` when the environment is active. You must activate it again (re-run the activate command) whenever you open a new terminal.
 
 The `requirements.txt` installs these packages:
 
@@ -89,6 +111,11 @@ WXD_API_KEY=<your-software-hub-api-key>
 ```
 
 The key looks like a long alphanumeric string provided by your workshop administrator. Every other value in `.env` will be filled in automatically by Step 5.
+
+!!! tip "Full `.env` variable reference"
+    Every variable in `.env` — what it means, where it comes from, and which ones are auto-filled vs.
+    manual — is documented in the [Configuration & Files Reference](configuration.md). Check there if a
+    script reports a missing variable.
 
 !!! warning "Never commit .env"
     `.env` is already listed in `.gitignore`, so Git will not track it. Still, double-check by running `git status` — `.env` should never appear as a file to commit. Real API keys belong only in `.env` or your shell environment, never in source code.
@@ -175,12 +202,21 @@ After this step two things will have changed on disk:
 
 dbt reads connection details from a profiles file in your home directory. The repo ships an example profile that uses the environment variables you set in Steps 3 and 5.
 
-```bash
-mkdir -p ~/.dbt
-cp profiles/profiles.example.yml ~/.dbt/profiles.yml
-```
+=== "macOS / Linux"
 
-The profile connects dbt to Presto using `BasicAuth`. It picks up every value — host, port, catalog, schema, SSL cert path — from the environment variables already in your `.env`, so you do not need to edit the file manually.
+    ```bash
+    mkdir -p ~/.dbt
+    cp profiles/profiles.example.yml ~/.dbt/profiles.yml
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    New-Item -ItemType Directory -Force "$env:USERPROFILE\.dbt" | Out-Null
+    Copy-Item profiles\profiles.example.yml "$env:USERPROFILE\.dbt\profiles.yml"
+    ```
+
+The profile connects dbt to Presto using `BasicAuth`. It picks up every value — host, port, catalog, schema, SSL cert path — from the environment variables already in your `.env`, so you do not need to edit the file manually. For a field-by-field breakdown, see the [Configuration Reference](configuration.md#dbt-profile-reference).
 
 !!! note "Why ~/.dbt and not the project folder?"
     dbt looks for `profiles.yml` in `~/.dbt` by default. Keeping it there means your API key is never inside the project directory where you might accidentally commit it.
@@ -238,32 +274,135 @@ All checks passed!
 
 ---
 
-## Step 8: Install cpdctl (Path C only)
+## Step 8: Install command-line tools (`oc`, `cpdctl`)
 
-!!! info "Skip this step unless you plan to run Path C"
-    Path C uses the IBM `cpdctl` CLI to submit native ingestion jobs that appear in the watsonx.data console under **Data manager → Ingestion**. If you are only running the dbt path or the Spark path, skip to the "Ready to go?" section below.
+!!! info "Skip this step if you are only running the dbt path"
+    The dbt path needs nothing beyond the Python virtual environment. Install `oc` if you plan to
+    run the **Spark path** (it reads the MinIO secret and port-forwards to object storage). Install
+    **both** `oc` and `cpdctl` if you plan to run the **cpdctl path**.
 
-`cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data ingestion service directly, bypassing dbt/Spark for the LOAD step (you still use dbt or Spark to transform the loaded data). cpdctl only INGESTS raw CSV into lakehouse_demo_ingest — it is a loader, not a transformation engine. To build a medallion on top you run the dbt or Spark transforms against the ingest schema afterward.
-
-Install on macOS (Apple Silicon):
+First make sure your local bin directory exists and is on your `PATH`:
 
 ```bash
-curl -fsSL -o cpdctl.tar.gz \
-  https://github.com/IBM/cpdctl/releases/download/v1.8.233/cpdctl_darwin_arm64.tar.gz
-tar -xzf cpdctl.tar.gz -C ~/.local/bin && chmod +x ~/.local/bin/cpdctl
-cpdctl version
+mkdir -p ~/.local/bin
+echo "$PATH" | tr ':' '\n' | grep -q "$HOME/.local/bin" || \
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc   # use ~/.bashrc on Linux
+export PATH="$HOME/.local/bin:$PATH"
 ```
+
+### 8a · OpenShift CLI (`oc`) — needed for the Spark and cpdctl paths
+
+`oc` is the OpenShift client. The Spark uploader uses it to read the MinIO credentials secret
+(`ibm-lh-minio-secret`) and to open a port-forward to object storage. The `latest/` folder on the
+official Red Hat mirror always serves the **newest stable** `oc`.
+
+=== "macOS (Apple Silicon)"
+
+    ```bash
+    curl -fsSL -o oc.tar.gz \
+      https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-mac-arm64.tar.gz
+    tar -xzf oc.tar.gz -C ~/.local/bin oc && chmod +x ~/.local/bin/oc
+    oc version --client
+    ```
+
+    On an Intel Mac, swap `openshift-client-mac-arm64.tar.gz` → `openshift-client-mac.tar.gz`.
+
+=== "Linux"
+
+    ```bash
+    # x86-64 (use openshift-client-linux-arm64.tar.gz on ARM64)
+    curl -fsSL -o oc.tar.gz \
+      https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+    tar -xzf oc.tar.gz -C ~/.local/bin oc && chmod +x ~/.local/bin/oc
+    oc version --client
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    Invoke-WebRequest -UseBasicParsing -Uri `
+      "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-windows.zip" `
+      -OutFile oc.zip
+    Expand-Archive oc.zip -DestinationPath "$env:USERPROFILE\bin" -Force
+    oc version --client
+    ```
+
+    Ensure `%USERPROFILE%\bin` is on your `PATH`.
 
 Expected output:
 
 ```text
-cpdctl version 1.8.233 ...
+Client Version: 4.x.x
+Kustomize Version: v5.x.x
 ```
 
-!!! tip "Other operating systems"
-    Find the correct binary for your OS at [github.com/IBM/cpdctl/releases](https://github.com/IBM/cpdctl/releases). Replace `cpdctl_darwin_arm64.tar.gz` with the filename for your platform (for example, `cpdctl_linux_amd64.tar.gz` for Linux x86-64).
+Then log in to the cluster (your administrator provides the API server URL and token/credentials):
 
-After installing the binary, configure a profile for this workshop environment. The values come from `.env`:
+```bash
+oc login https://api.watson.ibmas-zocp-techcluster.org:6443
+```
+
+### 8b · IBM `cpdctl` — needed for the cpdctl path only
+
+`cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data
+ingestion service directly, bypassing dbt/Spark for the LOAD step (you still use dbt or Spark to
+transform the loaded data). cpdctl only INGESTS raw CSV into `lakehouse_demo_ingest` — it is a
+loader, not a transformation engine. To build a medallion on top you run the dbt or Spark transforms
+against the ingest schema afterward.
+
+These commands resolve the **latest** `cpdctl` release tag from GitHub automatically, then download
+the matching binary. Swap the asset name for your platform.
+
+=== "macOS (Apple Silicon)"
+
+    ```bash
+    CPDCTL_VERSION=$(curl -fsSL https://api.github.com/repos/IBM/cpdctl/releases/latest \
+      | grep -oE '"tag_name": *"[^"]+"' | head -1 | cut -d'"' -f4)
+    echo "Latest cpdctl: ${CPDCTL_VERSION}"
+    curl -fsSL -o cpdctl.tar.gz \
+      "https://github.com/IBM/cpdctl/releases/download/${CPDCTL_VERSION}/cpdctl_darwin_arm64.tar.gz"
+    tar -xzf cpdctl.tar.gz -C ~/.local/bin cpdctl && chmod +x ~/.local/bin/cpdctl
+    cpdctl version
+    ```
+
+=== "Linux"
+
+    ```bash
+    # x86-64; use cpdctl_linux_ppc64le / cpdctl_linux_s390x for other arches
+    CPDCTL_VERSION=$(curl -fsSL https://api.github.com/repos/IBM/cpdctl/releases/latest \
+      | grep -oE '"tag_name": *"[^"]+"' | head -1 | cut -d'"' -f4)
+    echo "Latest cpdctl: ${CPDCTL_VERSION}"
+    curl -fsSL -o cpdctl.tar.gz \
+      "https://github.com/IBM/cpdctl/releases/download/${CPDCTL_VERSION}/cpdctl_linux_amd64.tar.gz"
+    tar -xzf cpdctl.tar.gz -C ~/.local/bin cpdctl && chmod +x ~/.local/bin/cpdctl
+    cpdctl version
+    ```
+
+=== "Windows (PowerShell)"
+
+    ```powershell
+    $tag = (Invoke-RestMethod https://api.github.com/repos/IBM/cpdctl/releases/latest).tag_name
+    Write-Host "Latest cpdctl: $tag"
+    Invoke-WebRequest -UseBasicParsing `
+      -Uri "https://github.com/IBM/cpdctl/releases/download/$tag/cpdctl_windows_amd64.tar.gz" `
+      -OutFile cpdctl.tar.gz
+    tar -xzf cpdctl.tar.gz -C "$env:USERPROFILE\bin" cpdctl.exe
+    cpdctl version
+    ```
+
+    Ensure `%USERPROFILE%\bin` is on your `PATH`. (`tar` ships with Windows 10+.)
+
+Expected output (version reflects whatever is current):
+
+```text
+cpdctl version 1.x.x ...
+```
+
+!!! tip "All `cpdctl` assets"
+    The full per-platform asset list is on the
+    [latest release page](https://github.com/IBM/cpdctl/releases/latest).
+
+After installing the `cpdctl` binary, configure a profile for this workshop environment. The values come from `.env`:
 
 ```bash
 set -a; source .env; set +a

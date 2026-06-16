@@ -111,13 +111,18 @@ Your project stores connection details in a `.env` file. These are the variables
 
 Before the Spark engine can run the job, both the PySpark script and the CSV source files must be in MinIO. This single command uploads everything.
 
+!!! info "Requires `oc`"
+    The uploader reads the MinIO credentials from the `ibm-lh-minio-secret` OpenShift secret and
+    (when needed) opens the port-forward, so you must be logged in with `oc` first. Install it via
+    [Setup → Step 8](setup.md#step-8-install-command-line-tools-oc-cpdctl) and run `oc login`.
+
 ```bash
 cd /Users/aseelert/GitHub/ibmas-watsonxdata-dbt
 source .venv/bin/activate
 python scripts/upload_spark_assets.py
 ```
 
-The script uploads four files to the expected S3 paths:
+The script uploads five objects to the expected S3 paths:
 
 ```text
 s3a://iceberg-bucket/spark_demo/app/load_medallion_demo.py
@@ -126,6 +131,19 @@ s3a://iceberg-bucket/spark_demo/raw/raw_products.csv
 s3a://iceberg-bucket/spark_demo/raw/raw_orders.csv
 s3a://iceberg-bucket/spark_demo/raw/raw_order_items.csv
 ```
+
+!!! tip "Safe to re-run — objects are overwritten and verified"
+    Each object is uploaded with overwrite-by-key semantics, so re-running the script always
+    replaces the previous app/CSVs in MinIO (the Spark engine then picks up the fresh
+    `load_medallion_demo.py` on the next submit). The script prints `overwrote …` or `created …`
+    for each object and verifies the uploaded byte count matches your local file:
+
+    ```text
+    Uploading 5 files for Spark demo (existing objects are overwritten)
+    overwrote s3://iceberg-bucket/spark_demo/app/load_medallion_demo.py  (11209 bytes, verified)
+    overwrote s3://iceberg-bucket/spark_demo/raw/raw_orders.csv  (23717 bytes, verified)
+    ...
+    ```
 
 !!! note "If MinIO has no external route"
     In some OpenShift deployments, MinIO is not exposed outside the cluster. In that case, open a port-forward in a separate terminal before running the upload:
