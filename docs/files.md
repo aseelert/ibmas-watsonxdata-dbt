@@ -72,6 +72,59 @@ dbt reads these files and runs `INSERT` statements to populate the `lakehouse_de
 !!! note "Total seed volume"
     The four files together contain 1,704 data rows (50 customers, 20 products, 500 orders, 1,134 order items). The dataset is intentionally small so every query returns in seconds on the shared Presto cluster.
 
+!!! tip "Browse the source CSVs"
+    All four files live in the [`seeds/` folder on GitHub](https://github.com/aseelert/ibmas-watsonxdata-dbt/tree/main/seeds):
+    [raw_customers.csv](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_customers.csv) ·
+    [raw_products.csv](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_products.csv) ·
+    [raw_orders.csv](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_orders.csv) ·
+    [raw_order_items.csv](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_order_items.csv)
+
+### Sample rows (header + first 5)
+
+**`raw_customers.csv`** — one row per customer:
+
+```csv
+customer_id,first_name,last_name,email,signup_date,country
+1001,Amina,Khan,amina.khan@example.com,2025-10-29,DE
+1002,Lukas,Weber,lukas.weber@example.com,2025-10-07,DE
+1003,Sofia,Rossi,sofia.rossi@example.com,2025-12-10,DE
+1004,Noah,Smith,noah.smith@example.com,2025-12-02,DE
+1005,Maya,Schneider,maya.schneider@example.com,2025-11-27,DE
+```
+
+**`raw_products.csv`** — one row per product:
+
+```csv
+product_id,product_name,category,unit_price
+2001,Portable Solar Charger,Electronics,49.9
+2002,Insulated Water Bottle,Home,24.5
+2003,Trail Backpack 35L,Outdoor,89.0
+2004,Noise Cancelling Earbuds,Electronics,129.0
+2005,Bamboo Desk Organizer,Office,34.0
+```
+
+**`raw_orders.csv`** — one row per order header (note `order_ts`, a timestamp):
+
+```csv
+order_id,customer_id,order_ts,status,payment_method
+3001,1013,2026-05-18 19:32:33,completed,card
+3002,1043,2026-02-15 06:04:58,pending,card
+3003,1006,2026-02-16 04:53:02,completed,card
+3004,1018,2026-03-31 01:02:42,returned,card
+3005,1011,2026-03-14 21:10:06,completed,card
+```
+
+**`raw_order_items.csv`** — one row per order line (links an order to a product):
+
+```csv
+order_item_id,order_id,product_id,quantity,discount_pct
+1,3001,2013,2,0.00
+2,3001,2005,1,0.15
+3,3002,2011,2,0.00
+4,3002,2005,2,0.15
+5,3003,2001,1,0.05
+```
+
 To load the seeds into watsonx.data:
 
 ```bash
