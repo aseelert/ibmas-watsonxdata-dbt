@@ -112,10 +112,65 @@ WXD_API_KEY=<your-software-hub-api-key>
 
 The key looks like a long alphanumeric string provided by your workshop administrator. Every other value in `.env` will be filled in automatically by Step 5.
 
-!!! tip "Full `.env` variable reference"
-    Every variable in `.env` — what it means, where it comes from, and which ones are auto-filled vs.
-    manual — is documented in the [Configuration & Files Reference](configuration.md). Check there if a
-    script reports a missing variable.
+### What is in `.env` and why
+
+`.env` is the single place that holds your secret and your environment-specific values. The dbt
+profile and every script read from it, so you edit *one* file to point the whole workshop at your
+cluster. You provide just the **API key** by hand; `prepare_watsonx_env.py` (Step 5) fills in the
+rest from the connection JSON. Values below marked **auto** are written for you; **manual** values
+already have a working default in the template.
+
+??? info "Core Presto / dbt connection — what each line means"
+
+    ```bash
+    WXD_CPD_USERNAME=cpadmin                              # your Software Hub login name (manual)
+    WXD_USER=ibmlhapikey_cpadmin                          # Presto user = ibmlhapikey_<username> (manual)
+    WXD_API_KEY=replace-with-your-...                     # SECRET you paste in — NOT in the JSON
+    WXD_CATALOG=iceberg_data                              # Iceberg catalog (auto, default)
+    WXD_SCHEMA=lakehouse_demo                             # base schema prefix (auto, default)
+    WXD_HOST=...presto651-presto-svc...                   # Presto endpoint (auto)
+    WXD_PORT=443                                          # Presto port (auto)
+    WXD_INSTANCE_ID=1781163689818519                      # tenant ID -> LhInstanceId header (auto)
+    WXD_PRESTO_ENGINE_ID=presto651                        # which Presto engine (auto)
+    WXD_SSL_VERIFY=certs/watsonxdata-ca.pem               # path to the CA cert (auto, written for you)
+    WXD_GOLD_MATERIALIZED=view                            # build gold as views vs tables (manual)
+    ```
+
+    **Why:** these are exactly the values the dbt profile reads (Step 6). `WXD_API_KEY` is the one
+    true secret you supply — it is never stored in the connection JSON, which is why you paste it here.
+
+??? info "Software Hub / OpenShift endpoints — Spark & cpdctl paths"
+
+    ```bash
+    WXD_CPD_HOST=cpd-cpd-instance.apps...                 # Software Hub base host (auto)
+    WXD_CPD_AUTH_URL=https://.../icp4d-api/v1/authorize   # token endpoint (auto)
+    WXD_OPENSHIFT_CONSOLE=https://console-openshift...    # OpenShift web console (reference)
+    WXD_OPENSHIFT_API=https://api.watson...:6443          # used for `oc login`
+    ```
+
+    **Why:** the Spark and cpdctl paths authenticate against Software Hub and talk to the OpenShift
+    cluster (to read the MinIO secret and open the port-forward).
+
+??? info "Spark path + MinIO object store"
+
+    ```bash
+    WXD_SPARK_SCHEMA=spark_demo                           # Spark writes to spark_demo_* (own schemas)
+    WXD_SPARK_ENGINE_ID=spark656                          # the Spark engine to submit to
+    WXD_SPARK_APPLICATION=s3a://.../load_medallion_demo.py # uploaded PySpark app
+    WXD_SPARK_INPUT_BASE=s3a://.../raw                    # uploaded CSVs
+    WXD_SPARK_DRY_RUN=true                                # print the job payload without submitting
+    WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000      # where the uploader writes (via port-forward)
+    # WXD_OBJECT_STORE_ACCESS_KEY / _SECRET_KEY           # or auto-read from the oc secret
+    WXD_OBJECT_STORE_SECRET_NAME=ibm-lh-minio-secret      # OpenShift secret holding the MinIO keys
+    ```
+
+    **Why:** Spark runs its own medallion into `spark_demo_*` so you can compare it with dbt. The app
+    and CSVs must live in MinIO before the engine can read them — if you do not set the MinIO keys,
+    the uploader reads them from the `ibm-lh-minio-secret` secret (this is why the Spark path needs
+    `oc`).
+
+The complete per-variable table (including the optional OpenMetadata variables) is in the
+[Configuration & Files Reference](configuration.md#env-reference-every-variable).
 
 !!! warning "Never commit .env"
     `.env` is already listed in `.gitignore`, so Git will not track it. Still, double-check by running `git status` — `.env` should never appear as a file to commit. Real API keys belong only in `.env` or your shell environment, never in source code.
@@ -216,10 +271,65 @@ dbt reads connection details from a profiles file in your home directory. The re
     Copy-Item profiles\profiles.example.yml "$env:USERPROFILE\.dbt\profiles.yml"
     ```
 
-The profile connects dbt to Presto using `BasicAuth`. It picks up every value — host, port, catalog, schema, SSL cert path — from the environment variables already in your `.env`, so you do not need to edit the file manually. For a field-by-field breakdown, see the [Configuration Reference](configuration.md#dbt-profile-reference).
+The profile connects dbt to Presto using `BasicAuth`. It picks up every value — host, port, catalog, schema, SSL cert path — from the environment variables already in your `.env`, so you do not need to edit the file manually.
+
+### What the profile contains and why
+
+```yaml
+watsonxdata_medallion_demo:        # profile name — matches `profile:` in dbt_project.yml
+  target: dev                      # which output block to use by default
+  outputs:
+    dev:
+      type: watsonx_presto         # the dbt-watsonx-presto adapter — speaks Presto
+      method: BasicAuth            # auth: username + API key over HTTPS
+      user: "{{ env_var('WXD_USER', 'ibmlhapikey_cpadmin') }}"
+      password: "{{ env_var('WXD_API_KEY') }}"
+      catalog: "{{ env_var('WXD_CATALOG', 'iceberg_data') }}"
+      schema: "{{ env_var('WXD_SCHEMA', 'lakehouse_demo') }}"
+      host: "{{ env_var('WXD_HOST', '...presto651-presto-svc...') }}"
+      port: "{{ env_var('WXD_PORT', '443') | int }}"
+      ssl_verify: "{{ env_var('WXD_SSL_VERIFY', 'certs/watsonxdata-ca.pem') }}"
+      http_headers:
+        LhInstanceId: "{{ env_var('WXD_INSTANCE_ID', '...') }}"
+      threads: "{{ env_var('DBT_THREADS', '4') | int }}"
+```
+
+| Field | Meaning | Why it is needed |
+|---|---|---|
+| `type: watsonx_presto` | Loads the IBM Presto adapter | dbt has no built-in watsonx.data driver; this adapter turns your SQL models into Presto `CREATE TABLE AS` statements |
+| `method: BasicAuth` | Username + API-key auth | watsonx.data accepts your API key as the password for an `ibmlhapikey_*` user |
+| `user` / `password` | The Presto login | `password` is your **secret API key** — read from `.env`, never written in the file |
+| `catalog` / `schema` | Default namespace | `iceberg_data.lakehouse_demo*` — where dbt writes bronze/silver/gold |
+| `host` / `port` | Where to send SQL | The Presto engine endpoint (`:443`) |
+| `ssl_verify` | Path to the CA cert | Presto uses TLS; dbt must trust the cluster cert or the connection is refused |
+| `http_headers.LhInstanceId` | Your tenant ID | watsonx.data is multi-tenant — this header routes queries to **your** instance |
+| `threads` | Parallel model builds | How many models compile/run at once |
+
+**The key idea:** the profile holds **no literal secrets** — every `{{ env_var('...') }}` reads from
+your `.env` at runtime (the `scripts/dbt_env.sh` wrapper loads `.env` before calling dbt). So you copy
+this template once and never edit it; to point dbt at a different cluster you change only `.env`.
 
 !!! note "Why ~/.dbt and not the project folder?"
     dbt looks for `profiles.yml` in `~/.dbt` by default. Keeping it there means your API key is never inside the project directory where you might accidentally commit it.
+
+### How the connection JSON, `.env`, and the profile fit together
+
+```text
+watsonx_data/instance_details.json     ← you export from the watsonx.data console (Step 4)
+            │   python scripts/prepare_watsonx_env.py   (Step 5)
+            ▼
+.env   ← host, port, instance ID, cert path auto-filled; you paste WXD_API_KEY (Step 3)
+            │   scripts/dbt_env.sh loads .env before calling dbt
+            ▼
+~/.dbt/profiles.yml   ← {{ env_var('WXD_*') }} reads the values (Step 6)
+            │
+            ▼
+dbt connects to Presto and builds the medallion
+```
+
+Secrets and cluster-specific values live in **`.env`** (git-ignored, one file to edit); the **dbt
+profile** is a fixed template that pulls them in. Nothing sensitive is committed, and switching
+environments means changing only `.env` — never the profile or the SQL.
 
 ---
 
