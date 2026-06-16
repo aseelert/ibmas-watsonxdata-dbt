@@ -16,3 +16,8 @@ watsonx_data/*.json
 __pycache__/
 .playwright-mcp/
 shot_*.png
+
+# CLI install artifacts (downloaded in setup Step 8; binaries go to ~/.local/bin)
+cpdctl.tar.gz
+oc.tar.gz
+oc.zip
