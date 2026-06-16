@@ -67,7 +67,7 @@ dbt reads these files and runs `INSERT` statements to populate the `lakehouse_de
 | `seeds/raw_customers.csv` | 50 | Customer master data: ID, name, email, country, registration date |
 | `seeds/raw_products.csv` | 20 | Product catalog: ID, name, category, unit price |
 | `seeds/raw_orders.csv` | 500 | Order headers: ID, customer ID, order date, status, payment method |
-| `seeds/raw_order_items.csv` | 1 134 | Order line items: item ID, order ID, product ID, quantity, amounts |
+| `seeds/raw_order_items.csv` | 1 134 | Order line items: `order_item_id`, `order_id`, `product_id`, `quantity`, `discount_pct` |
 
 !!! note "Total seed volume"
     The four files together contain 1,704 data rows (50 customers, 20 products, 500 orders, 1,134 order items). The dataset is intentionally small so every query returns in seconds on the shared Presto cluster.

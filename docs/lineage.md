@@ -229,7 +229,7 @@ pipeline itself.
     <tr><td><code>product_name</code></td><td class="arrow">→</td><td><code>product_name</code></td><td class="arrow">→</td><td><code>product_name</code> · <code>trim()</code></td></tr>
     <tr><td><code>category</code></td><td class="arrow">→</td><td><code>category</code></td><td class="arrow">→</td><td><code>category</code> · <code>trim()</code></td></tr>
     <tr><td><code>unit_price</code></td><td class="arrow">→</td><td><code>unit_price</code></td><td class="arrow">→</td><td><code>unit_price</code> · <code>cast → decimal(12,2)</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ ingest metadata (×4)</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
   </tbody>
 </table>
 </div>
@@ -257,7 +257,7 @@ pipeline itself.
     <tr><td><code>order_ts</code></td><td class="arrow">→</td><td>—</td><td class="arrow">→</td><td class="new">order_date · <code>cast(order_ts → date)</code></td></tr>
     <tr><td><code>status</code></td><td class="arrow">→</td><td><code>status</code></td><td class="arrow">→</td><td><code>status</code> · <code>lower(trim())</code></td></tr>
     <tr><td><code>payment_method</code></td><td class="arrow">→</td><td><code>payment_method</code></td><td class="arrow">→</td><td><code>payment_method</code> · <code>lower(trim())</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ ingest metadata (×4)</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
   </tbody>
 </table>
 </div>
@@ -284,7 +284,7 @@ pipeline itself.
     <tr><td><code>product_id</code></td><td class="arrow">→</td><td><code>product_id</code></td><td class="arrow">→</td><td><code>product_id</code> · <code>cast → integer</code></td></tr>
     <tr><td><code>quantity</code></td><td class="arrow">→</td><td><code>quantity</code></td><td class="arrow">→</td><td><code>quantity</code> · <code>cast → integer</code></td></tr>
     <tr><td><code>discount_pct</code></td><td class="arrow">→</td><td><code>discount_pct</code></td><td class="arrow">→</td><td><code>discount_pct</code> · <code>cast → decimal(5,2)</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ ingest metadata (×4)</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
   </tbody>
 </table>
 </div>
