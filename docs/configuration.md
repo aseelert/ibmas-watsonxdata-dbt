@@ -98,11 +98,20 @@ have a sensible default in the template). Variables shown commented-out are opti
 
 ### Object store (MinIO) — Spark uploads
 
+!!! warning "MinIO is reachable only through `oc` on this cluster"
+    `ibm-lh-lakehouse-minio-svc` is a **ClusterIP** service with **no Route**, so it is **not**
+    reachable from your workstation directly. The Spark upload therefore needs `oc` to open a
+    port-forward. Setting `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` by hand only skips *reading
+    the secret* — it does **not** remove the tunnel. Pointing `WXD_OBJECT_STORE_ENDPOINT` at a
+    non-localhost URL works only if an administrator first exposes MinIO via an OpenShift **Route**
+    (which places object storage on the network — a deliberate security decision). The S3 transfer
+    itself is pure Python (boto3); `oc` only provides the tunnel and reads the secret.
+
 | Variable | Source | Meaning |
 |---|---|---|
-| `WXD_OBJECT_STORE_ENDPOINT` | manual | S3 endpoint the uploader writes to (often `http://127.0.0.1:19000` via port-forward). |
-| `WXD_OBJECT_STORE_INTERNAL_ENDPOINT` | manual | In-cluster MinIO service URL (reference). |
-| `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | manual *or* auto from `oc` | MinIO credentials. If unset, the uploader reads them from the OpenShift secret. |
+| `WXD_OBJECT_STORE_ENDPOINT` | manual | S3 endpoint the uploader writes to (on this cluster `http://127.0.0.1:19000` via port-forward). |
+| `WXD_OBJECT_STORE_INTERNAL_ENDPOINT` | manual | In-cluster MinIO service URL — only resolvable inside the cluster, not from a laptop. |
+| `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | manual *or* auto from `oc` | MinIO credentials. If unset, the uploader reads them from the OpenShift secret. Setting them manually **still requires the `oc` port-forward** unless MinIO is exposed via a Route. |
 | `WXD_OBJECT_STORE_AUTO_PORT_FORWARD` | manual (default `true`) | Auto-start `oc port-forward` when the endpoint is `127.0.0.1`. |
 | `WXD_OPENSHIFT_NAMESPACE` | manual (default `cpd-instance`) | Namespace holding the MinIO service + secret. |
 | `WXD_OBJECT_STORE_SERVICE` / `_SERVICE_PORT` | manual | MinIO service name + port for the port-forward. |

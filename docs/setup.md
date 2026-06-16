@@ -159,8 +159,8 @@ already have a working default in the template.
     WXD_SPARK_APPLICATION=s3a://.../load_medallion_demo.py # uploaded PySpark app
     WXD_SPARK_INPUT_BASE=s3a://.../raw                    # uploaded CSVs
     WXD_SPARK_DRY_RUN=true                                # print the job payload without submitting
-    WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000      # where the uploader writes (via port-forward)
-    # WXD_OBJECT_STORE_ACCESS_KEY / _SECRET_KEY           # or auto-read from the oc secret
+    WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000      # localhost:port served by the oc port-forward
+    # WXD_OBJECT_STORE_ACCESS_KEY / _SECRET_KEY           # if unset, read from the oc secret (still needs the port-forward)
     WXD_OBJECT_STORE_SECRET_NAME=ibm-lh-minio-secret      # OpenShift secret holding the MinIO keys
     ```
 
@@ -168,6 +168,13 @@ already have a working default in the template.
     and CSVs must live in MinIO before the engine can read them — if you do not set the MinIO keys,
     the uploader reads them from the `ibm-lh-minio-secret` secret (this is why the Spark path needs
     `oc`).
+
+    !!! warning "Why `oc` can't simply be skipped here"
+        MinIO (`ibm-lh-lakehouse-minio-svc`) is a **ClusterIP** service with **no Route**, so it is
+        not reachable from your laptop directly — the `oc` port-forward is the only way in. Supplying
+        the access/secret keys manually only skips *reading the secret*, not the tunnel. Going fully
+        `oc`-free would require an administrator to expose MinIO via an OpenShift Route (a security
+        decision). The actual upload is pure Python (boto3) either way.
 
 The complete per-variable table (including the optional OpenMetadata variables) is in the
 [Configuration & Files Reference](configuration.md#env-reference-every-variable).
