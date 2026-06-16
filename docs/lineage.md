@@ -203,7 +203,11 @@ pipeline itself.
     <tr><td><code>email</code></td><td class="arrow">→</td><td><code>email</code></td><td class="arrow">→</td><td><code>email</code> · <code>lower(trim())</code></td></tr>
     <tr><td><code>signup_date</code></td><td class="arrow">→</td><td><code>signup_date</code></td><td class="arrow">→</td><td><code>signup_date</code> · <code>cast → date</code></td></tr>
     <tr><td><code>country</code></td><td class="arrow">→</td><td><code>country</code></td><td class="arrow">→</td><td><code>country</code> · <code>upper(trim())</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_at</code> · <code>current_timestamp</code></td><td class="arrow">→</td><td>— <em>dropped at silver</em></td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_by</code> · <code>'dbt seed'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_source_file</code> · <code>'raw_customers.csv'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingest_batch_id</code> · <code>env WXD_INGEST_BATCH_ID</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td>—</td><td class="arrow">→</td><td class="new"><code>transformed_at</code> · <code>current_timestamp</code></td></tr>
   </tbody>
 </table>
 </div>
@@ -229,7 +233,11 @@ pipeline itself.
     <tr><td><code>product_name</code></td><td class="arrow">→</td><td><code>product_name</code></td><td class="arrow">→</td><td><code>product_name</code> · <code>trim()</code></td></tr>
     <tr><td><code>category</code></td><td class="arrow">→</td><td><code>category</code></td><td class="arrow">→</td><td><code>category</code> · <code>trim()</code></td></tr>
     <tr><td><code>unit_price</code></td><td class="arrow">→</td><td><code>unit_price</code></td><td class="arrow">→</td><td><code>unit_price</code> · <code>cast → decimal(12,2)</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_at</code> · <code>current_timestamp</code></td><td class="arrow">→</td><td>— <em>dropped at silver</em></td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_by</code> · <code>'dbt seed'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_source_file</code> · <code>'raw_products.csv'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingest_batch_id</code> · <code>env WXD_INGEST_BATCH_ID</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td>—</td><td class="arrow">→</td><td class="new"><code>transformed_at</code> · <code>current_timestamp</code></td></tr>
   </tbody>
 </table>
 </div>
@@ -257,7 +265,11 @@ pipeline itself.
     <tr><td><code>order_ts</code></td><td class="arrow">→</td><td>—</td><td class="arrow">→</td><td class="new">order_date · <code>cast(order_ts → date)</code></td></tr>
     <tr><td><code>status</code></td><td class="arrow">→</td><td><code>status</code></td><td class="arrow">→</td><td><code>status</code> · <code>lower(trim())</code></td></tr>
     <tr><td><code>payment_method</code></td><td class="arrow">→</td><td><code>payment_method</code></td><td class="arrow">→</td><td><code>payment_method</code> · <code>lower(trim())</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_at</code> · <code>current_timestamp</code></td><td class="arrow">→</td><td>— <em>dropped at silver</em></td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_by</code> · <code>'dbt seed'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_source_file</code> · <code>'raw_orders.csv'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingest_batch_id</code> · <code>env WXD_INGEST_BATCH_ID</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td>—</td><td class="arrow">→</td><td class="new"><code>transformed_at</code> · <code>current_timestamp</code></td></tr>
   </tbody>
 </table>
 </div>
@@ -284,7 +296,11 @@ pipeline itself.
     <tr><td><code>product_id</code></td><td class="arrow">→</td><td><code>product_id</code></td><td class="arrow">→</td><td><code>product_id</code> · <code>cast → integer</code></td></tr>
     <tr><td><code>quantity</code></td><td class="arrow">→</td><td><code>quantity</code></td><td class="arrow">→</td><td><code>quantity</code> · <code>cast → integer</code></td></tr>
     <tr><td><code>discount_pct</code></td><td class="arrow">→</td><td><code>discount_pct</code></td><td class="arrow">→</td><td><code>discount_pct</code> · <code>cast → decimal(5,2)</code></td></tr>
-    <tr><td></td><td class="arrow"></td><td class="new">+ _ingested_at, _ingested_by,<br>_source_file, _ingest_batch_id</td><td class="arrow">→</td><td class="new">transformed_at</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_at</code> · <code>current_timestamp</code></td><td class="arrow">→</td><td>— <em>dropped at silver</em></td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingested_by</code> · <code>'dbt seed'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_source_file</code> · <code>'raw_order_items.csv'</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td class="new"><code>_ingest_batch_id</code> · <code>env WXD_INGEST_BATCH_ID</code></td><td class="arrow">→</td><td>—</td></tr>
+    <tr><td></td><td class="arrow"></td><td>—</td><td class="arrow">→</td><td class="new"><code>transformed_at</code> · <code>current_timestamp</code></td></tr>
   </tbody>
 </table>
 </div>
