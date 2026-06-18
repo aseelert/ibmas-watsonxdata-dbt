@@ -84,4 +84,5 @@ nav:
   - Reference:
     - "Configuration & Files": configuration.md
     - "File Guide": files.md
+    - "Scripts": scripts.md
     - Troubleshooting: troubleshooting.md
