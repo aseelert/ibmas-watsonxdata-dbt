@@ -1,4 +1,14 @@
-"""
+# -----------------------------------------------------------------------------
+#  dag_spark_medallion.py — Airflow DAG: submit one Spark job, verify each layer
+#
+#  Location  : airflow/dags/dag_spark_medallion.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Airflow DAG that submits one watsonx.data Spark job, then verifies each layer.
+
 DAG: spark_medallion_hourly
 ===========================
 
@@ -24,6 +34,46 @@ Design note — why the build is ONE task, not one-per-table:
 
 Config: all values come from .env (loaded into the container). Auth/TLS logic
 is shared with the dbt DAG via airflow/dags/common/wxd.py — never duplicated.
+
+WHEN to run
+  Auto-scheduled @hourly (catchup=False, max_active_runs=1). Trigger manually
+  from the UI for a demo. The Spark app + raw CSVs must already exist in the
+  object store — either set the `upload_assets` param to True (uploads via
+  scripts/upload_spark_assets.py, needs MinIO reachable from the container) or,
+  more usually, run that upload once on the host beforehand.
+
+PARAMS
+  * upload_assets (bool, default False) — push the Spark app + CSVs to MinIO
+    first.  * dry_run (bool, default False) — build and print the redacted Spark
+    payload without submitting (the wait sensor short-circuits to success).
+
+ENV VARS
+  Spark sizing/targets: WXD_SPARK_APPLICATION, WXD_SPARK_INPUT_BASE,
+  WXD_SPARK_CATALOG, WXD_SPARK_SCHEMA (+ _BRONZE/_SILVER/_GOLD_SCHEMA),
+  WXD_SPARK_EXECUTOR_CORES/MEMORY, WXD_SPARK_DRIVER_CORES/MEMORY,
+  WXD_SPARK_WAIT_TIMEOUT_SEC. Auth/endpoint/Presto vars are read via common/wxd.py
+  (WXD_CPD_HOST, WXD_API_KEY, WXD_INSTANCE_ID, WXD_SPARK_APPLICATIONS_ENDPOINT,
+  WXD_SPARK_ENGINE_ID, WXD_HOST/PORT/CATALOG, WXD_SSL_VERIFY, …).
+
+PREREQUISITES
+  A running watsonx.data Spark engine + Presto coordinator reachable from the
+  worker, the repo bind-mounted at PROJECT_DIR, a valid TLS CA cert, and the
+  Spark assets present in the object store (see WHEN). No oc/cpdctl login needed.
+
+USAGE
+  airflow dags trigger spark_medallion_hourly
+  airflow dags trigger spark_medallion_hourly -c '{"dry_run": true}'
+  Tasks log the Spark app id + polled state, then per-layer row counts and a
+  top-categories gold query, so the run is legible in the task logs.
+
+SIDE EFFECTS / EXIT
+  Submits a distributed Spark application that writes the
+  spark_demo_{bronze,silver,gold} Iceberg tables (schemas pre-created via Presto
+  to avoid `.db` dirs), polls it to completion, then runs read-only Presto
+  verification + a business query. A non-zero Spark return_code, terminal state,
+  or empty layer fails the run via AirflowException. dagrun_timeout = 60 min;
+  the wait sensor caps at WXD_SPARK_WAIT_TIMEOUT_SEC (default 15 min, retries=0
+  so a timeout never re-submits).
 """
 
 from __future__ import annotations

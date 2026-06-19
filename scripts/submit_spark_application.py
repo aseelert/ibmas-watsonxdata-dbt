@@ -1,5 +1,71 @@
 #!/usr/bin/env python3
-"""Submit the Spark medallion demo to the watsonx.data Spark engine."""
+# -----------------------------------------------------------------------------
+#  submit_spark_application.py — submit the Spark medallion demo to watsonx.data
+#
+#  Location  : scripts/submit_spark_application.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Submit the Spark medallion demo to the watsonx.data Spark engine.
+
+This script POSTs a Spark application submission to the watsonx.data native
+Spark engine REST API (``.../spark_engines/<engine>/applications``). It is the
+"compute" half of the demo's Spark track: it launches ``load_medallion_demo.py``
+inside the engine, which builds the bronze/silver/gold Iceberg namespaces from
+the raw objects already staged in object storage.
+
+WHAT & WHY
+ - Assembles the ``application_details`` payload (application URI + Spark conf),
+   propagating the demo's runtime env vars (input base, catalog, schema, batch
+   id) to the driver AND executors via every prefix the engine might honor
+   (``spark.executorEnv``, ``spark.yarn.appMasterEnv``, ``spark.driverEnv``,
+   ``spark.kubernetes.driverEnv``) so the job sees them wherever it runs.
+ - Injects the watsonx.data data-access key as ``spark.hadoop.wxd.apiKey`` so
+   Spark can read/write the Iceberg catalog's object storage.
+ - Best-effort pre-creates the bronze/silver/gold namespaces THROUGH PRESTO so
+   they land at the catalog warehouse root with NO Hive ``.db`` suffix (the
+   Iceberg catalog ignores ``CREATE NAMESPACE ... LOCATION``, so Presto is the
+   only lever for the on-disk layout). A failure here is non-fatal.
+
+WHEN TO RUN (demo flow)
+ - After the raw objects have been staged to object storage (the ingest/storage
+   steps) and while the Spark engine ``spark656`` is running.
+ - Defaults to DRY RUN: it prints the redacted payload and exits 0. Set
+   ``WXD_SPARK_DRY_RUN=false`` to actually submit. After submission, poll with
+   ``scripts/spark_application_status.py <app_id>``.
+
+ENV VARS (read)
+ - Endpoint/instance : WXD_SPARK_APPLICATIONS_ENDPOINT, WXD_INSTANCE_ID,
+   WXD_SPARK_ENGINE_ID, WXD_CPD_HOST, WXD_CONSOLE_URL, WXD_CONSOLE_VIEW
+ - Payload           : WXD_SPARK_APPLICATION, WXD_SPARK_INPUT_BASE,
+   WXD_SPARK_CATALOG, WXD_SPARK_SCHEMA, WXD_SPARK_INGEST_BATCH_ID
+ - Spark sizing      : WXD_SPARK_EXECUTOR_CORES, WXD_SPARK_EXECUTOR_MEMORY,
+   WXD_SPARK_DRIVER_CORES, WXD_SPARK_DRIVER_MEMORY
+ - Auth (any one)    : WXD_SPARK_BEARER_TOKEN, WXD_ZEN_API_KEY,
+   WXD_CPD_USERNAME/WXD_USER + WXD_CPD_API_KEY/WXD_API_KEY,
+   WXD_CPD_PASSWORD, WXD_CPD_AUTH_URL, WXD_SPARK_WXD_APIKEY
+ - Presto pre-create : WXD_HOST, WXD_PORT, WXD_USER, WXD_API_KEY,
+   WXD_SPARK_BRONZE_SCHEMA, WXD_SPARK_SILVER_SCHEMA, WXD_SPARK_GOLD_SCHEMA
+ - TLS / control     : WXD_SSL_VERIFY, WXD_SPARK_DRY_RUN
+
+PREREQUISITES
+ - Python deps from ``requirements.txt`` (``requests``; ``prestodb`` optional
+   for the namespace pre-create; ``python-dotenv`` optional for ``.env`` load).
+ - A reachable, running watsonx.data Spark engine and valid Spark REST auth.
+   No ``oc login`` / ``cpdctl`` needed — this talks straight to the REST API.
+
+USAGE
+ - Dry run (default) : ``python scripts/submit_spark_application.py``
+ - Real submit       : ``WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py``
+
+SIDE EFFECTS / EXIT
+ - On a real run: creates Iceberg namespaces via Presto (best-effort) and
+   launches a Spark application on the engine. Prints the application id and
+   deep links. Exits 0 on success; raises ``SystemExit`` on missing env/auth
+   and ``raise_for_status`` on a non-2xx submit response.
+"""
 
 from __future__ import annotations
 
@@ -284,6 +350,10 @@ def main() -> int:
     )
     print(response.status_code)
     print(response.text)
+    if response.status_code >= 400:
+        print(f"[FAIL] Spark submission rejected (HTTP {response.status_code}) by {endpoint}")
+    else:
+        print(f"[OK] Spark submission accepted (HTTP {response.status_code}) by {endpoint}")
     response.raise_for_status()
 
     # Pull the application id out of the response so the next step is obvious.

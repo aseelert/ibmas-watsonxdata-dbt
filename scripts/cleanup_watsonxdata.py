@@ -1,19 +1,71 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  cleanup_watsonxdata.py — drop the medallion demo schemas from watsonx.data
+#
+#  Location  : scripts/cleanup_watsonxdata.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Drop all demo schemas (and their tables/views) from watsonx.data.
 
-Removes the dbt schemas (dbt_demo_raw/bronze/silver/gold), the Spark schemas
-(spark_demo_bronze/silver/gold), and the cpdctl native-ingest raw schema
-(WXD_INGEST_SCHEMA, e.g. spark_demo_cpdctl_raw) so the demo can be rebuilt from
-scratch.
+This is the catalog-side teardown counterpart to ``bootstrap_watsonxdata.py``.
+It connects to the watsonx.data Presto (Iceberg) engine and removes every schema
+the demo creates so the medallion pipeline can be rebuilt from a clean slate:
+the dbt schemas (``dbt_demo_raw``/``_bronze``/``_silver``/``_gold``), the Spark
+schemas (``spark_demo_bronze``/``_silver``/``_gold``), and the cpdctl native
+ingest raw schema (``WXD_INGEST_SCHEMA``, e.g. ``spark_demo_cpdctl_raw``). It
+exists so a presenter can reset the demo deterministically between runs.
 
-For safety this only touches the exact schema names derived from WXD_SCHEMA,
-WXD_SPARK_SCHEMA, and WXD_INGEST_SCHEMA. Tables and views are dropped first
-(Iceberg schemas must be empty before they can be dropped), then the schema
-itself.
+WHEN to run it
+  Run this when you want to tear down the catalog state — typically as part of a
+  full reset, before re-running ``bootstrap_watsonxdata.py`` + ingest + dbt. It
+  is usually invoked from the all-in-one ``scripts/reset_demo.sh``. It is safe to
+  re-run: non-existent schemas are skipped.
 
-Note: dropping the schemas removes the catalog objects, but Iceberg data files
-may linger in object storage. Run scripts/cleanup_minio.py (or the all-in-one
-scripts/reset_demo.sh) afterwards to delete the underlying MinIO files too.
+  For safety it only touches the exact schema names derived from ``WXD_SCHEMA``,
+  ``WXD_SPARK_SCHEMA`` and ``WXD_INGEST_SCHEMA`` (no wildcards). Tables and views
+  are dropped first — Iceberg schemas must be empty before they can be dropped —
+  then the schema itself.
+
+ENV VARS read
+  - WXD_USER ................ Presto user (default ``ibmlhapikey_cpadmin``)
+  - WXD_API_KEY ............. IBM Cloud / CPD API key used as the password (required)
+  - WXD_HOST ................ Presto host (required)
+  - WXD_PORT ................ Presto port (default ``443``)
+  - WXD_CATALOG ............. Iceberg catalog name (default ``iceberg_data``)
+  - WXD_SCHEMA .............. dbt base schema name (default ``dbt_demo``)
+  - WXD_SPARK_SCHEMA ........ Spark base schema name (default ``spark_demo``)
+  - WXD_RAW_SCHEMA / WXD_BRONZE_SCHEMA / WXD_SILVER_SCHEMA / WXD_GOLD_SCHEMA
+                             override the individual dbt layer schema names
+  - WXD_SPARK_BRONZE_SCHEMA / WXD_SPARK_SILVER_SCHEMA / WXD_SPARK_GOLD_SCHEMA
+                             override the individual Spark layer schema names
+  - WXD_INGEST_SCHEMA ....... cpdctl native-ingest raw schema
+                             (default ``<spark base>_cpdctl_raw``)
+  - WXD_INSTANCE_ID ......... if set, sent as the ``LhInstanceId`` HTTP header
+  - WXD_SSL_VERIFY .......... CA bundle path, or ``true``/``false`` to toggle
+                             TLS verification (default ``certs/watsonxdata-ca.pem``)
+
+Prerequisites
+  - A running, resumed watsonx.data Presto engine reachable at WXD_HOST:WXD_PORT.
+  - ``presto-python-client`` installed (``pip install -r requirements.txt``).
+  - A valid WXD_API_KEY. No ``oc login`` / ``cpdctl`` is required for this step.
+
+USAGE
+    python scripts/cleanup_watsonxdata.py
+
+Side effects + exit behavior
+  DESTRUCTIVE: drops the listed schemas and all their tables/views from the
+  catalog. Prints the connection target, the full target-schema list, each SQL
+  statement, and a final summary of objects/schemas dropped. Returns exit code 0
+  on success; raises ``SystemExit`` with a message on missing env vars / missing
+  dependency, and propagates Presto errors otherwise.
+
+  Note: dropping the schemas removes the catalog objects, but Iceberg data files
+  may linger in object storage. Run ``scripts/cleanup_minio.py`` (or the
+  all-in-one ``scripts/reset_demo.sh``) afterwards to delete the underlying MinIO
+  files too.
 """
 
 from __future__ import annotations
@@ -157,7 +209,7 @@ def main() -> int:
         print(f"dropped {catalog}.{schema}")
 
     print(
-        f"\nCleanup complete: dropped {dropped_objects} object(s) "
+        f"\n[OK] Cleanup complete: dropped {dropped_objects} object(s) "
         f"across {dropped_schemas} schema(s)."
     )
     return 0

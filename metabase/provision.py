@@ -1,19 +1,80 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  provision.py — auto-provision Metabase against the watsonx.data Presto catalog
+#
+#  Location  : metabase/provision.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Auto-provision Metabase for the watsonx.data medallion demo.
 
-Run once after Metabase is healthy (the metabase-provision service does this).
-It is idempotent: if Metabase has already been set up it exits cleanly.
+WHAT & WHY
+  Metabase is the BI front-end of the demo: it lets an audience browse and
+  chart the bronze/silver/gold medallion tables that dbt + Spark build in the
+  watsonx.data Iceberg catalog. This script removes the manual click-through
+  of Metabase's first-run wizard so the BI layer is "ready to demo" the moment
+  the container is healthy — no copy/paste of credentials, everything sourced
+  straight from `.env`.
 
-What it does, using ONLY values from .env (no duplication, no copies):
-  1. Creates the first admin user (MB_SETUP_EMAIL / MB_SETUP_PASSWORD).
-  2. Adds the watsonx.data Presto data source so the `iceberg_data` catalog
-     and its medallion schemas are browsable immediately.
+  Concretely it:
+    1. Creates the first admin user (MB_SETUP_EMAIL / MB_SETUP_PASSWORD).
+    2. Adds the watsonx.data Presto data source so the `iceberg_data` catalog
+       and its medallion schemas are browsable immediately.
 
-watsonx.data specifics handled here:
+  It is fully IDEMPOTENT: if Metabase is already set up it just logs in and
+  ensures the Presto data source exists, so re-running it is always safe.
+
+WHEN TO RUN (demo flow)
+  Run once after Metabase is healthy — the `metabase-provision` service in
+  docker-compose-metabase.yml invokes this automatically. The watsonx.data
+  Presto engine must be running/resumed, because Metabase validates the
+  connection synchronously when the data source is added; this script retries
+  patiently to tolerate an engine that is still warming up or resuming.
+
+ENV VARS READ
+  Metabase side:
+    MB_URL              base URL of Metabase            (default http://metabase:3000)
+    MB_SETUP_EMAIL      admin email to create / log in  (default admin@admin.com)
+    MB_SETUP_PASSWORD   admin password                  (default admin12345)
+    MB_SITE_NAME        Metabase site name              (default "watsonx.data medallion demo")
+    MB_DB_NAME          display name of the data source (default "watsonx.data (Presto)")
+    MB_DB_ADD_ATTEMPTS  max add-connection retries      (default 20)
+    MB_DB_ADD_INTERVAL  seconds between retries          (default 15)
+    MB_DB_ADD_DEADLINE  overall wall-clock cap, seconds (default 300)
+  watsonx.data side (used to build the Presto connection):
+    WXD_HOST            Presto host (required)
+    WXD_PORT            Presto port                     (default 443)
+    WXD_CATALOG         catalog to attach               (default iceberg_data)
+    WXD_USER            ibmlhapikey_<user>              (default ibmlhapikey_cpadmin)
+    WXD_API_KEY         API key used as the password (required)
+    WXD_INSTANCE_ID     injected as the LhInstanceId HTTP header (optional)
+    WXD_METABASE_SCHEMA optional default schema to scope to
+
+WATSONX.DATA SPECIFICS HANDLED HERE
   * user  = WXD_USER (ibmlhapikey_<user>), password = WXD_API_KEY.
   * The required `LhInstanceId` HTTP header is injected through the PrestoDB
     JDBC driver's `customHeaders` option (URL-encoded `Name:Value`).
   * TLS verification is satisfied by the CA the entrypoint trusts at boot.
+
+PREREQUISITES
+  No oc/cpdctl login needed. Requires a reachable Metabase (the compose stack)
+  and a reachable, resumed watsonx.data Presto engine. Python stdlib only.
+
+USAGE
+  Normally invoked by the compose `metabase-provision` service. To run by hand
+  (with the same env loaded):
+      python3 metabase/provision.py
+  If the engine was asleep and the add gave up, just re-run the stack — it is
+  idempotent:
+      docker compose -f docker-compose-metabase.yml up -d
+
+SIDE EFFECTS & EXIT
+  Creates a Metabase admin user (first run) and registers a Presto data source
+  via the Metabase HTTP API. Exits 0 on success (or when nothing was needed);
+  calls sys.exit() with a diagnostic message if Metabase never becomes healthy,
+  login fails, or the Presto data source could not be added before the deadline.
 """
 import json
 import os

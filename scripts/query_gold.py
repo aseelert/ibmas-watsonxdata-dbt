@@ -1,5 +1,62 @@
 #!/usr/bin/env python3
-"""Run a small customer-facing query against the dbt gold layer."""
+# -----------------------------------------------------------------------------
+#  query_gold.py — query the dbt gold marts in watsonx.data and pretty-print them
+#
+#  Location  : scripts/query_gold.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Run a small customer-facing query against the dbt gold layer.
+
+This is the "show me the business value" script at the very end of the medallion
+demo. After the bronze -> silver -> gold dbt models have materialised in the
+Iceberg catalog, this tool connects to the watsonx.data Presto engine, runs one
+or more curated read-only gold-layer reports, and renders the result as a clean
+ASCII table (right-aligned, thousands-separated numbers for the metrics) that
+reads well on a projector during a live demo.
+
+WHAT / WHY
+  - Two built-in reports live in the ``REPORTS`` dict:
+      * ``daily_sales``  — gold_daily_sales: order_date / category / order_count
+        / units_sold / net_revenue.
+      * ``customer_360`` — gold_customer_360: per-customer lifetime value and
+        order-state counts, ordered by lifetime value.
+  - It exists so a presenter can prove, in one command, that the whole pipeline
+    produced query-able, business-ready marts in watsonx.data.
+
+WHEN TO RUN (demo flow)
+  - Run LAST, after the dbt gold models exist (i.e. after a successful
+    ``dbt run`` / the gold build step). The gold schema and its tables must
+    already be populated, otherwise Presto will raise a "table not found" error.
+
+ENV VARS (read at runtime; .env is auto-loaded if python-dotenv is installed)
+  - WXD_USER         (default ``ibmlhapikey_cpadmin``) — Presto principal.
+  - WXD_API_KEY      (required) — IBM Cloud / CPD apikey used as the password.
+  - WXD_HOST         (required) — Presto host name.
+  - WXD_PORT         (default ``443``) — Presto HTTPS port.
+  - WXD_CATALOG      (default ``iceberg_data``) — Iceberg catalog.
+  - WXD_SCHEMA       (default ``dbt_demo``) — base schema name.
+  - WXD_GOLD_SCHEMA  (default ``<WXD_SCHEMA>_gold``) — gold mart schema queried.
+  - WXD_SSL_VERIFY   (default ``certs/watsonxdata-ca.pem``) — True/False or a CA
+    bundle path (relative paths resolve against the repo root).
+  - WXD_INSTANCE_ID  (optional) — sent as the ``LhInstanceId`` HTTP header.
+
+PREREQUISITES
+  - ``presto-python-client`` installed (``pip install -r requirements.txt``).
+  - A reachable, resumed watsonx.data Presto engine; the populated gold schema.
+
+USAGE
+  - python scripts/query_gold.py              # default: all reports
+  - python scripts/query_gold.py daily_sales  # just the daily sales mart
+  - python scripts/query_gold.py customer_360 # just the customer-360 mart
+
+SIDE EFFECTS / EXIT
+  - Read-only: issues only SELECTs, writes nothing. Prints the connection
+    breadcrumb plus each report's table to stdout. Returns 0 on success; raises
+    SystemExit on missing env vars or a missing dependency.
+"""
 
 from __future__ import annotations
 
@@ -203,7 +260,7 @@ def main() -> int:
         request_timeout=60,
     )
     conn._http_session.verify = _ssl_verify()
-    print("Connected.")
+    print("[OK] Connected.")
 
     cur = conn.cursor()
     if args.report == "all":

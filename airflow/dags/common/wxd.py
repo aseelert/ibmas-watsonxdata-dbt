@@ -1,5 +1,13 @@
-"""
-Shared watsonx.data helpers for the Airflow DAGs.
+# -----------------------------------------------------------------------------
+#  wxd.py — Shared watsonx.data auth/TLS/connection helpers for the Airflow DAGs
+#
+#  Location  : airflow/dags/common/wxd.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Shared watsonx.data auth/TLS/connection helpers for the Airflow DAGs.
 
 This is the SINGLE place where authentication, TLS, and connection logic lives
 for the Airflow layer — it mirrors the behaviour of the standalone scripts
@@ -13,6 +21,53 @@ Auth strategy (same as the scripts):
   * Spark REST  -> a fresh CPD **bearer token** minted from WXD_API_KEY on each
     run (long-lived API key -> short-lived token). Robust for scheduled runs.
   * Presto/dbt  -> HTTP **BasicAuth** with user=WXD_USER, password=WXD_API_KEY.
+
+WHAT / WHY
+  An importable helper module (no shebang — it is never executed directly). Both
+  Airflow DAGs (dag_dbt_medallion.py via dbt's profile, dag_spark_medallion.py
+  directly) import it so the watsonx.data connection contract is defined once.
+  It provides three families of helpers: bearer-token / ZenApiKey auth for the
+  Spark REST API, BasicAuth Presto DB-API connections + scalar queries for
+  verification, and the Spark REST endpoint/engine resolvers.
+
+WHEN
+  Loaded by the scheduler whenever it parses or runs either DAG; there is no
+  standalone entry point. No ordering requirement of its own — it simply has to
+  import cleanly so the DAGs can be parsed.
+
+ENV VARS it reads
+  * WXD_PROJECT_DIR ........ mount point of the (read-only) repo inside the
+                             container; the TLS CA cert is resolved under it.
+  * WXD_SSL_VERIFY ......... True/False or a CA-cert path (default
+                             certs/watsonxdata-ca.pem, resolved under the project).
+  * WXD_INSTANCE_ID ........ value of the LhInstanceId header (required).
+  * WXD_CPD_HOST ........... CPD/cluster host used to build the auth + Spark URLs.
+  * WXD_CPD_USERNAME / WXD_USER ... CPD username (the ibmlhapikey_ prefix is
+                             stripped for the bare-username forms).
+  * WXD_CPD_AUTH_URL ....... override for the /icp4d-api/v1/authorize endpoint.
+  * WXD_CPD_API_KEY / WXD_API_KEY ... long-lived API key minted into a token.
+  * WXD_CPD_PASSWORD ....... optional password fallback for token minting.
+  * WXD_SPARK_APPLICATIONS_ENDPOINT / WXD_SPARK_ENGINE_ID ... Spark REST target.
+  * WXD_HOST / WXD_PORT / WXD_CATALOG ... Presto coordinator + Iceberg catalog.
+  * WXD_PRESTO_REQUEST_TIMEOUT_SEC ... per-request Presto HTTP timeout (s).
+
+PREREQUISITES
+  No oc/cpdctl login needed — auth is purely via the API key over HTTPS. A
+  reachable watsonx.data instance (CPD host + Presto coordinator) and the CA
+  cert on disk (unless WXD_SSL_VERIFY is false). prestodb is imported lazily so
+  the module parses even where that wheel is absent.
+
+USAGE (from a DAG / task)
+    from common import wxd
+    hdr  = wxd.bearer_auth_header()           # 'Bearer <token>' for Spark REST
+    conn = wxd.presto_connect(schema="...")   # Presto DB-API connection
+    n    = wxd.presto_scalar("select count(*) from t")
+
+SIDE EFFECTS / EXIT
+  Makes outbound HTTPS calls (token mint, Presto queries) with bounded timeouts;
+  opens Presto connections that callers must close. Helpers raise RuntimeError on
+  missing env vars or failed auth — there is no sys.exit() (it is a library).
+  Emits [wxd] breadcrumbs naming the host/endpoint being contacted.
 """
 
 from __future__ import annotations
@@ -111,7 +166,9 @@ def mint_bearer_token() -> str:
         if last.status_code < 400:
             token = last.json().get("token") or last.json().get("access_token")
             if token:
+                print(f"[wxd] [OK] bearer token minted (user={username})")
                 return token
+    print(f"[wxd] [FAIL] CPD auth failed ({last.status_code if last else 'n/a'})")
     raise RuntimeError(
         f"CPD auth failed ({last.status_code if last else 'n/a'}): "
         f"{last.text if last else 'no response'}"
@@ -186,6 +243,7 @@ def presto_connect(schema: str | None = None):
         request_timeout=int(os.getenv("WXD_PRESTO_REQUEST_TIMEOUT_SEC", "60")),
     )
     conn._http_session.verify = ssl_verify()
+    print(f"[wxd] [OK] Presto connection opened to {host}:{port}")
     return conn
 
 

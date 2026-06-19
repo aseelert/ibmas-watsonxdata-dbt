@@ -1,4 +1,14 @@
-"""
+# -----------------------------------------------------------------------------
+#  dag_dbt_medallion.py — Airflow DAG: dbt/Presto medallion, one task per table
+#
+#  Location  : airflow/dags/dag_dbt_medallion.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Airflow DAG that runs the dbt/Presto medallion as one task per table.
+
 DAG: dbt_medallion_hourly
 =========================
 
@@ -26,6 +36,37 @@ Config: every connection value (host, API key, instance id, schemas, TLS cert)
 comes from .env via the dbt profile (profiles/profiles.yml). Nothing is set
 here. dbt's writable dirs (target/, logs/) are redirected via DBT_TARGET_PATH /
 DBT_LOG_PATH (set in docker-compose) because the project is mounted read-only.
+
+WHEN to run
+  Auto-scheduled @hourly (catchup=False, max_active_runs=1 so runs never
+  overlap). Trigger manually from the Airflow UI for a demo. Nothing else in the
+  repo needs to run first — bootstrap_schemas creates the Iceberg schemas as the
+  DAG's own step 0; the standalone scripts it shells out to are reused, not
+  reimplemented.
+
+ENV VARS
+  Read indirectly: the watsonx.data credentials/endpoints consumed by the dbt
+  profile and the helper scripts — WXD_HOST, WXD_PORT, WXD_USER, WXD_API_KEY,
+  WXD_INSTANCE_ID, WXD_CATALOG, WXD_SSL_VERIFY (see profiles/profiles.yml and
+  common/wxd.py). Read directly by the operators: DBT_PROFILES_DIR,
+  DBT_TARGET_PATH, DBT_LOG_PATH (all injected by docker-compose).
+
+PREREQUISITES
+  A running watsonx.data instance reachable from the Airflow worker, the dbt CLI
+  + watsonx.data adapter installed in the worker image, the repo bind-mounted at
+  PROJECT_DIR (/opt/airflow/project), and a valid TLS CA cert. No oc/cpdctl
+  login is required (API-key auth over HTTPS).
+
+USAGE
+  airflow dags trigger dbt_medallion_hourly        # or use the UI "play" button
+  Each task prints an `==> ...` breadcrumb naming the layer + target schema, so
+  the medallion build is legible end-to-end in the task logs.
+
+SIDE EFFECTS / EXIT
+  Creates/overwrites the dbt_demo_{raw,bronze,silver,gold} Iceberg schemas and
+  their tables on watsonx.data, runs dbt tests, and prints a top-N preview of the
+  gold mart. Per-task execution_timeout = 10 min; dagrun_timeout = 30 min. A
+  failed dbt model / test fails its task (one retry) and blocks downstream tasks.
 """
 
 from __future__ import annotations

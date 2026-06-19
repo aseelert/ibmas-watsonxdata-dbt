@@ -1,18 +1,70 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  demo_time_travel.py — show Iceberg snapshot history / time travel on Presto
+#
+#  Location  : scripts/demo_time_travel.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Demo: Iceberg time travel on watsonx.data via Presto.
 
 Shows that Iceberg keeps every historical snapshot so you can query the table
 as it looked at any past point in time — without restoring a backup.
 
-Steps:
-  1. Capture the current snapshot ID (our "undo point")
-  2. Show the current row count and status distribution
-  3. Simulate a data change by running dbt seed --full-refresh (creates a new snapshot)
-  4. Show that a re-run of dbt alters the snapshot history
-  5. Query the table FOR VERSION AS OF <old snapshot> — old data is still there
-  6. Return to current state
+WHAT / WHY
+  This is the "wow" / governance-story script of the medallion demo. It points
+  at the silver_orders Iceberg table and walks an audience through Iceberg's
+  snapshot model: each commit (every dbt run/seed/INSERT) produces a new,
+  immutable snapshot, and Presto can read any past snapshot with
+  ``FOR VERSION AS OF <snapshot_id>``. It also surfaces the Iceberg metadata
+  tables ($snapshots, $history, $partitions) so viewers can see the audit
+  trail and physical file layout that back the marts.
 
-Run: python scripts/demo_time_travel.py
+STEPS (printed live, each under a divider)
+  1. Capture the current snapshot ID (our "undo point") plus a few priors.
+  2. Show the current row count and status distribution.
+  3. Time travel — count rows ``FOR VERSION AS OF`` the captured snapshot and
+     compare to "now" (identical counts hint to re-run dbt for divergence).
+  4. Inspect the full snapshot history ($history table).
+  5. Inspect the partition layout ($partitions table).
+  The original narrative also frames running ``dbt seed --full-refresh`` /
+  ``dbt run`` between executions to create a NEW snapshot, then re-running this
+  script to watch the history diverge and prove the old data is still readable.
+
+WHEN TO RUN (demo flow)
+  After the silver layer exists (the silver_orders table must be materialised by
+  dbt). Best shown after at least one dbt build; re-run it after a fresh dbt
+  build to demonstrate snapshot divergence.
+
+ENV VARS (read at runtime; .env is auto-loaded if python-dotenv is installed)
+  - WXD_USER          (default ``ibmlhapikey_cpadmin``) — Presto principal.
+  - WXD_API_KEY       (required) — IBM Cloud / CPD apikey used as the password.
+  - WXD_HOST          (required) — Presto host name.
+  - WXD_PORT          (default ``443``) — Presto HTTPS port.
+  - WXD_CATALOG       (default ``iceberg_data``) — Iceberg catalog.
+  - WXD_SCHEMA        (default ``dbt_demo``) — base schema name.
+  - WXD_SILVER_SCHEMA (default ``<WXD_SCHEMA>_silver``) — schema holding the
+    silver_orders table that is time-travelled.
+  - WXD_SSL_VERIFY    (default ``certs/watsonxdata-ca.pem``) — True/False or a CA
+    bundle path (relative paths resolve against the repo root).
+  - WXD_INSTANCE_ID   (optional) — sent as the ``LhInstanceId`` HTTP header.
+
+PREREQUISITES
+  - ``presto-python-client`` installed (``pip install -r requirements.txt``).
+  - A reachable, resumed watsonx.data Presto engine; populated silver schema.
+
+USAGE
+  - python scripts/demo_time_travel.py
+
+SIDE EFFECTS / EXIT
+  - Read-only: issues only SELECTs against the table and its Iceberg metadata
+    tables; it does NOT itself create snapshots. Prints the connection
+    breadcrumb plus each step's output to stdout. Returns 0 on success; raises
+    SystemExit on missing env vars or a missing dependency. Individual time
+    travel / partition queries are wrapped in try/except so one failure does not
+    abort the whole walkthrough.
 """
 
 from __future__ import annotations
@@ -86,7 +138,7 @@ def main() -> int:
         request_timeout=60,
     )
     conn._http_session.verify = _ssl_verify()
-    print("Connected.")
+    print(f"[OK] Connected. Time-travelling table: {catalog}.{schema}.{TABLE}")
     cur = conn.cursor()
 
     def run(sql: str) -> list:

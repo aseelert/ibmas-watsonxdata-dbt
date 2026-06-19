@@ -1,15 +1,53 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  get_token.py — fetch a CPD bearer token, self-heal the API key, validate the instance
+#
+#  Location  : scripts/get_token.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Fetch a CPD bearer token and validate the watsonx.data connection.
 
-Auth strategy (in order):
+WHAT / WHY
+  This is the connectivity smoke-test for the demo. It authenticates against
+  Cloud Pak for Data (CPD), obtains a short-lived bearer token, optionally
+  rotates the long-lived API key, and confirms the configured watsonx.data
+  instance id is reachable. Run it after prepare_watsonx_env.py and before any
+  dbt / Presto / Spark step so that a broken credential surfaces here — with a
+  clear message — instead of deep inside a dbt run.
+
+AUTH STRATEGY (in order)
   1. WXD_API_KEY  → POST /icp4d-api/v1/authorize with api_key
   2. WXD_CPD_PASSWORD (or interactive prompt) → POST with password
-     On success the new API key is regenerated and saved to .env automatically.
+     On success the API key is regenerated and saved to .env automatically, so
+     the next run can go straight back to fast, non-interactive API-key auth.
 
-Usage:
+SELF-HEALING
+  If the stored API key is rejected (expired/revoked → HTTP 401) the script
+  transparently falls back to password login and rotates a fresh key into .env.
+  Pass --refresh-key to force that rotation even when the current key still
+  works.
+
+WHEN TO RUN IT / PREREQUISITES
+  Run after prepare_watsonx_env.py has populated .env. No oc login or cpdctl is
+  required — only network access to the CPD host. python-dotenv and requests
+  must be installed (the script exits with an install hint if they are not).
+
+ENV VARS IT READS (from .env via python-dotenv)
+  WXD_CPD_AUTH_URL (required), WXD_CPD_USERNAME (default "cpadmin"),
+  WXD_CPD_HOST (required), WXD_INSTANCE_ID (required), WXD_API_KEY (optional —
+  primary credential), WXD_CPD_PASSWORD (optional — fallback credential),
+  WXD_SSL_VERIFY (True/False, or a path to a CA PEM; missing file → verify off
+  with a warning). Writes WXD_API_KEY (on rotation) and, with --export,
+  WXD_SPARK_BEARER_TOKEN back into .env.
+
+USAGE
     python scripts/get_token.py               # validate + print token
     python scripts/get_token.py --export      # also write bearer token to .env
     python scripts/get_token.py --refresh-key # force password login + new API key
+    python scripts/get_token.py --env-file /path/to/.env
 
 How to get a fresh API key from the UI (if you prefer):
   1. Open https://<WXD_CPD_HOST>
@@ -17,6 +55,15 @@ How to get a fresh API key from the UI (if you prefer):
   3. Click your avatar (top-right) → Profile and settings → API key tab.
   4. Click "Regenerate API key" → copy the key.
   5. Paste it into .env as WXD_API_KEY=<new-key>.
+
+SIDE EFFECTS / EXIT
+  May rewrite WXD_API_KEY / WXD_SPARK_BEARER_TOKEN in .env, may prompt
+  interactively for a password, and prints the bearer token to stdout. Returns
+  0 on success; raises SystemExit (non-zero) on a missing .env, a missing
+  required env var, a hard CPD auth error, a failed password login, or a
+  not-found / unauthorized instance. Transient instance-endpoint outages
+  (502/503/504) are tolerated — the instance is then validated lazily on the
+  first Presto query.
 """
 
 from __future__ import annotations

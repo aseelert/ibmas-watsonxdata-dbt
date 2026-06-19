@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  ingest_with_cpdctl.py — Load demo CSVs into watsonx.data via the native cpdctl ingestion service
+#
+#  Location  : scripts/ingest_with_cpdctl.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Load the demo CSV files into watsonx.data with the native ingestion service.
 
 This uses `cpdctl wx-data ingestion create`, which is the **supported, UI-visible**

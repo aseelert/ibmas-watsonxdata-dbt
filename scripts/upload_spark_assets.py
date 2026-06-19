@@ -1,8 +1,65 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  upload_spark_assets.py — stage the PySpark app + raw CSVs into MinIO/S3
+#
+#  Location  : scripts/upload_spark_assets.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Upload Spark demo assets to S3-compatible object storage.
 
-This stages the PySpark application and the raw CSV files where the watsonx.data
-Spark engine can read them.
+WHAT / WHY
+    Stages the PySpark application (``spark/load_medallion_demo.py``) and the raw
+    CSV seeds (``seeds/raw_*.csv``) into the object store where the watsonx.data
+    Spark engine can read them. The Spark job runs *inside* the cluster and can
+    only see data in MinIO/S3, so this uploader is the bridge that makes the local
+    repo assets visible to the remote engine. Uploads are overwrite-by-key, so a
+    re-run always replaces the prior object and each Spark run reads the freshest
+    code/CSVs. Every upload is verified by comparing the local byte size against
+    the ``head_object`` ContentLength returned by MinIO.
+
+WHEN TO RUN IT
+    Run this BEFORE submitting the Spark medallion job (it produces the
+    ``WXD_SPARK_APPLICATION`` and ``WXD_SPARK_INPUT_BASE`` S3A paths printed at the
+    end, which the submit step consumes). Its sibling cleanup script
+    ``scripts/cleanup_minio.py`` re-uses this module's port-forward + credential
+    helpers, so keeping them in sync matters.
+
+ENV VARS (read here)
+    WXD_OBJECT_STORE_ENDPOINT       — S3 endpoint URL (required).
+    WXD_SPARK_ASSET_BUCKET          — target bucket (default ``iceberg-bucket``).
+    WXD_SPARK_ASSET_PREFIX          — key prefix for assets (default ``spark_demo``).
+    WXD_OBJECT_STORE_REGION         — S3 region (default ``us-east-1``).
+    WXD_OBJECT_STORE_SSL_VERIFY     — TLS verify toggle (default ``false``).
+    WXD_OBJECT_STORE_ACCESS_KEY /
+    WXD_OBJECT_STORE_SECRET_KEY     — explicit creds; if unset they are read from
+                                      the OpenShift MinIO secret via ``oc``.
+    WXD_OPENSHIFT_NAMESPACE         — namespace for the secret/port-forward
+                                      (default ``cpd-instance``).
+    WXD_OBJECT_STORE_SECRET_NAME    — secret holding the creds
+                                      (default ``ibm-lh-minio-secret``).
+    WXD_OBJECT_STORE_ACCESS_KEY_NAME / _SECRET_KEY_NAME — keys inside that secret.
+    WXD_OBJECT_STORE_AUTO_PORT_FORWARD — auto ``oc port-forward`` when the endpoint
+                                      is localhost (default ``true``).
+    WXD_OBJECT_STORE_SERVICE / _SERVICE_PORT — MinIO service + port to forward.
+
+PREREQUISITES
+    Either set the explicit access/secret env vars, OR be logged in with ``oc`` so
+    the script can read ``ibm-lh-minio-secret``. On clusters where MinIO has no
+    external Route the endpoint is localhost and an ``oc`` port-forward is started
+    automatically (logged to ``logs/minio-port-forward.log``). Requires ``boto3``
+    (``python -m pip install -r requirements.txt``).
+
+USAGE
+    python scripts/upload_spark_assets.py
+
+SIDE EFFECTS / EXIT
+    Writes objects under ``s3://<bucket>/<prefix>/app`` and ``.../raw``; may spawn
+    (and always tears down) an ``oc`` port-forward. Exits non-zero with a clear
+    message on missing env/creds, a failed upload verification, or a port-forward
+    timeout; otherwise returns 0.
 """
 
 from __future__ import annotations

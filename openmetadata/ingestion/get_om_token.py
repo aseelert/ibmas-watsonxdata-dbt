@@ -1,3 +1,52 @@
+# -----------------------------------------------------------------------------
+#  get_om_token.py — mint a short-lived OpenMetadata ingestion-bot JWT to stdout
+#
+#  Location  : openmetadata/ingestion/get_om_token.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Mint a fresh OpenMetadata `ingestion-bot` JWT and print it to stdout.
+
+WHAT & WHY
+  The demo ships dbt lineage/metadata into a local OpenMetadata (OM) instance.
+  OM's ingestion API needs a bearer token for the built-in `ingestion-bot`
+  service account. Rather than hard-coding a long-lived token in config, this
+  helper logs in as the OM admin, looks up the ingestion-bot's user id, and
+  asks OM to generate a short-lived (1 hour) JWT for it. The token is the ONLY
+  thing written to stdout so a caller can capture it directly, e.g.:
+      OM_TOKEN="$(python3 openmetadata/ingestion/get_om_token.py)"
+  All progress/diagnostic breadcrumbs ([OK]/[FAIL]) go to STDERR precisely so
+  they never contaminate the captured token on stdout.
+
+WHEN TO RUN (demo flow)
+  Run just before kicking off an OpenMetadata ingestion (dbt metadata/lineage),
+  to obtain a valid bearer token. A local OpenMetadata stack must already be up
+  and reachable at OM_BASE, with the default `admin@open-metadata.org` account
+  and the standard `ingestion-bot` present (both ship with OM).
+
+CONFIGURATION (no env vars)
+  Values are constants inside the file rather than env vars:
+    OM_BASE       OpenMetadata base URL (http://localhost:8585)
+    HTTP_TIMEOUT  per-request timeout in seconds (30) so an unreachable OM
+                  can't block forever
+  The admin credentials are the OM defaults (admin / "admin"); OM 1.13+ requires
+  the password to be Base-64 encoded on login, which this script handles.
+
+PREREQUISITES
+  No oc/cpdctl login needed. Requires the `requests` library and a running,
+  reachable OpenMetadata at OM_BASE.
+
+USAGE
+      python3 openmetadata/ingestion/get_om_token.py        # prints JWT to stdout
+      TOKEN="$(python3 openmetadata/ingestion/get_om_token.py)"
+
+SIDE EFFECTS & EXIT
+  Generates (server-side) a 1-hour JWT for the ingestion-bot user. No files are
+  written. Prints the token to stdout and exits 0 on success; on any HTTP/login
+  failure it prints a [FAIL] line to stderr and exits 1.
+"""
 import base64
 import requests
 import sys

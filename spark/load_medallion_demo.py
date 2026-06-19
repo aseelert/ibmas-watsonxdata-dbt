@@ -1,15 +1,81 @@
 #!/usr/bin/env python3
-"""Optional PySpark job that writes the same demo data as Iceberg tables.
+# -----------------------------------------------------------------------------
+#  load_medallion_demo.py — PySpark job that builds the bronze/silver/gold demo
+#
+#  Location  : spark/load_medallion_demo.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""PySpark job that writes the demo data as Iceberg tables in a medallion layout.
 
-Run this inside an environment that already has Spark configured for the
-watsonx.data Iceberg catalog and MinIO object storage.
+WHAT & WHY
+----------
+This is the optional, Spark-native counterpart to the dbt path of the demo. It
+reads the same raw demo CSVs and materialises a full bronze/silver/gold
+medallion architecture as Apache Iceberg tables in the watsonx.data Iceberg
+catalog (backed by MinIO/S3 object storage). It exists so the demo can show the
+SAME business model produced two ways — declaratively via dbt and
+imperatively via PySpark — and so the resulting Iceberg tables can be queried
+interchangeably from Presto, dbt, OpenMetadata, or Metabase.
 
-Medallion layers:
-- bronze: raw CSVs ingested as-is plus ingestion metadata.
-- silver: cleaned/typed dimensions and facts, plus one enriched fact
-  (spark_silver_sales_enriched) that joins all four entities.
-- gold: business aggregates. spark_gold_daily_sales is a physical table;
-  spark_gold_category_performance is layered on top of that gold table.
+Medallion layers produced:
+- bronze: the four raw CSVs ingested as-is, each annotated with ingestion
+  metadata columns (_ingested_at, _ingested_by, _source_file, _ingest_batch_id).
+- silver: cleaned / typed dimensions and facts (customers, products, orders,
+  order_items), plus one enriched fact (spark_silver_sales_enriched) that joins
+  all four entities at order-line grain. Orders and the enriched fact are
+  partitioned by month of order_date.
+- gold: business aggregates — spark_gold_daily_sales (a physical, partitioned
+  table) and, layered on top of it, spark_gold_category_performance, plus a
+  spark_gold_customer_360 view of per-customer metrics joined back to the
+  customer dimension so customers without orders still appear.
+
+WHEN TO RUN
+-----------
+Run this AFTER the raw demo CSVs have been generated and uploaded to object
+storage (so that <WXD_SPARK_INPUT_BASE>/raw_*.csv exist) and against an
+environment where Spark is already configured for the watsonx.data Iceberg
+catalog and MinIO. It is an alternative to / supplement of the dbt run; it does
+not depend on the dbt models existing.
+
+ENV VARS (read at startup; a sibling .env is auto-loaded if python-dotenv is
+installed)
+- WXD_SPARK_CATALOG        : Iceberg catalog name (default "iceberg_data").
+- WXD_SPARK_INPUT_BASE     : base path holding raw_*.csv; s3a://, s3:// or a
+                             local path (default "s3a://iceberg-bucket/spark_demo/raw").
+- WXD_SPARK_SCHEMA         : base schema/namespace (default "spark_demo"); the
+                             bronze/silver/gold schemas default to this with a
+                             _bronze/_silver/_gold suffix.
+- WXD_SPARK_BRONZE_SCHEMA  : override the bronze namespace.
+- WXD_SPARK_SILVER_SCHEMA  : override the silver namespace.
+- WXD_SPARK_GOLD_SCHEMA    : override the gold namespace.
+- WXD_SPARK_INGEST_BATCH_ID: batch id stamped onto bronze rows
+                             (default "spark_demo_batch").
+
+PREREQUISITES
+-------------
+A running Spark session/engine wired to the watsonx.data Iceberg catalog and the
+MinIO/S3 object store (e.g. a watsonx.data Spark application or a local Spark
+with the Iceberg + S3A jars and catalog config). No oc/cpdctl login is performed
+by this script — those must already be in place if your Spark engine needs them.
+NOTE: the watsonx.data Spark engine's Iceberg catalog uses a fixed warehouse, so
+managed tables always land at <bucket-root>/<schema>.db/ and a CREATE NAMESPACE
+... LOCATION clause is ignored — this job deliberately does not set a location.
+
+USAGE
+-----
+    spark-submit spark/load_medallion_demo.py
+    # or inside a configured pyspark environment:
+    python3 spark/load_medallion_demo.py
+
+SIDE EFFECTS & EXIT
+-------------------
+Creates the three namespaces if absent and createOrReplace()s every bronze,
+silver and gold table listed above (existing tables are overwritten). Progress
+is printed per namespace/table. The Spark session is stopped before return; the
+process exits 0 on success and propagates any Spark error otherwise.
 """
 
 from __future__ import annotations
@@ -40,6 +106,7 @@ def main() -> None:
     silver_schema = os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{base_schema}_silver")
     gold_schema = os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{base_schema}_gold")
 
+    print("[load_medallion_demo] starting watsonx.data medallion build (bronze/silver/gold)")
     spark = SparkSession.builder.appName("watsonxdata-medallion-demo").getOrCreate()
     print(f"Spark catalog: {catalog}")
     print(f"Input CSV base: {input_base}")
@@ -255,6 +322,7 @@ def main() -> None:
         .createOrReplace()
     )
 
+    print(f"[OK] medallion build complete — bronze/silver/gold written to catalog {catalog}")
     spark.stop()
 
 

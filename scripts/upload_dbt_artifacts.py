@@ -1,5 +1,68 @@
 #!/usr/bin/env python3
-"""Upload dbt artifacts to S3-compatible storage for OpenMetadata."""
+# -----------------------------------------------------------------------------
+#  upload_dbt_artifacts.py — push staged dbt artifacts to S3 object storage for OpenMetadata
+#
+#  Location  : scripts/upload_dbt_artifacts.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
+"""Upload dbt artifacts to S3-compatible storage for OpenMetadata.
+
+This is the SECOND half of the OpenMetadata lineage workflow. It takes the dbt
+artifacts already staged on disk by
+``scripts/prepare_openmetadata_dbt_artifacts.py`` (``manifest.json`` plus the
+optional ``catalog.json`` and ``run_results.json``) and uploads them to the
+S3-compatible object store (MinIO / watsonx.data bucket) under a stable prefix.
+OpenMetadata's dbt ingestion connector then reads those objects from S3 to
+build dbt model/table lineage and column-level metadata for the medallion demo.
+
+WHAT it does:
+ - Resolves the local staging directory and verifies the REQUIRED artifact
+   (``manifest.json``) is present; warns about any missing OPTIONAL artifacts
+   but still uploads whatever is available.
+ - Reuses the object-store plumbing from ``upload_spark_assets`` (shared
+   ``ROOT``, ``_env``, ``_maybe_start_port_forward`` and
+   ``_object_store_credentials`` helpers) so endpoint resolution, optional
+   ``kubectl`` port-forwarding and credential discovery behave identically to
+   the Spark-asset uploader.
+ - Builds a boto3 S3 client with capped connect/read timeouts (10s / 60s) and
+   bounded retries so a stalled MinIO cannot hang the upload, then uploads each
+   present artifact and prints the resulting ``s3://`` paths.
+
+WHEN to run it: AFTER ``scripts/prepare_openmetadata_dbt_artifacts.py`` has
+staged the artifacts locally, and before (or as part of) configuring the
+OpenMetadata dbt ingestion to point at the printed S3 paths.
+
+ENV VARS read:
+ - ``WXD_DBT_ARTIFACT_DIR`` — local staging directory to read from
+   (default: ``openmetadata/dbt-artifacts``, resolved relative to repo root).
+ - ``WXD_DBT_ARTIFACT_BUCKET`` — target bucket; falls back to
+   ``WXD_SPARK_ASSET_BUCKET`` (default ``iceberg-bucket``).
+ - ``WXD_DBT_ARTIFACT_PREFIX`` — object-key prefix; defaults to
+   ``openmetadata/dbt-artifacts/<WXD_SCHEMA>`` (``WXD_SCHEMA`` default
+   ``dbt_demo``).
+ - ``WXD_OBJECT_STORE_ENDPOINT`` — S3 endpoint URL (required).
+ - ``WXD_OBJECT_STORE_REGION`` — S3 region (default ``us-east-1``).
+ - ``WXD_OBJECT_STORE_SSL_VERIFY`` — ``true``/``false`` TLS verification
+   toggle (default ``false``).
+ - Plus the credential/port-forward env vars consumed by the imported
+   ``upload_spark_assets`` helpers. ``.env`` is loaded via python-dotenv when
+   available.
+
+PREREQUISITES: ``boto3`` installed (``pip install -r requirements.txt``),
+reachable object-store endpoint (or a working ``kubectl`` context if a
+port-forward is needed), and the staged artifacts on disk.
+
+USAGE example:
+ - ``python3 scripts/upload_dbt_artifacts.py``
+
+SIDE EFFECTS + EXIT: writes objects into the S3 bucket, may start and then
+terminate a port-forward subprocess, prints the uploaded ``s3://`` paths, and
+returns exit code 0 on success. Raises ``SystemExit`` (non-zero) when ``boto3``
+is missing or the required ``manifest.json`` is not staged.
+"""
 
 from __future__ import annotations
 
@@ -36,6 +99,8 @@ def _artifact_dir() -> Path:
 def main() -> int:
     if load_dotenv is not None:
         load_dotenv(ROOT / ".env")
+
+    print("== upload OpenMetadata dbt artifacts to object storage ==")
 
     try:
         import boto3
@@ -102,8 +167,9 @@ def main() -> int:
             if not (artifact_dir / name).exists():
                 continue
             key = f"{prefix}/{name}"
+            print(f"uploading {name} -> s3://{bucket}/{key} ...")
             s3.upload_file(str(artifact_dir / name), bucket, key)
-            print(f"uploaded s3://{bucket}/{key}")
+            print(f"[OK] uploaded s3://{bucket}/{key}")
 
         print()
         print("OpenMetadata S3 artifact paths:")

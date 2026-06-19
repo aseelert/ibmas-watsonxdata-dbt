@@ -1,29 +1,68 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  cleanup_minio.py — scoped delete of the demo's MinIO/S3 prefixes for a clean rerun
+#
+#  Location  : scripts/cleanup_minio.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Delete the demo's files from MinIO/S3 so a rerun starts 100% clean.
 
-This is a *scoped* deletion. It only removes the demo's own prefixes inside
-``WXD_SPARK_ASSET_BUCKET`` (default ``iceberg-bucket``):
+WHAT / WHY
+    This is a *scoped* deletion. It only removes the demo's own prefixes inside
+    ``WXD_SPARK_ASSET_BUCKET`` (default ``iceberg-bucket``):
 
-  * the medallion schema folders that Iceberg writes at the bucket root
-    (``dbt_demo_*``, ``spark_demo_*``, the cpdctl raw schema) — i.e. the actual
-    table data + metadata files,
-  * the ``spark_demo`` asset prefix (the uploaded PySpark app and raw CSVs),
-  * the ``openmetadata/dbt-artifacts`` prefix (published dbt manifest/catalog).
+      * the medallion schema folders that Iceberg writes at the bucket root
+        (``dbt_demo_*``, ``spark_demo_*``, the cpdctl raw schema) — i.e. the actual
+        table data + metadata files,
+      * the ``spark_demo`` asset prefix (the uploaded PySpark app and raw CSVs),
+      * the ``openmetadata/dbt-artifacts`` prefix (published dbt manifest/catalog).
 
-It NEVER empties the whole bucket — only these known demo prefixes.
+    It NEVER empties the whole bucket — only these known demo prefixes. After a real
+    delete it VERIFIES each prefix is empty (no relics/orphans) and lists the
+    surviving top-level folders so you can confirm the bucket (and any non-demo
+    data) is intact.
 
-Pairs with ``scripts/cleanup_watsonxdata.py`` (which DROPs the Presto/Iceberg
-schemas). Recommended order: drop the schemas first, then run this to remove any
-files the drop left behind. The all-in-one ``scripts/reset_demo.sh`` does both.
+WHEN TO RUN IT
+    Pairs with ``scripts/cleanup_watsonxdata.py`` (which DROPs the Presto/Iceberg
+    schemas). Recommended order: drop the schemas first, then run this to remove any
+    files the drop left behind. The all-in-one ``scripts/reset_demo.sh`` does both.
 
-On this cluster MinIO has no external Route, so the object store is reached via an
-``oc`` port-forward — exactly like ``scripts/upload_spark_assets.py``. You must be
-logged in with ``oc`` (the credentials are read from the ``ibm-lh-minio-secret``
-OpenShift secret unless ``WXD_OBJECT_STORE_ACCESS_KEY``/``_SECRET_KEY`` are set).
+ENV VARS (read here)
+    WXD_OBJECT_STORE_ENDPOINT       — S3 endpoint URL (required).
+    WXD_SPARK_ASSET_BUCKET          — bucket to clean (default ``iceberg-bucket``).
+    WXD_OBJECT_STORE_REGION         — S3 region (default ``us-east-1``).
+    WXD_OBJECT_STORE_SSL_VERIFY     — TLS verify toggle (default ``false``).
+    WXD_SCHEMA / WXD_SPARK_SCHEMA   — base names used to derive the medallion
+                                      schema folders.
+    WXD_RAW_SCHEMA, WXD_BRONZE_SCHEMA, WXD_SILVER_SCHEMA, WXD_GOLD_SCHEMA,
+    WXD_SPARK_BRONZE_SCHEMA, WXD_SPARK_SILVER_SCHEMA, WXD_SPARK_GOLD_SCHEMA,
+    WXD_INGEST_SCHEMA               — per-layer schema-folder overrides.
+    WXD_SPARK_ASSET_PREFIX          — uploaded-asset prefix (default ``spark_demo``).
+    Plus all credential/port-forward vars consumed by the shared helpers imported
+    from ``upload_spark_assets`` (WXD_OBJECT_STORE_ACCESS_KEY/_SECRET_KEY,
+    WXD_OPENSHIFT_NAMESPACE, WXD_OBJECT_STORE_SECRET_NAME, etc.).
 
-Usage:
+PREREQUISITES
+    On this cluster MinIO has no external Route, so the object store is reached via
+    an ``oc`` port-forward — exactly like ``scripts/upload_spark_assets.py`` (whose
+    ``_maybe_start_port_forward`` + ``_object_store_credentials`` are reused so the
+    two scripts behave identically). You must be logged in with ``oc`` (the
+    credentials are read from the ``ibm-lh-minio-secret`` OpenShift secret unless
+    ``WXD_OBJECT_STORE_ACCESS_KEY``/``_SECRET_KEY`` are set). Requires ``boto3``.
+
+USAGE
     python scripts/cleanup_minio.py --dry-run   # list what WOULD be deleted
     python scripts/cleanup_minio.py             # actually delete
+
+SIDE EFFECTS / EXIT
+    With ``--dry-run`` nothing is deleted (objects are only counted). Without it,
+    every object under each demo prefix is removed (batched by 1000 per
+    ``delete_objects`` call). May spawn (and always tears down) an ``oc``
+    port-forward. Exits non-zero with a clear message on missing env/creds or a
+    missing ``boto3``; otherwise returns 0.
 """
 
 from __future__ import annotations

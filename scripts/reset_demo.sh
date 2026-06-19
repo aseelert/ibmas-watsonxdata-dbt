@@ -1,8 +1,44 @@
 #!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+#  reset_demo.sh — get the watsonx.data medallion demo back to a 100% clean state.
 #
-# reset_demo.sh — get the watsonx.data medallion demo back to a 100% clean state.
+#  Location  : scripts/reset_demo.sh
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
 #
-# The demo has three independent "surfaces" you may want to reset. Pick one, several,
+#  WHAT / WHY
+#    Tears down the demo so it can be replayed from scratch. The demo spreads
+#    state across three INDEPENDENT surfaces — local Docker stacks, watsonx.data
+#    schemas (Presto), and object storage (MinIO/S3) — and this script lets you
+#    reset any subset of them cleanly, scoped tightly to this demo's own names so
+#    it never disturbs unrelated containers, schemas, or bucket contents.
+#
+#  WHEN TO RUN IT
+#    Between demo runs, or whenever a surface is in a bad state. `--docker` is
+#    safe any time; `--schemas`/`--minio` undo the dbt + Spark + cpdctl work and
+#    should be paired with a fresh re-ingest afterwards. Always available:
+#    preview first with `--dry-run`.
+#
+#  ENV VARS
+#    Indirectly via the helper Python scripts it calls (cleanup_watsonxdata.py,
+#    cleanup_minio.py), which read the demo's `.env` (WXD_* connection settings,
+#    schema prefixes, MinIO/S3 endpoint + credentials).
+#
+#  PREREQUISITES
+#    `docker` for --docker; a working repo `.venv` (boto3, prestodb, dotenv) or a
+#    system python for --schemas/--minio; `oc login` to the cluster for --minio
+#    (MinIO is reached via an oc port-forward). Missing tools are skipped with a
+#    clear message rather than aborting.
+#
+#  SIDE EFFECTS / EXIT
+#    PERMANENTLY removes the selected resources (containers, volumes, images,
+#    schemas, object-store files). Prompts for confirmation unless `-y/--yes` or
+#    `--dry-run`. Exits 0 on success; 1 on abort/no-selection; 2 on bad option.
+#
+# -----------------------------------------------------------------------------
+#  The demo has three independent "surfaces" you may want to reset. Pick one, several,
 # or all of them:
 #
 #   --docker      Stop & remove the local Docker stacks (Metabase, Airflow,
@@ -55,7 +91,9 @@ KEEP_IMAGES=false
 PURGE_IMAGES=false
 ASSUME_YES=false
 
-usage() { sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+# Prints the user-facing help block (the lines between the canonical header and
+# `set -euo pipefail`): description, options, examples, and safety notes.
+usage() { sed -n '41,74p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 if [ $# -eq 0 ]; then usage; exit 1; fi
 

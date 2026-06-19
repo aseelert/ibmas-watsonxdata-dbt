@@ -1,9 +1,59 @@
 #!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+#  prepare_watsonx_env.py — bootstrap .env + CA cert from a watsonx.data connection JSON
+#
+#  Location  : scripts/prepare_watsonx_env.py
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+# -----------------------------------------------------------------------------
 """Prepare local watsonx.data demo configuration from a connection JSON export.
 
 The script reads a watsonx.data Presto connection JSON, writes the embedded
 certificate chain to certs/watsonxdata-ca.pem, and updates .env with the
 non-secret connection values. Existing secrets such as WXD_API_KEY are kept.
+
+WHAT / WHY
+  This is the very first setup step in the demo. The watsonx.data UI lets you
+  export a Presto "connection details" JSON (properties.connection name/value
+  pairs). Rather than hand-copying a dozen values, this script parses that JSON
+  and materialises everything the rest of the demo expects:
+    - the SSL/TLS CA certificate chain (extracted from the ssl_certificate
+      field) written as a PEM file under certs/, and
+    - the non-secret connection settings written into .env (host, port,
+      instance id, Presto engine id, CPD host, the derived CPD authorize URL,
+      plus sensible catalog/schema defaults).
+  Existing secrets and any values you have already customised are preserved
+  unless you explicitly ask to overwrite them.
+
+WHEN TO RUN IT
+  Run this once at the start, before get_token.py / query_gold.py / dbt — and
+  re-run it any time the watsonx.data instance is re-provisioned and the
+  instance id, host, or certificate change. There is no oc/cpdctl login or
+  running engine prerequisite; it is a pure local file transformation.
+
+ENV VARS IT WRITES (into .env, not read from the shell)
+  WXD_INSTANCE_ID, WXD_HOST, WXD_PORT, WXD_PRESTO_ENGINE_ID, WXD_CPD_HOST,
+  WXD_CPD_AUTH_URL, WXD_SSL_VERIFY (path to the PEM it wrote), and defaults for
+  WXD_CATALOG (iceberg_data), WXD_SCHEMA (dbt_demo), WXD_GOLD_MATERIALIZED
+  (view). It also derives WXD_CPD_USERNAME / WXD_USER from each other when one
+  side uses the ibmlhapikey_<user> convention. WXD_API_KEY is NEVER written —
+  it is not present in the connection JSON and must be added separately (the
+  script prints a reminder when it is missing).
+
+USAGE
+    python scripts/prepare_watsonx_env.py
+    python scripts/prepare_watsonx_env.py --connection-json /path/to/export.json
+    python scripts/prepare_watsonx_env.py --env-file .env --cert-file certs/ca.pem
+    python scripts/prepare_watsonx_env.py --overwrite   # replace existing non-secret values
+
+SIDE EFFECTS / EXIT
+  Creates/overwrites the cert PEM file and rewrites .env in place (preserving
+  comment lines and key order). Returns 0 on success; raises SystemExit with a
+  human-readable message (non-zero) on a missing/invalid JSON, a connection
+  export that has no name/value pairs, or an ssl_certificate that contains no
+  PEM block.
 """
 
 from __future__ import annotations
@@ -148,7 +198,10 @@ def main() -> int:
     if not cert_path.is_absolute():
         cert_path = ROOT / cert_path
 
+    print(f"Reading watsonx.data connection JSON: {_relative_to_root(connection_path)}")
     connection = _load_connection(connection_path)
+    print(f"  Parsed {len(connection)} connection field(s)  [OK]")
+    print(f"Loading existing env file: {_relative_to_root(env_path)}")
     items, env_values = _read_env(env_path)
 
     _set(env_values, "WXD_INSTANCE_ID", connection.get("instance_id"), args.overwrite)
@@ -173,9 +226,13 @@ def main() -> int:
 
     ssl_certificate = connection.get("ssl_certificate")
     if ssl_certificate:
+        print(f"Writing CA certificate chain: {_relative_to_root(cert_path)}")
         cert_path.parent.mkdir(parents=True, exist_ok=True)
         cert_path.write_text(_cert_chain(ssl_certificate))
         _set(env_values, "WXD_SSL_VERIFY", _relative_to_root(cert_path), True)
+        print("  Certificate chain written  [OK]")
+    else:
+        print("  No ssl_certificate field in JSON — skipping CA cert write.")
 
     if "WXD_CATALOG" not in env_values:
         env_values["WXD_CATALOG"] = "iceberg_data"

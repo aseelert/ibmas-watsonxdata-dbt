@@ -88,7 +88,9 @@ The `requirements.txt` installs these packages:
 | `dbt-core` | >=1.8,<2.0 | The dbt engine that compiles and runs SQL models |
 | `dbt-watsonx-presto` | 0.1.2 | Adapter that translates dbt calls into Presto-compatible SQL |
 | `presto-python-client` | 0.8.4 | Low-level Python driver for talking to the Presto endpoint |
-| `boto3` / `requests` | >=1.34 / >=2.31 | S3-compatible client for MinIO uploads and REST calls |
+| `boto3` | >=1.34,<2.0 | S3-compatible client for MinIO uploads |
+| `python-dotenv` | >=1.0,<2.0 | Loads `.env` into the environment for the scripts |
+| `requests` | >=2.31,<3.0 | REST calls (Spark submit, token auth) |
 | `mkdocs` + `mkdocs-material` | >=1.6 / >=9.5 | Builds this documentation site locally |
 
 !!! note "pip install takes a minute"
@@ -200,11 +202,12 @@ The JSON contains fields similar to these:
 ```text
 Field                   Plain-English meaning
 ─────────────────────── ──────────────────────────────────────────────────
-Presto host / port      Where dbt sends SQL queries
+engine_host / port      Where dbt sends SQL queries
                         (ibm-lh-lakehouse-presto651-presto-svc.apps...
                         :443)
+engine_id               Which Presto engine (e.g. presto651)
 instance_id             Identifies your watsonx.data tenant on the cluster
-cpd_host                The IBM Software Hub (CPD) base URL
+host                    The IBM Software Hub (CPD) base URL
 ssl_certificate         PEM-encoded CA certificate chain for TLS
 ```
 
@@ -224,6 +227,11 @@ python scripts/prepare_watsonx_env.py
 Expected output:
 
 ```text
+Reading watsonx.data connection JSON: watsonx_data/instance_details.json
+  Parsed 9 connection field(s)  [OK]
+Loading existing env file: .env
+Writing CA certificate chain: certs/watsonxdata-ca.pem
+  Certificate chain written  [OK]
 Read connection details from: watsonx_data/instance_details.json
 Wrote certificate chain to: certs/watsonxdata-ca.pem
 Updated env file: .env
