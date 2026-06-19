@@ -180,7 +180,7 @@ def main() -> int:
     if "WXD_CATALOG" not in env_values:
         env_values["WXD_CATALOG"] = "iceberg_data"
     if "WXD_SCHEMA" not in env_values:
-        env_values["WXD_SCHEMA"] = "lakehouse_demo"
+        env_values["WXD_SCHEMA"] = "dbt_demo"
     if "WXD_GOLD_MATERIALIZED" not in env_values:
         env_values["WXD_GOLD_MATERIALIZED"] = "view"
 

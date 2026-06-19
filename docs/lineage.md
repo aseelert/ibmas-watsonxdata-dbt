@@ -114,7 +114,7 @@ re-ingesting the CSV.
 
 dbt and Spark are two full ingest+transform medallion pipelines that read the same CSVs and produce
 the same Bronze/Silver/Gold shape in different schemas. cpdctl is an ingestion-only loader (like
-`dbt seed`) that lands the raw CSVs in `lakehouse_demo_ingest`; it needs a dbt or Spark transform on
+`dbt seed`) that lands the raw CSVs in `spark_demo_cpdctl_raw`; it needs a dbt or Spark transform on
 that data to become a medallion.
 
 ```mermaid
@@ -134,13 +134,13 @@ flowchart TB
     i0["raw_order_items.csv\n1134 rows"]:::csv
   end
 
-  subgraph DBT["dbt path · Presto SQL · lakehouse_demo_*"]
+  subgraph DBT["dbt path · Presto SQL · dbt_demo_*"]
     direction TB
-    db["bronze_customers/products/orders/order_items\nlakehouse_demo_bronze"]:::bronze
-    ds["silver_customers/products/orders/order_items\nsilver_sales_enriched\nlakehouse_demo_silver"]:::silver
-    dg1["gold_daily_sales · TABLE\nlakehouse_demo_gold"]:::gold
-    dg2["gold_category_performance · VIEW\nlakehouse_demo_gold"]:::gold
-    dg3["gold_customer_360 · VIEW\nlakehouse_demo_gold"]:::gold
+    db["bronze_customers/products/orders/order_items\ndbt_demo_bronze"]:::bronze
+    ds["silver_customers/products/orders/order_items\nsilver_sales_enriched\ndbt_demo_silver"]:::silver
+    dg1["gold_daily_sales · TABLE\ndbt_demo_gold"]:::gold
+    dg2["gold_category_performance · VIEW\ndbt_demo_gold"]:::gold
+    dg3["gold_customer_360 · VIEW\ndbt_demo_gold"]:::gold
     db --> ds --> dg1 --> dg2
     ds --> dg3
   end
@@ -153,9 +153,9 @@ flowchart TB
     sb --> ss --> sg
   end
 
-  subgraph CPDCTL["cpdctl ingest (raw landing) · IBM CLI · lakehouse_demo_ingest"]
+  subgraph CPDCTL["cpdctl ingest (raw landing) · IBM CLI · spark_demo_cpdctl_raw"]
     direction TB
-    ci["lakehouse_demo_ingest.*\n(raw, UI-tracked native ingestion)"]:::ingest
+    ci["spark_demo_cpdctl_raw.*\n(raw, UI-tracked native ingestion)"]:::ingest
   end
 
   SRC -->|dbt seed + SQL models| DBT
@@ -167,8 +167,8 @@ flowchart TB
 
 !!! tip "Two full pipelines plus one native loader"
     After running the dbt and Spark paths you will have **two full medallion stacks** (dbt:
-    `lakehouse_demo_bronze/silver/gold`; Spark: `spark_demo_bronze/silver/gold`) plus **one raw
-    ingest landing** (cpdctl: `lakehouse_demo_ingest`). The raw ingest landing becomes a medallion
+    `dbt_demo_bronze/silver/gold`; Spark: `spark_demo_bronze/silver/gold`) plus **one raw
+    ingest landing** (cpdctl: `spark_demo_cpdctl_raw`). The raw ingest landing becomes a medallion
     only if you run dbt or Spark transforms over it. dbt and Spark are self-contained — each ingests
     and transforms on its own; cpdctl is the ingest front-end you pair with a dbt or Spark transform
     back-end (**cpdctl + dbt/Spark = one full pipeline**). The [SQL comparison page](sql-demo.md)
@@ -511,7 +511,7 @@ Both `silver_sales_enriched` and `gold_daily_sales` are partitioned by `month(or
 
 ```text
 iceberg-bucket/
-└── lakehouse_demo_gold/
+└── dbt_demo_gold/
     └── gold_daily_sales/
         ├── order_date_month=2026-01/
         │   └── part-00000-abc123.parquet
@@ -538,7 +538,7 @@ Parquet. This is called **partition pruning + file skipping**, and it is what se
 table from a raw folder of Parquet files.
 
 !!! warning "Always use the Iceberg catalog — never query MinIO paths directly"
-    Querying `s3a://iceberg-bucket/lakehouse_demo_gold/...` directly bypasses all metadata and
+    Querying `s3a://iceberg-bucket/dbt_demo_gold/...` directly bypasses all metadata and
     forces a full scan of every file. Always go through the `iceberg_data` catalog so Presto can
     use the Iceberg statistics to skip irrelevant files.
 
@@ -551,10 +551,10 @@ to separate schemas so you can compare them side by side in the same catalog.
 
 | Layer | dbt path (Presto) | Spark path (PySpark) |
 |---|---|---|
-| Raw | `dbt seed` → `lakehouse_demo_raw.*` <span class="obj table">TABLE</span> | CSVs read from `s3a://iceberg-bucket/spark_demo/raw` <span class="obj csv">CSV</span> |
-| Bronze | `lakehouse_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | `spark_demo_bronze.*` <span class="obj table">TABLE</span> |
-| Silver | `lakehouse_demo_silver.silver_*` <span class="obj table">TABLE</span>, incl. `silver_sales_enriched` | `spark_demo_silver.*` <span class="obj table">TABLE</span>, incl. `spark_silver_sales_enriched` |
-| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> in `lakehouse_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` in `spark_demo_gold` — all physical Iceberg <span class="obj table">TABLE</span>s |
+| Raw | `dbt seed` → `dbt_demo_raw.*` <span class="obj table">TABLE</span> | CSVs read from `s3a://iceberg-bucket/spark_demo/raw` <span class="obj csv">CSV</span> |
+| Bronze | `dbt_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | `spark_demo_bronze.*` <span class="obj table">TABLE</span> |
+| Silver | `dbt_demo_silver.silver_*` <span class="obj table">TABLE</span>, incl. `silver_sales_enriched` | `spark_demo_silver.*` <span class="obj table">TABLE</span>, incl. `spark_silver_sales_enriched` |
+| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> in `dbt_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` in `spark_demo_gold` — all physical Iceberg <span class="obj table">TABLE</span>s |
 {: .comparison-table }
 
 !!! info "Why Spark gold uses tables, not views"

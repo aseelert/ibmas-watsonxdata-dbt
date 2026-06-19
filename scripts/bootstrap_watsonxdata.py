@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 import time
@@ -43,6 +44,17 @@ def _http_headers() -> dict[str, str] | None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument(
+        "--recreate",
+        action="store_true",
+        help="DROP each schema (CASCADE) before creating it. Use this to relocate "
+             "schemas after changing WXD_SCHEMA_LOCATION_BASE — a plain "
+             "'create schema if not exists' is a no-op for an existing schema and "
+             "will NOT move its data. DESTRUCTIVE: drops all tables in the schema.",
+    )
+    args = parser.parse_args()
+
     if load_dotenv is not None:
         load_dotenv()
 
@@ -58,7 +70,7 @@ def main() -> int:
     host = _env("WXD_HOST")
     port = int(_env("WXD_PORT", "443"))
     catalog = _env("WXD_CATALOG", "iceberg_data")
-    base_schema = _env("WXD_SCHEMA", "lakehouse_demo")
+    base_schema = _env("WXD_SCHEMA", "dbt_demo")
     schemas = [
         os.getenv("WXD_RAW_SCHEMA", f"{base_schema}_raw"),
         os.getenv("WXD_BRONZE_SCHEMA", f"{base_schema}_bronze"),
@@ -82,19 +94,53 @@ def main() -> int:
     )
     conn._http_session.verify = _ssl_verify()
 
-    cur = conn.cursor()
-    for schema in schemas:
-        sql = f"create schema if not exists {catalog}.{schema}"
-        if location_base:
-            sql = f"{sql} with (location = '{location_base}/{schema}')"
+    def _execute(sql: str, *, swallow: bool = False) -> bool:
         print(f"SQL> {sql}")
         try:
             cur.execute(sql)
+            cur.fetchall()
+            return True
         except prestodb.exceptions.HttpError as exc:
             if "AMS_CANNOT_GET_TOKEN" not in str(exc):
+                if swallow:
+                    print(f"  (ignored) {exc}")
+                    return False
                 raise
             time.sleep(2)
             cur.execute(sql)
+            cur.fetchall()
+            return True
+        except prestodb.exceptions.PrestoUserError as exc:
+            if swallow:
+                print(f"  (ignored) {exc.message}")
+                return False
+            raise
+
+    def _drop_schema(schema: str) -> None:
+        """Presto has no DROP SCHEMA CASCADE — drop each table/view first."""
+        try:
+            cur.execute(f"show tables in {catalog}.{schema}")
+            objects = [row[0] for row in cur.fetchall()]
+        except prestodb.exceptions.PrestoUserError:
+            objects = []  # schema does not exist yet
+        for obj in objects:
+            fq = f"{catalog}.{schema}.{obj}"
+            # An object is either a table or a view; try table first, fall back.
+            if not _execute(f"drop table if exists {fq}", swallow=True):
+                _execute(f"drop view if exists {fq}", swallow=True)
+        _execute(f"drop schema if exists {catalog}.{schema}", swallow=True)
+
+    cur = conn.cursor()
+    if args.recreate and not location_base:
+        print("  WARNING: --recreate without WXD_SCHEMA_LOCATION_BASE set — schemas "
+              "will be recreated at the default warehouse location.")
+    for schema in schemas:
+        if args.recreate:
+            _drop_schema(schema)
+        sql = f"create schema if not exists {catalog}.{schema}"
+        if location_base:
+            sql = f"{sql} with (location = '{location_base}/{schema}')"
+        _execute(sql)
         print(f"ensured {catalog}.{schema}")
 
     return 0

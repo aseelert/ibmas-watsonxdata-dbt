@@ -127,7 +127,7 @@ already have a working default in the template.
     WXD_USER=ibmlhapikey_cpadmin                          # Presto user = ibmlhapikey_<username> (manual)
     WXD_API_KEY=replace-with-your-...                     # SECRET you paste in — NOT in the JSON
     WXD_CATALOG=iceberg_data                              # Iceberg catalog (auto, default)
-    WXD_SCHEMA=lakehouse_demo                             # base schema prefix (auto, default)
+    WXD_SCHEMA=dbt_demo                             # base schema prefix (auto, default)
     WXD_HOST=...presto651-presto-svc...                   # Presto endpoint (auto)
     WXD_PORT=443                                          # Presto port (auto)
     WXD_INSTANCE_ID=1781163689818519                      # tenant ID -> LhInstanceId header (auto)
@@ -237,7 +237,7 @@ Imported values:
   WXD_CPD_AUTH_URL=https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/icp4d-api/v1/authorize
   WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
   WXD_CATALOG=iceberg_data
-  WXD_SCHEMA=lakehouse_demo
+  WXD_SCHEMA=dbt_demo
 ```
 
 After this step two things will have changed on disk:
@@ -292,7 +292,7 @@ watsonxdata_medallion_demo:        # profile name — matches `profile:` in dbt_
       user: "{{ env_var('WXD_USER', 'ibmlhapikey_cpadmin') }}"
       password: "{{ env_var('WXD_API_KEY') }}"
       catalog: "{{ env_var('WXD_CATALOG', 'iceberg_data') }}"
-      schema: "{{ env_var('WXD_SCHEMA', 'lakehouse_demo') }}"
+      schema: "{{ env_var('WXD_SCHEMA', 'dbt_demo') }}"
       host: "{{ env_var('WXD_HOST', '...presto651-presto-svc...') }}"
       port: "{{ env_var('WXD_PORT', '443') | int }}"
       ssl_verify: "{{ env_var('WXD_SSL_VERIFY', 'certs/watsonxdata-ca.pem') }}"
@@ -306,7 +306,7 @@ watsonxdata_medallion_demo:        # profile name — matches `profile:` in dbt_
 | `type: watsonx_presto` | Loads the IBM Presto adapter | dbt has no built-in watsonx.data driver; this adapter turns your SQL models into Presto `CREATE TABLE AS` statements |
 | `method: BasicAuth` | Username + API-key auth | watsonx.data accepts your API key as the password for an `ibmlhapikey_*` user |
 | `user` / `password` | The Presto login | `password` is your **secret API key** — read from `.env`, never written in the file |
-| `catalog` / `schema` | Default namespace | `iceberg_data.lakehouse_demo*` — where dbt writes bronze/silver/gold |
+| `catalog` / `schema` | Default namespace | `iceberg_data.dbt_demo*` — where dbt writes bronze/silver/gold |
 | `host` / `port` | Where to send SQL | The Presto engine endpoint (`:443`) |
 | `ssl_verify` | Path to the CA cert | Presto uses TLS; dbt must trust the cluster cert or the connection is refused |
 | `http_headers.LhInstanceId` | Your tenant ID | watsonx.data is multi-tenant — this header routes queries to **your** instance |
@@ -378,7 +378,7 @@ Connection:
   port: 443
   user: ibmlhapikey_cpadmin
   database: iceberg_data
-  schema: lakehouse_demo
+  schema: dbt_demo
   ssl_verify: certs/watsonxdata-ca.pem
 Registered adapter: watsonx_presto=0.1.2
   Connection test: [OK connection ok]
@@ -463,7 +463,7 @@ oc login https://api.watson.ibmas-zocp-techcluster.org:6443
 
 `cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data
 ingestion service directly, bypassing dbt/Spark for the LOAD step (you still use dbt or Spark to
-transform the loaded data). cpdctl only INGESTS raw CSV into `lakehouse_demo_ingest` — it is a
+transform the loaded data). cpdctl only INGESTS raw CSV into `spark_demo_cpdctl_raw` — it is a
 loader, not a transformation engine. To build a medallion on top you run the dbt or Spark transforms
 against the ingest schema afterward.
 

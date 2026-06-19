@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Drop all demo schemas (and their tables/views) from watsonx.data.
 
-Removes the dbt schemas (lakehouse_demo_raw/bronze/silver/gold) and the Spark
+Removes the dbt schemas (dbt_demo_raw/bronze/silver/gold) and the Spark
 schemas (spark_demo_bronze/silver/gold) so the demo can be rebuilt from scratch.
 
 For safety this only touches the exact schema names derived from WXD_SCHEMA and
@@ -80,7 +80,7 @@ def main() -> int:
     host = _env("WXD_HOST")
     port = int(_env("WXD_PORT", "443"))
     catalog = _env("WXD_CATALOG", "iceberg_data")
-    dbt_base = _env("WXD_SCHEMA", "lakehouse_demo")
+    dbt_base = _env("WXD_SCHEMA", "dbt_demo")
     spark_base = os.getenv("WXD_SPARK_SCHEMA", "spark_demo")
 
     schemas = [

@@ -288,8 +288,8 @@ def main() -> int:
 
     catalog = _env("WXD_SPARK_CATALOG", "iceberg_data")
     engine_id = _env("WXD_SPARK_ENGINE_ID", "spark656")
-    base_schema = _env("WXD_SCHEMA", "lakehouse_demo")
-    ingest_schema = os.getenv("WXD_INGEST_SCHEMA", f"{base_schema}_ingest")
+    # cpdctl lands raw CSVs in its own schema, consumed by the Spark pipeline.
+    ingest_schema = os.getenv("WXD_INGEST_SCHEMA", "spark_demo_cpdctl_raw")
 
     # cpdctl expects s3:// URIs; our env stores the Spark-style s3a:// base.
     input_base = _env("WXD_SPARK_INPUT_BASE", "s3a://iceberg-bucket/spark_demo/raw")

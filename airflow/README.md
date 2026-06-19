@@ -39,7 +39,7 @@ bootstrap_schemas
  ├─        dbt_test
  └─        query_gold          (scripts/query_gold.py)
 ```
-Targets `lakehouse_demo_{raw,bronze,silver,gold}`.
+Targets `dbt_demo_{raw,bronze,silver,gold}`.
 
 ### `spark_medallion_hourly` — one Spark submission, per-layer verification
 ```

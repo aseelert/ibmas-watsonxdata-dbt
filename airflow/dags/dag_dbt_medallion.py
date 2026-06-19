@@ -6,11 +6,11 @@ Orchestrates the **dbt / Presto** medallion exactly as you run it by hand, but
 with one Airflow task per table so the medallion build is visible end-to-end:
 
     bootstrap_schemas                 (scripts/bootstrap_watsonxdata.py)
-        │                              create lakehouse_demo_{raw,bronze,silver,gold}
-        ├── RAW    : dbt seed  --select raw_<x>      -> lakehouse_demo_raw
-        ├── BRONZE : dbt run   --select bronze_<x>   -> lakehouse_demo_bronze
-        ├── SILVER : dbt run   --select silver_<x>   -> lakehouse_demo_silver
-        ├── GOLD   : dbt run   --select gold_<x>     -> lakehouse_demo_gold
+        │                              create dbt_demo_{raw,bronze,silver,gold}
+        ├── RAW    : dbt seed  --select raw_<x>      -> dbt_demo_raw
+        ├── BRONZE : dbt run   --select bronze_<x>   -> dbt_demo_bronze
+        ├── SILVER : dbt run   --select silver_<x>   -> dbt_demo_silver
+        ├── GOLD   : dbt run   --select gold_<x>     -> dbt_demo_gold
         ├── dbt_test                                  (schema + data tests)
         └── query_gold                                (scripts/query_gold.py)
 
@@ -88,7 +88,7 @@ def dbt_medallion_hourly():
         bash_command=script_cmd("scripts/bootstrap_watsonxdata.py"),
     )
 
-    # --- 1. RAW: load each seed CSV into lakehouse_demo_raw as its own task ---
+    # --- 1. RAW: load each seed CSV into dbt_demo_raw as its own task ---
     with TaskGroup(group_id="raw") as raw:
         seed = {
             e: BashOperator(

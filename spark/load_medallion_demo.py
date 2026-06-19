@@ -47,6 +47,9 @@ def main() -> None:
     print(f"Silver schema: {silver_schema}")
     print(f"Gold schema: {gold_schema}")
 
+    # The watsonx.data Spark engine's Iceberg catalog uses a fixed warehouse, so
+    # managed tables always land at <bucket-root>/<schema>.db/ — a CREATE NAMESPACE
+    # ... LOCATION clause is ignored here. We therefore do not set a location.
     for schema in [bronze_schema, silver_schema, gold_schema]:
         print(f"Ensuring namespace {catalog}.{schema}")
         spark.sql(f"create namespace if not exists {catalog}.{schema}")

@@ -3,7 +3,7 @@
 !!! abstract "The central question"
     You have four CSV files. **dbt** and **Spark** are two full pipelines that load **and**
     clean/transform the CSVs into a medallion (Bronze → Silver → Gold). **cpdctl** is a native
-    loader that lands the raw CSVs as-is in `lakehouse_demo_ingest` (clean them afterward with dbt
+    loader that lands the raw CSVs as-is in `spark_demo_cpdctl_raw` (clean them afterward with dbt
     or Spark). This page compares all three at a glance, then walks through **cpdctl native
     ingestion** in step-by-step detail — including how to finish the job with a dbt or Spark
     post-action.
@@ -19,14 +19,14 @@ ingest step — the equivalent of `dbt seed` or Spark's raw CSV read.
 
 | Path | Tool | Language | Who uses it | Shows in UI Ingestion history? | Best for | Schema written to |
 |------|------|----------|-------------|-------------------------------|----------|-------------------|
-| A · dbt | dbt-watsonx-presto adapter | SQL | Analytics engineers, data teams | No — visible in dbt logs and OpenMetadata lineage | Governed SQL transforms, tests, documentation, pull-request review | `lakehouse_demo_raw`, `bronze`, `silver`, `gold` |
+| A · dbt | dbt-watsonx-presto adapter | SQL | Analytics engineers, data teams | No — visible in dbt logs and OpenMetadata lineage | Governed SQL transforms, tests, documentation, pull-request review | `dbt_demo_raw`, `bronze`, `silver`, `gold` |
 | B · Spark | `submit_spark_application.py` | Python | Data engineers, ML engineers | No — visible under Infrastructure manager → Spark → Applications | Large data, Python libraries, distributed joins, ML feature prep | `spark_demo_bronze`, `spark_demo_silver`, `spark_demo_gold` |
-| C · cpdctl | `cpdctl wx-data ingestion` | CLI (drives Spark) | Platform operators, anyone who wants UI-tracked loads | **Yes** — appears under Data manager → Ingestion | IBM-native loads that appear in the platform audit history | `lakehouse_demo_ingest` |
+| C · cpdctl | `cpdctl wx-data ingestion` | CLI (drives Spark) | Platform operators, anyone who wants UI-tracked loads | **Yes** — appears under Data manager → Ingestion | IBM-native loads that appear in the platform audit history | `spark_demo_cpdctl_raw` |
 
 All three paths produce **Apache Iceberg tables** stored in **MinIO** (the S3-compatible object
 store) and queryable through **Presto SQL** at the same endpoint. The difference: dbt and Spark
 produce transformed bronze/silver/gold tables, while cpdctl produces only **raw** ingest tables in
-`lakehouse_demo_ingest`.
+`spark_demo_cpdctl_raw`.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
     subgraph A["Path A — dbt"]
         direction TB
         A1["dbt seed\n(SQL via Presto)"]
-        A2["lakehouse_demo_raw\nBronze / Silver / Gold"]
+        A2["dbt_demo_raw\nBronze / Silver / Gold"]
         A1 --> A2
     end
 
@@ -49,7 +49,7 @@ flowchart LR
     subgraph C["cpdctl — ingest only"]
         direction TB
         C1["cpdctl wx-data ingestion create\n(drives Spark engine)"]
-        C2["lakehouse_demo_ingest\nRAW: .customers / .products\n.orders / .order_items"]
+        C2["spark_demo_cpdctl_raw\nRAW: .customers / .products\n.orders / .order_items"]
         C1 --> C2
     end
 
@@ -75,7 +75,7 @@ Use dbt when your team needs to **review every transformation** as code. dbt com
 configurable data tests, generates a documentation website, and emits lineage metadata that
 OpenMetadata can consume.
 
-- Seeds 1,704 rows from CSV into `lakehouse_demo_raw` (50 customers, 20 products, 500 orders, 1,134 order_items)
+- Seeds 1,704 rows from CSV into `dbt_demo_raw` (50 customers, 20 products, 500 orders, 1,134 order_items)
 - Bronze models clean nulls and cast types; silver models join and enrich; gold models aggregate
 - `gold_daily_sales` is a TABLE; `gold_category_performance` and `gold_customer_360` are VIEWs
 - Every model is version-controlled SQL — reviewable in a pull request
@@ -106,7 +106,7 @@ under Data manager → Ingestion**. This is the platform's native ingestion serv
 the Spark engine, but you do not write any Spark code. You point the CLI at a CSV in object
 storage, name a target Iceberg table, and the service does the rest.
 
-- No transformation logic — loads raw CSV as-is into `lakehouse_demo_ingest.<table>`
+- No transformation logic — loads raw CSV as-is into `spark_demo_cpdctl_raw.<table>`
 - Jobs appear in the platform UI audit history immediately
 - Same result is achievable from the watsonx.data web console without a terminal
 
@@ -139,13 +139,25 @@ transformation engine. Compare it to `dbt seed` / Spark's raw read, not to the e
 ## What cpdctl does NOT do — and how to finish the job
 
 cpdctl is a **loader**, the analogue of `dbt seed` or Spark's raw CSV read. It lands raw CSV in
-`lakehouse_demo_ingest` and **stops at raw** — it does not build Bronze, Silver, or Gold. To turn
+`spark_demo_cpdctl_raw` and **stops at raw** — it does not build Bronze, Silver, or Gold. To turn
 cpdctl-ingested data into a medallion you run a **dbt or Spark transform as a post-action** that
-reads from `lakehouse_demo_ingest`:
+reads from `spark_demo_cpdctl_raw`:
 
 > **cpdctl (ingest front-end) + dbt or Spark (transform back-end) = one full pipeline.**
 >
 > By contrast, dbt and Spark are each **self-contained** — each ingests *and* transforms on its own.
+
+!!! tip "The schema name points at its intended consumer — Spark"
+    The raw landing is called `spark_demo_cpdctl_raw` precisely because **Spark is the expected
+    back-end** for finishing the job: it sits in the `spark_demo_*` family and the Spark-finish
+    path below writes straight on into `spark_demo_bronze`. dbt works too, but the Spark route is
+    the natural continuation of a cpdctl ingest.
+
+!!! note "Where the cpdctl raw landing lives"
+    `WXD_SCHEMA_LOCATION_BASE` is unset, so the schema is created with no `location` clause and the
+    `iceberg_data` catalog places it at its default warehouse — the object-store bucket root. The
+    cpdctl-ingested tables land directly under `s3://iceberg-bucket/spark_demo_cpdctl_raw/` (no
+    nesting, no `.db` suffix), alongside the `dbt_demo_*` and `spark_demo_*` schemas.
 
 === "Finish with dbt"
 
@@ -160,7 +172,7 @@ reads from `lakehouse_demo_ingest`:
       order_id, customer_id, order_ts, status, payment_method,
       current_timestamp as _ingested_at,
       'cpdctl' as _ingested_by
-    from iceberg_data.lakehouse_demo_ingest.orders
+    from iceberg_data.spark_demo_cpdctl_raw.orders
     where order_id is not null
     ```
 
@@ -169,7 +181,7 @@ reads from `lakehouse_demo_ingest`:
     Read the cpdctl-ingested raw table with Spark and write a managed bronze Iceberg table.
 
     ```python
-    df = spark.table("iceberg_data.lakehouse_demo_ingest.orders")
+    df = spark.table("iceberg_data.spark_demo_cpdctl_raw.orders")
     (
         df.writeTo("iceberg_data.spark_demo_bronze.bronze_orders_cpdctl")
           .using("iceberg")
@@ -186,14 +198,14 @@ From that bronze table you continue through silver and gold exactly as Paths A a
 
 Each path ingests the same four source CSV files, but produces a **different layer**: dbt and Spark
 land *transformed bronze* tables, while cpdctl lands *raw ingest* tables (the analogue of dbt's
-`lakehouse_demo_raw` seed layer — not bronze).
+`dbt_demo_raw` seed layer — not bronze).
 
 | Source CSV | dbt — Bronze (transformed) | Spark — Bronze (transformed) | cpdctl — Raw ingest (no transform) |
 |-----------|-----------|-------------|--------------|
-| `raw_customers.csv` (50 rows) | `lakehouse_demo_raw.raw_customers` → `lakehouse_demo_bronze.bronze_customers` | `spark_demo_bronze.bronze_customers` | `lakehouse_demo_ingest.customers` |
-| `raw_products.csv` (20 rows) | `lakehouse_demo_raw.raw_products` → `lakehouse_demo_bronze.bronze_products` | `spark_demo_bronze.bronze_products` | `lakehouse_demo_ingest.products` |
-| `raw_orders.csv` (500 rows) | `lakehouse_demo_raw.raw_orders` → `lakehouse_demo_bronze.bronze_orders` | `spark_demo_bronze.bronze_orders` | `lakehouse_demo_ingest.orders` |
-| `raw_order_items.csv` (1,134 rows) | `lakehouse_demo_raw.raw_order_items` → `lakehouse_demo_bronze.bronze_order_items` | `spark_demo_bronze.bronze_order_items` | `lakehouse_demo_ingest.order_items` |
+| `raw_customers.csv` (50 rows) | `dbt_demo_raw.raw_customers` → `dbt_demo_bronze.bronze_customers` | `spark_demo_bronze.bronze_customers` | `spark_demo_cpdctl_raw.customers` |
+| `raw_products.csv` (20 rows) | `dbt_demo_raw.raw_products` → `dbt_demo_bronze.bronze_products` | `spark_demo_bronze.bronze_products` | `spark_demo_cpdctl_raw.products` |
+| `raw_orders.csv` (500 rows) | `dbt_demo_raw.raw_orders` → `dbt_demo_bronze.bronze_orders` | `spark_demo_bronze.bronze_orders` | `spark_demo_cpdctl_raw.orders` |
+| `raw_order_items.csv` (1,134 rows) | `dbt_demo_raw.raw_order_items` → `dbt_demo_bronze.bronze_order_items` | `spark_demo_bronze.bronze_order_items` | `spark_demo_cpdctl_raw.order_items` |
 
 cpdctl's output corresponds to dbt's **raw seed** layer, not bronze — only dbt and Spark continue
 past raw to transformed bronze/silver/gold. All three catalogs sit inside `iceberg_data` on the same
@@ -343,7 +355,7 @@ cpdctl wx-data ingestion create \
   --instance-id "${WXD_INSTANCE_ID}" \
   --source-data-files s3://iceberg-bucket/spark_demo/raw/raw_customers.csv \
   --source-file-type csv \
-  --target-table iceberg_data.lakehouse_demo_ingest.customers \
+  --target-table iceberg_data.spark_demo_cpdctl_raw.customers \
   --engine-id "${WXD_SPARK_ENGINE_ID}" \
   --job-id ingest-customers-demo
 ```
@@ -359,7 +371,7 @@ Checking authentication...
   Syncing cpdctl profile 'wxd-demo' (user 'wxd-demo_user') from .env...
   cpdctl profile 'wxd-demo' ready  [OK]
 
-SQL> create schema if not exists iceberg_data.lakehouse_demo_ingest ...
+SQL> create schema if not exists iceberg_data.spark_demo_cpdctl_raw ...
 
 $ cpdctl wx-data ingestion create --instance-id ... --job-id ingest-customers-1781856578 ...
 ...
@@ -446,7 +458,7 @@ Connect to the Presto endpoint and run:
 
 ```sql
 -- Confirm the tables exist
-SHOW TABLES IN iceberg_data.lakehouse_demo_ingest;
+SHOW TABLES IN iceberg_data.spark_demo_cpdctl_raw;
 ```
 
 ```text
@@ -462,10 +474,10 @@ SHOW TABLES IN iceberg_data.lakehouse_demo_ingest;
 ```sql
 -- Spot-check row counts (should match seed data)
 SELECT
-    'customers'   AS tbl, COUNT(*) AS rows FROM iceberg_data.lakehouse_demo_ingest.customers
-UNION ALL SELECT 'products',   COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.products
-UNION ALL SELECT 'orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
-UNION ALL SELECT 'order_items',COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.order_items;
+    'customers'   AS tbl, COUNT(*) AS rows FROM iceberg_data.spark_demo_cpdctl_raw.customers
+UNION ALL SELECT 'products',   COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.products
+UNION ALL SELECT 'orders',     COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.orders
+UNION ALL SELECT 'order_items',COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.order_items;
 ```
 
 ```text
@@ -485,10 +497,10 @@ SELECT
     c.country,
     COUNT(DISTINCT o.order_id)         AS total_orders,
     SUM(oi.quantity * p.unit_price)    AS total_revenue
-FROM iceberg_data.lakehouse_demo_ingest.customers   c
-JOIN iceberg_data.lakehouse_demo_ingest.orders      o  ON c.customer_id  = o.customer_id
-JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id     = oi.order_id
-JOIN iceberg_data.lakehouse_demo_ingest.products    p  ON oi.product_id  = p.product_id
+FROM iceberg_data.spark_demo_cpdctl_raw.customers   c
+JOIN iceberg_data.spark_demo_cpdctl_raw.orders      o  ON c.customer_id  = o.customer_id
+JOIN iceberg_data.spark_demo_cpdctl_raw.order_items oi ON o.order_id     = oi.order_id
+JOIN iceberg_data.spark_demo_cpdctl_raw.products    p  ON oi.product_id  = p.product_id
 GROUP BY c.first_name, c.last_name, c.country
 ORDER BY total_revenue DESC
 LIMIT 10;
@@ -496,17 +508,17 @@ LIMIT 10;
 
 !!! example "Cross-schema join"
     Because dbt and Spark (full pipelines) and cpdctl (raw loader) all write to the same
-    `iceberg_data` catalog, you can join the `lakehouse_demo_ingest` tables against
-    `lakehouse_demo_raw` (dbt) or `spark_demo_bronze` (Spark) in a single query — but remember
+    `iceberg_data` catalog, you can join the `spark_demo_cpdctl_raw` tables against
+    `dbt_demo_raw` (dbt) or `spark_demo_bronze` (Spark) in a single query — but remember
     cpdctl's tables are **raw**, not transformed gold.
 
 ```sql
 -- Compare customer counts across all three paths in one query
-SELECT 'dbt'    AS path, COUNT(*) AS customers FROM iceberg_data.lakehouse_demo_raw.raw_customers
+SELECT 'dbt'    AS path, COUNT(*) AS customers FROM iceberg_data.dbt_demo_raw.raw_customers
 UNION ALL
 SELECT 'spark',  COUNT(*) FROM iceberg_data.spark_demo_bronze.bronze_customers
 UNION ALL
-SELECT 'cpdctl', COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.customers;
+SELECT 'cpdctl', COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.customers;
 ```
 
 ---
@@ -514,8 +526,8 @@ SELECT 'cpdctl', COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.customers;
 ## Next step
 
 The dbt and Spark paths have built full medallions; cpdctl has loaded the raw ingest landing
-(`lakehouse_demo_ingest`). To turn that raw landing into a medallion, run dbt or Spark
-transformations against `lakehouse_demo_ingest` (see [What cpdctl does NOT do](#what-cpdctl-does-not-do-and-how-to-finish-the-job)
+(`spark_demo_cpdctl_raw`). To turn that raw landing into a medallion, run dbt or Spark
+transformations against `spark_demo_cpdctl_raw` (see [What cpdctl does NOT do](#what-cpdctl-does-not-do-and-how-to-finish-the-job)
 above) — cpdctl (ingest front-end) + dbt or Spark (transform back-end) = one complete pipeline.
 
 The SQL demo page runs queries that compare the **dbt and Spark gold layers** side by side, and

@@ -1,9 +1,9 @@
 # SQL — Compare dbt vs Spark Gold (+ inspect cpdctl raw)
 
 !!! abstract "What this page does"
-    dbt and Spark are two full pipelines that build gold layers (`lakehouse_demo_gold`,
+    dbt and Spark are two full pipelines that build gold layers (`dbt_demo_gold`,
     `spark_demo_gold`); cpdctl is an ingest-only loader that lands raw tables in
-    `lakehouse_demo_ingest`. This page compares the **dbt and Spark gold outputs side by side** and
+    `spark_demo_cpdctl_raw`. This page compares the **dbt and Spark gold outputs side by side** and
     shows how to **inspect the cpdctl raw tables**. Use the watsonx.data SQL editor or any Presto
     client.
 
@@ -32,7 +32,7 @@ python scripts/query_gold.py
     `ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443`.
 
 !!! note "Why there is no spark_demo_raw schema"
-    The `lakehouse_demo_raw` tables exist because dbt seed loads CSV files into queryable Presto
+    The `dbt_demo_raw` tables exist because dbt seed loads CSV files into queryable Presto
     tables. Spark reads the same CSV files directly from MinIO object storage, so there is no
     `spark_demo_raw` schema — the Spark path starts at bronze.
 
@@ -40,26 +40,26 @@ python scripts/query_gold.py
 
 ## Schema map — all three paths at a glance
 
-dbt and Spark build multi-layer schema hierarchies (raw/bronze/silver/gold and bronze/silver/gold). cpdctl lands a single raw schema (`lakehouse_demo_ingest`) with no hierarchy until a dbt or Spark transform is applied.
+dbt and Spark build multi-layer schema hierarchies (raw/bronze/silver/gold and bronze/silver/gold). cpdctl lands a single raw schema (`spark_demo_cpdctl_raw`) with no hierarchy until a dbt or Spark transform is applied.
 
 | Source CSV | Row count | dbt schema | Spark schema | cpdctl schema |
 |---|---|---|---|---|
-| `raw_customers.csv` | 50 | `lakehouse_demo_raw.raw_customers` | `spark_demo_bronze.bronze_customers` | `lakehouse_demo_ingest.customers` |
-| `raw_products.csv` | 20 | `lakehouse_demo_raw.raw_products` | `spark_demo_bronze.bronze_products` | `lakehouse_demo_ingest.products` |
-| `raw_orders.csv` | 500 | `lakehouse_demo_raw.raw_orders` | `spark_demo_bronze.bronze_orders` | `lakehouse_demo_ingest.orders` |
-| `raw_order_items.csv` | 1,134 | `lakehouse_demo_raw.raw_order_items` | `spark_demo_bronze.bronze_order_items` | `lakehouse_demo_ingest.order_items` |
+| `raw_customers.csv` | 50 | `dbt_demo_raw.raw_customers` | `spark_demo_bronze.bronze_customers` | `spark_demo_cpdctl_raw.customers` |
+| `raw_products.csv` | 20 | `dbt_demo_raw.raw_products` | `spark_demo_bronze.bronze_products` | `spark_demo_cpdctl_raw.products` |
+| `raw_orders.csv` | 500 | `dbt_demo_raw.raw_orders` | `spark_demo_bronze.bronze_orders` | `spark_demo_cpdctl_raw.orders` |
+| `raw_order_items.csv` | 1,134 | `dbt_demo_raw.raw_order_items` | `spark_demo_bronze.bronze_order_items` | `spark_demo_cpdctl_raw.order_items` |
 
 ```mermaid
 flowchart LR
     CSV["CSV files\n(MinIO)"]
 
-    CSV --> dbt_raw["lakehouse_demo_raw\n(dbt seed)"]
+    CSV --> dbt_raw["dbt_demo_raw\n(dbt seed)"]
     CSV --> sp_bz["spark_demo_bronze\n(Spark ETL)"]
-    CSV --> ingest["lakehouse_demo_ingest\n(cpdctl — raw only)"]
+    CSV --> ingest["spark_demo_cpdctl_raw\n(cpdctl — raw only)"]
 
-    dbt_raw --> dbt_bz["lakehouse_demo_bronze"]
-    dbt_bz  --> dbt_sv["lakehouse_demo_silver"]
-    dbt_sv  --> dbt_gd["lakehouse_demo_gold"]
+    dbt_raw --> dbt_bz["dbt_demo_bronze"]
+    dbt_bz  --> dbt_sv["dbt_demo_silver"]
+    dbt_sv  --> dbt_gd["dbt_demo_gold"]
 
     sp_bz   --> sp_sv["spark_demo_silver"]
     sp_sv   --> sp_gd["spark_demo_gold"]
@@ -84,19 +84,19 @@ governance metadata, clean column types, and finally aggregated business metrics
 **Discover what schemas and tables exist:**
 
 ```sql
-SHOW SCHEMAS FROM iceberg_data LIKE 'lakehouse_demo%';
+SHOW SCHEMAS FROM iceberg_data LIKE 'dbt_demo%';
 
-SHOW TABLES FROM iceberg_data.lakehouse_demo_raw;
-SHOW TABLES FROM iceberg_data.lakehouse_demo_bronze;
-SHOW TABLES FROM iceberg_data.lakehouse_demo_silver;
-SHOW TABLES FROM iceberg_data.lakehouse_demo_gold;
+SHOW TABLES FROM iceberg_data.dbt_demo_raw;
+SHOW TABLES FROM iceberg_data.dbt_demo_bronze;
+SHOW TABLES FROM iceberg_data.dbt_demo_silver;
+SHOW TABLES FROM iceberg_data.dbt_demo_gold;
 ```
 
 **Raw layer — the original CSV data loaded as-is by `dbt seed`:**
 
 ```sql
 SELECT *
-FROM iceberg_data.lakehouse_demo_raw.raw_orders
+FROM iceberg_data.dbt_demo_raw.raw_orders
 ORDER BY order_id;
 ```
 
@@ -113,7 +113,7 @@ SELECT
   _ingested_by,
   _source_file,
   _ingest_batch_id
-FROM iceberg_data.lakehouse_demo_bronze.bronze_orders
+FROM iceberg_data.dbt_demo_bronze.bronze_orders
 ORDER BY order_id;
 ```
 
@@ -133,7 +133,7 @@ SELECT
   status,
   payment_method,
   transformed_at
-FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FROM iceberg_data.dbt_demo_silver.silver_orders
 ORDER BY order_id;
 ```
 
@@ -144,11 +144,11 @@ ORDER BY order_id;
 
 ```sql
 SELECT *
-FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+FROM iceberg_data.dbt_demo_gold.gold_daily_sales
 ORDER BY order_date, category;
 
 SELECT *
-FROM iceberg_data.lakehouse_demo_gold.gold_customer_360
+FROM iceberg_data.dbt_demo_gold.gold_customer_360
 ORDER BY lifetime_value DESC, customer_id;
 ```
 
@@ -202,30 +202,30 @@ ORDER BY lifetime_value DESC, customer_id;
 
 ### Path C — cpdctl
 
-cpdctl ingestion loads CSV files directly into Iceberg tables under `lakehouse_demo_ingest`
+cpdctl ingestion loads CSV files directly into Iceberg tables under `spark_demo_cpdctl_raw`
 with no transformation — this is the platform's native ingestion service. Runs appear in the
 watsonx.data console under **Data manager → Ingestion**.
 
 **Discover what tables exist:**
 
 ```sql
-SHOW TABLES FROM iceberg_data.lakehouse_demo_ingest;
+SHOW TABLES FROM iceberg_data.spark_demo_cpdctl_raw;
 ```
 
 **Row counts — verify all four tables loaded correctly:**
 
 ```sql
-SELECT 'customers'   AS tbl, COUNT(*) AS rows FROM iceberg_data.lakehouse_demo_ingest.customers
-UNION ALL SELECT 'products',    COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.products
-UNION ALL SELECT 'orders',      COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
-UNION ALL SELECT 'order_items', COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.order_items;
+SELECT 'customers'   AS tbl, COUNT(*) AS rows FROM iceberg_data.spark_demo_cpdctl_raw.customers
+UNION ALL SELECT 'products',    COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.products
+UNION ALL SELECT 'orders',      COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.orders
+UNION ALL SELECT 'order_items', COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.order_items;
 ```
 
 **Inspect the raw customer rows:**
 
 ```sql
 SELECT *
-FROM iceberg_data.lakehouse_demo_ingest.customers
+FROM iceberg_data.spark_demo_cpdctl_raw.customers
 ORDER BY customer_id;
 ```
 
@@ -233,7 +233,7 @@ ORDER BY customer_id;
     The cpdctl path loads raw CSV data as-is and stops there. It demonstrates the platform's
     built-in ingestion audit trail, not a full medallion pipeline. You *can* query the raw cpdctl
     tables directly with an ad-hoc join (below), but to build a **real, governed** Silver/Gold on
-    cpdctl-ingested data you run dbt or Spark transformations against `lakehouse_demo_ingest` as a
+    cpdctl-ingested data you run dbt or Spark transformations against `spark_demo_cpdctl_raw` as a
     post-action — cpdctl provides the raw ingest, dbt/Spark provide the transform. See
     [What cpdctl does NOT do — and how to finish the job](ingestion.md#what-cpdctl-does-not-do-and-how-to-finish-the-job).
 
@@ -241,7 +241,7 @@ ORDER BY customer_id;
 
 This is a one-off ad-hoc query for inspection — it reproduces the daily sales metric directly from
 the raw cpdctl tables, without a governed pipeline. (For a real pipeline, run dbt or Spark over
-`lakehouse_demo_ingest` as shown in the link above.)
+`spark_demo_cpdctl_raw` as shown in the link above.)
 
 ```sql
 SELECT
@@ -250,9 +250,9 @@ SELECT
   COUNT(DISTINCT o.order_id)          AS order_count,
   SUM(oi.quantity)                    AS units_sold,
   SUM(oi.quantity * p.unit_price)     AS net_revenue
-FROM iceberg_data.lakehouse_demo_ingest.orders      o
-JOIN iceberg_data.lakehouse_demo_ingest.order_items oi ON o.order_id   = oi.order_id
-JOIN iceberg_data.lakehouse_demo_ingest.products    p  ON oi.product_id = p.product_id
+FROM iceberg_data.spark_demo_cpdctl_raw.orders      o
+JOIN iceberg_data.spark_demo_cpdctl_raw.order_items oi ON o.order_id   = oi.order_id
+JOIN iceberg_data.spark_demo_cpdctl_raw.products    p  ON oi.product_id = p.product_id
 WHERE o.status = 'completed'
 GROUP BY CAST(o.order_ts AS DATE), p.category
 ORDER BY order_date, category;
@@ -284,7 +284,7 @@ SELECT
   order_count,
   units_sold,
   net_revenue
-FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+FROM iceberg_data.dbt_demo_gold.gold_daily_sales
 
 UNION ALL
 
@@ -311,7 +311,7 @@ ORDER BY order_date, category, path;
 ```sql
 WITH dbt_gold AS (
   SELECT order_date, category, order_count, units_sold, net_revenue
-  FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+  FROM iceberg_data.dbt_demo_gold.gold_daily_sales
 ),
 spark_gold AS (
   SELECT order_date, category, order_count, units_sold, net_revenue
@@ -348,7 +348,7 @@ SELECT
   pending_orders,
   cancelled_orders,
   lifetime_value
-FROM iceberg_data.lakehouse_demo_gold.gold_customer_360
+FROM iceberg_data.dbt_demo_gold.gold_customer_360
 
 UNION ALL
 
@@ -372,14 +372,14 @@ ORDER BY customer_id, path;
 Use this query at any time to get a quick health check across every schema in the demo.
 
 ```sql
-SELECT 'dbt raw'           AS path_layer, 'raw_orders'        AS tbl, COUNT(*) AS rows FROM iceberg_data.lakehouse_demo_raw.raw_orders
-UNION ALL SELECT 'dbt bronze', 'bronze_orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_bronze.bronze_orders
-UNION ALL SELECT 'dbt silver', 'silver_orders',     COUNT(*) FROM iceberg_data.lakehouse_demo_silver.silver_orders
-UNION ALL SELECT 'dbt gold',   'gold_daily_sales',  COUNT(*) FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+SELECT 'dbt raw'           AS path_layer, 'raw_orders'        AS tbl, COUNT(*) AS rows FROM iceberg_data.dbt_demo_raw.raw_orders
+UNION ALL SELECT 'dbt bronze', 'bronze_orders',     COUNT(*) FROM iceberg_data.dbt_demo_bronze.bronze_orders
+UNION ALL SELECT 'dbt silver', 'silver_orders',     COUNT(*) FROM iceberg_data.dbt_demo_silver.silver_orders
+UNION ALL SELECT 'dbt gold',   'gold_daily_sales',  COUNT(*) FROM iceberg_data.dbt_demo_gold.gold_daily_sales
 UNION ALL SELECT 'spark bz',   'bronze_orders',      COUNT(*) FROM iceberg_data.spark_demo_bronze.bronze_orders
 UNION ALL SELECT 'spark sv',   'spark_silver_orders', COUNT(*) FROM iceberg_data.spark_demo_silver.spark_silver_orders
 UNION ALL SELECT 'spark gold', 'spark_gold_daily_sales', COUNT(*) FROM iceberg_data.spark_demo_gold.spark_gold_daily_sales
-UNION ALL SELECT 'cpdctl',     'orders',            COUNT(*) FROM iceberg_data.lakehouse_demo_ingest.orders
+UNION ALL SELECT 'cpdctl',     'orders',            COUNT(*) FROM iceberg_data.spark_demo_cpdctl_raw.orders
 ORDER BY path_layer, tbl;
 ```
 
@@ -398,7 +398,7 @@ of a table using either a snapshot ID or a timestamp — without restoring a bac
 
 ```sql
 SELECT *
-FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FROM iceberg_data.dbt_demo_silver.silver_orders
 FOR VERSION AS OF <snapshot_id>
 ORDER BY order_id;
 ```
@@ -407,7 +407,7 @@ ORDER BY order_id;
 
 ```sql
 SELECT *
-FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FROM iceberg_data.dbt_demo_silver.silver_orders
 FOR TIMESTAMP AS OF TIMESTAMP '2026-06-12 12:46:47 UTC'
 ORDER BY order_id;
 ```
@@ -432,7 +432,7 @@ SELECT
   snapshot_id,
   operation,
   summary
-FROM iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
+FROM iceberg_data.dbt_demo_silver."silver_orders$snapshots"
 ORDER BY committed_at DESC;
 ```
 
@@ -440,7 +440,7 @@ ORDER BY committed_at DESC;
 
 ```sql
 SELECT *
-FROM iceberg_data.lakehouse_demo_silver."silver_orders$history"
+FROM iceberg_data.dbt_demo_silver."silver_orders$history"
 ORDER BY made_current_at DESC;
 ```
 
@@ -448,7 +448,7 @@ ORDER BY made_current_at DESC;
 
 ```sql
 SELECT order_date_month, row_count, file_count, total_size
-FROM iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
+FROM iceberg_data.dbt_demo_silver."silver_orders$partitions"
 ORDER BY order_date_month;
 ```
 
@@ -468,7 +468,7 @@ Expected output (month values are months since Unix epoch; 672 = 2026-01):
 **Full DDL — see exactly how the table was created, including file format and partition spec:**
 
 ```sql
-SHOW CREATE TABLE iceberg_data.lakehouse_demo_silver.silver_orders;
+SHOW CREATE TABLE iceberg_data.dbt_demo_silver.silver_orders;
 ```
 
 !!! info "Why Iceberg metadata matters for demos"

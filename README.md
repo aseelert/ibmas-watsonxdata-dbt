@@ -3,7 +3,7 @@
 A hands-on demo showing **two full ingest+transform pipelines (dbt, Spark)** plus **one native
 ingestion loader (cpdctl)** in an IBM watsonx.data lakehouse. The same four CSV files (customers,
 products, orders, order items) flow through the Bronze → Silver → Gold medallion pattern via **dbt
-and Spark**. **cpdctl** lands the same CSVs as raw tables in `lakehouse_demo_ingest`, which you then
+and Spark**. **cpdctl** lands the same CSVs as raw tables in `spark_demo_cpdctl_raw`, which you then
 transform with dbt or Spark to build a medallion. No prior watsonx.data experience needed.
 
 ---
@@ -29,11 +29,11 @@ bash scripts/dbt_env.sh run               # runs the full dbt medallion pipeline
 
 | Path | Tool | Schemas written | Objects created |
 |------|------|-----------------|-----------------|
-| **A — dbt** (full pipeline) | dbt + Presto (SQL) | `lakehouse_demo_raw/bronze/silver/gold` | `gold_daily_sales` (table), `gold_category_performance` (view), `gold_customer_360` (view) |
+| **A — dbt** (full pipeline) | dbt + Presto (SQL) | `dbt_demo_raw/bronze/silver/gold` | `gold_daily_sales` (table), `gold_category_performance` (view), `gold_customer_360` (view) |
 | **B — Spark** (full pipeline) | PySpark on watsonx.data Spark engine | `spark_demo_bronze/silver/gold` | `spark_gold_daily_sales` (table), `spark_gold_category_performance` (view), `spark_gold_customer_360` (table) |
-| **C — cpdctl** (ingest loader only) | IBM cpdctl CLI (native ingestion service) | `lakehouse_demo_ingest` | raw ingest tables (no gold): `customers`, `products`, `orders`, `order_items` |
+| **C — cpdctl** (ingest loader only) | IBM cpdctl CLI (native ingestion service) | `spark_demo_cpdctl_raw` | raw ingest tables (no gold): `customers`, `products`, `orders`, `order_items` |
 
-dbt and Spark are self-contained full pipelines you can run independently and compare gold-to-gold. cpdctl is an ingest front-end — run dbt or Spark over `lakehouse_demo_ingest` afterward to turn its raw data into a medallion (cpdctl + dbt/Spark = one full pipeline).
+dbt and Spark are self-contained full pipelines you can run independently and compare gold-to-gold. cpdctl is an ingest front-end — run dbt or Spark over `spark_demo_cpdctl_raw` afterward to turn its raw data into a medallion (cpdctl + dbt/Spark = one full pipeline).
 
 !!! tip "Which path to lead with?"
     Lead with **dbt** when the story is governed SQL analytics. Use **Spark** when the story includes distributed ingestion or large-scale ETL. Use **cpdctl** when you want to show the built-in ingestion jobs that appear in the watsonx.data console under **Data manager → Ingestion (history)**.
@@ -63,12 +63,12 @@ flowchart LR
 | Silver | Typed, cleaned, conformed entities; validated with dbt tests; orders partitioned by `month(order_date)` (partition column `order_date_month`) | Iceberg PARQUET table |
 | Gold | Business-facing aggregates ready for SQL, BI, or demos | Table or view (see path) |
 
-dbt and Spark continue from Raw through Bronze → Silver → Gold. cpdctl stops at Raw (`lakehouse_demo_ingest`) — it is a loader, not a full pipeline; pair it with dbt or Spark to go further:
+dbt and Spark continue from Raw through Bronze → Silver → Gold. cpdctl stops at Raw (`spark_demo_cpdctl_raw`) — it is a loader, not a full pipeline; pair it with dbt or Spark to go further:
 
 ```text
-dbt path:   seeds/ CSV → lakehouse_demo_raw → bronze → silver → gold
+dbt path:   seeds/ CSV → dbt_demo_raw → bronze → silver → gold
 Spark path: object storage CSV → spark_demo_bronze → silver → gold
-cpdctl:     seeds/ CSV → lakehouse_demo_ingest (single-step, no medallion)
+cpdctl:     seeds/ CSV → spark_demo_cpdctl_raw (single-step, no medallion)
 ```
 
 ---
@@ -88,9 +88,9 @@ flowchart TB
   sparkJob["Path B — Spark\nPySpark distributed ETL"]
   cpdctl["Path C — cpdctl\nnative ingestion CLI"]
 
-  dbtSchemas["lakehouse_demo_raw/bronze/silver/gold"]
+  dbtSchemas["dbt_demo_raw/bronze/silver/gold"]
   sparkSchemas["spark_demo_bronze/silver/gold"]
-  ingestSchema["lakehouse_demo_ingest"]
+  ingestSchema["spark_demo_cpdctl_raw"]
 
   consumers["SQL · BI · OpenMetadata · demos"]
 
@@ -176,7 +176,7 @@ bash openmetadata/ingestion/run-ingestion.sh
 
 Open **http://localhost:8585** and log in with `admin@open-metadata.org` / `admin`.
 
-Navigate to **Explore → Databases → watsonxdata-presto → iceberg_data → lakehouse_demo_gold → gold_daily_sales → Lineage** to see the full medallion graph.
+Navigate to **Explore → Databases → watsonxdata-presto → iceberg_data → dbt_demo_gold → gold_daily_sales → Lineage** to see the full medallion graph.
 
 ```bash
 # Stop OpenMetadata when done

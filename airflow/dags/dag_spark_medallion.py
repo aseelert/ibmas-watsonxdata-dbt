@@ -85,11 +85,14 @@ def poll_spark_status(**context) -> bool:
         timeout=30,
     )
     resp.raise_for_status()
-    state = resp.json().get("state", "unknown")
+    body = resp.json()
+    # The v3 API returns UPPERCASE states (FINISHED/FAILED/RUNNING); v2 returns
+    # lowercase. Normalise so terminal-state detection works on both.
+    state = body.get("state", "unknown").lower()
     print(f"  Spark app {app_id}  state={state}")
 
     if state == "finished":
-        rc = str(resp.json().get("return_code", "0"))
+        rc = str(body.get("return_code", "0"))
         if rc != "0":
             raise AirflowException(f"Spark app finished with return_code={rc}")
         return True
@@ -206,6 +209,21 @@ def spark_medallion_hourly():
                 print(f"  batch_id:    {batch_id}")
                 print(f"  conf:        {safe}")
                 return DRY_RUN_SENTINEL
+
+            # Pre-create the Spark namespaces via Presto so tables land at the
+            # catalog default warehouse (bucket root, no Hive `.db` suffix). The
+            # watsonx.data Iceberg catalog ignores CREATE NAMESPACE ... LOCATION,
+            # so this Presto pre-create is the only way to avoid spark_demo_*.db/.
+            try:
+                conn = wxd.presto_connect()
+                cur = conn.cursor()
+                for s in (BRONZE_SCHEMA, SILVER_SCHEMA, GOLD_SCHEMA):
+                    cur.execute(f"create schema if not exists {catalog}.{s}")
+                    cur.fetchall()
+                print(f"Pre-created Spark namespaces via Presto (no .db): "
+                      f"{BRONZE_SCHEMA}, {SILVER_SCHEMA}, {GOLD_SCHEMA}")
+            except Exception as exc:  # noqa: BLE001 — best-effort, never block submit
+                print(f"WARNING: could not pre-create Spark schemas ({exc}); Spark may add .db dirs.")
 
             print(f"Submitting {application}  (batch_id={batch_id})")
             resp = requests.post(

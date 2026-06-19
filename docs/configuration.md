@@ -72,7 +72,7 @@ have a sensible default in the template). Variables shown commented-out are opti
 | `WXD_INSTANCE_ID` | **auto** | watsonx.data tenant ID (sent as `LhInstanceId`). |
 | `WXD_PRESTO_ENGINE_ID` | **auto** | Presto engine ID (e.g. `presto651`). |
 | `WXD_CATALOG` | auto (default `iceberg_data`) | Iceberg catalog. |
-| `WXD_SCHEMA` | auto (default `lakehouse_demo`) | Base dbt schema prefix. |
+| `WXD_SCHEMA` | auto (default `dbt_demo`) | Base dbt schema prefix. |
 | `WXD_SSL_VERIFY` | **auto** | Path to the CA cert (`certs/watsonxdata-ca.pem`). |
 | `WXD_GOLD_MATERIALIZED` | manual (default `view`) | Whether gold views/tables are materialized as views. |
 
@@ -142,7 +142,7 @@ watsonxdata_medallion_demo:
       user: "{{ env_var('WXD_USER', 'ibmlhapikey_cpadmin') }}"
       password: "{{ env_var('WXD_API_KEY') }}"
       catalog: "{{ env_var('WXD_CATALOG', 'iceberg_data') }}"
-      schema: "{{ env_var('WXD_SCHEMA', 'lakehouse_demo') }}"
+      schema: "{{ env_var('WXD_SCHEMA', 'dbt_demo') }}"
       host: "{{ env_var('WXD_HOST', '...') }}"
       port: "{{ env_var('WXD_PORT', '443') | int }}"
       ssl_verify: "{{ env_var('WXD_SSL_VERIFY', 'certs/watsonxdata-ca.pem') }}"

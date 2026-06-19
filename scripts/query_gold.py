@@ -186,7 +186,7 @@ def main() -> int:
     host = _env("WXD_HOST")
     port = int(_env("WXD_PORT", "443"))
     catalog = _env("WXD_CATALOG", "iceberg_data")
-    base_schema = _env("WXD_SCHEMA", "lakehouse_demo")
+    base_schema = _env("WXD_SCHEMA", "dbt_demo")
     gold_schema = os.getenv("WXD_GOLD_SCHEMA", f"{base_schema}_gold")
 
     conn = prestodb.dbapi.connect(

@@ -8,7 +8,7 @@ Short definitions for every term used in this workshop. Click any term in the na
 
 The first managed copy of raw data — ingested into the lakehouse with ingest metadata added, but not yet cleaned or joined.
 
-In this demo, bronze is the first managed/transformed copy: `iceberg_data.lakehouse_demo_bronze` (dbt) and `iceberg_data.spark_demo_bronze` (Spark). cpdctl's `iceberg_data.lakehouse_demo_ingest` is **not** bronze — it is a raw ingest landing layer (like `dbt seed`) that becomes bronze only after a dbt or Spark transform. See [Raw Files Versus Raw Tables](#raw-files-versus-raw-tables).
+In this demo, bronze is the first managed/transformed copy: `iceberg_data.dbt_demo_bronze` (dbt) and `iceberg_data.spark_demo_bronze` (Spark). cpdctl's `iceberg_data.spark_demo_cpdctl_raw` is **not** bronze — it is a raw ingest landing layer (like `dbt seed`) that becomes bronze only after a dbt or Spark transform. See [Raw Files Versus Raw Tables](#raw-files-versus-raw-tables).
 
 !!! info "Plain English"
     Bronze = "we have it stored safely, with ingest metadata added — but only dbt and Spark produce it. cpdctl stops one step earlier, at raw."
@@ -23,10 +23,10 @@ Every SQL query in this demo starts with `iceberg_data`, which is the Iceberg ca
 
 ```sql
 -- iceberg_data  = catalog
--- lakehouse_demo_gold = schema
+-- dbt_demo_gold = schema
 -- gold_daily_sales    = table
 SELECT *
-FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales;
+FROM iceberg_data.dbt_demo_gold.gold_daily_sales;
 ```
 
 !!! note
@@ -38,7 +38,7 @@ FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales;
 
 cpdctl is IBM's command-line interface for Cloud Pak for Data (CP4D). It lets you run jobs and pipelines from a terminal instead of the browser UI.
 
-In this demo, cpdctl ingests CSV files directly into the `iceberg_data.lakehouse_demo_ingest` schema, bypassing dbt and Spark **for the load step only**. cpdctl is ingest-only (like `dbt seed`): it lands raw tables and stops. To build bronze/silver/gold on top, you run dbt or Spark over `lakehouse_demo_ingest` as a post-action (**cpdctl + dbt/Spark = one full pipeline**).
+In this demo, cpdctl ingests CSV files directly into the `iceberg_data.spark_demo_cpdctl_raw` schema, bypassing dbt and Spark **for the load step only**. cpdctl is ingest-only (like `dbt seed`): it lands raw tables and stops. To build bronze/silver/gold on top, you run dbt or Spark over `spark_demo_cpdctl_raw` as a post-action (**cpdctl + dbt/Spark = one full pipeline**).
 
 ```bash
 cpdctl dsjob run --job "ingest_customers" --project-id <project-id>
@@ -53,7 +53,7 @@ cpdctl dsjob run --job "ingest_customers" --project-id <project-id>
 
 A Customer 360 is a single row per customer that combines all available signals — orders, returns, revenue, last activity — into one flat table or view.
 
-In this demo, `gold_customer_360` is a VIEW in `iceberg_data.lakehouse_demo_gold` that aggregates completed, returned, pending, and cancelled orders together with lifetime value and last-activity timestamps.
+In this demo, `gold_customer_360` is a VIEW in `iceberg_data.dbt_demo_gold` that aggregates completed, returned, pending, and cancelled orders together with lifetime value and last-activity timestamps.
 
 !!! example
     One row in `gold_customer_360` looks like: customer 42, 12 completed orders, 1 return, LTV $1,240, last order 2026-03-15.
@@ -64,7 +64,7 @@ In this demo, `gold_customer_360` is a VIEW in `iceberg_data.lakehouse_demo_gold
 
 dbt is an open-source tool that turns SQL `SELECT` statements into a full transformation pipeline — with dependency resolution, testing, and documentation built in.
 
-In this demo, dbt connects to Presto through the `dbt-watsonx-presto` adapter and builds the `lakehouse_demo_raw`, `lakehouse_demo_bronze`, `lakehouse_demo_silver`, and `lakehouse_demo_gold` schemas from seed CSV files.
+In this demo, dbt connects to Presto through the `dbt-watsonx-presto` adapter and builds the `dbt_demo_raw`, `dbt_demo_bronze`, `dbt_demo_silver`, and `dbt_demo_gold` schemas from seed CSV files.
 
 ```bash
 # Run all models
@@ -86,7 +86,7 @@ dbt test
 
 The outermost, business-ready layer of the medallion architecture. Gold tables and views are optimised for reporting, dashboards, and downstream consumption.
 
-In this demo, the gold layer lives in `iceberg_data.lakehouse_demo_gold`. `gold_daily_sales` is a physical TABLE (partitioned by `month(order_date)`; the partition metadata column is `order_date_month`); `gold_category_performance` and `gold_customer_360` are VIEWs.
+In this demo, the gold layer lives in `iceberg_data.dbt_demo_gold`. `gold_daily_sales` is a physical TABLE (partitioned by `month(order_date)`; the partition metadata column is `order_date_month`); `gold_category_performance` and `gold_customer_360` are VIEWs.
 
 | Object | Type | Purpose |
 |---|---|---|
@@ -108,7 +108,7 @@ Without Iceberg, Presto and Spark would have to scan every file to answer a quer
 ```sql
 -- Query a specific historical snapshot
 SELECT *
-FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FROM iceberg_data.dbt_demo_silver.silver_orders
 FOR VERSION AS OF <snapshot_id>;
 ```
 
@@ -127,9 +127,9 @@ This demo has two full pipelines (dbt, Spark) that ingest **and** transform, plu
 
 ```mermaid
 flowchart LR
-    CSV[CSV seed files] --> dbt[dbt seeds<br/>lakehouse_demo_raw] --> dbtT[dbt transforms<br/>bronze/silver/gold]
+    CSV[CSV seed files] --> dbt[dbt seeds<br/>dbt_demo_raw] --> dbtT[dbt transforms<br/>bronze/silver/gold]
     CSV --> Spark[Spark ETL<br/>spark_demo_bronze/silver/gold]
-    CSV --> cpdctl[cpdctl ingest<br/>lakehouse_demo_ingest<br/>raw only]
+    CSV --> cpdctl[cpdctl ingest<br/>spark_demo_cpdctl_raw<br/>raw only]
     cpdctl -. transform with dbt or Spark .-> dbtT
     cpdctl -. transform with dbt or Spark .-> Spark
 ```
@@ -167,10 +167,10 @@ flowchart LR
 
 | Layer | Schema in this demo | What changes |
 |---|---|---|
-| Raw | `lakehouse_demo_raw` | Source-shaped, no transformation |
-| Bronze | `lakehouse_demo_bronze` | Ingest metadata added, types cast |
-| Silver | `lakehouse_demo_silver` | Joins applied, nulls handled, business keys aligned |
-| Gold | `lakehouse_demo_gold` | Aggregated, partitioned, ready for dashboards |
+| Raw | `dbt_demo_raw` | Source-shaped, no transformation |
+| Bronze | `dbt_demo_bronze` | Ingest metadata added, types cast |
+| Silver | `dbt_demo_silver` | Joins applied, nulls handled, business keys aligned |
+| Gold | `dbt_demo_gold` | Aggregated, partitioned, ready for dashboards |
 
 !!! note
     In this demo, the Spark path skips a raw layer entirely — Spark reads CSV files directly from MinIO object storage and writes straight to `spark_demo_bronze`.
@@ -185,7 +185,7 @@ In this demo, MinIO holds the raw CSV seed files and the Parquet data files that
 
 ```bash
 # Example MinIO bucket path for an Iceberg data file
-s3a://iceberg-bucket/lakehouse_demo_gold/gold_daily_sales/order_date_month=2026-03/data-00000.parquet
+s3a://iceberg-bucket/dbt_demo_gold/gold_daily_sales/order_date_month=2026-03/data-00000.parquet
 ```
 
 !!! info
@@ -236,7 +236,7 @@ In this demo, `gold_daily_sales` is partitioned by `month(order_date)`. A query 
 ```sql
 -- Presto uses partition pruning automatically
 SELECT *
-FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+FROM iceberg_data.dbt_demo_gold.gold_daily_sales
 WHERE order_date BETWEEN DATE '2026-03-01' AND DATE '2026-03-31';
 -- Only reads the March 2026 partition folder
 ```
@@ -272,17 +272,17 @@ ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
 
 ### Raw Files Versus Raw Tables
 
-The raw files are the original CSV seed files (`seeds/raw_*.csv`). The raw tables are what dbt creates from those files in the `lakehouse_demo_raw` schema.
+The raw files are the original CSV seed files (`seeds/raw_*.csv`). The raw tables are what dbt creates from those files in the `dbt_demo_raw` schema.
 
 Spark does not need a raw schema because it reads CSV files directly from MinIO object storage. dbt needs raw tables because it works entirely through SQL.
 
 | Source | Raw representation | First layer produced |
 |---|---|---|
-| dbt (full pipeline) | `lakehouse_demo_raw.raw_customers` (Iceberg table) | `lakehouse_demo_bronze.*` (transformed bronze) |
+| dbt (full pipeline) | `dbt_demo_raw.raw_customers` (Iceberg table) | `dbt_demo_bronze.*` (transformed bronze) |
 | Spark (full pipeline) | CSV files in MinIO bucket | `spark_demo_bronze.*` (transformed bronze) |
-| cpdctl (ingest loader) | CSV files in MinIO bucket | `lakehouse_demo_ingest.*` (raw ingest — no transform; needs dbt/Spark to reach bronze) |
+| cpdctl (ingest loader) | CSV files in MinIO bucket | `spark_demo_cpdctl_raw.*` (raw ingest — no transform; needs dbt/Spark to reach bronze) |
 
-cpdctl is a loader, not a transform engine: its output (`lakehouse_demo_ingest`) corresponds to dbt's `lakehouse_demo_raw` seed layer, **not** to bronze. Only dbt and Spark continue past raw to transformed bronze/silver/gold.
+cpdctl is a loader, not a transform engine: its output (`spark_demo_cpdctl_raw`) corresponds to dbt's `dbt_demo_raw` seed layer, **not** to bronze. Only dbt and Spark continue past raw to transformed bronze/silver/gold.
 
 ---
 
@@ -293,14 +293,14 @@ A schema is a namespace inside a catalog that groups related tables together. Th
 In this demo there are six schemas under `iceberg_data`:
 
 ```text
-iceberg_data.lakehouse_demo_raw       ← dbt raw seeds
-iceberg_data.lakehouse_demo_bronze    ← dbt bronze
-iceberg_data.lakehouse_demo_silver    ← dbt silver
-iceberg_data.lakehouse_demo_gold      ← dbt gold
+iceberg_data.dbt_demo_raw       ← dbt raw seeds
+iceberg_data.dbt_demo_bronze    ← dbt bronze
+iceberg_data.dbt_demo_silver    ← dbt silver
+iceberg_data.dbt_demo_gold      ← dbt gold
 iceberg_data.spark_demo_bronze        ← Spark bronze
 iceberg_data.spark_demo_silver        ← Spark silver
 iceberg_data.spark_demo_gold          ← Spark gold
-iceberg_data.lakehouse_demo_ingest    ← cpdctl ingestion
+iceberg_data.spark_demo_cpdctl_raw    ← cpdctl ingestion
 ```
 
 ---
@@ -320,7 +320,7 @@ In this demo, semantic models are defined in `models/semantic/` and describe how
 
 The silver layer holds clean, joined, and deduplicated data. It is the shared foundation that gold models build on.
 
-In this demo, silver lives in `iceberg_data.lakehouse_demo_silver` (dbt) and `iceberg_data.spark_demo_silver` (Spark). At this layer, orders are joined to customers, nulls are handled, and business keys are aligned.
+In this demo, silver lives in `iceberg_data.dbt_demo_silver` (dbt) and `iceberg_data.spark_demo_silver` (Spark). At this layer, orders are joined to customers, nulls are handled, and business keys are aligned.
 
 !!! info "Silver is the most reused layer"
     Multiple gold models can read from the same silver table. Fixing a data quality issue in silver automatically improves every downstream gold model.
@@ -357,7 +357,7 @@ A table is the primary SQL object you query. In this demo, every physical table 
 ```sql
 -- Physical table — data is pre-computed and stored on disk
 SELECT order_date, category, net_revenue
-FROM iceberg_data.lakehouse_demo_gold.gold_daily_sales
+FROM iceberg_data.dbt_demo_gold.gold_daily_sales
 LIMIT 10;
 ```
 
@@ -375,12 +375,12 @@ Every time a dbt model or Spark job writes to an Iceberg table, Iceberg records 
 ```sql
 -- Query the table as it was at a specific historical snapshot
 SELECT *
-FROM iceberg_data.lakehouse_demo_silver.silver_orders
+FROM iceberg_data.dbt_demo_silver.silver_orders
 FOR VERSION AS OF <snapshot_id>;
 
 -- List all available snapshots
 SELECT *
-FROM iceberg_data.lakehouse_demo_silver."silver_orders$snapshots";
+FROM iceberg_data.dbt_demo_silver."silver_orders$snapshots";
 ```
 
 !!! tip
@@ -398,7 +398,7 @@ In this demo, two gold objects are views:
 -- gold_category_performance and gold_customer_360 are defined as VIEWs
 -- dbt creates them with CREATE VIEW ... AS SELECT ...
 SELECT *
-FROM iceberg_data.lakehouse_demo_gold.gold_customer_360;
+FROM iceberg_data.dbt_demo_gold.gold_customer_360;
 -- ^ this re-runs the underlying silver JOIN every time
 ```
 

@@ -116,7 +116,7 @@ Follow these steps to reach the lineage graph:
 
 1. Click **Explore** in the left sidebar, then choose **Databases**.
 2. Find **watsonxdata-presto** and click into it, then open **iceberg_data**.
-3. Navigate to **lakehouse_demo_gold** → **gold_daily_sales**.
+3. Navigate to **dbt_demo_gold** → **gold_daily_sales**.
 4. Click the **Lineage** tab. The graph shows: raw CSVs → bronze tables → `silver_sales_enriched` → `gold_daily_sales`.
 5. Click any node in the graph to jump to that model's detail page.
 6. Click a **column name** inside a model card to see the description you wrote in `schema.yml` — this is documentation-as-code made visible.
@@ -249,20 +249,20 @@ Run these queries in the watsonx.data SQL editor or via `python scripts/query_go
 ```sql
 -- Full snapshot history: every dbt run creates a new snapshot
 SELECT committed_at, snapshot_id, operation, summary
-FROM iceberg_data.lakehouse_demo_silver."silver_orders$snapshots"
+FROM iceberg_data.dbt_demo_silver."silver_orders$snapshots"
 ORDER BY committed_at DESC;
 
 -- Active history: which snapshot is the current read pointer
-SELECT * FROM iceberg_data.lakehouse_demo_silver."silver_orders$history"
+SELECT * FROM iceberg_data.dbt_demo_silver."silver_orders$history"
 ORDER BY made_current_at DESC;
 
 -- Partition layout: how rows are distributed across month buckets
 SELECT order_date_month, row_count, file_count
-FROM iceberg_data.lakehouse_demo_silver."silver_orders$partitions"
+FROM iceberg_data.dbt_demo_silver."silver_orders$partitions"
 ORDER BY order_date_month;
 
 -- Full DDL: exact CREATE TABLE including format and partition spec
-SHOW CREATE TABLE iceberg_data.lakehouse_demo_silver.silver_orders;
+SHOW CREATE TABLE iceberg_data.dbt_demo_silver.silver_orders;
 ```
 
 These are available on **any Iceberg table** in the catalog — bronze, silver, gold — with no setup beyond the tables already existing. See the [SQL Demo](sql-demo.md#iceberg-table-history) page for a full walkthrough with time travel.

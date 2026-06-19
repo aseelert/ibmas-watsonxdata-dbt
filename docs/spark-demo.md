@@ -273,7 +273,7 @@ Once the job finishes, the gold tables are immediately queryable through the Pre
 
     -- dbt path (run separately to compare)
     SELECT category, total_revenue, total_orders
-    FROM iceberg_data.lakehouse_demo_gold.gold_category_performance
+    FROM iceberg_data.dbt_demo_gold.gold_category_performance
     ORDER BY total_revenue DESC;
     ```
 
@@ -284,10 +284,10 @@ Once the job finishes, the gold tables are immediately queryable through the Pre
 
 ## What to Do Next
 
-You have completed the Spark path. The `spark_demo_gold` tables now live alongside the `lakehouse_demo_gold` tables (from Path A — dbt) in the same Iceberg catalog.
+You have completed the Spark path. The `spark_demo_gold` tables now live alongside the `dbt_demo_gold` tables (from Path A — dbt) in the same Iceberg catalog.
 
 - **Try cpdctl ingestion** — [Ingestion Paths: dbt · Spark · cpdctl](ingestion.md) walks through the cpdctl native ingestion method, which creates UI-tracked load history in the watsonx.data Data manager.
 - **Compare the two full pipelines** — [SQL Demo](sql-demo.md) has queries that run against dbt gold and Spark gold in the same session so you can verify those two outputs match, plus queries to inspect the cpdctl RAW ingest tables. Note that cpdctl has no gold layer of its own — it would need a dbt or Spark transform before it could be compared to gold.
 
 !!! note "cpdctl is an ingestion loader, not a full medallion path"
-    Unlike dbt and Spark — which are two interchangeable, self-contained full pipelines that each ingest *and* transform CSVs through Bronze → Silver → Gold — cpdctl is an ingestion loader. It lands raw CSV in `lakehouse_demo_ingest` and stops at raw; to build bronze/silver/gold on top you run dbt or Spark over that data.
+    Unlike dbt and Spark — which are two interchangeable, self-contained full pipelines that each ingest *and* transform CSVs through Bronze → Silver → Gold — cpdctl is an ingestion loader. It lands raw CSV in `spark_demo_cpdctl_raw` and stops at raw; to build bronze/silver/gold on top you run dbt or Spark over that data.

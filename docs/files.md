@@ -60,7 +60,7 @@ These files live at the top level of the repo. Most of them are read at the star
 
 Seeds are static CSV files that dbt loads as raw Iceberg tables. Think of them as the starting data for the entire demo — no external database or API is needed.
 
-dbt reads these files and runs `INSERT` statements to populate the `lakehouse_demo_raw` schema in watsonx.data. The Spark path also uses the same CSVs, uploading them to MinIO so the Spark engine can read them directly.
+dbt reads these files and runs `INSERT` statements to populate the `dbt_demo_raw` schema in watsonx.data. The Spark path also uses the same CSVs, uploading them to MinIO so the Spark engine can read them directly.
 
 | File | Rows | What it contains |
 |---|---|---|
@@ -131,11 +131,11 @@ To load the seeds into watsonx.data:
 dbt seed
 ```
 
-dbt writes the rows into `iceberg_data.lakehouse_demo_raw` as Parquet-backed Iceberg tables, partitioned by `month(order_date)` (partition column `order_date_month`) where applicable.
+dbt writes the rows into `iceberg_data.dbt_demo_raw` as Parquet-backed Iceberg tables, partitioned by `month(order_date)` (partition column `order_date_month`) where applicable.
 
 !!! example "Verify the seed loaded"
     ```sql
-    SELECT COUNT(*) FROM iceberg_data.lakehouse_demo_raw.raw_order_items;
+    SELECT COUNT(*) FROM iceberg_data.dbt_demo_raw.raw_order_items;
     -- expected: 1134
     ```
 
@@ -149,10 +149,10 @@ The models are organized into three sub-directories that correspond to the medal
 
 ```mermaid
 flowchart LR
-    R["lakehouse_demo_raw\n(seeds)"]
-    B["lakehouse_demo_bronze\n(models/bronze/)"]
-    S["lakehouse_demo_silver\n(models/silver/)"]
-    G["lakehouse_demo_gold\n(models/gold/)"]
+    R["dbt_demo_raw\n(seeds)"]
+    B["dbt_demo_bronze\n(models/bronze/)"]
+    S["dbt_demo_silver\n(models/silver/)"]
+    G["dbt_demo_gold\n(models/gold/)"]
 
     R --> B --> S --> G
 ```
@@ -221,7 +221,7 @@ Macros are reusable Jinja/SQL functions that dbt calls during compilation. They 
 
 | File | What it does |
 |---|---|
-| `macros/generate_schema_name.sql` | Overrides dbt's default schema-naming behaviour so that schema names come directly from environment variables (e.g. `WXD_BRONZE_SCHEMA`) rather than being prefixed with the dbt target name. Without this macro, dbt would write to `dev_lakehouse_demo_bronze` instead of `lakehouse_demo_bronze`. |
+| `macros/generate_schema_name.sql` | Overrides dbt's default schema-naming behaviour so that schema names come directly from environment variables (e.g. `WXD_BRONZE_SCHEMA`) rather than being prefixed with the dbt target name. Without this macro, dbt would write to `dev_dbt_demo_bronze` instead of `dbt_demo_bronze`. |
 | `macros/create_medallion_schemas.sql` | Creates all four demo schemas (`_raw`, `_bronze`, `_silver`, `_gold`) in one call. Called by `scripts/bootstrap_watsonxdata.py` via `dbt run-operation`. |
 | `macros/materialized_view.sql` | Defines a custom `materialized_view` materialization for the `watsonx_presto` adapter. It issues `CREATE MATERIALIZED VIEW ... AS SELECT ...` followed by `REFRESH MATERIALIZED VIEW`. **Note:** the Presto Iceberg connector in the current watsonx.data version does not support materialized views — this macro is forward-looking and reserved for when that support lands. Use the standard `view` materialization today. |
 
@@ -239,7 +239,7 @@ The Spark directory contains a self-contained PySpark job that reproduces the en
 | `spark/load_medallion_demo.py` | Full PySpark medallion job — reads the demo CSVs from MinIO (`s3a://iceberg-bucket/spark_demo/raw/`), applies bronze ingestion metadata, silver type-casting and joins, and writes gold aggregations into the `spark_demo_bronze/silver/gold` schemas. All output is written as Parquet-backed Iceberg tables. The job is designed to be uploaded to MinIO and submitted via the watsonx.data REST API. |
 
 !!! info "Why run both dbt and Spark?"
-    The two paths write to different schemas (`lakehouse_demo_*` for dbt, `spark_demo_*` for Spark) so you can query both in the same Presto session and compare the outputs side by side. The data is identical — the difference is the tooling and governance model.
+    The two paths write to different schemas (`dbt_demo_*` for dbt, `spark_demo_*` for Spark) so you can query both in the same Presto session and compare the outputs side by side. The data is identical — the difference is the tooling and governance model.
 
 To run the Spark path, use the helper scripts in order:
 
@@ -265,10 +265,10 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 | `submit_spark_application.py` | Spark demo step | Submits `load_medallion_demo.py` to the watsonx.data Spark engine REST endpoint; prints the application ID you need for the status check |
 | `spark_application_status.py` | After submission | Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by `submit_spark_application.py` |
 | `query_gold.py` | After any demo path | Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI |
-| `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `lakehouse_demo_ingest` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `lakehouse_demo_ingest` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `lakehouse_demo_ingest` as a post-action (cpdctl + dbt/Spark = full pipeline) |
+| `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `spark_demo_cpdctl_raw` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `spark_demo_cpdctl_raw` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `spark_demo_cpdctl_raw` as a post-action (cpdctl + dbt/Spark = full pipeline) |
 | `prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | Runs `dbt docs generate` then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage |
 | `upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
-| `cleanup_watsonxdata.py` | After the demo | Drops all tables and views in `lakehouse_demo_raw/bronze/silver/gold` and `spark_demo_bronze/silver/gold`; use this to reset the environment between runs |
+| `cleanup_watsonxdata.py` | After the demo | Drops all tables and views in `dbt_demo_raw/bronze/silver/gold` and `spark_demo_bronze/silver/gold`; use this to reset the environment between runs |
 | `dbt_env.sh` | Shell convenience | Sources `.env` and activates the virtual environment, then passes all remaining arguments to the `dbt` command; use this when your shell does not source `.env` automatically |
 
 !!! example "Typical setup sequence (run once)"
@@ -378,3 +378,42 @@ These paths are created at runtime and are not committed to the repository.
 | `site/` | `mkdocs build` | Generated HTML for this documentation site |
 | `logs/` | Port-forward scripts | Output from `oc port-forward` sessions and query logs |
 | `watsonx_data/instance_details.json` | Manual export from watsonx.data UI | Presto connection JSON containing the certificate and endpoint — your starting point for setup |
+
+---
+
+## Object storage layout
+
+All three demo paths share one object-store bucket, `iceberg-bucket`, backed by the
+`iceberg_data` catalog. `WXD_SCHEMA_LOCATION_BASE` is unset, so every schema is created with no
+`location` clause and lands at the catalog's default warehouse — the **bucket root**. There is no
+nesting and no `.db` suffix: each schema is a top-level prefix.
+
+```text
+s3://iceberg-bucket/
+├── dbt_demo_raw/          # dbt seed (raw layer)              — Presto/dbt
+├── dbt_demo_bronze/       # dbt bronze                         — Presto/dbt
+├── dbt_demo_silver/       # dbt silver                         — Presto/dbt
+├── dbt_demo_gold/         # dbt gold                           — Presto/dbt
+├── spark_demo/
+│   ├── app/load_medallion_demo.py   # PySpark app
+│   └── raw/raw_*.csv                # staged source CSVs (Spark + cpdctl read these)
+├── spark_demo_bronze/     # Spark bronze (no .db)              — Spark engine
+├── spark_demo_silver/     # Spark silver (no .db)              — Spark engine
+├── spark_demo_gold/       # Spark gold   (no .db)              — Spark engine
+├── spark_demo_cpdctl_raw/ # cpdctl native-ingest raw landing  — cpdctl (Presto-created schema)
+└── openmetadata/dbt-artifacts/dbt_demo/   # OpenMetadata lineage artifacts
+```
+
+The Spark schemas have no `.db` suffix because their namespaces are pre-created via Presto before
+the Spark job runs. dbt and Spark stay on separate engines and separate schemas; cpdctl produces a
+raw landing that Spark (or dbt) then consumes. Every prefix below is queryable through Presto via
+the `iceberg_data` catalog.
+
+| Prefix | Producer | What reads it |
+|---|---|---|
+| `dbt_demo_raw/` | dbt seed (Presto) | dbt bronze models |
+| `dbt_demo_bronze/` `dbt_demo_silver/` `dbt_demo_gold/` | dbt run (Presto) | next dbt layer; BI / SQL clients read gold |
+| `spark_demo/app/`, `spark_demo/raw/` | upload script (MinIO) | Spark engine and cpdctl read the staged CSVs and the app |
+| `spark_demo_bronze/` `spark_demo_silver/` `spark_demo_gold/` | Spark engine | next Spark layer; BI / SQL clients read gold |
+| `spark_demo_cpdctl_raw/` | cpdctl native ingest (Presto-created schema) | a dbt or Spark transform run as a post-action |
+| `openmetadata/dbt-artifacts/dbt_demo/` | `prepare_openmetadata_dbt_artifacts.py` | OpenMetadata ingestion (lineage) |

@@ -19,18 +19,18 @@ models:
   watsonxdata_medallion_demo:
     +materialized: table
     bronze:
-      +schema: "{{ env_var('WXD_BRONZE_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_bronze') }}"
+      +schema: "{{ env_var('WXD_BRONZE_SCHEMA', env_var('WXD_SCHEMA', 'dbt_demo') ~ '_bronze') }}"
       +tags: ["bronze"]
     silver:
-      +schema: "{{ env_var('WXD_SILVER_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_silver') }}"
+      +schema: "{{ env_var('WXD_SILVER_SCHEMA', env_var('WXD_SCHEMA', 'dbt_demo') ~ '_silver') }}"
       +tags: ["silver"]
     gold:
-      +schema: "{{ env_var('WXD_GOLD_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_gold') }}"
+      +schema: "{{ env_var('WXD_GOLD_SCHEMA', env_var('WXD_SCHEMA', 'dbt_demo') ~ '_gold') }}"
       +materialized: "{{ env_var('WXD_GOLD_MATERIALIZED', 'view') }}"
       +tags: ["gold"]
 
 seeds:
   watsonxdata_medallion_demo:
-    +schema: "{{ env_var('WXD_RAW_SCHEMA', env_var('WXD_SCHEMA', 'lakehouse_demo') ~ '_raw') }}"
+    +schema: "{{ env_var('WXD_RAW_SCHEMA', env_var('WXD_SCHEMA', 'dbt_demo') ~ '_raw') }}"
     +tags: ["raw", "landing"]
     +quote_columns: false

@@ -173,43 +173,30 @@ def _payload() -> dict[str, Any]:
     catalog = _env("WXD_SPARK_CATALOG", "iceberg_data")
     schema = _env("WXD_SPARK_SCHEMA", "spark_demo")
 
-    return {
-        "application_details": {
-            "application": application,
-            "conf": {
-                "spark.app.name": "watsonxdata-medallion-spark-demo",
-                "spark.hadoop.wxd.apiKey": _zen_auth_string(),
-                "spark.executor.cores": os.getenv("WXD_SPARK_EXECUTOR_CORES", "1"),
-                "spark.executor.memory": os.getenv("WXD_SPARK_EXECUTOR_MEMORY", "2G"),
-                "spark.driver.cores": os.getenv("WXD_SPARK_DRIVER_CORES", "1"),
-                "spark.driver.memory": os.getenv("WXD_SPARK_DRIVER_MEMORY", "2G"),
-                "spark.executorEnv.WXD_SPARK_INPUT_BASE": input_base,
-                "spark.executorEnv.WXD_SPARK_CATALOG": catalog,
-                "spark.executorEnv.WXD_SPARK_SCHEMA": schema,
-                "spark.executorEnv.WXD_SPARK_INGEST_BATCH_ID": os.getenv(
-                    "WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch"
-                ),
-                "spark.yarn.appMasterEnv.WXD_SPARK_INPUT_BASE": input_base,
-                "spark.yarn.appMasterEnv.WXD_SPARK_CATALOG": catalog,
-                "spark.yarn.appMasterEnv.WXD_SPARK_SCHEMA": schema,
-                "spark.yarn.appMasterEnv.WXD_SPARK_INGEST_BATCH_ID": os.getenv(
-                    "WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch"
-                ),
-                "spark.driverEnv.WXD_SPARK_INPUT_BASE": input_base,
-                "spark.driverEnv.WXD_SPARK_CATALOG": catalog,
-                "spark.driverEnv.WXD_SPARK_SCHEMA": schema,
-                "spark.driverEnv.WXD_SPARK_INGEST_BATCH_ID": os.getenv(
-                    "WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch"
-                ),
-                "spark.kubernetes.driverEnv.WXD_SPARK_INPUT_BASE": input_base,
-                "spark.kubernetes.driverEnv.WXD_SPARK_CATALOG": catalog,
-                "spark.kubernetes.driverEnv.WXD_SPARK_SCHEMA": schema,
-                "spark.kubernetes.driverEnv.WXD_SPARK_INGEST_BATCH_ID": os.getenv(
-                    "WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch"
-                ),
-            },
-        }
+    # Env vars the Spark application reads at runtime. Propagated to driver +
+    # executors via every prefix the engine might honor (executorEnv, appMasterEnv,
+    # driverEnv, kubernetes.driverEnv) so the job sees them wherever it runs.
+    app_env = {
+        "WXD_SPARK_INPUT_BASE": input_base,
+        "WXD_SPARK_CATALOG": catalog,
+        "WXD_SPARK_SCHEMA": schema,
+        "WXD_SPARK_INGEST_BATCH_ID": os.getenv("WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch"),
     }
+
+    conf = {
+        "spark.app.name": "watsonxdata-medallion-spark-demo",
+        "spark.hadoop.wxd.apiKey": _zen_auth_string(),
+        "spark.executor.cores": os.getenv("WXD_SPARK_EXECUTOR_CORES", "1"),
+        "spark.executor.memory": os.getenv("WXD_SPARK_EXECUTOR_MEMORY", "2G"),
+        "spark.driver.cores": os.getenv("WXD_SPARK_DRIVER_CORES", "1"),
+        "spark.driver.memory": os.getenv("WXD_SPARK_DRIVER_MEMORY", "2G"),
+    }
+    for prefix in ("spark.executorEnv", "spark.yarn.appMasterEnv",
+                   "spark.driverEnv", "spark.kubernetes.driverEnv"):
+        for key, value in app_env.items():
+            conf[f"{prefix}.{key}"] = value
+
+    return {"application_details": {"application": application, "conf": conf}}
 
 
 def _redacted_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -218,6 +205,43 @@ def _redacted_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if "spark.hadoop.wxd.apiKey" in conf:
         conf["spark.hadoop.wxd.apiKey"] = "<redacted>"
     return safe
+
+
+def _ensure_spark_schemas_via_presto() -> None:
+    """Pre-create the Spark namespaces through Presto so they land at the catalog
+    default warehouse (bucket root, e.g. spark_demo_bronze/) with NO Hive `.db`
+    suffix. If Spark created them itself they'd become spark_demo_bronze.db/ —
+    the watsonx.data Iceberg catalog ignores CREATE NAMESPACE ... LOCATION, so
+    pre-creating via Presto is the only way to control the on-disk layout.
+    Best-effort: a failure here is non-fatal (the job can still create its own).
+    """
+    try:
+        import prestodb
+    except ImportError:
+        print("  (prestodb not installed — skipping schema pre-create; Spark may add .db)")
+        return
+    base = _env("WXD_SPARK_SCHEMA", "spark_demo")
+    schemas = [
+        os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{base}_bronze"),
+        os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{base}_silver"),
+        os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{base}_gold"),
+    ]
+    user = _env("WXD_USER", "ibmlhapikey_cpadmin")
+    try:
+        conn = prestodb.dbapi.connect(
+            host=_env("WXD_HOST"), port=int(os.getenv("WXD_PORT", "443")), user=user,
+            catalog=_env("WXD_SPARK_CATALOG", "iceberg_data"), http_scheme="https",
+            http_headers={"LhInstanceId": _env("WXD_INSTANCE_ID")},
+            auth=prestodb.auth.BasicAuthentication(user, _env("WXD_API_KEY")),
+        )
+        conn._http_session.verify = _ssl_verify()
+        cur = conn.cursor()
+        for schema in schemas:
+            cur.execute(f"create schema if not exists iceberg_data.{schema}")
+            cur.fetchall()
+        print(f"  Pre-created Spark namespaces via Presto (no .db): {', '.join(schemas)}")
+    except Exception as exc:  # noqa: BLE001 — best-effort, never block submission
+        print(f"  WARNING: could not pre-create Spark schemas ({exc}); Spark may add .db dirs.")
 
 
 def main() -> int:
@@ -244,6 +268,8 @@ def main() -> int:
     if os.getenv("WXD_SPARK_DRY_RUN", "true").lower() in {"1", "true", "yes"}:
         print("Dry run only; set WXD_SPARK_DRY_RUN=false to submit.")
         return 0
+
+    _ensure_spark_schemas_via_presto()
 
     response = requests.post(
         endpoint,

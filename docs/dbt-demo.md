@@ -17,7 +17,7 @@
 !!! info "The analytics engineering approach"
     dbt turns SQL into a software project: each transformation is a versioned `.sql` file, dbt runs them in dependency order, and every model gets tested and documented automatically. This is the "analytics engineering" approach — strong governance, readable lineage, but limited to what SQL can express.
 
-    Contrast that with Path B (Spark), which uses Python for complex ETL that SQL cannot easily express, and with Path C (cpdctl), which uses the IBM CLI to ingest data into natively tracked Iceberg tables through the watsonx.data UI. Note that cpdctl is an ingestion-only loader (like `dbt seed`): it lands raw CSV in `lakehouse_demo_ingest` and stops there — you build a medallion on it by running dbt or Spark over `lakehouse_demo_ingest` afterward. Paths A and B, by contrast, are complete ingest+transform pipelines.
+    Contrast that with Path B (Spark), which uses Python for complex ETL that SQL cannot easily express, and with Path C (cpdctl), which uses the IBM CLI to ingest data into natively tracked Iceberg tables through the watsonx.data UI. Note that cpdctl is an ingestion-only loader (like `dbt seed`): it lands raw CSV in `spark_demo_cpdctl_raw` and stops there — you build a medallion on it by running dbt or Spark over `spark_demo_cpdctl_raw` afterward. Paths A and B, by contrast, are complete ingest+transform pipelines.
 
     dbt does not store any data itself. It writes SQL and sends it to **Presto** — the SQL engine inside watsonx.data. Presto then creates and populates the tables. The chain is:
 
@@ -73,10 +73,10 @@ The `properties` dict passes through to Presto's `CREATE TABLE … WITH (…)` s
 
 | Layer | Schema | Objects | Plain meaning |
 |-------|--------|---------|---------------|
-| Raw | `lakehouse_demo_raw` | `raw_customers`, `raw_products`, `raw_orders`, `raw_order_items` | Exact copies of the four CSV seed files as Iceberg tables |
-| Bronze | `lakehouse_demo_bronze` | `bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items` | Source-like tables with ingest metadata columns added |
-| Silver | `lakehouse_demo_silver` | `time_spine_daily`, `silver_customers`, `silver_orders`\*, `silver_products`, `silver_order_items`, `silver_sales_enriched`\* | Cleaned, typed; `silver_sales_enriched` joins all four entities as the single source for Gold |
-| Gold | `lakehouse_demo_gold` | `gold_daily_sales`\* (TABLE), `gold_category_performance` (VIEW), `gold_customer_360` (VIEW) | Analytics-ready aggregates for BI consumption |
+| Raw | `dbt_demo_raw` | `raw_customers`, `raw_products`, `raw_orders`, `raw_order_items` | Exact copies of the four CSV seed files as Iceberg tables |
+| Bronze | `dbt_demo_bronze` | `bronze_customers`, `bronze_products`, `bronze_orders`, `bronze_order_items` | Source-like tables with ingest metadata columns added |
+| Silver | `dbt_demo_silver` | `time_spine_daily`, `silver_customers`, `silver_orders`\*, `silver_products`, `silver_order_items`, `silver_sales_enriched`\* | Cleaned, typed; `silver_sales_enriched` joins all four entities as the single source for Gold |
+| Gold | `dbt_demo_gold` | `gold_daily_sales`\* (TABLE), `gold_category_performance` (VIEW), `gold_customer_360` (VIEW) | Analytics-ready aggregates for BI consumption |
 
 \* partitioned by `month(order_date)`
 
@@ -125,7 +125,7 @@ Imported values:
   WXD_CPD_AUTH_URL=https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/icp4d-api/v1/authorize
   WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
   WXD_CATALOG=iceberg_data
-  WXD_SCHEMA=lakehouse_demo
+  WXD_SCHEMA=dbt_demo
 ```
 
 ---
@@ -142,16 +142,19 @@ Expected output:
 
 ```text
 Connecting to ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443, catalog=iceberg_data
-Using schema location base: s3a://iceberg-bucket/lakehouse_demo
-SQL> create schema if not exists iceberg_data.lakehouse_demo_raw with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_raw')
-ensured iceberg_data.lakehouse_demo_raw
-SQL> create schema if not exists iceberg_data.lakehouse_demo_bronze with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_bronze')
-ensured iceberg_data.lakehouse_demo_bronze
-SQL> create schema if not exists iceberg_data.lakehouse_demo_silver with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_silver')
-ensured iceberg_data.lakehouse_demo_silver
-SQL> create schema if not exists iceberg_data.lakehouse_demo_gold with (location = 's3a://iceberg-bucket/lakehouse_demo/lakehouse_demo_gold')
-ensured iceberg_data.lakehouse_demo_gold
+No schema location base set — schemas use the iceberg_data catalog default warehouse (object-store bucket root)
+SQL> create schema if not exists iceberg_data.dbt_demo_raw
+ensured iceberg_data.dbt_demo_raw
+SQL> create schema if not exists iceberg_data.dbt_demo_bronze
+ensured iceberg_data.dbt_demo_bronze
+SQL> create schema if not exists iceberg_data.dbt_demo_silver
+ensured iceberg_data.dbt_demo_silver
+SQL> create schema if not exists iceberg_data.dbt_demo_gold
+ensured iceberg_data.dbt_demo_gold
 ```
+
+!!! note "Where do these schemas land?"
+    `WXD_SCHEMA_LOCATION_BASE` is unset, so the bootstrap creates each schema with **no** `location` clause. The `iceberg_data` catalog places them at its default warehouse — the object-store bucket root — so they land directly as `s3://iceberg-bucket/dbt_demo_raw/`, `s3://iceberg-bucket/dbt_demo_bronze/`, and so on (no nesting, no `.db` suffix).
 
 !!! note "Run this once per environment"
     If the schemas already exist, the script skips them safely. You only need to re-run this if you clean up with `cleanup_watsonxdata.py` or start on a fresh cluster.
@@ -160,7 +163,7 @@ ensured iceberg_data.lakehouse_demo_gold
 
 ### Step 4: Load Raw CSV Data
 
-dbt seed reads the four CSV files from `seeds/` and loads them into `lakehouse_demo_raw` as Iceberg tables.
+dbt seed reads the four CSV files from `seeds/` and loads them into `dbt_demo_raw` as Iceberg tables.
 
 ```bash
 bash scripts/dbt_env.sh seed --full-refresh
@@ -180,13 +183,13 @@ seeds/raw_order_items.csv    →  1 134 rows
                          total:  1 704 rows
 ```
 
-**Iceberg tables created in `lakehouse_demo_raw`:**
+**Iceberg tables created in `dbt_demo_raw`:**
 
 ```text
-iceberg_data.lakehouse_demo_raw.raw_customers
-iceberg_data.lakehouse_demo_raw.raw_products
-iceberg_data.lakehouse_demo_raw.raw_orders
-iceberg_data.lakehouse_demo_raw.raw_order_items
+iceberg_data.dbt_demo_raw.raw_customers
+iceberg_data.dbt_demo_raw.raw_products
+iceberg_data.dbt_demo_raw.raw_orders
+iceberg_data.dbt_demo_raw.raw_order_items
 ```
 
 Expected dbt output:
@@ -198,14 +201,14 @@ Found 13 models, 4 seeds, 34 data tests, 446 macros, 2 semantic models
 
 Concurrency: 4 threads (target='dev')
 
-1 of 4 START seed file lakehouse_demo_raw.raw_customers ........................ [RUN]
-2 of 4 START seed file lakehouse_demo_raw.raw_order_items ...................... [RUN]
-3 of 4 START seed file lakehouse_demo_raw.raw_orders ........................... [RUN]
-4 of 4 START seed file lakehouse_demo_raw.raw_products ......................... [RUN]
-4 of 4 OK loaded seed file lakehouse_demo_raw.raw_products ..................... [CREATE 20 in 5.02s]
-1 of 4 OK loaded seed file lakehouse_demo_raw.raw_customers .................... [CREATE 50 in 6.21s]
-3 of 4 OK loaded seed file lakehouse_demo_raw.raw_orders ....................... [CREATE 500 in 10.50s]
-2 of 4 OK loaded seed file lakehouse_demo_raw.raw_order_items .................. [CREATE 1134 in 13.60s]
+1 of 4 START seed file dbt_demo_raw.raw_customers ........................ [RUN]
+2 of 4 START seed file dbt_demo_raw.raw_order_items ...................... [RUN]
+3 of 4 START seed file dbt_demo_raw.raw_orders ........................... [RUN]
+4 of 4 START seed file dbt_demo_raw.raw_products ......................... [RUN]
+4 of 4 OK loaded seed file dbt_demo_raw.raw_products ..................... [CREATE 20 in 5.02s]
+1 of 4 OK loaded seed file dbt_demo_raw.raw_customers .................... [CREATE 50 in 6.21s]
+3 of 4 OK loaded seed file dbt_demo_raw.raw_orders ....................... [CREATE 500 in 10.50s]
+2 of 4 OK loaded seed file dbt_demo_raw.raw_order_items .................. [CREATE 1134 in 13.60s]
 
 Finished running 4 seeds in 0 hours 0 minutes and 17.22 seconds (17.22s).
 
@@ -249,32 +252,32 @@ Found 13 models, 4 seeds, 34 data tests, 446 macros, 2 semantic models
 
 Concurrency: 4 threads (target='dev')
 
- 1 of 13 START sql table model lakehouse_demo_bronze.bronze_customers ........... [RUN]
- 2 of 13 START sql table model lakehouse_demo_bronze.bronze_order_items ......... [RUN]
- 3 of 13 START sql table model lakehouse_demo_bronze.bronze_orders .............. [RUN]
- 4 of 13 START sql table model lakehouse_demo_bronze.bronze_products ............ [RUN]
- 1 of 13 OK created sql table model lakehouse_demo_bronze.bronze_customers ...... [SUCCESS in 7.19s]
- 3 of 13 OK created sql table model lakehouse_demo_bronze.bronze_orders ......... [SUCCESS in 7.19s]
- 5 of 13 START sql table model lakehouse_demo_silver.time_spine_daily ........... [RUN]
- 6 of 13 START sql table model lakehouse_demo_silver.silver_customers ........... [RUN]
- 4 of 13 OK created sql table model lakehouse_demo_bronze.bronze_products ....... [SUCCESS in 7.78s]
- 7 of 13 START sql table model lakehouse_demo_silver.silver_orders .............. [RUN]
- 2 of 13 OK created sql table model lakehouse_demo_bronze.bronze_order_items .... [SUCCESS in 8.98s]
- 8 of 13 START sql table model lakehouse_demo_silver.silver_products ............ [RUN]
- 5 of 13 OK created sql table model lakehouse_demo_silver.time_spine_daily ...... [SUCCESS in 6.69s]
- 9 of 13 START sql table model lakehouse_demo_silver.silver_order_items ......... [RUN]
- 6 of 13 OK created sql table model lakehouse_demo_silver.silver_customers ...... [SUCCESS in 7.98s]
- 8 of 13 OK created sql table model lakehouse_demo_silver.silver_products ....... [SUCCESS in 7.30s]
- 7 of 13 OK created sql table model lakehouse_demo_silver.silver_orders ......... [SUCCESS in 8.80s]
- 9 of 13 OK created sql table model lakehouse_demo_silver.silver_order_items .... [SUCCESS in 5.65s]
-10 of 13 START sql table model lakehouse_demo_silver.silver_sales_enriched ..... [RUN]
-10 of 13 OK created sql table model lakehouse_demo_silver.silver_sales_enriched  [SUCCESS in 6.63s]
-11 of 13 START sql view  model lakehouse_demo_gold.gold_customer_360 ............ [RUN]
-12 of 13 START sql table model lakehouse_demo_gold.gold_daily_sales ............ [RUN]
-11 of 13 OK created sql view  model lakehouse_demo_gold.gold_customer_360 ....... [SUCCESS in 4.31s]
-12 of 13 OK created sql table model lakehouse_demo_gold.gold_daily_sales ....... [SUCCESS in 6.21s]
-13 of 13 START sql view  model lakehouse_demo_gold.gold_category_performance .... [RUN]
-13 of 13 OK created sql view  model lakehouse_demo_gold.gold_category_performance [SUCCESS in 1.30s]
+ 1 of 13 START sql table model dbt_demo_bronze.bronze_customers ........... [RUN]
+ 2 of 13 START sql table model dbt_demo_bronze.bronze_order_items ......... [RUN]
+ 3 of 13 START sql table model dbt_demo_bronze.bronze_orders .............. [RUN]
+ 4 of 13 START sql table model dbt_demo_bronze.bronze_products ............ [RUN]
+ 1 of 13 OK created sql table model dbt_demo_bronze.bronze_customers ...... [SUCCESS in 7.19s]
+ 3 of 13 OK created sql table model dbt_demo_bronze.bronze_orders ......... [SUCCESS in 7.19s]
+ 5 of 13 START sql table model dbt_demo_silver.time_spine_daily ........... [RUN]
+ 6 of 13 START sql table model dbt_demo_silver.silver_customers ........... [RUN]
+ 4 of 13 OK created sql table model dbt_demo_bronze.bronze_products ....... [SUCCESS in 7.78s]
+ 7 of 13 START sql table model dbt_demo_silver.silver_orders .............. [RUN]
+ 2 of 13 OK created sql table model dbt_demo_bronze.bronze_order_items .... [SUCCESS in 8.98s]
+ 8 of 13 START sql table model dbt_demo_silver.silver_products ............ [RUN]
+ 5 of 13 OK created sql table model dbt_demo_silver.time_spine_daily ...... [SUCCESS in 6.69s]
+ 9 of 13 START sql table model dbt_demo_silver.silver_order_items ......... [RUN]
+ 6 of 13 OK created sql table model dbt_demo_silver.silver_customers ...... [SUCCESS in 7.98s]
+ 8 of 13 OK created sql table model dbt_demo_silver.silver_products ....... [SUCCESS in 7.30s]
+ 7 of 13 OK created sql table model dbt_demo_silver.silver_orders ......... [SUCCESS in 8.80s]
+ 9 of 13 OK created sql table model dbt_demo_silver.silver_order_items .... [SUCCESS in 5.65s]
+10 of 13 START sql table model dbt_demo_silver.silver_sales_enriched ..... [RUN]
+10 of 13 OK created sql table model dbt_demo_silver.silver_sales_enriched  [SUCCESS in 6.63s]
+11 of 13 START sql view  model dbt_demo_gold.gold_customer_360 ............ [RUN]
+12 of 13 START sql table model dbt_demo_gold.gold_daily_sales ............ [RUN]
+11 of 13 OK created sql view  model dbt_demo_gold.gold_customer_360 ....... [SUCCESS in 4.31s]
+12 of 13 OK created sql table model dbt_demo_gold.gold_daily_sales ....... [SUCCESS in 6.21s]
+13 of 13 START sql view  model dbt_demo_gold.gold_category_performance .... [RUN]
+13 of 13 OK created sql view  model dbt_demo_gold.gold_category_performance [SUCCESS in 1.30s]
 
 Finished running 11 table models, 2 view models in 0 hours 0 minutes and 38.08 seconds (38.08s).
 
@@ -462,7 +465,7 @@ The compiled SQL shows exactly which rows violated the rule:
 
 ```sql
 select order_id, count(*) as n
-from iceberg_data.lakehouse_demo_raw.raw_orders
+from iceberg_data.dbt_demo_raw.raw_orders
 group by order_id
 having count(*) > 1
 ```
@@ -481,7 +484,7 @@ bash scripts/dbt_env.sh test --select raw_orders
 Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=1
 ```
 
-The key point: the failing test did not break the existing tables. The data in `lakehouse_demo_bronze` still has the last good values. Tests are a safety gate — they catch problems before bad data propagates downstream to Silver and Gold.
+The key point: the failing test did not break the existing tables. The data in `dbt_demo_bronze` still has the last good values. Tests are a safety gate — they catch problems before bad data propagates downstream to Silver and Gold.
 
 ---
 

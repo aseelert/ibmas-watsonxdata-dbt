@@ -70,7 +70,7 @@ def main() -> int:
     bucket = os.getenv("WXD_DBT_ARTIFACT_BUCKET") or _env("WXD_SPARK_ASSET_BUCKET", "iceberg-bucket")
     prefix = os.getenv(
         "WXD_DBT_ARTIFACT_PREFIX",
-        f"openmetadata/dbt-artifacts/{os.getenv('WXD_SCHEMA', 'lakehouse_demo')}",
+        f"openmetadata/dbt-artifacts/{os.getenv('WXD_SCHEMA', 'dbt_demo')}",
     ).strip("/")
     region = os.getenv("WXD_OBJECT_STORE_REGION", "us-east-1")
     verify_value = os.getenv("WXD_OBJECT_STORE_SSL_VERIFY", "false").lower()

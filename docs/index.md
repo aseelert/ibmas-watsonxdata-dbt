@@ -40,10 +40,10 @@
 A small online shop has four CSV files: customers, products, orders, and order items — 1,704 rows
 in total (50 customers, 20 products, 500 orders, 1,134 order items). Two of the paths (dbt and
 Spark) are full ingest+transform medallion engines: each takes the CSVs all the way to Bronze,
-Silver, and Gold (in `lakehouse_demo_*` and `spark_demo_*` respectively). cpdctl is an
-ingestion-only loader — like `dbt seed` — that lands the raw CSVs in `lakehouse_demo_ingest` and
+Silver, and Gold (in `dbt_demo_*` and `spark_demo_*` respectively). cpdctl is an
+ingestion-only loader — like `dbt seed` — that lands the raw CSVs in `spark_demo_cpdctl_raw` and
 stops there. To turn cpdctl-ingested data into a medallion you run dbt or Spark as a post-action
-over `lakehouse_demo_ingest`. At the end, you compare the dbt and Spark gold outputs side by side.
+over `spark_demo_cpdctl_raw`. At the end, you compare the dbt and Spark gold outputs side by side.
 
 ```mermaid
 flowchart TB
@@ -53,14 +53,14 @@ flowchart TB
   csv --> spark_path["Path B — Spark\nPySpark ETL (full pipeline)"]
   csv --> cpdctl_path["Path C — cpdctl\nIBM CLI (ingest only)"]
 
-  dbt_path --> bronze["Bronze\nlakehouse_demo_bronze"]
+  dbt_path --> bronze["Bronze\ndbt_demo_bronze"]
   spark_path --> spark_bronze["Bronze\nspark_demo_bronze"]
-  cpdctl_path --> ingest_raw["Raw / Ingest\nlakehouse_demo_ingest"]
+  cpdctl_path --> ingest_raw["Raw / Ingest\nspark_demo_cpdctl_raw"]
 
-  bronze --> silver["Silver\nlakehouse_demo_silver"]
+  bronze --> silver["Silver\ndbt_demo_silver"]
   spark_bronze --> spark_silver["Silver\nspark_demo_silver"]
 
-  silver --> gold["Gold marts\nlakehouse_demo_gold"]
+  silver --> gold["Gold marts\ndbt_demo_gold"]
   spark_silver --> spark_gold["Gold marts\nspark_demo_gold"]
 
   ingest_raw -. "transform with dbt or Spark\n(post-action)" .-> dbt_path
@@ -82,8 +82,8 @@ difference is which tool drives the work and what governance features come with 
 | C — cpdctl | IBM CLI (`cpdctl`) | Shell | Native UI-tracked ingestion, no code required | Yes |
 
 All three paths write Iceberg tables stored as Parquet files in MinIO object storage. dbt and Spark
-write full medallions to `lakehouse_demo_*` and `spark_demo_*`; cpdctl writes only raw tables to
-`lakehouse_demo_ingest`. You compare the dbt and Spark gold layers directly; the cpdctl raw tables
+write full medallions to `dbt_demo_*` and `spark_demo_*`; cpdctl writes only raw tables to
+`spark_demo_cpdctl_raw`. You compare the dbt and Spark gold layers directly; the cpdctl raw tables
 become comparable only after a dbt or Spark transform.
 
 !!! note "Why three paths instead of one?"
@@ -91,7 +91,7 @@ become comparable only after a dbt or Spark transform.
     skill set, or whether they want ingestion history in the UI. Two of these (dbt, Spark) are
     complete, interchangeable ingest+transform pipelines. The third (cpdctl) is an ingestion loader,
     like `dbt seed` — it gets raw data in fast and with UI audit history, then you point dbt or Spark
-    at `lakehouse_demo_ingest` to build the medallion. **cpdctl + dbt/Spark together form one full
+    at `spark_demo_cpdctl_raw` to build the medallion. **cpdctl + dbt/Spark together form one full
     pipeline.**
 
 ## The medallion pattern
@@ -99,7 +99,7 @@ become comparable only after a dbt or Spark transform.
 The medallion pattern is a way to organize data by quality level, moving from raw files to
 production-ready analytics tables in three named layers. Each layer adds something the previous
 one lacked — metadata, type safety, or business logic. The dbt and Spark paths follow the full
-Bronze → Silver → Gold progression. cpdctl ingests only the Raw layer (`lakehouse_demo_ingest`); to
+Bronze → Silver → Gold progression. cpdctl ingests only the Raw layer (`spark_demo_cpdctl_raw`); to
 carry it through Bronze → Silver → Gold you run dbt or Spark transformations on the ingested data.
 
 ```mermaid
@@ -137,7 +137,7 @@ Work through the pages in this order. Each step builds on the last.
    See the full column-by-column lineage and understand how schemas relate before you run anything.
 
 3. **Run Path A: dbt** ([dbt-demo.md](dbt-demo.md)) — ~20 min
-   Create schemas, load seeds into `lakehouse_demo_raw`, build Bronze/Silver/Gold models, run dbt
+   Create schemas, load seeds into `dbt_demo_raw`, build Bronze/Silver/Gold models, run dbt
    tests, and query the gold layer.
 
 4. **Run Path B: Spark** ([spark-demo.md](spark-demo.md)) — ~15 min
@@ -147,11 +147,11 @@ Work through the pages in this order. Each step builds on the last.
 5. **Run Path C: cpdctl** ([ingestion.md](ingestion.md)) — ~10 min
    Use the IBM CLI to ingest the CSV files via the native watsonx.data ingestion API (raw load only),
    then check the ingestion history in the UI. To build a medallion on this data, run dbt or Spark
-   over `lakehouse_demo_ingest` afterward.
+   over `spark_demo_cpdctl_raw` afterward.
 
 6. **Compare results with SQL** ([sql-demo.md](sql-demo.md))
    Run side-by-side queries across the dbt and Spark gold schemas to confirm they produce the same
-   numbers, and inspect the cpdctl raw tables in `lakehouse_demo_ingest`. (cpdctl has no gold layer
+   numbers, and inspect the cpdctl raw tables in `spark_demo_cpdctl_raw`. (cpdctl has no gold layer
    of its own — it would need a dbt or Spark transform first.)
 
 7. **Explore lineage in OpenMetadata** ([openmetadata.md](openmetadata.md))

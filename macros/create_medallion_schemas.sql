@@ -1,5 +1,5 @@
 {% macro create_medallion_schemas() %}
-  {% set base_schema = env_var('WXD_SCHEMA', 'lakehouse_demo') %}
+  {% set base_schema = env_var('WXD_SCHEMA', 'dbt_demo') %}
   {% set schemas = [
     env_var('WXD_RAW_SCHEMA', base_schema ~ '_raw'),
     env_var('WXD_BRONZE_SCHEMA', base_schema ~ '_bronze'),

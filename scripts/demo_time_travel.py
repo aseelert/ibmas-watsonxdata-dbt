@@ -67,7 +67,7 @@ def main() -> int:
     user = _env("WXD_USER", "ibmlhapikey_cpadmin")
     password = _env("WXD_API_KEY")
     catalog = _env("WXD_CATALOG", CATALOG)
-    base = _env("WXD_SCHEMA", "lakehouse_demo")
+    base = _env("WXD_SCHEMA", "dbt_demo")
     schema = os.getenv("WXD_SILVER_SCHEMA", f"{base}_silver")
 
     conn = prestodb.dbapi.connect(

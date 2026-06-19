@@ -116,8 +116,8 @@ python scripts/get_token.py --refresh-key --export
 python scripts/bootstrap_watsonxdata.py
 ```
 
-Creates `lakehouse_demo_raw`, `lakehouse_demo_bronze`, `lakehouse_demo_silver`,
-`lakehouse_demo_gold` in the `iceberg_data` catalog.
+Creates `dbt_demo_raw`, `dbt_demo_bronze`, `dbt_demo_silver`,
+`dbt_demo_gold` in the `iceberg_data` catalog.
 
 ---
 
@@ -199,7 +199,7 @@ python scripts/ingest_with_cpdctl.py --status --batch <id> --wait  # poll a prio
 ```
 
 Reads CSVs from `s3a://iceberg-bucket/spark_demo/raw/` and ingests them into
-`lakehouse_demo_ingest` via the watsonx.data native ingestion engine.
+`spark_demo_cpdctl_raw` via the watsonx.data native ingestion engine.
 
 | Flag | Default | What it does |
 |------|---------|--------------|
@@ -258,7 +258,7 @@ Stages `manifest.json`, `catalog.json`, and `run_results.json` into `openmetadat
 python scripts/upload_dbt_artifacts.py
 ```
 
-Pushes staged artifacts to `s3://iceberg-bucket/openmetadata/dbt-artifacts/lakehouse_demo/`
+Pushes staged artifacts to `s3://iceberg-bucket/openmetadata/dbt-artifacts/dbt_demo/`
 so OpenMetadata can read them during ingestion.
 
 ---
@@ -270,5 +270,5 @@ python scripts/cleanup_watsonxdata.py
 ```
 
 !!! danger "Destructive"
-    Drops **all** `lakehouse_demo_*` and `spark_demo_*` schemas and every table inside them.
+    Drops **all** `dbt_demo_*` and `spark_demo_*` schemas and every table inside them.
     Only use when fully tearing down the demo environment.
