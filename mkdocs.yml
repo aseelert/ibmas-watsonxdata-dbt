@@ -80,6 +80,7 @@ nav:
     - "SQL — Compare dbt vs Spark Gold": sql-demo.md
   - Governance:
     - "Lineage UI (OpenMetadata)": openmetadata.md
+    - "BI & Dashboards (Metabase)": metabase.md
     - "Semantic Models": semantic-models.md
   - Reference:
     - "Configuration & Files": configuration.md

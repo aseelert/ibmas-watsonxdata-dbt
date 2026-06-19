@@ -1,0 +1,117 @@
+---
+# ===========================================================================
+# Local Metabase (BI) for the watsonx.data medallion demo
+# ===========================================================================
+#
+# What this gives you:
+#   * Metabase (latest) with its Presto data source ALREADY connected to
+#     watsonx.data on first boot — no manual wizard, no clicking through SSL.
+#   * Browse and query the tables under the `iceberg_data` catalog (the same
+#     catalog dbt + Spark write the medallion schemas into).
+#
+# Design principles (identical to docker-compose-airflow.yml):
+#   * SINGLE SOURCE OF TRUTH — every watsonx.data (WXD_*) value comes from .env
+#     via `env_file`. None are duplicated here. The Presto host, user, API key,
+#     catalog and instance id are read straight from .env.
+#   * NO COPIES — the repo (including certs/watsonxdata-ca.pem) is bind-mounted
+#     read-only at /project. The TLS CA is read from there and trusted at
+#     runtime; it is never copied into the image or a volume.
+#   * AUTO-PROVISIONED — a one-shot `metabase-provision` container creates the
+#     admin login and the Presto connection through Metabase's setup API using
+#     the SAME .env values, so the stack comes up ready to use.
+#
+# Runs on host port 3000 so it never clashes with Airflow (8082) or
+# OpenMetadata (8080).
+#
+# Login (created automatically, configurable in .env):
+#   email:    ${MB_SETUP_EMAIL}     (default admin@admin.com)
+#   password: ${MB_SETUP_PASSWORD}  (default admin12345)
+#   NOTE: Metabase rejects trivially-common passwords, so the literal
+#         admin/admin used by Airflow is not accepted here — the defaults
+#         above are the closest compliant equivalent. Change them in .env.
+#
+# First-time setup:
+#   cp .env.example .env                              # fill in your WXD_* values
+#   docker compose -f docker-compose-metabase.yml up -d
+#   open http://localhost:3000                        # login with the values above
+#   # In the data browser open "watsonx.data (Presto)" -> iceberg_data
+#
+# Tear down (keep data):   docker compose -f docker-compose-metabase.yml down
+# Tear down (wipe data):   docker compose -f docker-compose-metabase.yml down -v
+# ===========================================================================
+
+services:
+  # Metabase's own application database (its saved questions, users, settings).
+  # Kept separate from the Airflow metadata DB so the two stacks are independent.
+  metabase-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: metabase
+      POSTGRES_DB: metabase
+    volumes:
+      - metabase-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "metabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  metabase:
+    image: metabase/metabase:latest
+    # All WXD_* values (Presto host, user, API key, catalog, instance id, the
+    # CA cert path) come from .env — once. Nothing is duplicated below.
+    env_file:
+      - .env
+    environment:
+      # ---- Metabase application DB (infrastructure only) ----
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: metabase-postgres
+      MB_DB_PORT: "5432"
+      MB_DB_DBNAME: metabase
+      MB_DB_USER: metabase
+      MB_DB_PASS: metabase
+      # Allow the simple demo login below (still must clear Metabase's
+      # common-password check — see the note in the header).
+      MB_PASSWORD_COMPLEXITY: weak
+    # Wrapper entrypoint trusts the watsonx.data CA (read from the mounted repo,
+    # never copied) and then hands off to Metabase's normal launcher.
+    entrypoint: ["/bin/sh", "/scripts/entrypoint.sh"]
+    volumes:
+      - ./metabase/entrypoint.sh:/scripts/entrypoint.sh:ro
+      # Whole repo, READ-ONLY: the Presto TLS CA is read from here, never copied.
+      - .:/project:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      metabase-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+
+  # One-shot: once Metabase is healthy, create the admin user and the Presto
+  # data source via the setup API, using the SAME WXD_* values from .env.
+  # Idempotent — it no-ops if Metabase has already been set up.
+  metabase-provision:
+    image: python:3.12-slim
+    env_file:
+      - .env
+    environment:
+      MB_URL: "http://metabase:3000"
+    entrypoint: ["python", "/scripts/provision.py"]
+    volumes:
+      - ./metabase/provision.py:/scripts/provision.py:ro
+    depends_on:
+      metabase:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  metabase-postgres-data:
