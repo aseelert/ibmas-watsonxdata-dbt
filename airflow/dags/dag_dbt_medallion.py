@@ -71,6 +71,7 @@ SIDE EFFECTS / EXIT
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
 
 from airflow.sdk import dag
@@ -112,7 +113,9 @@ def script_cmd(relative_path: str, *, banner: str | None = None) -> str:
 
 default_args = {
     "owner": "data-engineering",
-    "retries": 1,
+    # 2 retries with backoff: a busy/resuming watsonx.data Presto engine can briefly
+    # return HTTP 503, and a single retry was not always enough to ride it out.
+    "retries": 2,
     "retry_delay": timedelta(minutes=2),
     # Cap every task at 10 min (matches the sibling Spark DAG convention and the
     # user's "10 min per step" expectation); the DAG-level dagrun_timeout is the
@@ -130,6 +133,12 @@ default_args = {
     default_args=default_args,
     dagrun_timeout=timedelta(minutes=30),
     max_active_runs=1,  # serialize hourly runs: no overlapping medallion builds
+    # Each task is its OWN `dbt run --select <model>` process with its OWN Presto
+    # session. Letting all ready models fire at once opens many concurrent sessions
+    # and a small/resuming watsonx.data engine answers some with HTTP 503. Cap the
+    # in-flight tasks so the engine sees a controlled load — the same reason the
+    # standalone `dbt run` uses threads=4 in a single process rather than N processes.
+    max_active_tasks=int(os.getenv("WXD_DBT_DAG_MAX_ACTIVE_TASKS", "3")),
     tags=["dbt", "presto", "watsonx", "medallion"],
 )
 def dbt_medallion_hourly():

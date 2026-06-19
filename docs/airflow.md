@@ -90,6 +90,9 @@ open http://localhost:8082          # login: admin / admin
 
 The same `.env` and `profiles.yml` that drive the standalone dbt/Spark demos drive Airflow — there is no separate configuration. Port **8082** is used so it never clashes with OpenMetadata's bundled Airflow on 8080.
 
+!!! tip "All-in-one entry point"
+    A root `docker-compose.yml` bundles all three optional stacks (Metabase, Airflow, OpenMetadata) into **one** Compose project (`ibmas-watsonxdata-dbt`). From the repo root, `docker compose build && docker compose up airflow-init && docker compose up -d` brings everything up together; `docker compose down -v` stops it all. The per-stack `-f docker-compose-airflow.yml` commands above still work for running just Airflow on its own.
+
 In the UI, unpause a DAG (`dbt_medallion_hourly` or `spark_medallion_hourly`) with its toggle, then click **Trigger** to run it now. Prefer the command line? Airflow 3 exposes a REST API:
 
 ```bash

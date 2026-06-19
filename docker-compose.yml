@@ -1,0 +1,39 @@
+# =============================================================================
+#  docker-compose.yml — all-in-one entry point for the demo's OPTIONAL stacks
+# -----------------------------------------------------------------------------
+#  Location  : docker-compose.yml (repo root)
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  WHAT / WHY
+#    The three optional local stacks (Metabase BI, Airflow orchestration, and
+#    OpenMetadata catalog/lineage) used to be three SEPARATE Docker Compose
+#    projects. This root file pulls them all into ONE project named
+#    `ibmas-watsonxdata-dbt` via Compose `include`, so you manage everything
+#    together instead of juggling three `-f <file>` invocations. The individual
+#    files are unchanged and can still be used standalone with `-f` if you wish;
+#    OpenMetadata's file stays vendored verbatim (re-vendor, don't hand-edit it).
+#
+#  USAGE (run from the repo root — no `-f` needed)
+#    docker compose up -d                 # start ALL three stacks
+#    docker compose up -d metabase        # or just one service/stack
+#    docker compose ps                    # see everything in one project
+#    docker compose down                  # stop all (keep volumes)
+#    docker compose down -v --remove-orphans   # stop all + remove volumes
+#    scripts/reset_demo.sh --docker       # full demo-scoped teardown (preferred)
+#
+#  NOTE
+#    These stacks are OPTIONAL. The core dbt + Spark medallion demo runs fine
+#    without any of them (see docs/dbt-demo.md and docs/spark-demo.md). Bringing
+#    all three up at once is heavy — start only what you need on a small machine.
+#
+#  Ports: Metabase 3000 · Airflow 8082 · OpenMetadata 8585 (no host-port clashes).
+# =============================================================================
+name: ibmas-watsonxdata-dbt
+
+include:
+  - docker-compose-metabase.yml
+  - docker-compose-airflow.yml
+  - openmetadata/docker-compose.yml

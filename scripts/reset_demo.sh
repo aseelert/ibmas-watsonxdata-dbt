@@ -151,29 +151,45 @@ reset_docker() {
     echo "          Docker skips any image still used by another container."
   fi
 
-  # name | compose-file | extra-down-flags
-  # Metabase + Airflow share one compose project (repo dir), so we do NOT pass
-  # --remove-orphans there (it would catch the other stack). OpenMetadata is its
-  # own project, so --remove-orphans is safe and useful.
-  local stacks=(
-    "Metabase|docker-compose-metabase.yml|"
-    "Airflow|docker-compose-airflow.yml|"
-    "OpenMetadata|openmetadata/docker-compose.yml|--remove-orphans"
-  )
-  local s name file extra
-  for s in "${stacks[@]}"; do
-    IFS='|' read -r name file extra <<< "$s"
-    if [ ! -f "$REPO/$file" ]; then echo "    skip $name (no $file)"; continue; fi
-    echo "    -- $name ($file)"
-    local extra_args=()
-    [ -n "$extra" ] && extra_args=("$extra")
+  if [ -f "$REPO/docker-compose.yml" ]; then
+    # Unified project (docker-compose.yml include's all three stacks under one
+    # project) — a single `down` removes Metabase + Airflow + OpenMetadata together.
+    # --remove-orphans is safe here because it IS one project.
+    echo "    -- unified project (docker-compose.yml): Metabase + Airflow + OpenMetadata"
     if $DRY_RUN; then
-      echo "    DRY: (cd $REPO && docker compose -f $file down --volumes ${extra_args[*]} ${rmi[*]})"
+      echo "    DRY: (cd $REPO && docker compose down --volumes --remove-orphans ${rmi[*]})"
+      echo "    DRY: (cd $REPO && docker compose -f openmetadata/docker-compose.yml down --volumes --remove-orphans)  # legacy OM project safety"
     else
-      ( cd "$REPO" && docker compose -f "$file" down --volumes "${extra_args[@]}" "${rmi[@]}" ) \
-        || echo "    (warning: $name teardown reported issues; continuing)"
+      ( cd "$REPO" && docker compose down --volumes --remove-orphans "${rmi[@]}" ) \
+        || echo "    (warning: unified teardown reported issues; continuing)"
+      # Safety: also tear down OpenMetadata under its legacy standalone project
+      # name, in case it was started the old way (docker compose -f openmetadata/...).
+      ( cd "$REPO" && docker compose -f openmetadata/docker-compose.yml down --volumes --remove-orphans 2>/dev/null ) || true
     fi
-  done
+  else
+    # Legacy fallback: tear down each stack file separately. Metabase + Airflow
+    # share one compose project (repo dir), so we do NOT pass --remove-orphans
+    # there (it would catch the other stack). OpenMetadata is its own project.
+    local stacks=(
+      "Metabase|docker-compose-metabase.yml|"
+      "Airflow|docker-compose-airflow.yml|"
+      "OpenMetadata|openmetadata/docker-compose.yml|--remove-orphans"
+    )
+    local s name file extra
+    for s in "${stacks[@]}"; do
+      IFS='|' read -r name file extra <<< "$s"
+      if [ ! -f "$REPO/$file" ]; then echo "    skip $name (no $file)"; continue; fi
+      echo "    -- $name ($file)"
+      local extra_args=()
+      [ -n "$extra" ] && extra_args=("$extra")
+      if $DRY_RUN; then
+        echo "    DRY: (cd $REPO && docker compose -f $file down --volumes ${extra_args[*]} ${rmi[*]})"
+      else
+        ( cd "$REPO" && docker compose -f "$file" down --volumes "${extra_args[@]}" "${rmi[@]}" ) \
+          || echo "    (warning: $name teardown reported issues; continuing)"
+      fi
+    done
+  fi
 
   # Fallback volume sweep (only matters if a 'down' above didn't remove a volume).
   # Scoped by Docker's OWN compose-project label, so it can ONLY ever match this
@@ -191,6 +207,16 @@ reset_docker() {
     done <<< "$vols"
   done
   $found_any || echo "       (none)"
+
+  # OpenMetadata's mysql + elasticsearch persist to a BIND MOUNT
+  # (./openmetadata/docker-volume), NOT a docker volume — so `down -v` and the
+  # sweep above never touch it. Stale data left here can crash mysql on the next
+  # start (InnoDB on an incompatible/half-written datadir), so clear it for a
+  # truly clean rerun.
+  if [ -d "$REPO/openmetadata/docker-volume" ]; then
+    echo "    -- clearing OpenMetadata bind-mount data (openmetadata/docker-volume)"
+    run rm -rf "$REPO/openmetadata/docker-volume"
+  fi
 }
 
 reset_schemas() {

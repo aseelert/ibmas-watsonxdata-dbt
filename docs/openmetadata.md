@@ -44,6 +44,9 @@ curl -fsSL \
 docker compose -f openmetadata/docker-compose.yml up --detach
 ```
 
+!!! tip "All-in-one entry point"
+    OpenMetadata is also `include`d in the repo-root `docker-compose.yml`, so it now runs under the **same** Compose project as Metabase and Airflow (`ibmas-watsonxdata-dbt`). From the repo root, `docker compose up -d` starts all three stacks together and `docker compose down -v` stops them. The `-f openmetadata/docker-compose.yml` command above still works for running OpenMetadata standalone — but if you start it that way, use `scripts/reset_demo.sh --docker` to tear it down cleanly.
+
 After the containers start, wait for the web server to become ready. This command polls every 20 seconds and prints a confirmation when the API responds:
 
 ```bash

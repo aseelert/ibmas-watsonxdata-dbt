@@ -41,6 +41,9 @@ The same `WXD_*` values that drive dbt and Spark drive Metabase — nothing is d
 docker compose -f docker-compose-metabase.yml up -d
 ```
 
+!!! tip "All-in-one entry point"
+    A root `docker-compose.yml` bundles all three optional stacks (Metabase, Airflow, OpenMetadata) into **one** Compose project (`ibmas-watsonxdata-dbt`). From the repo root, `docker compose up -d` starts them all together and `docker compose down -v` stops them. The per-stack `-f <file>` command above still works for running just Metabase on its own.
+
 This starts three containers:
 
 | Container | Role |
