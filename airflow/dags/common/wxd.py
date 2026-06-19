@@ -77,10 +77,6 @@ def _cpd_username() -> str:
     return user.removeprefix("ibmlhapikey_") if user.startswith("ibmlhapikey_") else user
 
 
-def _cpd_api_key() -> str:
-    return env("WXD_CPD_API_KEY", os.getenv("WXD_API_KEY"))
-
-
 # ---------------------------------------------------------------------------
 # Auth headers
 # ---------------------------------------------------------------------------
@@ -130,9 +126,12 @@ def zen_api_key() -> str:
     """
     'ZenApiKey base64(user:apikey)' — used INSIDE the Spark payload as
     spark.hadoop.wxd.apiKey so the Spark job can call back into watsonx.data.
-    Mirrors _zen_auth_string() in scripts/submit_spark_application.py.
+    Mirrors _zen_auth_string() in scripts/submit_spark_application.py, which
+    uses the BARE username (cpadmin), NOT the ibmlhapikey_ Presto form: the
+    Spark engine rejects 'ibmlhapikey_cpadmin:<key>' and the app fails with
+    return_code 1.
     """
-    user = os.getenv("WXD_USER", "ibmlhapikey_cpadmin")
+    user = _cpd_username()
     key = env("WXD_API_KEY")
     encoded = base64.b64encode(f"{user}:{key}".encode()).decode("ascii")
     return f"ZenApiKey {encoded}"
@@ -143,9 +142,11 @@ def zen_api_key() -> str:
 # ---------------------------------------------------------------------------
 
 def spark_applications_endpoint() -> str:
+    # Default mirrors scripts/submit_spark_application.py and .env.example (api/v3).
+    # Normally WXD_SPARK_APPLICATIONS_ENDPOINT is set in .env and used verbatim.
     return env(
         "WXD_SPARK_APPLICATIONS_ENDPOINT",
-        f"https://{cpd_host()}/lakehouse/api/v2/spark_engines/"
+        f"https://{cpd_host()}/lakehouse/api/v3/spark_engines/"
         f"{os.getenv('WXD_SPARK_ENGINE_ID', 'spark656')}/applications",
     )
 
