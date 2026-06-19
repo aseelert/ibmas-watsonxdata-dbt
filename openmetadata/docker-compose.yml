@@ -9,6 +9,34 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# ===========================================================================
+# VENDORED — OpenMetadata 1.13.0 (do NOT hand-edit this file)
+# ===========================================================================
+# This is the stock single-host Docker Compose published by OpenMetadata
+# (Collate) at version 1.13.0, copied into the repo verbatim so the demo
+# pins an exact, reproducible catalog stack. Treat it as upstream: re-vendor
+# from a newer OpenMetadata release rather than editing the body below.
+#
+# OPTIONAL component of the demo — it is the data CATALOG / lineage layer.
+# It does NOT run dbt or Spark; you point its ingestion at the catalogs the
+# medallion pipeline already produced so you can browse tables and lineage.
+#
+# The 5 services at a glance:
+#   mysql                OpenMetadata's metadata store (catalog entities, users).
+#   elasticsearch        Search/index backing the UI's global search + lineage.
+#   execute-migrate-all  One-shot: runs DB schema migrations, then exits.
+#   openmetadata-server  The API + web UI  ->  http://localhost:8585
+#   ingestion            Bundled Airflow that runs the metadata ingestion DAGs.
+#
+# Start / stop (run from the openmetadata/ directory):
+#   docker compose up -d            # bring the catalog stack up
+#   docker compose down             # stop it (keep data)
+#   docker compose down -v          # stop it and wipe the catalog volumes
+#
+# Full walkthrough (login, how to ingest the demo's dbt lineage, troubleshooting):
+#   see docs/openmetadata.md
+# ===========================================================================
+
 version: "3.9"
 volumes:
   ingestion-volume-dag-airflow:

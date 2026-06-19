@@ -84,9 +84,9 @@ dbt test
 
 ### Gold Layer
 
-The outermost, business-ready layer of the medallion architecture. Gold tables and views are optimised for reporting, dashboards, and downstream consumption.
+The outermost, business-ready layer of the medallion architecture. Gold tables and views are optimised for reporting, dashboards, and downstream consumption — **one mart per business question**, aggregated and denormalised so a consumer can read the answer with no joins or filters at read time.
 
-In this demo, the gold layer lives in `iceberg_data.dbt_demo_gold`. `gold_daily_sales` is a physical TABLE (partitioned by `month(order_date)`; the partition metadata column is `order_date_month`); `gold_category_performance` and `gold_customer_360` are VIEWs.
+In this demo, the gold layer lives in `iceberg_data.dbt_demo_gold`. `gold_daily_sales` is a physical TABLE (partitioned by `month(order_date)`; the partition metadata column is `order_date_month`); `gold_category_performance` and `gold_customer_360` are VIEWs. Each serves a different consumer: `gold_daily_sales` → a sales dashboard, `gold_category_performance` → merchandising, `gold_customer_360` → CRM / segmentation.
 
 | Object | Type | Purpose |
 |---|---|---|
@@ -171,6 +171,11 @@ flowchart LR
 | Bronze | `dbt_demo_bronze` | Ingest metadata added, types cast |
 | Silver | `dbt_demo_silver` | Joins applied, nulls handled, business keys aligned |
 | Gold | `dbt_demo_gold` | Aggregated, partitioned, ready for dashboards |
+
+Each layer has **one job**: raw *preserves the truth*, bronze *makes it queryable + records how it arrived*, silver *makes it clean, typed, and trustworthy*, and gold *shapes it to answer a specific business question fast*.
+
+!!! question "Why not just stop at silver?"
+    Silver (`silver_sales_enriched`) is clean and joined, so you *can* query it for anything — but it is **general-purpose and at order-line grain**, not shaped for any one question. Gold is **purpose-built**: one table per business question, pre-aggregated and denormalised, so a dashboard reads a tiny pre-computed answer instead of re-running the same `GROUP BY` over every order line on each refresh — and everyone shares **one governed definition** of a metric. See [Why these layers?](lineage.md#why-these-layers-and-why-not-just-stop-at-silver) for the full walk-through.
 
 !!! note
     In this demo, the Spark path skips a raw layer entirely — Spark reads CSV files directly from MinIO object storage and writes straight to `spark_demo_bronze`.
@@ -270,6 +275,17 @@ ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
 
 ---
 
+### Raw Layer (Landing)
+
+The raw — or *landing* — layer is the very first place source data comes to rest inside the lakehouse, kept **exactly as received** so you can always replay everything from the original truth. No types are cast, no strings are cleaned, no rows are dropped.
+
+In this demo, the dbt path lands the four seed CSVs as Iceberg tables in `iceberg_data.dbt_demo_raw` (`raw_customers` = 50 rows, `raw_products` = 20, `raw_orders` = 500, `raw_order_items` = 1134) — strings only. cpdctl's `iceberg_data.spark_demo_cpdctl_raw` is also a raw landing layer. The Spark path has **no** raw schema: it reads the CSVs straight from MinIO and writes bronze directly.
+
+!!! info "Plain English"
+    Raw = "the original, untouched copy — if a later layer gets it wrong, we rebuild from here." It is the safety net for the whole pipeline.
+
+---
+
 ### Raw Files Versus Raw Tables
 
 The raw files are the original CSV seed files (`seeds/raw_*.csv`). The raw tables are what dbt creates from those files in the `dbt_demo_raw` schema.
@@ -318,9 +334,9 @@ In this demo, semantic models are defined in the single file `models/semantic_mo
 
 ### Silver Layer
 
-The silver layer holds clean, joined, and deduplicated data. It is the shared foundation that gold models build on.
+The silver layer holds clean, typed, joined, and deduplicated data. It is the **general-purpose source of truth** you can query for almost anything — the shared foundation that every gold mart builds on.
 
-In this demo, silver lives in `iceberg_data.dbt_demo_silver` (dbt) and `iceberg_data.spark_demo_silver` (Spark). At this layer, orders are joined to customers, nulls are handled, and business keys are aligned.
+In this demo, silver lives in `iceberg_data.dbt_demo_silver` (dbt) and `iceberg_data.spark_demo_silver` (Spark). At this layer, strings are cast to real dates/integers/decimals, bad rows are filtered, business keys are aligned, and all four entities are joined into one order-line fact, `silver_sales_enriched`. Silver is clean but **not shaped for one question** — that shaping is gold's job.
 
 !!! info "Silver is the most reused layer"
     Multiple gold models can read from the same silver table. Fixing a data quality issue in silver automatically improves every downstream gold model.

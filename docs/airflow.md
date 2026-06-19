@@ -5,6 +5,9 @@
 
 ## What Airflow is (the technical version)
 
+!!! tip "What is a DAG? (the one idea to take away)"
+    A **DAG** is just the **ordered task graph** — an arrow diagram that says "run this, *then* that". The name is literal: **D**irected (arrows point one way), **A**cyclic (no loops back on themselves), **G**raph (boxes and arrows). That's it — a DAG is the recipe, the boxes are the steps (**tasks**), and the arrows are the "do this before that" rules. The Mermaid diagrams further down *are* the two DAGs in this demo.
+
 Airflow models a pipeline as a **DAG** (Directed Acyclic Graph) — a set of **tasks** wired together by dependencies so they run in a valid order with no cycles. Each task is built from an **operator** (for example a `BashOperator` that runs a shell command, or a Python `@task`). The **scheduler** decides when each DAG run starts and which tasks are ready; the **executor** (here, the `LocalExecutor`) actually runs them; and the **web UI / API server** lets you watch runs, read logs, and trigger DAGs by hand. Tasks pass small values to each other through **XCom**, and long waits use **sensors** that poll until a condition is met.
 
 !!! warning "Airflow is OPTIONAL in this demo"
@@ -105,7 +108,15 @@ curl -s -X POST http://localhost:8082/api/v2/dags/dbt_medallion_hourly/dagRuns \
   -d '{"logical_date":"2026-06-19T12:00:00Z"}'
 ```
 
-Tear down (keep data): `docker compose -f docker-compose-airflow.yml down`. Wipe everything: add `-v`.
+### Stop & reset
+
+```bash
+# Stop the stack, keep the metadata DB (DAG history, connections):
+docker compose -f docker-compose-airflow.yml down
+
+# Stop and wipe everything (forces a fresh airflow-init next start):
+docker compose -f docker-compose-airflow.yml down -v
+```
 
 !!! note "One external dependency: the engines must be awake"
     Like dbt and Spark standalone, the DAGs need the watsonx.data **Presto** (and, for the Spark DAG, **Spark**) engine running. The Spark DAG mints a fresh CPD bearer token on every run, so scheduled runs never fail on an expired token.
@@ -122,6 +133,20 @@ Tear down (keep data): `docker compose -f docker-compose-airflow.yml down`. Wipe
 
 !!! note "📸 Screenshot: a task log"
     Open any finished task (for example `gold_daily_sales` or `wait_for_spark`) and capture its **Logs** tab showing the `==> ...` breadcrumb and the step output, then save it to `docs/assets/images/screenshots/airflow-task-log.png` and replace this note with the image.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause & fix |
+| --- | --- |
+| `up -d` exits or the webserver never goes healthy | The `airflow-init` one-shot didn't finish first. Run it on its own — `docker compose -f docker-compose-airflow.yml up airflow-init` — wait for it to exit `0`, then `up -d`. |
+| Port 8082 already in use | Another process holds the port. Edit the `airflow-webserver` `ports:` mapping in `docker-compose-airflow.yml` (e.g. `8083:8080`), then `up -d` again. |
+| A DAG shows no runs after you unpause it | Unpausing only enables the **schedule**; to run immediately click **Trigger** in the UI (or POST a `dagRuns` as shown above). |
+| A task fails with an auth or `authenticator was not loaded` error | The watsonx.data **Presto** (or **Spark**) engine is suspended/resuming. Start the engine and clear the failed task to retry — the Spark DAG re-mints its token automatically. |
+| DAGs don't appear in the list | The `airflow-dag-processor` parses `airflow/dags/`; give it a few seconds, then check its logs: `docker compose -f docker-compose-airflow.yml logs airflow-dag-processor`. |
+
+For the underlying credentials and `WXD_*` values every task reads, see the [Configuration](configuration.md) page.
 
 ---
 

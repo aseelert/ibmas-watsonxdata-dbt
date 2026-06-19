@@ -1,12 +1,16 @@
 # Path A — dbt: SQL Governance
 
 !!! abstract "What you will do in this path"
+    **In one breath:** dbt is a transformation tool. You write each table as a SQL `SELECT` file, and dbt figures out the order to run them in, pushes that SQL down to the **Presto** engine inside watsonx.data (Presto, not dbt, does the heavy lifting and stores the data as Iceberg tables), then runs data-quality tests and generates documentation. This page follows the medallion pattern top to bottom: **seed → Bronze → Silver → Gold**, the same order as the command steps below.
+
     This path walks you through the complete dbt pipeline from raw CSV files to queryable gold analytics tables.
 
     - Load four CSV seed files into the raw Iceberg schema in watsonx.data
     - Build Bronze, Silver, and Gold transformation models in dependency order
     - Run automated data quality tests against every model layer
     - Query the Gold marts to see final analytics results
+
+    The commands below run `scripts/dbt_env.sh seed --full-refresh`, then `run`, then `test`. On a clean run this loads 4 raw seed tables, builds 13 models (4 Bronze, 6 Silver, 3 Gold), and passes all 34 tests in roughly two minutes.
 
     Estimated time: approximately 20 minutes.
 

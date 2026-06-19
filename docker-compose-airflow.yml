@@ -3,6 +3,10 @@
 # Local Apache Airflow 3 for the watsonx.data medallion demo
 # ===========================================================================
 #
+# OPTIONAL: this is the SCHEDULER layer. The core demo runs perfectly by hand
+# (run dbt / the Spark jobs yourself); start this stack only when you want the
+# same medallion builds to run on a timer with a UI to watch them.
+#
 # What this orchestrates (the SAME steps you run manually, now scheduled):
 #
 #   dbt_medallion_hourly    Presto/dbt medallion -> dbt_demo_{raw,bronze,silver,gold}
@@ -117,6 +121,8 @@ services:
     <<: *airflow-common
     command: api-server
     ports:
+      # host 8082 -> container 8080: the Airflow UI is at http://localhost:8082
+      # (8082 chosen so it never collides with OpenMetadata's Airflow on 8080).
       - "8082:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]

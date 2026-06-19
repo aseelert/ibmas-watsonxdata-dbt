@@ -3,6 +3,9 @@
 !!! info "What OpenMetadata does"
     OpenMetadata is a **metadata catalog** — think of it as a glossary and a map of your data all in one place. It answers three questions at a glance: **where** did each table come from (the lineage graph), **what** does each column mean (descriptions you wrote in `schema.yml`), and **whether** the data quality tests passed last time dbt ran. In this demo, OpenMetadata does not connect to the live Presto cluster at all. It reads the JSON files that dbt produces after a run and draws the Bronze → Silver → Gold transformation graph inside a browser UI at `localhost:8585`. That means you can show the full lineage story offline, without any watsonx.data credentials.
 
+!!! warning "OpenMetadata is OPTIONAL in this demo"
+    The medallion pipeline runs fine without it. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) paths build every gold table on their own. OpenMetadata is here only to *visualise the lineage* of what dbt already built. Skip it if you only want the pipeline; run it if you want to show where each number came from. For a live point-and-click BI view of the same gold tables, see [Metabase](metabase.md) instead — the two are complementary (Metabase queries the data; OpenMetadata maps where it came from).
+
 ## Architecture
 
 ```mermaid

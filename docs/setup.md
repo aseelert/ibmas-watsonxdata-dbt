@@ -555,10 +555,24 @@ export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
 Before moving on, confirm all four items below:
 
 - [ ] `(.venv)` appears in your terminal prompt (virtual environment is active).
-- [ ] `python scripts/query_gold.py` or `bash scripts/dbt_env.sh debug` printed `OK` or returned a row count.
+- [ ] `bash scripts/dbt_env.sh debug` ended with `All checks passed!` (Step 7, Option B).
 - [ ] `certs/watsonxdata-ca.pem` exists (run `ls certs/watsonxdata-ca.pem`).
 - [ ] `.env` contains a real value for `WXD_API_KEY` (not the placeholder `replace-with-your-software-hub-api-key`).
 
-If every item above is checked, your laptop is fully configured.
+If every item above is checked, your laptop is fully configured. (`query_gold.py` only returns rows *after* you build the gold layer, which is the next page.)
 
-Next: [Architecture & Data Flow](lineage.md)
+!!! success "The happy path from here — Path A · dbt"
+    Setup is done. The actual medallion build runs on the next page, [Path A — dbt](dbt-demo.md), in this order:
+
+    ```bash
+    python scripts/bootstrap_watsonxdata.py   # create the 4 schemas (raw/bronze/silver/gold)
+    dbt deps                                  # download the dbt-watsonx-presto adapter package
+    dbt seed                                  # load 4 raw tables: 50 + 20 + 500 + 1,134 rows
+    dbt run                                   # build 13 models: 4 bronze, 6 silver, 3 gold
+    dbt test                                  # run the data-quality tests (all should pass)
+    python scripts/query_gold.py              # see the gold marts — the business payoff
+    ```
+
+    On a clean instance the whole dbt path finishes in roughly two minutes.
+
+Next: [Architecture & Data Flow](lineage.md) — then [Path A — dbt](dbt-demo.md) to build the medallion.

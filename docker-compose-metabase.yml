@@ -3,6 +3,11 @@
 # Local Metabase (BI) for the watsonx.data medallion demo
 # ===========================================================================
 #
+# OPTIONAL: this is a self-service BI front-end on top of the medallion data.
+# The core demo (dbt + Spark building the bronze/silver/gold tables) runs fine
+# WITHOUT it — start this stack only when you want to chart/explore the gold
+# tables in a browser.
+#
 # What this gives you:
 #   * Metabase (latest) with its Presto data source ALREADY connected to
 #     watsonx.data on first boot — no manual wizard, no clicking through SSL.
@@ -84,10 +89,14 @@ services:
       # Whole repo, READ-ONLY: the Presto TLS CA is read from here, never copied.
       - .:/project:ro
     ports:
+      # host:container — the Metabase UI is reachable at http://localhost:3000.
       - "3000:3000"
     depends_on:
+      # Don't boot Metabase until its app DB is accepting connections.
       metabase-postgres:
         condition: service_healthy
+    # /api/health flips to 200 only after Metabase has finished migrating its
+    # app DB — the provision step waits for this before calling the setup API.
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/api/health"]
       interval: 15s

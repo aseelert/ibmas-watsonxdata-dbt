@@ -66,6 +66,17 @@ on top to build the medallion.
 
 ## Choose by the job
 
+Find the row that matches your situation, then pick the engine in the last column.
+
+| Your situation | Pick this |
+|----------------|-----------|
+| "My logic is all `SELECT` statements and I want tests + lineage" | **dbt** |
+| "I'm a SQL-first analytics team on watsonx.data" | **dbt** |
+| "The data is huge, or I need Python / ML / streaming / messy parsing" | **Spark** |
+| "I want distributed compute across many workers" | **Spark** |
+| "I just need raw data loaded fast, with no code, tracked in the UI" | **cpdctl** (then transform with dbt or Spark) |
+| "Heavy raw→Silver lift, then governed Silver→Gold modeling" | **Spark for the lift, dbt for the modeling** |
+
 === "Use dbt"
 
     - Your team treats transformations as **governed SQL** — code review, tests, lineage,

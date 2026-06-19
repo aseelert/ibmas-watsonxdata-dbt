@@ -5,6 +5,9 @@
 
 This stack is **self-provisioning**: a one-shot container creates the admin login and wires up the Presto connection for you on first boot, using the same `.env` values the rest of the demo uses. No setup wizard, no manual SSL fiddling.
 
+!!! warning "Metabase is OPTIONAL in this demo"
+    Nothing in the medallion pipeline needs Metabase. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) paths build every `raw → bronze → silver → gold` table on their own, and you can query the results with `python scripts/query_gold.py` or the [SQL comparison demo](sql-demo.md). Metabase is here purely so you can *see and chart* those gold tables in a friendly browser UI. Skip it if you only want the pipeline; run it if you want a BI front end.
+
 ## Architecture
 
 ```mermaid

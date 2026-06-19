@@ -110,6 +110,85 @@ re-ingesting the CSV.
 
 ---
 
+## Why these layers? (and why not just stop at silver)
+
+Each layer has **one job**. Data only moves to the next layer once the current
+layer's job is done. Here is the job of each, with the exact tables from this demo.
+
+| Layer | Its one job | In this demo |
+|---|---|---|
+| **Raw** | *Preserve the truth.* Keep the source exactly as received so you can always replay. | The 4 CSV seeds → `dbt_demo_raw` Iceberg tables: 50 customers, 20 products, 500 orders, 1134 order items. Strings only, nothing cleaned. |
+| **Bronze** | *Make it queryable, and record how it arrived.* Same columns as the source, plus ingest metadata. | `bronze_customers / bronze_orders / bronze_order_items / bronze_products`. Adds `_ingested_at`, `_ingested_by`, `_source_file`, `_ingest_batch_id`. |
+| **Silver** | *Make it trustworthy and consistent.* Cast types, trim/normalise strings, drop bad rows, and join the entities into one clean fact. | The 4 cleaned per-entity tables + `silver_sales_enriched` (one row per order line, all four entities joined, `gross_amount` / `net_amount` computed once). |
+| **Gold** | *Make it answer one business question, fast.* Aggregate and shape for a specific consumer. | `gold_daily_sales`, `gold_category_performance`, `gold_customer_360` — one mart per question. |
+
+### "Silver is already clean — why not just point the dashboard at it?"
+
+You *can* query silver for anything — that is exactly the point of it. `silver_sales_enriched`
+is clean, typed, and joined, so any analyst can answer almost any question from it with the right
+SQL. But "can answer anything" is different from "answers *this* question, *fast*, the *same way*
+for everyone." Silver is **general-purpose**; gold is **purpose-built**. Three reasons to add gold:
+
+- **Silver is per-entity / order-line grain — not the grain your question needs.** A sales
+  dashboard wants *one row per day per category*, not one row per order line. Without gold, every
+  dashboard refresh re-runs the same `GROUP BY order_date, category` over all 1134 order lines.
+  `gold_daily_sales` does that aggregation **once at build time** and stores the result, so the
+  dashboard reads a tiny pre-computed table.
+- **One table per business question = one agreed answer.** If five teams each write their own
+  "revenue" query against silver, you get five slightly different numbers (one forgot the
+  `status = 'completed'` filter, another double-counted the join). Gold encodes the business
+  definition **once**, in one governed table everyone shares. `lifetime_value` means the same thing
+  to the CRM team and the finance team because it is defined in `gold_customer_360`, not re-derived.
+- **Gold is denormalised and shaped for a consumer.** No joins, no filters, no window functions at
+  read time — a BI tool, a CRM export, or an AI assistant can `SELECT *` and get the answer. Silver
+  still has the raw joinable detail for the *next, unknown* question; gold serves the *known* ones.
+
+!!! abstract "The rule of thumb"
+    **Silver = the single clean source of truth you can ask anything.**
+    **Gold = the specific, fast, governed answers to the questions you already know you'll ask.**
+    You keep silver because you can't predict every future question; you add gold because the
+    questions you *can* predict deserve to be instant and consistent.
+
+### Each gold mart serves a different consumer
+
+```mermaid
+flowchart LR
+  classDef silver fill:#f1f2f4,stroke:#6f7079,color:#161616;
+  classDef gold   fill:#fcf4d6,stroke:#b28600,color:#161616;
+  classDef use    fill:#edf5ff,stroke:#0f62fe,color:#161616;
+
+  S["silver_sales_enriched<br/>(one clean fact, ask anything)"]:::silver
+
+  G1["gold_daily_sales · TABLE<br/>day × category revenue"]:::gold
+  G2["gold_category_performance · VIEW<br/>totals per category"]:::gold
+  G3["gold_customer_360 · VIEW<br/>one row per customer"]:::gold
+
+  U1["Sales dashboard<br/>(time-series, read often)"]:::use
+  U2["Merchandising<br/>(which categories win?)"]:::use
+  U3["CRM / segmentation<br/>(who are my best customers?)"]:::use
+
+  S --> G1 --> U1
+  G1 --> G2 --> U2
+  S --> G3 --> U3
+```
+
+The shape of each mart matches its use case — and that shape decides TABLE vs VIEW:
+
+| Gold mart | Business question it answers | Who reads it | Shape & type |
+|---|---|---|---|
+| `gold_daily_sales` | "What did we sell each day, by category?" | A sales dashboard refreshed all day long | Pre-aggregated to day × category; a **TABLE** because it's read constantly — compute the heavy `GROUP BY` once |
+| `gold_category_performance` | "Which product categories perform best overall?" | Merchandising / category managers | Rolls the daily table up to one row per category; a **VIEW** because it's a light roll-up of an already-aggregated table |
+| `gold_customer_360` | "Who are my customers and what are they worth?" | CRM, marketing segmentation, support | One denormalised row per customer with lifetime value and order counts; a **VIEW** so it always reflects the latest silver without a rebuild |
+
+!!! tip "Why the mix of TABLE and VIEW is itself a teaching point"
+    Gold isn't "always materialise everything." You **pre-compute (TABLE)** the expensive thing
+    that's read constantly — `gold_daily_sales`. You **leave as a query (VIEW)** the cheap roll-ups
+    that should always be live — `gold_category_performance` and `gold_customer_360`. Same layer,
+    two strategies, each chosen for its consumer. The full TABLE-vs-VIEW trade-off is detailed in
+    [The two gold output types](#the-two-gold-output-types) below.
+
+---
+
 ## Data flow in this demo
 
 dbt and Spark are two full ingest+transform medallion pipelines that read the same CSVs and produce

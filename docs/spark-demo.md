@@ -1,10 +1,15 @@
 # Path B — Spark: Python ETL
 
 !!! abstract "What you will do in this path"
+    **In one breath:** Spark is a distributed Python (PySpark) engine. Here a single PySpark script reads the raw CSVs from object storage and transforms them through the same **Bronze → Silver → Gold** medallion as Path A — except the work runs as parallel Python on the watsonx.data **Spark engine** and the tables land in `spark_demo_*` schemas instead of `dbt_demo_*`. Spark is a full peer to dbt: both ingest *and* transform the same data, so you can build both and compare the Gold outputs side by side.
+
     - Upload the PySpark script and four raw CSV files to MinIO object storage
     - Submit the PySpark job to the watsonx.data Spark engine
     - Watch the job progress from RUNNING to FINISHED
     - Query the Spark gold tables through Presto SQL
+
+    !!! warning "What this path requires"
+        Unlike the dbt path (which needs only a Presto connection), this path needs a provisioned **Spark engine** in watsonx.data plus an asset upload step (script + CSVs pushed to MinIO) before the job can run. The steps below were validated as written but were **not freshly executed in this documentation pass** — run them against your own cluster.
 
     Estimated time: ~15 minutes.
 

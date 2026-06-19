@@ -25,6 +25,23 @@
 ![Apache Iceberg](assets/images/iceberg.svg)
 </div>
 
+## The tools at a glance
+
+New to this stack? Here is each tool in one line — what it is, and when you reach for it.
+
+| Tool | In one line | Reach for it when… |
+|------|-------------|--------------------|
+| **dbt** | SQL transforms that run on the Presto engine | Your logic fits in `SELECT` and you want tests, docs, and lineage for free |
+| **Spark** | Python (PySpark) ETL that runs on the Spark engine | Data is large, or the logic needs Python/ML/streaming/custom parsing |
+| **cpdctl** | An ingestion-only loader (like `dbt seed`) | You want a fast, no-code raw load that shows up in the watsonx.data UI history |
+| **Iceberg** | The open table format — i.e. the storage | Always — every table here is an Iceberg table, whichever tool wrote it |
+| **watsonx.data** | The lakehouse platform that ties it all together | Always — it provides the catalog, the engines, and the object storage |
+
+dbt and **Spark are two interchangeable full pipelines**; **cpdctl only loads raw data** and is paired
+with one of them. **Airflow, Metabase, and OpenMetadata are optional add-ons** (orchestration, BI
+dashboards, and lineage) — skip them on a first pass. Not sure which to run? See
+[When to use which](choosing.md).
+
 ## What you will learn
 
 !!! info "Workshop learning goals"
