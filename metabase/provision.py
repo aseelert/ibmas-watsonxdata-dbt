@@ -134,13 +134,20 @@ def main():
         "is_full_sync": True,
     }
 
-    # Metabase validates the connection synchronously when adding it, and the
-    # FIRST query against a cold Presto engine + cold JVM can exceed Metabase's
-    # 10s validation timeout. That is transient — warm connections are fast — so
-    # retry a few times before giving up. (database_exists() guards against a
-    # double-add if a prior attempt actually succeeded.)
+    # Metabase validates the connection synchronously when adding it, so this
+    # call only succeeds once the watsonx.data Presto engine can actually answer
+    # a query. Two transient conditions are common on a fresh start and BOTH
+    # self-heal with retries:
+    #   * Metabase's own 10s validation timeout on the first (cold) query.
+    #   * The Presto engine still warming up / resuming — it returns HTTP 500
+    #     "authenticator was not loaded" until it is fully ready.
+    # We therefore retry patiently (default ~5 min) so a resuming engine is
+    # tolerated. database_exists() guards against a double-add if an earlier
+    # attempt actually landed. If the engine never wakes, re-running `up -d`
+    # later is safe and idempotent.
     headers = {"X-Metabase-Session": session}
-    attempts = int(os.environ.get("MB_DB_ADD_ATTEMPTS", "8"))
+    attempts = int(os.environ.get("MB_DB_ADD_ATTEMPTS", "20"))
+    interval = int(os.environ.get("MB_DB_ADD_INTERVAL", "15"))
     for attempt in range(1, attempts + 1):
         try:
             created = req("/api/database", db_payload, headers=headers)
@@ -158,8 +165,13 @@ def main():
                 return
             print(f"[provision] add attempt {attempt}/{attempts} failed: {body}")
             if attempt < attempts:
-                time.sleep(10)
-    sys.exit("[provision] gave up adding the Presto data source after retries.")
+                time.sleep(interval)
+    sys.exit(
+        "[provision] gave up adding the Presto data source. The watsonx.data "
+        "Presto engine was not answering queries (often: suspended/resuming). "
+        "Start the engine, then re-run: "
+        "docker compose -f docker-compose-metabase.yml up -d"
+    )
 
 
 if __name__ == "__main__":
