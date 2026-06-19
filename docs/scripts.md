@@ -49,6 +49,9 @@ python scripts/prepare_openmetadata_dbt_artifacts.py
 python scripts/upload_dbt_artifacts.py
 
 # ── TEARDOWN (destructive!) ───────────────────────────────────────────────────
+scripts/reset_demo.sh --all --dry-run   # preview everything that would be removed
+scripts/reset_demo.sh --all             # Docker stacks + schemas + MinIO files
+# (or just the schemas, like before:)
 python scripts/cleanup_watsonxdata.py
 ```
 
@@ -272,12 +275,67 @@ so OpenMetadata can read them during ingestion.
 
 ---
 
-### 8 · `cleanup_watsonxdata.py` — tear down
+### 8 · `cleanup_watsonxdata.py` — drop the schemas
 
 ```bash
 python scripts/cleanup_watsonxdata.py
 ```
 
+Drops every demo schema and the tables/views inside them: `dbt_demo_{raw,bronze,silver,gold}`,
+`spark_demo_{bronze,silver,gold}`, and the cpdctl raw schema (`WXD_INGEST_SCHEMA`,
+default `spark_demo_cpdctl_raw`).
+
 !!! danger "Destructive"
-    Drops **all** `dbt_demo_*` and `spark_demo_*` schemas and every table inside them.
-    Only use when fully tearing down the demo environment.
+    Drops the catalog objects only. Iceberg **data files** may linger in object storage —
+    use `cleanup_minio.py` (or the all-in-one `reset_demo.sh` below) to delete those too.
+
+### 9 · `cleanup_minio.py` — delete the demo's MinIO files
+
+```bash
+python scripts/cleanup_minio.py --dry-run   # list what would be deleted
+python scripts/cleanup_minio.py             # delete
+```
+
+Scoped deletion of only the demo's own prefixes inside `iceberg-bucket`: the medallion
+schema folders (Iceberg table data at the bucket root), the `spark_demo/` asset prefix
+(uploaded Spark app + raw CSVs), and `openmetadata/dbt-artifacts/`. It never empties the
+whole bucket. Needs an `oc` session (MinIO has no external Route on this cluster).
+
+### 10 · `reset_demo.sh` — full reset for a 100% clean rerun
+
+One command that resets any combination of the three demo "surfaces":
+
+```bash
+scripts/reset_demo.sh --all --dry-run     # preview a full wipe (changes nothing)
+scripts/reset_demo.sh --all               # Docker + schemas + MinIO
+scripts/reset_demo.sh --docker            # just the local containers/volumes/images
+scripts/reset_demo.sh --warehouse -y      # drop schemas + MinIO files, skip the prompt
+```
+
+| Flag | What it resets |
+|---|---|
+| `--docker` | Stops & removes the Metabase, Airflow, OpenMetadata stacks — containers + named volumes + the demo's **own (locally built)** images. Shared public base images are kept by default. |
+| `--schemas` | Drops the watsonx.data schemas + tables/views (calls `cleanup_watsonxdata.py`). |
+| `--minio` | Deletes the demo's MinIO/S3 files (calls `cleanup_minio.py`; needs `oc`). |
+| `--warehouse` | `--schemas` then `--minio` (the whole remote side). |
+| `--all` | `--docker` + `--schemas` + `--minio`. |
+| `--dry-run` | Show what would happen, change nothing. |
+| `--keep-images` | With `--docker`, remove **no** images (only containers + volumes). |
+| `--purge-base-images` | With `--docker`, **also** remove shared public base images (`postgres:16`, `metabase/metabase`, `elasticsearch`, `python:3.12-slim`). Off by default. |
+| `-y`, `--yes` | Skip the confirmation prompt. |
+
+!!! success "Scoped to this demo only — verified"
+    Every deletion is bounded to this demo:
+
+    * **Docker** — `down` is run per compose file; the leftover-volume sweep is filtered by
+      Docker's own `com.docker.compose.project` label, so it can only ever match this demo's
+      two projects (an unrelated stack such as `insurance_*` is never touched). Images: only
+      the demo's locally built images are removed unless you pass `--purge-base-images`.
+    * **Schemas** — only the exact schema names derived from your `.env`
+      (`dbt_demo_*`, `spark_demo_*`, the cpdctl raw schema) are dropped.
+    * **MinIO** — only the demo's own trailing-slash-scoped prefixes inside `iceberg-bucket`;
+      the bucket is never emptied.
+
+!!! danger "Still destructive — always `--dry-run` first"
+    `reset_demo.sh` permanently removes the selected resources. Run `--dry-run` first to see
+    the exact containers, volumes, schemas, and object counts that will go.

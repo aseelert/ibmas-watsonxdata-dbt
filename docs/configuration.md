@@ -203,6 +203,21 @@ have a sensible default in the template). Variables shown commented-out are opti
 | `WXD_SPARK_BEARER_TOKEN` / `WXD_ZEN_API_KEY` / `WXD_CPD_PASSWORD` | manual (optional) | Alternatives for Spark REST auth; usually derived from `WXD_CPD_USERNAME` + `WXD_API_KEY`. |
 | `WXD_DBT_ARTIFACT_DIR` / `_BUCKET` / `_PREFIX` | manual | Where dbt artifacts are staged/published for OpenMetadata. |
 
+### Resetting for a clean rerun
+
+The reset tooling introduces **no new configuration** — it reuses the variables above to
+target exactly what the demo created:
+
+| Tool | Reads | Scope |
+|---|---|---|
+| `scripts/cleanup_watsonxdata.py` | `WXD_SCHEMA`, `WXD_SPARK_SCHEMA`, `WXD_INGEST_SCHEMA` (+ optional `WXD_*_SCHEMA` overrides) | DROPs only those exact schemas via Presto |
+| `scripts/cleanup_minio.py` | `WXD_SPARK_ASSET_BUCKET`, `WXD_SPARK_ASSET_PREFIX`, the schema vars, plus the same `WXD_OBJECT_STORE_*` / `oc` settings as the uploader | deletes only the demo's prefixes inside the bucket; the bucket is kept |
+| `scripts/reset_demo.sh` | the above, and the three `docker-compose*.yml` files | adds Docker teardown (containers + volumes + demo images) |
+
+Because every target is derived from your `.env`, changing a schema name or bucket here makes
+the reset scripts follow it automatically. See the [Scripts page](scripts.md#10-reset_demosh-full-reset-for-a-100-clean-rerun)
+for the full flag reference. Always preview with `--dry-run` first.
+
 ---
 
 ## dbt profile reference

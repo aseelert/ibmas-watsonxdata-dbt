@@ -268,7 +268,9 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 | `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `spark_demo_cpdctl_raw` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `spark_demo_cpdctl_raw` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `spark_demo_cpdctl_raw` as a post-action (cpdctl + dbt/Spark = full pipeline) |
 | `prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | By default runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and `dbt docs generate`, then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage. Flags: `--skip-dbt` (copy existing `target/*.json` only), `--skip-seed` (skip the seed step), `--artifact-dir <path>` (override the staging directory), `--retries <n>` (retries per dbt command, default 1) |
 | `upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
-| `cleanup_watsonxdata.py` | After the demo | Drops all tables and views in `dbt_demo_raw/bronze/silver/gold` and `spark_demo_bronze/silver/gold`; use this to reset the environment between runs |
+| `cleanup_watsonxdata.py` | Reset — schemas | Drops all tables/views and the schemas themselves: `dbt_demo_{raw,bronze,silver,gold}`, `spark_demo_{bronze,silver,gold}`, and the cpdctl raw schema (`WXD_INGEST_SCHEMA`, default `spark_demo_cpdctl_raw`). Catalog objects only — Iceberg data files in MinIO are removed by `cleanup_minio.py` |
+| `cleanup_minio.py` | Reset — object storage | Deletes only the demo's own prefixes inside `iceberg-bucket` (the medallion schema folders, the `spark_demo/` app+CSVs, and `openmetadata/dbt-artifacts/`); verifies the prefixes end empty and reports that the bucket itself is kept. `--dry-run` previews. Needs an `oc` session |
+| `reset_demo.sh` | Reset — everything | One command to get back to a clean rerun. Flags: `--docker` (tear down the Metabase/Airflow/OpenMetadata stacks — containers + volumes + the demo's own images), `--schemas`, `--minio`, `--warehouse` (= schemas + minio), `--all`; plus `--dry-run`, `--keep-images`, `--purge-base-images`, `-y`. Scoped to this demo only — see the [Scripts page](scripts.md#10-reset_demosh-full-reset-for-a-100-clean-rerun) |
 | `dbt_env.sh` | Shell convenience | Sources `.env` and activates the virtual environment, then passes all remaining arguments to the `dbt` command; use this when your shell does not source `.env` automatically |
 
 !!! example "Typical setup sequence (run once)"
@@ -417,3 +419,13 @@ the `iceberg_data` catalog.
 | `spark_demo_bronze/` `spark_demo_silver/` `spark_demo_gold/` | Spark engine | next Spark layer; BI / SQL clients read gold |
 | `spark_demo_cpdctl_raw/` | cpdctl native ingest (Presto-created schema) | a dbt or Spark transform run as a post-action |
 | `openmetadata/dbt-artifacts/dbt_demo/` | `prepare_openmetadata_dbt_artifacts.py` | OpenMetadata ingestion (lineage) |
+
+!!! info "Resetting these prefixes for a clean rerun"
+    `scripts/cleanup_minio.py` deletes **exactly these demo prefixes** (and nothing else) so a
+    rerun starts clean. The `iceberg-bucket` bucket itself is always kept, and any non-demo
+    folders in it (e.g. another project's data) are left untouched — the script lists the
+    bucket's top-level folders at the end and labels which are demo vs. not. Run
+    `python scripts/cleanup_minio.py --dry-run` to preview, or use the all-in-one
+    `scripts/reset_demo.sh` (see the [Scripts page](scripts.md#9-cleanup_miniopy-delete-the-demos-minio-files)).
+    Recommended order: drop the schemas first (`cleanup_watsonxdata.py`), then sweep MinIO —
+    `reset_demo.sh --warehouse` does both in that order.

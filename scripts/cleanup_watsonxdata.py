@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 """Drop all demo schemas (and their tables/views) from watsonx.data.
 
-Removes the dbt schemas (dbt_demo_raw/bronze/silver/gold) and the Spark
-schemas (spark_demo_bronze/silver/gold) so the demo can be rebuilt from scratch.
+Removes the dbt schemas (dbt_demo_raw/bronze/silver/gold), the Spark schemas
+(spark_demo_bronze/silver/gold), and the cpdctl native-ingest raw schema
+(WXD_INGEST_SCHEMA, e.g. spark_demo_cpdctl_raw) so the demo can be rebuilt from
+scratch.
 
-For safety this only touches the exact schema names derived from WXD_SCHEMA and
-WXD_SPARK_SCHEMA. Tables and views are dropped first (Iceberg schemas must be
-empty before they can be dropped), then the schema itself.
+For safety this only touches the exact schema names derived from WXD_SCHEMA,
+WXD_SPARK_SCHEMA, and WXD_INGEST_SCHEMA. Tables and views are dropped first
+(Iceberg schemas must be empty before they can be dropped), then the schema
+itself.
+
+Note: dropping the schemas removes the catalog objects, but Iceberg data files
+may linger in object storage. Run scripts/cleanup_minio.py (or the all-in-one
+scripts/reset_demo.sh) afterwards to delete the underlying MinIO files too.
 """
 
 from __future__ import annotations
@@ -92,6 +99,7 @@ def main() -> int:
         os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{spark_base}_bronze"),
         os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{spark_base}_silver"),
         os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{spark_base}_gold"),
+        os.getenv("WXD_INGEST_SCHEMA", f"{spark_base}_cpdctl_raw"),
     ]
 
     print(f"Connecting to {host}:{port}, catalog={catalog}")
