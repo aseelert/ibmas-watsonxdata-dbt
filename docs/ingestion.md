@@ -317,9 +317,23 @@ The ingestion script creates the target schema if it does not exist, then submit
 job per CSV file.
 
 ```bash
-export WXD_CPDCTL_PROFILE=wxd-demo
-python scripts/ingest_with_cpdctl.py
+python scripts/ingest_with_cpdctl.py            # submit all four jobs
+python scripts/ingest_with_cpdctl.py --wait     # submit, then poll until all jobs finish
 ```
+
+!!! success "Auth is self-healing — Step 2 is a one-time convenience, not a per-run requirement"
+    Before submitting anything, the script validates `WXD_API_KEY` against CPD and re-syncs
+    cpdctl's cached credentials from `.env` (profile `WXD_CPDCTL_PROFILE`, default `wxd-demo`).
+    cpdctl caches credentials in `~/.cpdctl.config.json` and never reads `.env` on its own, so a
+    rotated key would otherwise fail mid-job with
+    `An error occurred while performing the 'authenticate' step: Unauthorized`. Re-syncing every
+    run makes that impossible. If the key itself is expired you get a clear 401 message:
+
+    ```text
+    WXD_API_KEY was rejected by CPD (401). The key is expired or revoked.
+      Refresh it, then re-run this script:
+        python scripts/get_token.py --refresh-key
+    ```
 
 Internally, for each CSV file the script calls `cpdctl wx-data ingestion create`. The equivalent
 bare CLI command for the customers file looks like this:
@@ -340,18 +354,28 @@ and prints each `job_id` and the console link to monitor progress.
 Expected output:
 
 ```text
-Submitting ingestion job for: raw_customers.csv
-  job_id: ingest-customers-demo
-  target: iceberg_data.lakehouse_demo_ingest.customers
-  console: https://cpd.apps.watson.ibmas-zocp-techcluster.org/...
+Checking authentication...
+  WXD_API_KEY valid against CPD  [OK]
+  Syncing cpdctl profile 'wxd-demo' (user 'wxd-demo_user') from .env...
+  cpdctl profile 'wxd-demo' ready  [OK]
 
-Submitting ingestion job for: raw_products.csv
-  job_id: ingest-products-demo
-  target: iceberg_data.lakehouse_demo_ingest.products
-  ...
+SQL> create schema if not exists iceberg_data.lakehouse_demo_ingest ...
 
-All 4 ingestion jobs submitted.
+$ cpdctl wx-data ingestion create --instance-id ... --job-id ingest-customers-1781856578 ...
+...
+==========================================================================
+Submitted 4 ingestion job(s); 0 failed.
+  job_id: ingest-customers-1781856578
+  job_id: ingest-products-1781856578
+  job_id: ingest-orders-1781856578
+  job_id: ingest-order_items-1781856578
+
+Check status anytime:  python ingest_with_cpdctl.py --status --batch 1781856578
+==========================================================================
 ```
+
+Each run stamps a **batch id** (the trailing number on every `job_id`). Note it — you pass it
+back to `--status` to check that run later (see Step 6).
 
 !!! warning "Do not pass `--storage-name` for a registered bucket"
     `iceberg-bucket` is already **registered** in watsonx.data, so the service auto-detects it
@@ -364,23 +388,44 @@ All 4 ingestion jobs submitted.
 
 ### Step 6 — Watch the jobs
 
-Poll the ingestion job list from the terminal, or open the UI to watch job state move from
-`starting` to `running` to `FINISHED`.
+The simplest way is to let the script poll for you. Either submit and wait in one shot with
+`--wait`, or check a previous run with `--status --batch <id>` (the batch id printed in Step 5):
 
 ```bash
-# List the 10 most recent ingestion jobs
-cpdctl wx-data ingestion list \
-  --instance-id "${WXD_INSTANCE_ID}" \
-  --jobs-per-page 10
+# Check the status of all four jobs for a batch and exit
+python scripts/ingest_with_cpdctl.py --status --batch 1781856578
+
+# Poll every 20s until all jobs reach a terminal state (or --timeout, default 900s)
+python scripts/ingest_with_cpdctl.py --status --batch 1781856578 --wait
 ```
 
-To watch a specific job:
+```text
+Ingestion status:
+  finished     ingest-customers-1781856578
+  finished     ingest-products-1781856578
+  finished     ingest-orders-1781856578
+  finished     ingest-order_items-1781856578
 
-```bash
-cpdctl wx-data ingestion get \
-  --instance-id "${WXD_INSTANCE_ID}" \
-  --job-id ingest-customers-demo
+  All 4 job(s) finished successfully.
 ```
+
+The script exits `0` only when **every** job reached a successful terminal state, so it doubles
+as a pipeline gate. Tune polling with `--interval <seconds>` and `--timeout <seconds>`.
+
+??? note "Underlying bare cpdctl commands"
+    `--status` wraps `cpdctl wx-data ingestion get`. You can also call cpdctl directly:
+
+    ```bash
+    # List the 10 most recent ingestion jobs
+    cpdctl wx-data ingestion list \
+      --instance-id "${WXD_INSTANCE_ID}" \
+      --jobs-per-page 10
+
+    # Watch a specific job (add --engine-logs for the Spark log)
+    cpdctl wx-data ingestion get \
+      --instance-id "${WXD_INSTANCE_ID}" \
+      --job-id ingest-customers-1781856578
+    ```
 
 In the UI: open the watsonx.data console, navigate to **Data manager → Ingestion**. Each job
 listed there is exactly what `cpdctl wx-data ingestion list` returns — the CLI and the UI share

@@ -35,7 +35,8 @@ WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
 python scripts/spark_application_status.py   # repeat until finished
 
 # ── PATH C · cpdctl ingestion ────────────────────────────────────────────────
-python scripts/ingest_with_cpdctl.py
+python scripts/ingest_with_cpdctl.py --wait          # submit + poll to completion
+python scripts/ingest_with_cpdctl.py --status --batch <id>   # check a prior run
 
 # ── QUERY gold layer ─────────────────────────────────────────────────────────
 python scripts/query_gold.py
@@ -184,14 +185,32 @@ Returns `running`, `finished`, or `failed`.
 
 ### 4 · `ingest_with_cpdctl.py` — native CSV ingestion
 
-Requires `cpdctl` installed and logged in.
+Requires `cpdctl` installed and on `PATH`. You do **not** need to log cpdctl in by
+hand: every run validates `WXD_API_KEY` against CPD and re-syncs cpdctl's cached
+credentials from `.env` first, so the stale-cache
+`authenticate step: Unauthorized` error can't recur. If the key itself is rejected
+you get a clear 401 pointing you to `python scripts/get_token.py --refresh-key`.
 
 ```bash
-python scripts/ingest_with_cpdctl.py
+python scripts/ingest_with_cpdctl.py                  # submit all four jobs
+python scripts/ingest_with_cpdctl.py --wait           # submit, then poll to completion
+python scripts/ingest_with_cpdctl.py --status --batch <id>         # check a prior run
+python scripts/ingest_with_cpdctl.py --status --batch <id> --wait  # poll a prior run
 ```
 
 Reads CSVs from `s3a://iceberg-bucket/spark_demo/raw/` and ingests them into
 `lakehouse_demo_ingest` via the watsonx.data native ingestion engine.
+
+| Flag | Default | What it does |
+|------|---------|--------------|
+| `--wait` | off | After submitting, poll all jobs until they reach a terminal state. |
+| `--status` | off | Skip submission; just report the status of an existing batch's jobs. |
+| `--batch <id>` | timestamp | Batch id to target. Each run prints its id; pass it back to `--status`. |
+| `--interval <s>` | `20` | Seconds between polls when waiting. |
+| `--timeout <s>` | `900` | Max seconds to wait before giving up. |
+
+Job ids are deterministic (`ingest-<table>-<batch>`), so `--status` needs only the
+batch id — no state file. Status is read via `cpdctl wx-data ingestion get`.
 
 ---
 
