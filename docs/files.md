@@ -159,7 +159,7 @@ flowchart LR
 
 ### `models/bronze/`
 
-Bronze models copy data from the raw seed tables and add ingestion metadata columns (`_loaded_at`, `_source_file`, `_row_number`). No business logic is applied here — the goal is a faithful, auditable record of exactly what arrived.
+Bronze models copy data from the raw seed tables and add ingestion metadata columns (`_ingested_at`, `_ingested_by`, `_source_file`, `_ingest_batch_id`). No business logic is applied here — the goal is a faithful, auditable record of exactly what arrived.
 
 | Model | Source seed | What it adds |
 |---|---|---|
@@ -266,7 +266,7 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 | `spark_application_status.py` | After submission | Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by `submit_spark_application.py` |
 | `query_gold.py` | After any demo path | Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI |
 | `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `spark_demo_cpdctl_raw` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `spark_demo_cpdctl_raw` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `spark_demo_cpdctl_raw` as a post-action (cpdctl + dbt/Spark = full pipeline) |
-| `prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | Runs `dbt docs generate` then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage |
+| `prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | By default runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and `dbt docs generate`, then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage. Flags: `--skip-dbt` (copy existing `target/*.json` only), `--skip-seed` (skip the seed step), `--artifact-dir <path>` (override the staging directory), `--retries <n>` (retries per dbt command, default 1) |
 | `upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
 | `cleanup_watsonxdata.py` | After the demo | Drops all tables and views in `dbt_demo_raw/bronze/silver/gold` and `spark_demo_bronze/silver/gold`; use this to reset the environment between runs |
 | `dbt_env.sh` | Shell convenience | Sources `.env` and activates the virtual environment, then passes all remaining arguments to the `dbt` command; use this when your shell does not source `.env` automatically |
@@ -293,7 +293,7 @@ OpenMetadata 1.13.0 runs locally in Docker and provides a data catalog UI where 
 
 | File | What it does |
 |---|---|
-| `openmetadata/docker-compose.yml` | Defines four Docker services: `mysql` (OpenMetadata metadata store), `elasticsearch` (search index), `openmetadata-server` (the application, exposed on port 8585), and `ingestion` (an embedded Airflow instance for managed ingestion pipelines). Start with `docker compose -f openmetadata/docker-compose.yml up -d`. |
+| `openmetadata/docker-compose.yml` | Defines five Docker services: `mysql` (OpenMetadata metadata store), `elasticsearch` (search index), `execute-migrate-all` (a one-shot migration init container that runs the database migrations and then exits before the server starts), `openmetadata-server` (the application, exposed on port 8585), and `ingestion` (an embedded Airflow instance for managed ingestion pipelines). Start with `docker compose -f openmetadata/docker-compose.yml up -d`. |
 | `openmetadata/ingestion/dbt-ingestion.yaml` | OpenMetadata ingestion connector configuration — tells the `metadata ingest` command where to find the local dbt artifacts and how to connect to the Presto service at `ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443`. The `__JWT_TOKEN__` placeholder is replaced at runtime by `run-ingestion.sh`. |
 | `openmetadata/ingestion/run-ingestion.sh` | End-to-end ingestion runner — installs `openmetadata-ingestion[dbt]==1.13.0.0`, calls `get_om_token.py` for a fresh JWT, substitutes the token into `dbt-ingestion.yaml`, creates the Presto database service in OpenMetadata via the REST API if it does not exist, and runs `metadata ingest`. |
 | `openmetadata/ingestion/get_om_token.py` | Logs in to OpenMetadata as `admin`, retrieves the `ingestion-bot` user ID, generates a one-hour JWT for that bot, and prints the token to stdout. Called by `run-ingestion.sh` — not meant to be run directly. |

@@ -247,12 +247,18 @@ def spark_medallion_hourly():
 
         app_id = submit_spark_app(token)
 
+        # Demo-friendly cap (default 15 min) — overridable via env so a slow
+        # machine can extend it without editing the DAG. retries=0 here so a
+        # timed-out sensor does NOT re-submit/re-poll a new Spark app; the
+        # dagrun_timeout (60 min) is the whole-run backstop.
+        spark_wait_timeout = int(os.getenv("WXD_SPARK_WAIT_TIMEOUT_SEC", "900"))
         wait = PythonSensor(
             task_id="wait_for_spark",
             python_callable=poll_spark_status,
             mode="reschedule",   # release the worker slot between pokes
             poke_interval=60,
-            timeout=40 * 60,
+            timeout=spark_wait_timeout,
+            retries=0,
         )
         app_id >> wait
 

@@ -39,6 +39,7 @@ def main() -> int:
 
     try:
         import boto3
+        import botocore.config
     except ImportError as exc:
         raise SystemExit(
             "Missing dependency 'boto3'. Install dependencies with: python -m pip install -r requirements.txt"
@@ -79,7 +80,15 @@ def main() -> int:
     print(f"Object store endpoint: {endpoint}")
     print(f"Target artifact prefix: s3://{bucket}/{prefix}")
 
+    # Cap S3 connect/read so a stalled MinIO can't hang the upload indefinitely.
+    s3_config = botocore.config.Config(
+        connect_timeout=10,
+        read_timeout=60,
+        retries={"max_attempts": 2},
+    )
+
     try:
+        print(f"Creating S3 client for {endpoint} (connect 10s / read 60s) ...")
         s3 = boto3.client(
             "s3",
             endpoint_url=endpoint,
@@ -87,6 +96,7 @@ def main() -> int:
             aws_secret_access_key=secret_key,
             region_name=region,
             verify=verify,
+            config=s3_config,
         )
         for name in ARTIFACTS:
             if not (artifact_dir / name).exists():

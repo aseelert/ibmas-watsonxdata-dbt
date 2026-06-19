@@ -79,10 +79,10 @@ def main() -> int:
     ]
     location_base = os.getenv("WXD_SCHEMA_LOCATION_BASE", "").rstrip("/")
 
-    print(f"Connecting to {host}:{port}, catalog={catalog}")
     if location_base:
         print(f"Using schema location base: {location_base}")
 
+    print(f"Connecting to Presto {host}:{port} (catalog={catalog}) ...")
     conn = prestodb.dbapi.connect(
         host=host,
         port=port,
@@ -91,8 +91,11 @@ def main() -> int:
         http_scheme="https",
         http_headers=_http_headers(),
         auth=prestodb.auth.BasicAuthentication(user, password),
+        # Per-request socket timeout so a suspended/resuming engine can't hang.
+        request_timeout=60,
     )
     conn._http_session.verify = _ssl_verify()
+    print("Connected.")
 
     def _execute(sql: str, *, swallow: bool = False) -> bool:
         print(f"SQL> {sql}")
@@ -106,6 +109,7 @@ def main() -> int:
                     print(f"  (ignored) {exc}")
                     return False
                 raise
+            print("  AMS token not ready (AMS_CANNOT_GET_TOKEN); waiting 2s then retrying once...")
             time.sleep(2)
             cur.execute(sql)
             cur.fetchall()

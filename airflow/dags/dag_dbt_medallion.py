@@ -46,27 +46,37 @@ PROJECT_DIR = "/opt/airflow/project"
 ENTITIES = ["customers", "products", "orders", "order_items"]
 
 
-def dbt_cmd(action: str) -> str:
+def dbt_cmd(action: str, *, banner: str | None = None) -> str:
     """
     Build a dbt CLI invocation. DBT_PROFILES_DIR / DBT_TARGET_PATH / DBT_LOG_PATH
     are supplied by the environment (docker-compose) so the read-only project
     directory is never written to.
+
+    A leading `echo "==> ..."` breadcrumb (defaulting to the dbt action) makes
+    each task's progress obvious in the Airflow log.
     """
+    step = banner or f"dbt {action}"
     return (
+        f'echo "==> {step}" && '
         f"cd {PROJECT_DIR} && "
         f"dbt {action} --project-dir {PROJECT_DIR} --target dev --no-version-check"
     )
 
 
-def script_cmd(relative_path: str) -> str:
+def script_cmd(relative_path: str, *, banner: str | None = None) -> str:
     """Run one of the repo's existing helper scripts (reused, not reimplemented)."""
-    return f"cd {PROJECT_DIR} && python {relative_path}"
+    step = banner or f"run {relative_path}"
+    return f'echo "==> {step}" && cd {PROJECT_DIR} && python {relative_path}'
 
 
 default_args = {
     "owner": "data-engineering",
     "retries": 1,
     "retry_delay": timedelta(minutes=2),
+    # Cap every task at 10 min (matches the sibling Spark DAG convention and the
+    # user's "10 min per step" expectation); the DAG-level dagrun_timeout is the
+    # whole-run backstop.
+    "execution_timeout": timedelta(minutes=10),
 }
 
 
@@ -85,15 +95,23 @@ def dbt_medallion_hourly():
     # --- 0. Create the Iceberg schemas (reuses the existing bootstrap script) ---
     bootstrap = BashOperator(
         task_id="bootstrap_schemas",
-        bash_command=script_cmd("scripts/bootstrap_watsonxdata.py"),
+        bash_command=script_cmd(
+            "scripts/bootstrap_watsonxdata.py",
+            banner="bootstrap: create dbt_demo_{raw,bronze,silver,gold} schemas",
+        ),
     )
 
     # --- 1. RAW: load each seed CSV into dbt_demo_raw as its own task ---
     with TaskGroup(group_id="raw") as raw:
         seed = {
+            # --full-refresh matches the standalone demo (docs/dbt-demo.md), so a
+            # seed-schema change is picked up here the same way it is by hand.
             e: BashOperator(
                 task_id=f"seed_raw_{e}",
-                bash_command=dbt_cmd(f"seed --select raw_{e}"),
+                bash_command=dbt_cmd(
+                    f"seed --select raw_{e} --full-refresh",
+                    banner=f"RAW seed (full-refresh): raw_{e} -> dbt_demo_raw",
+                ),
             )
             for e in ENTITIES
         }
@@ -103,7 +121,10 @@ def dbt_medallion_hourly():
         bronze_t = {
             e: BashOperator(
                 task_id=f"bronze_{e}",
-                bash_command=dbt_cmd(f"run --select bronze_{e}"),
+                bash_command=dbt_cmd(
+                    f"run --select bronze_{e}",
+                    banner=f"BRONZE: bronze_{e} -> dbt_demo_bronze",
+                ),
             )
             for e in ENTITIES
         }
@@ -113,43 +134,66 @@ def dbt_medallion_hourly():
         silver_t = {
             e: BashOperator(
                 task_id=f"silver_{e}",
-                bash_command=dbt_cmd(f"run --select silver_{e}"),
+                bash_command=dbt_cmd(
+                    f"run --select silver_{e}",
+                    banner=f"SILVER: silver_{e} -> dbt_demo_silver",
+                ),
             )
             for e in ENTITIES
         }
         silver_enriched = BashOperator(
             task_id="silver_sales_enriched",
-            bash_command=dbt_cmd("run --select silver_sales_enriched"),
+            bash_command=dbt_cmd(
+                "run --select silver_sales_enriched",
+                banner="SILVER: silver_sales_enriched (enriched join) -> dbt_demo_silver",
+            ),
         )
         # Standalone metrics time-spine (no upstream refs).
         time_spine = BashOperator(
             task_id="time_spine_daily",
-            bash_command=dbt_cmd("run --select time_spine_daily"),
+            bash_command=dbt_cmd(
+                "run --select time_spine_daily",
+                banner="SILVER: time_spine_daily (metrics spine) -> dbt_demo_silver",
+            ),
         )
 
     # --- 4. GOLD: business marts ---
     with TaskGroup(group_id="gold") as gold:
         gold_daily = BashOperator(
             task_id="gold_daily_sales",
-            bash_command=dbt_cmd("run --select gold_daily_sales"),
+            bash_command=dbt_cmd(
+                "run --select gold_daily_sales",
+                banner="GOLD: gold_daily_sales -> dbt_demo_gold",
+            ),
         )
         gold_category = BashOperator(
             task_id="gold_category_performance",
-            bash_command=dbt_cmd("run --select gold_category_performance"),
+            bash_command=dbt_cmd(
+                "run --select gold_category_performance",
+                banner="GOLD: gold_category_performance -> dbt_demo_gold",
+            ),
         )
         gold_customer_360 = BashOperator(
             task_id="gold_customer_360",
-            bash_command=dbt_cmd("run --select gold_customer_360"),
+            bash_command=dbt_cmd(
+                "run --select gold_customer_360",
+                banner="GOLD: gold_customer_360 -> dbt_demo_gold",
+            ),
         )
 
     # --- 5. Tests + a real customer-facing query (reuses query_gold.py) ---
     dbt_test = BashOperator(
         task_id="dbt_test",
-        bash_command=dbt_cmd("test"),
+        bash_command=dbt_cmd("test", banner="TEST: dbt schema + data tests"),
     )
+    # Bounded final preview: reuses scripts/query_gold.py (a fixed top-N query),
+    # so it echoes the gold mart without any risk of hanging.
     query_gold = BashOperator(
         task_id="query_gold",
-        bash_command=script_cmd("scripts/query_gold.py"),
+        bash_command=script_cmd(
+            "scripts/query_gold.py",
+            banner="PREVIEW: query gold mart (scripts/query_gold.py)",
+        ),
     )
 
     # =====================================================================

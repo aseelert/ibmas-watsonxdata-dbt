@@ -91,6 +91,7 @@ def mint_bearer_token() -> str:
     host = cpd_host()
     auth_url = os.getenv("WXD_CPD_AUTH_URL", f"https://{host}/icp4d-api/v1/authorize")
     username = _cpd_username()
+    print(f"[wxd] minting bearer token from {auth_url} (user={username}) ...")
     api_key = os.getenv("WXD_CPD_API_KEY") or os.getenv("WXD_API_KEY")
     password = os.getenv("WXD_CPD_PASSWORD")
 
@@ -168,15 +169,21 @@ def presto_connect(schema: str | None = None):
 
     user = env("WXD_USER", "ibmlhapikey_cpadmin")
     password = env("WXD_API_KEY")
+    host = env("WXD_HOST")
+    port = int(env("WXD_PORT", "443"))
+    print(f"[wxd] connecting to Presto {host}:{port} (catalog={env('WXD_CATALOG', 'iceberg_data')}"
+          f"{f', schema={schema}' if schema else ''}) ...")
     conn = prestodb.dbapi.connect(
-        host=env("WXD_HOST"),
-        port=int(env("WXD_PORT", "443")),
+        host=host,
+        port=port,
         user=user,
         catalog=env("WXD_CATALOG", "iceberg_data"),
         schema=schema,
         http_scheme="https",
         http_headers={"LhInstanceId": instance_id()},
         auth=prestodb.auth.BasicAuthentication(user, password),
+        # Bound every HTTP request so a stalled query can't hang the DAG task.
+        request_timeout=int(os.getenv("WXD_PRESTO_REQUEST_TIMEOUT_SEC", "60")),
     )
     conn._http_session.verify = ssl_verify()
     return conn

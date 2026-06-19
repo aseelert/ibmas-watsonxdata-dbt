@@ -248,7 +248,16 @@ python scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt  # use existing 
 python scripts/prepare_openmetadata_dbt_artifacts.py --skip-seed # skip seed step only
 ```
 
-Stages `manifest.json`, `catalog.json`, and `run_results.json` into `openmetadata/dbt-artifacts/`.
+By default the script runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and
+`dbt docs generate`, then stages `manifest.json`, `catalog.json`, and `run_results.json`
+into `openmetadata/dbt-artifacts/`.
+
+| Flag | Default | What it does |
+|------|---------|--------------|
+| `--skip-dbt` | off | Only copy existing `target/*.json` artifacts; do not run any dbt commands. |
+| `--skip-seed` | off | Skip the `dbt seed` step but still run `dbt run`, `dbt test`, and `dbt docs generate`. |
+| `--artifact-dir <path>` | `openmetadata/dbt-artifacts/` | Directory where the staged artifacts are written. |
+| `--retries <n>` | `1` | Number of retries for each dbt command. |
 
 ---
 

@@ -13,9 +13,14 @@ profiles.yml
 **/profiles.yml
 watsonx_data/*.json
 *.pyc
+*.pyo
 __pycache__/
+.pytest_cache/
 .playwright-mcp/
 shot_*.png
+home.png
+# Local audit/scratch output (see AUDIT_REPORT.md)
+AUDIT_REPORT.md
 
 # CLI install artifacts (downloaded in setup Step 8; binaries go to ~/.local/bin)
 cpdctl.tar.gz

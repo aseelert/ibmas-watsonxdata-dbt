@@ -52,6 +52,84 @@ error, this is the page to check.
     oc login --token=sha256~<token> --server=https://api.watson.ibmas-zocp-techcluster.org:6443
     ```
 
+### How the four sensitive credentials are created
+
+Four values in `.env` are *secrets*, not just hostnames. They are created in different
+ways and have very different lifetimes. The key idea: **only one of them — the API key —
+actually needs to live in `.env`.** The other three are either derived on the fly or read
+from the cluster at run time.
+
+```mermaid
+flowchart TD
+    PW["Your Software Hub<br/>password (cpadmin)"] -->|"one-time login"| APIKEY["WXD_API_KEY<br/>(Software Hub API key)"]
+    APIKEY -->|"POST /icp4d-api/v1/authorize<br/>{username, api_key}"| BEARER["WXD_SPARK_BEARER_TOKEN<br/>(short-lived JWT)"]
+    APIKEY -->|"base64(user:api_key)"| ZEN["ZenApiKey<br/>(derived in memory)"]
+    BEARER --> SPARKREST["Spark REST / Presto / cpdctl"]
+    ZEN --> SPARKREST
+    MINIO["watsonx.data install<br/>creates MinIO keys"] -->|"stored in OpenShift secret<br/>ibm-lh-minio-secret"| OCSECRET["WXD_OBJECT_STORE_ACCESS_KEY<br/>WXD_OBJECT_STORE_SECRET_KEY"]
+    OCSECRET -->|"oc get secret → base64 -d"| UPLOAD["upload_spark_assets.py"]
+```
+
+#### 1. `WXD_API_KEY` — IBM Software Hub API key (the *root* credential)
+
+This is the one secret you genuinely provide. Everything else is built from it.
+
+* **Created by you**, two equivalent ways:
+    * **UI:** open `https://<WXD_CPD_HOST>`, log in as `cpadmin` → avatar (top-right) →
+      *Profile and settings* → **API key** tab → **Regenerate API key** → copy it into
+      `.env` as `WXD_API_KEY=<key>`.
+    * **Script:** `python scripts/get_token.py --refresh-key` does a one-time **password**
+      login, calls `POST /usermgmt/v1/user/apikey/regenerate`, and writes the new key into
+      `.env` for you.
+* **Used for:** Presto/dbt auth (it is the *password* for the Presto user
+  `ibmlhapikey_cpadmin`), Spark REST auth (via the derived ZenApiKey below), and cpdctl.
+* **Lifetime:** long-lived until you regenerate it. **Regenerating invalidates the old
+  key**, so it is the cleanest thing to rotate.
+
+#### 2. `WXD_SPARK_BEARER_TOKEN` — CPD bearer token (short-lived JWT)
+
+A session token, not a permanent secret — it **expires**. You usually do **not** need to
+store it.
+
+* **Created from the API key:** `POST WXD_CPD_AUTH_URL` (`/icp4d-api/v1/authorize`) with
+  `{username, api_key}` returns a `token`. `scripts/get_token.py` prints it;
+  `scripts/get_token.py --export` writes it to `.env`.
+* **Derived automatically when missing:** `scripts/submit_spark_application.py` and the
+  Airflow `common/wxd.py` helper mint a fresh token (or a derived `ZenApiKey` =
+  `base64("<user>:<api_key>")`) at run time, so the Spark path works **without** any
+  `WXD_SPARK_BEARER_TOKEN` in `.env`.
+* **Lifetime:** minutes/hours (JWT expiry). A token sitting in `.env` is almost always
+  stale — prefer to leave it unset and let the scripts derive one.
+
+#### 3 & 4. `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` — MinIO (S3) keys
+
+These are **created by the watsonx.data installation** when it provisions MinIO — *you*
+do not generate them. The demo reads them from the cluster.
+
+* **Where they live:** the OpenShift secret `ibm-lh-minio-secret` (namespace
+  `cpd-instance`), under keys `LH_S3_ACCESS_KEY` / `LH_S3_SECRET_KEY`.
+* **How the demo gets them:** `scripts/upload_spark_assets.py` runs, in effect,
+  `oc get secret ibm-lh-minio-secret -n cpd-instance -o jsonpath='{.data.LH_S3_ACCESS_KEY}'`
+  and base64-decodes it — so as long as you are logged in with `oc`, you can leave both
+  keys **unset** in `.env`.
+* **Lifetime / rotation:** platform-managed. Rotating them is a cluster-admin task (rotate
+  the MinIO secret); the scripts then pick up the new values automatically on the next run.
+
+!!! danger "Best practice: keep secrets *out* of `.env` where you can"
+    Of the four, only **`WXD_API_KEY`** needs to be in `.env`. Leave
+    `WXD_SPARK_BEARER_TOKEN` unset (it is short-lived and auto-derived) and leave the two
+    MinIO keys unset (they are read from `oc` at run time). If you ever pasted a real
+    bearer token or MinIO key into `.env`, treat it as exposed and rotate it:
+
+    | Credential | How to rotate |
+    |---|---|
+    | `WXD_API_KEY` | Regenerate in the Software Hub UI, or `python scripts/get_token.py --refresh-key`. The old key stops working. |
+    | `WXD_SPARK_BEARER_TOKEN` | Just delete it from `.env` — it expires on its own and is re-minted from the API key when needed. |
+    | `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | Ask your cluster admin to rotate the `ibm-lh-minio-secret`; remove them from `.env` and let `upload_spark_assets.py` read the new values via `oc`. |
+
+    `.env` is git-ignored (see `.gitignore`), so these never reach Git — but they are still
+    real working credentials on disk.
+
 ---
 
 ## `.env` reference — every variable

@@ -199,8 +199,12 @@ def main() -> None:
             F.sum("net_revenue").cast("decimal(14,2)").alias("total_revenue"),
         )
         .withColumn(
+            # Divide-by-zero guard to match the dbt model's nullif(sum(units_sold),0):
+            # a category with 0 total units yields NULL, not an error/inf.
             "avg_revenue_per_unit",
-            (F.col("total_revenue") / F.col("total_units")).cast("decimal(14,2)"),
+            F.when(F.col("total_units") == 0, None)
+            .otherwise(F.col("total_revenue") / F.col("total_units"))
+            .cast("decimal(14,2)"),
         )
     )
     print(f"Writing gold category performance table {catalog}.{gold_schema}.spark_gold_category_performance")

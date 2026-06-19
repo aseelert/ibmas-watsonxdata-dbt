@@ -1,7 +1,7 @@
 # Metabase: Explore & Chart the Lakehouse in a Local Docker UI
 
 !!! info "What Metabase does"
-    Metabase is a **business-intelligence (BI) tool** — a point-and-click way to browse tables, write SQL, and build charts and dashboards. Unlike [OpenMetadata](openmetadata.md) (which reads dbt's JSON files *offline* to draw lineage), Metabase connects **live to the Presto engine** in watsonx.data and queries the real data. Point it at the `iceberg_data` catalog and you can see every medallion schema — `dbt_demo_*`, `spark_demo_*`, and `dbt_demo` — and chart Gold tables without leaving the browser at `localhost:3000`.
+    Metabase is a **business-intelligence (BI) tool** — a point-and-click way to browse tables, write SQL, and build charts and dashboards. Unlike [OpenMetadata](openmetadata.md) (which reads dbt's JSON files *offline* to draw lineage), Metabase connects **live to the Presto engine** in watsonx.data and queries the real data. Point it at the `iceberg_data` catalog and you can see every medallion schema — `dbt_demo_{raw,bronze,silver,gold}`, `spark_demo_{bronze,silver,gold}`, and `spark_demo_cpdctl_raw` — and chart Gold tables without leaving the browser at `localhost:3000`.
 
 This stack is **self-provisioning**: a one-shot container creates the admin login and wires up the Presto connection for you on first boot, using the same `.env` values the rest of the demo uses. No setup wizard, no manual SSL fiddling.
 
@@ -83,6 +83,9 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with the credent
 !!! note "Why not `admin / admin` like Airflow?"
     Metabase rejects trivially-common passwords through its setup API, so the literal `admin/admin` is not accepted. The defaults above are the closest compliant equivalent — change them in `.env` before first boot to set your own.
 
+!!! note "📸 Screenshot: Metabase home / dashboard"
+    Capture the Metabase home page at `http://localhost:3000` right after login (the welcome / "Browse data" landing with the watsonx.data data source visible), then save it to `docs/assets/images/screenshots/metabase-home.png` and replace this note with the image.
+
 ---
 
 ## Step 3: Browse `iceberg_data`
@@ -91,8 +94,11 @@ From the top nav choose **Browse data → watsonx.data (Presto)**. Metabase sync
 
 Prefer SQL? Hit **+ New → SQL query**, pick the watsonx.data database, and run Presto SQL directly — the same engine the [SQL comparison demo](sql-demo.md) uses.
 
+!!! note "📸 Screenshot: Presto data source browse view"
+    Capture **Browse data → watsonx.data (Presto)** showing the `iceberg_data` schema list (`dbt_demo_*`, `spark_demo_*`), or a Gold table preview such as `gold_daily_sales`, then save it to `docs/assets/images/screenshots/metabase-browse-presto.png` and replace this note with the image.
+
 !!! tip "Pin Metabase to one schema"
-    By default Metabase browses every schema in the catalog. To focus the demo on a single namespace, set `WXD_METABASE_SCHEMA=dbt_demo` in `.env` before first boot.
+    By default Metabase browses every schema in the catalog. To focus the demo on a single namespace, set `WXD_METABASE_SCHEMA=dbt_demo_gold` in `.env` before first boot (any real schema works — for example `spark_demo_gold`).
 
 ---
 

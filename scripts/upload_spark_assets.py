@@ -33,6 +33,7 @@ def _env(name: str, default: str | None = None) -> str:
 
 def _oc_secret_value(secret_name: str, key: str, namespace: str) -> str | None:
     try:
+        print(f"  Reading secret {namespace}/{secret_name} key '{key}' via oc...", file=sys.stderr)
         result = subprocess.run(
             [
                 "oc",
@@ -47,6 +48,7 @@ def _oc_secret_value(secret_name: str, key: str, namespace: str) -> str | None:
             check=True,
             capture_output=True,
             text=True,
+            timeout=30,
         )
         if not result.stdout:
             return None
@@ -56,9 +58,16 @@ def _oc_secret_value(secret_name: str, key: str, namespace: str) -> str | None:
             check=True,
             capture_output=True,
             text=True,
+            timeout=30,
         )
         return decoded.stdout
-    except Exception:
+    except Exception as exc:
+        # Previously swallowed silently; surface it so the user can see WHY the
+        # oc-based credential lookup failed (e.g. not logged in, RBAC, timeout).
+        print(
+            f"  [warn] could not read {namespace}/{secret_name} key '{key}': {exc}",
+            file=sys.stderr,
+        )
         return None
 
 
@@ -155,6 +164,7 @@ def main() -> int:
 
     try:
         import boto3
+        import botocore.config
     except ImportError as exc:
         raise SystemExit(
             "Missing dependency 'boto3'. Install dependencies with: python -m pip install -r requirements.txt"
@@ -172,7 +182,15 @@ def main() -> int:
     print(f"Object store endpoint: {endpoint}")
     print(f"Target bucket/prefix: s3://{bucket}/{prefix}")
 
+    # Cap S3 connect/read so a stalled MinIO can't hang the upload indefinitely.
+    s3_config = botocore.config.Config(
+        connect_timeout=10,
+        read_timeout=60,
+        retries={"max_attempts": 2},
+    )
+
     try:
+        print(f"Creating S3 client for {endpoint} (connect 10s / read 60s) ...")
         s3 = boto3.client(
             "s3",
             endpoint_url=endpoint,
@@ -180,6 +198,7 @@ def main() -> int:
             aws_secret_access_key=secret_key,
             region_name=region,
             verify=verify,
+            config=s3_config,
         )
 
         uploads = [

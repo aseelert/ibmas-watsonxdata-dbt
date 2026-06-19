@@ -71,6 +71,11 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Bound every external call so nothing can hang on this (slow) machine.
+CPDCTL_TIMEOUT = 120        # quick config/get cpdctl subcommands
+CPDCTL_CREATE_TIMEOUT = 300  # `ingestion create` submission (still bounded)
+PRESTO_REQUEST_TIMEOUT = 60  # per-request socket timeout for Presto HTTP calls
+
 # CSV file (under WXD_SPARK_INPUT_BASE) -> target table name in the ingest schema.
 TABLES = {
     "raw_customers.csv": "customers",
@@ -104,16 +109,21 @@ def _ensure_schema(catalog: str, schema: str) -> None:
     import prestodb
 
     user = _env("WXD_USER", "ibmlhapikey_cpadmin")
+    host = _env("WXD_HOST")
+    port = int(_env("WXD_PORT", "443"))
+    print(f"Connecting to Presto {host}:{port} (catalog={catalog}) ...")
     conn = prestodb.dbapi.connect(
-        host=_env("WXD_HOST"),
-        port=int(_env("WXD_PORT", "443")),
+        host=host,
+        port=port,
         user=user,
         catalog=catalog,
         http_scheme="https",
         http_headers={"LhInstanceId": _env("WXD_INSTANCE_ID")},
         auth=prestodb.auth.BasicAuthentication(user, _env("WXD_API_KEY")),
+        request_timeout=PRESTO_REQUEST_TIMEOUT,
     )
     conn._http_session.verify = _ssl_verify()
+    print("Connected.")
     cur = conn.cursor()
     location_base = os.getenv("WXD_SCHEMA_LOCATION_BASE", "").rstrip("/")
     sql = f"create schema if not exists {catalog}.{schema}"
@@ -125,8 +135,23 @@ def _ensure_schema(catalog: str, schema: str) -> None:
 
 
 def _cpdctl(*args: str) -> subprocess.CompletedProcess:
-    """Run a cpdctl subcommand, capturing output (raises nothing here)."""
-    return subprocess.run(["cpdctl", *args], text=True, capture_output=True)
+    """Run a cpdctl subcommand, capturing output (raises nothing here).
+
+    Bounded by CPDCTL_TIMEOUT so a hung cpdctl can't stall the run; on timeout we
+    synthesize a non-zero CompletedProcess so callers treat it as a failed attempt.
+    """
+    try:
+        return subprocess.run(
+            ["cpdctl", *args], text=True, capture_output=True, timeout=CPDCTL_TIMEOUT
+        )
+    except subprocess.TimeoutExpired:
+        print(f"  !! cpdctl {' '.join(args)} timed out after {CPDCTL_TIMEOUT}s [FAIL]")
+        return subprocess.CompletedProcess(
+            ["cpdctl", *args],
+            returncode=124,
+            stdout="",
+            stderr=f"cpdctl timed out after {CPDCTL_TIMEOUT}s",
+        )
 
 
 def _validate_api_key() -> None:
@@ -271,8 +296,9 @@ def main() -> int:
         help="Seconds between status polls when waiting (default: 20).",
     )
     parser.add_argument(
-        "--timeout", type=int, default=900,
-        help="Max seconds to wait for jobs to finish (default: 900).",
+        "--timeout", type=int, default=600,
+        help="Max seconds to wait for jobs to finish (default: 600, keeping the "
+             "total run under the 10-minute budget).",
     )
     args = parser.parse_args()
 
@@ -336,13 +362,20 @@ def main() -> int:
         cmd += ["--profile", cpdctl_profile]
         if storage := os.getenv("WXD_INGEST_STORAGE_NAME"):
             cmd += ["--storage-name", storage]
-        print("\n$ " + " ".join(cmd))
-        result = subprocess.run(cmd, text=True)
+        print(f"\nSubmitting ingestion for {csv_name} -> {target} (timeout {CPDCTL_CREATE_TIMEOUT}s)")
+        print("$ " + " ".join(cmd))
+        try:
+            result = subprocess.run(cmd, text=True, timeout=CPDCTL_CREATE_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            failures += 1
+            print(f"!! ingestion submit for {csv_name} timed out after {CPDCTL_CREATE_TIMEOUT}s [FAIL]")
+            continue
         if result.returncode == 0:
             submitted.append(job_id)
+            print(f"  submitted {job_id} [OK]")
         else:
             failures += 1
-            print(f"!! ingestion failed for {csv_name} (exit {result.returncode})")
+            print(f"!! ingestion failed for {csv_name} (exit {result.returncode}) [FAIL]")
 
     print("\n" + "=" * 74)
     print(f"Submitted {len(submitted)} ingestion job(s); {failures} failed.")

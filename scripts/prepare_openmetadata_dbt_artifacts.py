@@ -22,14 +22,27 @@ REQUIRED_ARTIFACTS = ["manifest.json"]
 OPTIONAL_ARTIFACTS = ["catalog.json", "run_results.json"]
 ARTIFACTS = REQUIRED_ARTIFACTS + OPTIONAL_ARTIFACTS
 
+# Hard cap on each dbt subprocess so a hung dbt can't block forever (which would
+# otherwise defeat the retry cap). 10 min is well within the demo's time budget.
+DBT_TIMEOUT = 600
+
 
 def _run(command: list[str], retries: int) -> None:
     for attempt in range(retries + 1):
-        print(f"$ {' '.join(command)}")
+        print(f"$ {' '.join(command)}  (attempt {attempt + 1}/{retries + 1}, timeout {DBT_TIMEOUT}s)")
         try:
-            subprocess.run(command, cwd=ROOT, check=True)
+            subprocess.run(command, cwd=ROOT, check=True, timeout=DBT_TIMEOUT)
+            print(f"[OK] {' '.join(command)}")
             return
+        except subprocess.TimeoutExpired:
+            print(f"[FAIL] command exceeded {DBT_TIMEOUT}s and was killed.")
+            if attempt >= retries:
+                raise
+            wait_seconds = 5 * (attempt + 1)
+            print(f"Command timed out; retrying in {wait_seconds}s...")
+            time.sleep(wait_seconds)
         except subprocess.CalledProcessError:
+            print("[FAIL] command exited non-zero.")
             if attempt >= retries:
                 raise
             wait_seconds = 5 * (attempt + 1)

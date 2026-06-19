@@ -70,17 +70,23 @@ def main() -> int:
     base = _env("WXD_SCHEMA", "dbt_demo")
     schema = os.getenv("WXD_SILVER_SCHEMA", f"{base}_silver")
 
+    host = _env("WXD_HOST")
+    port = int(_env("WXD_PORT", "443"))
+    print(f"Connecting to Presto {host}:{port} (catalog={catalog}, schema={schema}) ...")
     conn = prestodb.dbapi.connect(
-        host=_env("WXD_HOST"),
-        port=int(_env("WXD_PORT", "443")),
+        host=host,
+        port=port,
         user=user,
         catalog=catalog,
         schema=schema,
         http_scheme="https",
         http_headers=_http_headers(),
         auth=prestodb.auth.BasicAuthentication(user, password),
+        # Per-request socket timeout so a suspended/resuming engine can't hang.
+        request_timeout=60,
     )
     conn._http_session.verify = _ssl_verify()
+    print("Connected.")
     cur = conn.cursor()
 
     def run(sql: str) -> list:

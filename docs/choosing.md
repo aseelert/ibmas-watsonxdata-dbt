@@ -30,6 +30,40 @@ then hand to dbt or Spark.
 
 ---
 
+## dbt vs Spark — at a glance
+
+dbt and Spark are interchangeable peers in this demo, but they make different trade-offs. The
+table below lays them side by side so you can match the engine to the team and the workload.
+
+| Dimension | dbt (`models/*.sql`) | Spark (`spark/load_medallion_demo.py`) |
+|---|---|---|
+| Language | SQL + Jinja | Python / PySpark (Scala/Java possible) |
+| Where compute runs | Pushed down to the Presto engine in watsonx.data — dbt only compiles + orchestrates, no data on your laptop | Distributed on the watsonx.data Spark engine — executors process partitions in parallel |
+| Transformation style | Set-based, declarative — one `SELECT` per model | Imperative dataframe ETL — read → withColumn → join → groupBy → writeTo |
+| Materialization | table / view / incremental via `{{ config }}` | Explicit `createOrReplace()`, `partitionedBy(...)` |
+| Best for | Analytics modeling, governed SQL marts, dimensional models | Heavy ETL, complex logic, huge joins, semi-structured parsing, ML feature prep |
+| Testing | First-class built-in (`not_null`/`unique`/`relationships`/custom in YAML), `dbt test` | DIY (PySpark asserts, Great Expectations, pytest) — no native runner |
+| Docs | Auto-generated searchable site (`dbt docs`) | Manual docstrings / READMEs |
+| Lineage | Automatic column-level from `ref()`/`source()`; flows into OpenMetadata | Inferred from code or a runtime OpenLineage listener; more setup |
+| Governance | Strong: SQL code review + declared tests + lineage + docs-as-code | Lives in the surrounding platform/CI; general-purpose Python is harder to police |
+| Learning curve | Low for SQL/analytics people | Higher — Spark APIs, lazy evaluation, partitioning, shuffles, tuning |
+| Performance — small data | Excellent; no cluster spin-up | Overkill — JVM/executor startup dominates |
+| Performance — big data | Scales with Presto | Built for very large multi-TB workloads |
+| Streaming | Batch only | Structured Streaming / micro-batch |
+| ML feature engineering | SQL-expressible only | Full Python ecosystem (pandas UDFs, MLlib) |
+| When to pick | SQL-first team; logic fits a `SELECT`; want tests+docs+lineage for free | Large data, or Python/ML/streaming/custom parsing |
+
+**When to use which.** Start with **dbt** for SQL analytics engineering on watsonx.data: the compute
+runs on the same Presto engine you already query, and you get tests, docs, and column-level lineage
+almost for free. Reach for **Spark** when you outgrow SQL and Presto — very large data,
+billions-of-rows joins, streaming, ML feature engineering, or messy semi-structured parsing that SQL
+cannot express cleanly. They are interchangeable peers here, and a common real-world pattern uses
+**both**: Spark for the heavy raw → Silver lift, dbt for the governed Silver → Gold modeling. And
+remember **cpdctl is ingestion-only** — it lands the raw files and stops; you still run dbt or Spark
+on top to build the medallion.
+
+---
+
 ## Choose by the job
 
 === "Use dbt"
@@ -51,6 +85,27 @@ then hand to dbt or Spark.
       history.
     - You want a fast, **no-code** raw load from a terminal or the console GUI.
     - Then you still run **dbt or Spark** over `spark_demo_cpdctl_raw` to build bronze/silver/gold.
+
+---
+
+## Seeds vs Sources — seed the lookups, source the raw
+
+!!! tip "Seed the lookups, source the raw"
+    dbt **seeds** are for small (low-thousands), static, version-controlled lookup/reference data —
+    status → label maps, country/region codes, currency tables. They are **not** meant for real
+    raw or production data. Real raw data should **land** in a raw zone by an ingestion process and
+    be read by dbt as a `{{ source() }}` declared in a `sources.yml` (so you can also run
+    `dbt source freshness` against it).
+
+    Here is how **this repo** currently works (a teaching point, not a criticism): today the dbt
+    path loads `seeds/raw_*.csv` via `dbt seed` and the bronze models read them with
+    `{{ ref('raw_*') }}` — i.e. seeds used as a stand-in raw zone. The Spark path already reads the
+    same CSVs from the object-storage raw zone (`s3a://.../spark_demo/raw`), and the cpdctl path
+    lands them in `spark_demo_cpdctl_raw`.
+
+    One rule of thumb:
+
+    > *If a human curates it in git → seed it. If a pipeline lands it in the raw zone → source it.*
 
 ---
 

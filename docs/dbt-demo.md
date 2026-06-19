@@ -297,7 +297,7 @@ bash scripts/dbt_env.sh test
 ```
 
 !!! info "Where the test rules live"
-    Tests are declared in `models/bronze/schema.yml`, `models/silver/schema.yml`, and `models/gold/schema.yml`. They use built-in dbt tests (`not_null`, `unique`, `accepted_values`, `relationships`) that dbt compiles into SQL and runs against the tables.
+    Tests are declared in `models/bronze/bronze_sources.yml`, `models/silver/schema.yml`, and `models/gold/schema.yml`. They use built-in dbt tests (`not_null`, `unique`, `accepted_values`, `relationships`) that dbt compiles into SQL and runs against the tables.
 
 **What the tests verify:**
 

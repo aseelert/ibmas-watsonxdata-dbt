@@ -43,14 +43,22 @@ def req(path, data=None, headers=None, method=None):
 
 
 def wait_for_metabase():
-    for attempt in range(120):
+    # Wall-clock cap so a never-healthy Metabase can't loop ~70 min (120 x (5s +
+    # 30s request timeout)). 5 min is plenty for a local container to come up.
+    deadline = time.time() + 300
+    attempt = 0
+    while time.time() < deadline:
         try:
+            print(f"[provision] checking Metabase health at {MB} (attempt {attempt})...")
             req("/api/health")
+            print("[provision] Metabase is healthy [OK]")
             return
         except Exception as exc:  # noqa: BLE001 - any failure means "not ready yet"
-            print(f"[provision] waiting for Metabase ({attempt})... {exc}")
+            remaining = int(deadline - time.time())
+            print(f"[provision] waiting for Metabase ({attempt}, ~{remaining}s left)... {exc}")
             time.sleep(5)
-    sys.exit("[provision] Metabase never became healthy")
+            attempt += 1
+    sys.exit("[provision] Metabase never became healthy within 300s")
 
 
 def get_session():
@@ -148,13 +156,22 @@ def main():
     headers = {"X-Metabase-Session": session}
     attempts = int(os.environ.get("MB_DB_ADD_ATTEMPTS", "20"))
     interval = int(os.environ.get("MB_DB_ADD_INTERVAL", "15"))
+    # Overall wall-clock cap so the retry loop (20 x ~15s + per-request timeouts,
+    # ~15 min) can't blow the 10-min budget. Configurable for slow engines.
+    db_add_deadline = time.time() + int(os.environ.get("MB_DB_ADD_DEADLINE", "300"))
+    print(
+        f"[provision] adding Presto data source '{DB_NAME}' "
+        f"({details['host']}:{details['port']}, up to {attempts} attempts / "
+        f"~{int(db_add_deadline - time.time())}s)..."
+    )
     for attempt in range(1, attempts + 1):
         try:
+            print(f"[provision] add attempt {attempt}/{attempts} -> {MB}/api/database")
             created = req("/api/database", db_payload, headers=headers)
             print(
                 f"[provision] data source '{created.get('name')}' "
                 f"(id={created.get('id')}) connected to catalog "
-                f"'{details['catalog']}'."
+                f"'{details['catalog']}'. [OK]"
             )
             print("[provision] done — open http://localhost:3000")
             return
@@ -164,7 +181,11 @@ def main():
                 print(f"[provision] data source '{DB_NAME}' already created — done.")
                 return
             print(f"[provision] add attempt {attempt}/{attempts} failed: {body}")
+            if time.time() >= db_add_deadline:
+                print("[provision] overall deadline reached — stopping retries.")
+                break
             if attempt < attempts:
+                print(f"[provision] retrying in {interval}s...")
                 time.sleep(interval)
     sys.exit(
         "[provision] gave up adding the Presto data source. The watsonx.data "

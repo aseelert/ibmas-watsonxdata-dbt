@@ -78,8 +78,11 @@ nav:
   - Ingest & Compare:
     - "Ingest Raw Data — cpdctl (loader)": ingestion.md
     - "SQL — Compare dbt vs Spark Gold": sql-demo.md
-  - Governance:
+  - Orchestrate (optional):
+    - "Airflow — Schedule the Pipeline": airflow.md
+  - Governance (optional):
     - "Lineage UI (OpenMetadata)": openmetadata.md
+    - "Lineage Standard (OpenLineage)": openlineage.md
     - "BI & Dashboards (Metabase)": metabase.md
     - "Semantic Models": semantic-models.md
   - Reference:

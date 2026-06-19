@@ -58,6 +58,7 @@ def _execute(cur, sql, prestodb):
     except prestodb.exceptions.HttpError as exc:
         if "AMS_CANNOT_GET_TOKEN" not in str(exc):
             raise
+        print("  AMS token not ready (AMS_CANNOT_GET_TOKEN); waiting 2s then retrying once...")
         time.sleep(2)
         cur.execute(sql)
         cur.fetchall()
@@ -98,6 +99,7 @@ def main() -> int:
     for schema in schemas:
         print(f"  - {catalog}.{schema}")
 
+    print(f"Connecting to Presto {host}:{port} (catalog={catalog}) ...")
     conn = prestodb.dbapi.connect(
         host=host,
         port=port,
@@ -106,8 +108,11 @@ def main() -> int:
         http_scheme="https",
         http_headers=_http_headers(),
         auth=prestodb.auth.BasicAuthentication(user, password),
+        # Per-request socket timeout so a suspended/resuming engine can't hang.
+        request_timeout=60,
     )
     conn._http_session.verify = _ssl_verify()
+    print("Connected.")
     cur = conn.cursor()
 
     dropped_objects = 0

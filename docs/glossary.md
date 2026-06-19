@@ -309,7 +309,7 @@ iceberg_data.spark_demo_cpdctl_raw    ← cpdctl ingestion
 
 A semantic model is a business-friendly description of data — it maps raw column names to business concepts, defines metrics, and can be consumed by BI tools without the analyst needing to know the underlying table structure.
 
-In this demo, semantic models are defined in `models/semantic/` and describe how the gold layer tables map to business metrics like `lifetime_value` and `daily_revenue`.
+In this demo, semantic models are defined in the single file `models/semantic_models.yml` and describe how the gold layer tables map to business metrics like `lifetime_value` and `daily_revenue`.
 
 !!! info
     Semantic models sit on top of the gold layer. They are the final abstraction before a dashboard or AI assistant queries your data.

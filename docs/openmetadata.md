@@ -125,6 +125,12 @@ Follow these steps to reach the lineage graph:
 !!! tip "See the full medallion chain at once"
     In the Lineage tab, click **Expand All** to see the complete Bronze → Silver → Gold chain with every intermediate model visible on screen at the same time.
 
+!!! note "📸 Screenshot: lineage graph view"
+    Capture the **Lineage** tab for `gold_daily_sales` (Expand All) showing the full `raw CSVs → bronze → silver_sales_enriched → gold_daily_sales` chain, then save it to `docs/assets/images/screenshots/openmetadata-lineage.png` and replace this note with the image.
+
+!!! note "📸 Screenshot: a dbt model with tests"
+    Open a model such as `silver_orders`, capture its detail page with column descriptions and the **Data Quality** tab showing passed (green) dbt tests, then save it to `docs/assets/images/screenshots/openmetadata-dbt-tests.png` and replace this note with the image.
+
 ---
 
 ## Step 5: Stop OpenMetadata
