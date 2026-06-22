@@ -336,6 +336,41 @@ python scripts/upload_spark_assets.py
 
 ---
 
+### `oc port-forward exited early` / `namespaces "cpd-instance" not found`
+
+The uploader fails immediately and `logs/minio-port-forward.log` shows:
+
+```text
+Error from server (NotFound): namespaces "cpd-instance" not found
+```
+
+Your `oc` is pointed at the **wrong cluster**. The script's `oc` calls use whatever your
+current kubeconfig context is, and that context is talking to a cluster that has no
+`cpd-instance` namespace (a common cause is a local dev cluster — kind, OrbStack, CRC —
+left as the default).
+
+**Check which cluster you are on and what is available:**
+
+```bash
+oc config current-context        # the active context
+oc config get-contexts           # all contexts; find the one for the watsonx.data cluster
+oc whoami --show-server          # confirm the API URL is the right cluster
+```
+
+**Switch to the correct context, then re-run:**
+
+```bash
+oc config use-context <watsonx-data-context>
+python scripts/upload_spark_assets.py
+```
+
+!!! tip "Pin the context so this can't recur"
+    Set `WXD_OPENSHIFT_CONTEXT=<watsonx-data-context>` in `.env`. The uploader and
+    `cleanup_minio.py` then pass `--context` on every `oc` call, so they always target the
+    right cluster regardless of your default context.
+
+---
+
 ### Spark job stays in `STARTING` for more than five minutes
 
 The status script returns `STARTING` on every poll, never progressing to `RUNNING`:

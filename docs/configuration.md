@@ -192,6 +192,7 @@ have a sensible default in the template). Variables shown commented-out are opti
 | `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | manual *or* auto from `oc` | MinIO credentials. If unset, the uploader reads them from the OpenShift secret. Setting them manually **still requires the `oc` port-forward** unless MinIO is exposed via a Route. |
 | `WXD_OBJECT_STORE_AUTO_PORT_FORWARD` | manual (default `true`) | Auto-start `oc port-forward` when the endpoint is `127.0.0.1`. |
 | `WXD_OPENSHIFT_NAMESPACE` | manual (default `cpd-instance`) | Namespace holding the MinIO service + secret. |
+| `WXD_OPENSHIFT_CONTEXT` | manual (optional) | `oc` kubeconfig context for all `oc` calls (secret read + port-forward). Unset = current context. Pin it so a stray default context can't point the uploader at the wrong cluster. |
 | `WXD_OBJECT_STORE_SERVICE` / `_SERVICE_PORT` | manual | MinIO service name + port for the port-forward. |
 | `WXD_OBJECT_STORE_SECRET_NAME` / `_ACCESS_KEY_NAME` / `_SECRET_KEY_NAME` | manual | OpenShift secret + keys to read MinIO creds from. |
 | `WXD_OBJECT_STORE_REGION` / `_SSL_VERIFY` | manual | S3 region and TLS verification toggle. |
