@@ -1,5 +1,8 @@
 # Metabase: Explore & Chart the Lakehouse in a Local Docker UI
 
+<img width="1062" height="1036" alt="image" src="https://github.ibm.com/user-attachments/assets/863e829c-dd62-4ba5-bfd3-5a71aa93eef1" />
+
+
 !!! info "What Metabase does"
     Metabase is a **business-intelligence (BI) tool** — a point-and-click way to browse tables, write SQL, and build charts and dashboards. Unlike [OpenMetadata](openmetadata.md) (which reads dbt's JSON files *offline* to draw lineage), Metabase connects **live to the Presto engine** in watsonx.data and queries the real data. Point it at the `iceberg_data` catalog and you can see every medallion schema — `dbt_demo_{raw,bronze,silver,gold}`, `spark_demo_{bronze,silver,gold}`, and `spark_demo_cpdctl_raw` — and chart Gold tables without leaving the browser at `localhost:3000`.
 
