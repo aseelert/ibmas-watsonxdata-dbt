@@ -1,6 +1,6 @@
 # Metabase: Explore & Chart the Lakehouse in a Local Docker UI
 
-<img width="1062" height="1036" alt="image" src="https://github.ibm.com/user-attachments/assets/863e829c-dd62-4ba5-bfd3-5a71aa93eef1" />
+![Metabase home page](assets/images/screenshots/metabase-home.png)
 
 
 !!! info "What Metabase does"
@@ -92,8 +92,7 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with the credent
 !!! note "Why not `admin / admin` like Airflow?"
     Metabase rejects trivially-common passwords through its setup API, so the literal `admin/admin` is not accepted. The defaults above are the closest compliant equivalent — change them in `.env` before first boot to set your own.
 
-!!! note "📸 Screenshot: Metabase home / dashboard"
-    Capture the Metabase home page at `http://localhost:3000` right after login (the welcome / "Browse data" landing with the watsonx.data data source visible), then save it to `docs/assets/images/screenshots/metabase-home.png` and replace this note with the image.
+![Metabase home page](assets/images/screenshots/metabase-home.png)
 
 ---
 
@@ -102,9 +101,6 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with the credent
 From the top nav choose **Browse data → watsonx.data (Presto)**. Metabase syncs the catalog and lists every schema under `iceberg_data`. Open any Gold table (for example a `dbt_demo_gold` or `spark_demo_gold` table) to preview rows, then use **Summarize** and **Visualization** to build a chart with no SQL.
 
 Prefer SQL? Hit **+ New → SQL query**, pick the watsonx.data database, and run Presto SQL directly — the same engine the [SQL comparison demo](sql-demo.md) uses.
-
-!!! note "📸 Screenshot: Presto data source browse view"
-    Capture **Browse data → watsonx.data (Presto)** showing the `iceberg_data` schema list (`dbt_demo_*`, `spark_demo_*`), or a Gold table preview such as `gold_daily_sales`, then save it to `docs/assets/images/screenshots/metabase-browse-presto.png` and replace this note with the image.
 
 !!! tip "Pin Metabase to one schema"
     By default Metabase browses every schema in the catalog. To focus the demo on a single namespace, set `WXD_METABASE_SCHEMA=dbt_demo_gold` in `.env` before first boot (any real schema works — for example `spark_demo_gold`).

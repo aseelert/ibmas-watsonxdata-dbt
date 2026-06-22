@@ -6,7 +6,7 @@
 !!! warning "OpenMetadata is OPTIONAL in this demo"
     The medallion pipeline runs fine without it. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) paths build every gold table on their own. OpenMetadata is here only to *visualise the lineage* of what dbt already built. Skip it if you only want the pipeline; run it if you want to show where each number came from. For a live point-and-click BI view of the same gold tables, see [Metabase](metabase.md) instead — the two are complementary (Metabase queries the data; OpenMetadata maps where it came from).
 
-<img width="2019" height="1086" alt="image" src="https://github.ibm.com/user-attachments/assets/1aeebdb9-8bf0-4f02-b042-212d5431d48d" />
+![OpenMetadata lineage graph](assets/images/screenshots/openmetadata-lineage.png)
 
 ## What OpenMetadata Is
 
@@ -175,11 +175,10 @@ Follow these steps to reach the lineage graph:
 !!! tip "See the full medallion chain at once"
     In the Lineage tab, click **Expand All** to see the complete Bronze → Silver → Gold chain with every intermediate model visible on screen at the same time.
 
-!!! note "📸 Screenshot: lineage graph view"
-    Capture the **Lineage** tab for `gold_daily_sales` (Expand All) showing the full `raw CSVs → bronze → silver_sales_enriched → gold_daily_sales` chain, then save it to `docs/assets/images/screenshots/openmetadata-lineage.png` and replace this note with the image.
+![OpenMetadata lineage graph](assets/images/screenshots/openmetadata-lineage.png)
 
-!!! note "📸 Screenshot: a dbt model with tests"
-    Open a model such as `silver_orders`, capture its detail page with column descriptions and the **Data Quality** tab showing passed (green) dbt tests, then save it to `docs/assets/images/screenshots/openmetadata-dbt-tests.png` and replace this note with the image.
+!!! note "Optional screenshot: dbt model with tests"
+    Open a model such as `silver_orders` and use the **Data Quality** tab to show passed dbt tests.
 
 ---
 

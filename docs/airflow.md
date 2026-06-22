@@ -10,9 +10,9 @@
 
 Airflow models a pipeline as a **DAG** (Directed Acyclic Graph) — a set of **tasks** wired together by dependencies so they run in a valid order with no cycles. Each task is built from an **operator** (for example a `BashOperator` that runs a shell command, or a Python `@task`). The **scheduler** decides when each DAG run starts and which tasks are ready; the **executor** (here, the `LocalExecutor`) actually runs them; and the **web UI / API server** lets you watch runs, read logs, and trigger DAGs by hand. Tasks pass small values to each other through **XCom**, and long waits use **sensors** that poll until a condition is met.
 
-<img width="1299" height="371" alt="image" src="https://github.ibm.com/user-attachments/assets/6f74e64d-5772-4544-9e0f-7712dc68e0ee" />
-and full run for dbt pipeline
-<img width="1974" height="1041" alt="image" src="https://github.ibm.com/user-attachments/assets/61fae749-154d-45b9-a115-24573121e51e" />
+![Airflow DAGs list](assets/images/screenshots/airflow-dags.png)
+
+![Airflow dbt DAG run overview](assets/images/screenshots/airflow-dbt-graph.png)
 
 
 !!! warning "Airflow is OPTIONAL in this demo"
@@ -133,14 +133,13 @@ docker compose -f docker-compose-airflow.yml down -v
 
 ## See it in the UI
 
-!!! note "📸 Screenshot: Airflow DAGs list"
-    Capture the Airflow **DAGs** page at `http://localhost:8082` showing both `dbt_medallion_hourly` and `spark_medallion_hourly` (each `@hourly`), then save it to `docs/assets/images/screenshots/airflow-dags.png` and replace this note with the image.
+### Airflow DAGs list
 
-!!! note "📸 Screenshot: dbt DAG graph view"
-    Open `dbt_medallion_hourly` and capture its **Graph** view showing the `bootstrap_schemas → raw → bronze → silver → gold → dbt_test → query_gold` task graph (the per-model lineage), then save it to `docs/assets/images/screenshots/airflow-dbt-graph.png` and replace this note with the image.
+![Airflow DAGs list](assets/images/screenshots/airflow-dags.png)
 
-!!! note "📸 Screenshot: a task log"
-    Open any finished task (for example `gold_daily_sales` or `wait_for_spark`) and capture its **Logs** tab showing the `==> ...` breadcrumb and the step output, then save it to `docs/assets/images/screenshots/airflow-task-log.png` and replace this note with the image.
+### dbt DAG run overview
+
+![Airflow dbt DAG run overview](assets/images/screenshots/airflow-dbt-graph.png)
 
 ---
 
