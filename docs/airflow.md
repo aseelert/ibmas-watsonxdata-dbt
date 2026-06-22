@@ -10,6 +10,11 @@
 
 Airflow models a pipeline as a **DAG** (Directed Acyclic Graph) — a set of **tasks** wired together by dependencies so they run in a valid order with no cycles. Each task is built from an **operator** (for example a `BashOperator` that runs a shell command, or a Python `@task`). The **scheduler** decides when each DAG run starts and which tasks are ready; the **executor** (here, the `LocalExecutor`) actually runs them; and the **web UI / API server** lets you watch runs, read logs, and trigger DAGs by hand. Tasks pass small values to each other through **XCom**, and long waits use **sensors** that poll until a condition is met.
 
+<img width="1299" height="371" alt="image" src="https://github.ibm.com/user-attachments/assets/6f74e64d-5772-4544-9e0f-7712dc68e0ee" />
+and full run for dbt pipeline
+<img width="1974" height="1041" alt="image" src="https://github.ibm.com/user-attachments/assets/61fae749-154d-45b9-a115-24573121e51e" />
+
+
 !!! warning "Airflow is OPTIONAL in this demo"
     Nothing in this workshop *requires* Airflow. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) medallion pipelines run perfectly **standalone** — you can build the entire `raw → bronze → silver → gold` medallion by hand with the commands on those pages. Airflow simply *orchestrates the exact same steps* on a schedule, with retries and a run history. If you only want to learn the medallion, skip this page. If you want to see how the pipeline is operated in production, read on.
 
