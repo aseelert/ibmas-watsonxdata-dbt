@@ -8,6 +8,23 @@
 
 <img width="2019" height="1086" alt="image" src="https://github.ibm.com/user-attachments/assets/1aeebdb9-8bf0-4f02-b042-212d5431d48d" />
 
+## What OpenMetadata Is
+
+OpenMetadata is the catalog layer for this workshop. It answers catalog and governance questions that the warehouse itself does not answer well:
+
+| Question | Where it appears |
+| --- | --- |
+| Which tables and columns exist? | Explore → Databases → `watsonxdata-presto`. |
+| What does this field mean? | Column descriptions imported from dbt `schema.yml`. |
+| Which layer is this table in? | `MedallionLayer.Raw`, `Bronze`, `Silver`, or `Gold` tags. |
+| Is this a customer, product, order, PII, or financial field? | `DemoDataDomain` tags and glossary terms. |
+| Which upstream tables feed this gold mart? | Lineage tab. |
+| Did the dbt tests pass? | Data Quality tab from `run_results.json`. |
+
+OpenMetadata is separate from the data engine. Presto still queries the Iceberg tables; OpenMetadata records the meaning, relationships, and governance context around those tables.
+
+!!! tip "OpenMetadata versus OpenLineage"
+    OpenMetadata is the catalog and UI. OpenLineage is an event standard that tools can emit while jobs run. This repo uses OpenMetadata directly from dbt artifacts today; [OpenLineage](openlineage.md) explains how the same demo could later emit runtime lineage events from dbt, Spark, and Airflow into OpenMetadata or an enterprise catalog/lineage platform.
 
 ## Architecture
 

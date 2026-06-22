@@ -7,6 +7,16 @@
 
 OpenLineage is an **open specification** plus a set of integrations. As a pipeline runs, an OpenLineage *integration* emits **events** describing each **run** of a **job** and the input/output **datasets** it touched (with optional schema and column-level facets). Those events are sent to a **collector** — commonly [Marquez](https://marquezproject.io/) (the reference implementation) or [OpenMetadata](openmetadata.md), both of which can consume OpenLineage events. Ready-made integrations exist for **Spark** (a listener jar on the Spark session), **Airflow** (a built-in listener that emits an event per task), and **dbt** (`dbt-ol`, which wraps a dbt run). The payoff is consistent, automatically-collected lineage across tools that were never designed to talk to each other.
 
+OpenLineage is **not** a catalog by itself. It is the event format. You still need something to receive, store, search, and display those events. That receiver might be Marquez, OpenMetadata, or an enterprise governance platform that supports a compatible ingestion path.
+
+| Concept | Meaning |
+| --- | --- |
+| Job | The thing that runs, for example a dbt model build, Spark application, or Airflow task. |
+| Run | One execution of that job, with timestamps and status. |
+| Dataset | An input or output table/file/topic touched by the run. |
+| Facet | Extra structured metadata: schema, column lineage, data quality, SQL text, parent run, processing engine, and more. |
+| Collector | The service that receives OpenLineage events and persists or forwards them. |
+
 ---
 
 ## How lineage works in THIS demo today
@@ -39,6 +49,17 @@ flowchart LR
 
 The solid path is what runs in this repo today. The dashed path is how OpenLineage **would** plug in.
 
+## OpenMetadata vs OpenLineage
+
+OpenMetadata and OpenLineage complement each other:
+
+| Tool | What it is | What it gives you |
+| --- | --- | --- |
+| OpenMetadata | Catalog, governance model, and UI. | Searchable tables, columns, tags, glossary terms, owners, tests, and lineage views. |
+| OpenLineage | Open runtime lineage event standard. | A common way for dbt, Spark, Airflow, and other tools to report what they read and wrote while jobs execute. |
+
+In this repo, OpenMetadata is the working UI and catalog. OpenLineage is the future-facing standard you would use when lineage should be emitted by every runtime system, not only reconstructed from dbt artifacts.
+
 ### How OpenLineage would be added
 
 To capture lineage as live OpenLineage events instead of (or alongside) dbt artifacts, you would:
@@ -49,6 +70,25 @@ To capture lineage as live OpenLineage events instead of (or alongside) dbt arti
 - **Collector:** stand up Marquez (or point the events at OpenMetadata) to view the merged graph.
 
 That upgrade would give you lineage across **all three engines at once**, including Spark — which dbt artifacts alone cannot capture, because dbt only knows about the dbt models.
+
+## Enterprise Pattern: IBM Governance and Manta
+
+OpenLineage is especially useful in larger IBM governance landscapes because it gives every execution engine a common lineage envelope before metadata is sent to a catalog or lineage product. For example, a production architecture could collect events from this demo's dbt, Spark, and Airflow paths and then feed the normalized metadata into IBM Knowledge Catalog / watsonx.data intelligence or a Manta lineage deployment, using whatever connector, API, export/import, or bridge is supported by that environment.
+
+This is deliberately described as an **integration pattern**, not as something this repo already performs:
+
+```mermaid
+flowchart LR
+  dbt["dbt runs"] --> ol["OpenLineage events"]
+  spark["Spark jobs"] --> ol
+  airflow["Airflow tasks"] --> ol
+  ol --> collector["Collector / bridge"]
+  collector --> om["OpenMetadata\nlocal catalog"]
+  collector -. "enterprise ingestion path" .-> ikc["IBM Knowledge Catalog /\nwatsonx.data intelligence"]
+  collector -. "enterprise lineage path" .-> manta["Manta lineage"]
+```
+
+The local workshop uses OpenMetadata because it is fast to run in Docker and easy to inspect. In a client production estate, OpenLineage can become the shared event format that helps dbt, Spark, Airflow, IBM catalog services, and lineage tools speak the same lineage language.
 
 !!! note "📸 Screenshot: the lineage graph"
     Capture the OpenMetadata **Lineage** tab for `gold_daily_sales` showing the `raw → bronze → silver → gold` chain (this is the lineage this repo produces today), then save it to `docs/assets/images/screenshots/lineage-graph.png` and replace this note with the image.
