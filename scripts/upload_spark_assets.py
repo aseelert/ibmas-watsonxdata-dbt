@@ -38,6 +38,11 @@ ENV VARS (read here)
                                       the OpenShift MinIO secret via ``oc``.
     WXD_OPENSHIFT_NAMESPACE         — namespace for the secret/port-forward
                                       (default ``cpd-instance``).
+    WXD_OPENSHIFT_CONTEXT           — oc kubeconfig context for all ``oc`` calls
+                                      (secret read + port-forward). Unset means the
+                                      current context. Pin this so a stray default
+                                      context can't point the uploader at the wrong
+                                      cluster.
     WXD_OBJECT_STORE_SECRET_NAME    — secret holding the creds
                                       (default ``ibm-lh-minio-secret``).
     WXD_OBJECT_STORE_ACCESS_KEY_NAME / _SECRET_KEY_NAME — keys inside that secret.
@@ -88,12 +93,23 @@ def _env(name: str, default: str | None = None) -> str:
     return value
 
 
+def _oc_context_args() -> list[str]:
+    """``--context`` args for every ``oc`` call, or empty to use the current context.
+
+    Pinning the context (WXD_OPENSHIFT_CONTEXT) keeps the uploader from inheriting a
+    stray default kubeconfig context and talking to the wrong cluster.
+    """
+    context = os.getenv("WXD_OPENSHIFT_CONTEXT")
+    return ["--context", context] if context else []
+
+
 def _oc_secret_value(secret_name: str, key: str, namespace: str) -> str | None:
     try:
         print(f"  Reading secret {namespace}/{secret_name} key '{key}' via oc...", file=sys.stderr)
         result = subprocess.run(
             [
                 "oc",
+                *_oc_context_args(),
                 "get",
                 "secret",
                 secret_name,
@@ -188,6 +204,7 @@ def _maybe_start_port_forward(endpoint: str) -> subprocess.Popen[str] | None:
     process = subprocess.Popen(
         [
             "oc",
+            *_oc_context_args(),
             "-n",
             namespace,
             "port-forward",
