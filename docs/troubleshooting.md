@@ -338,7 +338,9 @@ python scripts/upload_spark_assets.py
 
 ### `oc port-forward exited early` / `namespaces "cpd-instance" not found`
 
-The uploader fails immediately and `logs/minio-port-forward.log` shows:
+The uploader fails immediately and `minio-port-forward.log` shows this error. By
+default the script writes that file under the first writable runtime log directory:
+`WXD_OBJECT_STORE_LOG_DIR`, Airflow's `/opt/airflow/logs`, repo `logs/`, then `/tmp`.
 
 ```text
 Error from server (NotFound): namespaces "cpd-instance" not found

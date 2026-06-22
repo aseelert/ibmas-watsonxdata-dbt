@@ -157,7 +157,7 @@ curl -s http://localhost:3000/api/database/2/schema/dbt_demo_gold \
 
 ## How it's wired (the code)
 
-The whole stack is three files plus an `.env` block. There are no copies of config or certs — everything is read from `.env` and the mounted repo at runtime, mirroring the [Airflow stack](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/docker-compose-airflow.yml).
+The whole stack is driven from the root Compose file plus an `.env` block. There are no copies of config or certs — everything is read from `.env` and the mounted repo at runtime, mirroring the Airflow services in `docker-compose.yml`.
 
 ```mermaid
 sequenceDiagram

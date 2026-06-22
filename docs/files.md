@@ -44,7 +44,7 @@ These files live at the top level of the repo. Most of them are read at the star
 | `packages.yml` | dbt package list | Declares the `dbt-watsonx-presto` adapter package. Run `dbt deps` to download it into `dbt_packages/`. |
 | `mkdocs.yml` | MkDocs site configuration | Controls the navigation structure and theme for this documentation site. Run `mkdocs serve` to preview locally. |
 | `README.md` | Quick-start guide | One-page orientation to the project — what it does, prerequisites, and the three-command path to a running demo. |
-| `docker-compose.yml` | All-in-one Docker entry point | Root Compose file that `include`s the three **optional** stacks (Metabase, Airflow, OpenMetadata) under one project (`ibmas-watsonxdata-dbt`). From the repo root: `docker compose up -d` starts everything together; `docker compose up -d metabase` starts just one stack; `docker compose down -v` removes it all. The per-stack files (`docker-compose-metabase.yml`, `docker-compose-airflow.yml`, `openmetadata/docker-compose.yml`) are unchanged and still work standalone with `-f`. |
+| `docker-compose.yml` | All-in-one Docker entry point | Root Compose file for the optional local services under one project (`ibmas-watsonxdata-dbt`). Airflow is defined directly here; Metabase and OpenMetadata are included. From the repo root: `docker compose up -d` starts everything together; `docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor` starts Airflow; `docker compose down -v` removes it all. |
 
 !!! tip "Copy `.env.example` first"
     ```bash

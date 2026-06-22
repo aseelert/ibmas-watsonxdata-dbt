@@ -14,7 +14,7 @@
 #   * Browse and query the tables under the `iceberg_data` catalog (the same
 #     catalog dbt + Spark write the medallion schemas into).
 #
-# Design principles (identical to docker-compose-airflow.yml):
+# Design principles (identical to the Airflow services in docker-compose.yml):
 #   * SINGLE SOURCE OF TRUTH — every watsonx.data (WXD_*) value comes from .env
 #     via `env_file`. None are duplicated here. The Presto host, user, API key,
 #     catalog and instance id are read straight from .env.

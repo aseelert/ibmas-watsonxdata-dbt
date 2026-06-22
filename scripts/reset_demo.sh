@@ -152,8 +152,8 @@ reset_docker() {
   fi
 
   if [ -f "$REPO/docker-compose.yml" ]; then
-    # Unified project (docker-compose.yml include's all three stacks under one
-    # project) — a single `down` removes Metabase + Airflow + OpenMetadata together.
+    # Unified project (docker-compose.yml owns Airflow and includes the optional
+    # companion stacks) — a single `down` removes everything together.
     # --remove-orphans is safe here because it IS one project.
     echo "    -- unified project (docker-compose.yml): Metabase + Airflow + OpenMetadata"
     if $DRY_RUN; then
@@ -167,12 +167,10 @@ reset_docker() {
       ( cd "$REPO" && docker compose -f openmetadata/docker-compose.yml down --volumes --remove-orphans 2>/dev/null ) || true
     fi
   else
-    # Legacy fallback: tear down each stack file separately. Metabase + Airflow
-    # share one compose project (repo dir), so we do NOT pass --remove-orphans
-    # there (it would catch the other stack). OpenMetadata is its own project.
+    # Legacy fallback: tear down each stack file separately. OpenMetadata is its
+    # own project.
     local stacks=(
       "Metabase|docker-compose-metabase.yml|"
-      "Airflow|docker-compose-airflow.yml|"
       "OpenMetadata|openmetadata/docker-compose.yml|--remove-orphans"
     )
     local s name file extra

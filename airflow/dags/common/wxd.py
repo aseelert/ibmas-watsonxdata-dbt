@@ -78,7 +78,7 @@ from pathlib import Path
 
 import requests
 
-# The repo is bind-mounted read-only here by docker-compose-airflow.yml.
+# The repo is bind-mounted read-only here by docker-compose.yml.
 # The TLS cert (certs/watsonxdata-ca.pem) is read from this path — never copied.
 PROJECT_DIR = Path(os.getenv("WXD_PROJECT_DIR", "/opt/airflow/project"))
 

@@ -54,7 +54,8 @@ PREREQUISITES
     Either set the explicit access/secret env vars, OR be logged in with ``oc`` so
     the script can read ``ibm-lh-minio-secret``. On clusters where MinIO has no
     external Route the endpoint is localhost and an ``oc`` port-forward is started
-    automatically (logged to ``logs/minio-port-forward.log``). Requires ``boto3``
+    automatically (logged to ``minio-port-forward.log`` under the first writable
+    runtime log directory). Requires ``boto3``
     (``python -m pip install -r requirements.txt``).
 
 USAGE
@@ -73,8 +74,10 @@ import os
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
+from typing import TextIO
 from urllib.parse import urlparse
 
 try:
@@ -183,6 +186,38 @@ def _port_is_open(host: str, port: int) -> bool:
         return False
 
 
+def _open_port_forward_log() -> tuple[Path, TextIO]:
+    """Open a writable port-forward log, preferring runtime-writable locations."""
+    explicit_log = os.getenv("WXD_OBJECT_STORE_PORT_FORWARD_LOG")
+    if explicit_log:
+        candidates = [Path(explicit_log)]
+    else:
+        candidate_dirs = [
+            os.getenv("WXD_OBJECT_STORE_LOG_DIR"),
+            Path(os.getenv("AIRFLOW_HOME", "/opt/airflow")) / "logs",
+            ROOT / "logs",
+            Path(tempfile.gettempdir()),
+        ]
+        candidates = [
+            Path(candidate_dir) / "minio-port-forward.log"
+            for candidate_dir in candidate_dirs
+            if candidate_dir
+        ]
+
+    errors: list[str] = []
+    for log_path in candidates:
+        try:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            return log_path, log_path.open("w")
+        except OSError as exc:
+            errors.append(f"{log_path}: {exc}")
+
+    raise SystemExit(
+        "Unable to open a writable MinIO port-forward log. Tried:\n  "
+        + "\n  ".join(errors)
+    )
+
+
 def _maybe_start_port_forward(endpoint: str) -> subprocess.Popen[str] | None:
     parsed = urlparse(endpoint)
     host = parsed.hostname
@@ -197,10 +232,8 @@ def _maybe_start_port_forward(endpoint: str) -> subprocess.Popen[str] | None:
     namespace = os.getenv("WXD_OPENSHIFT_NAMESPACE", "cpd-instance")
     service = os.getenv("WXD_OBJECT_STORE_SERVICE", "ibm-lh-lakehouse-minio-svc")
     service_port = os.getenv("WXD_OBJECT_STORE_SERVICE_PORT", "9000")
-    log_path = ROOT / "logs" / "minio-port-forward.log"
-    log_path.parent.mkdir(exist_ok=True)
+    log_path, log_file = _open_port_forward_log()
 
-    log_file = log_path.open("w")
     process = subprocess.Popen(
         [
             "oc",
@@ -215,6 +248,7 @@ def _maybe_start_port_forward(endpoint: str) -> subprocess.Popen[str] | None:
         stderr=subprocess.STDOUT,
         text=True,
     )
+    log_file.close()
 
     for _ in range(30):
         if process.poll() is not None:

@@ -88,9 +88,9 @@ Yes, with one deliberate teaching choice:
 cp .env.example .env                                # fill in your values
 cp profiles/profiles.example.yml profiles/profiles.yml
 
-docker compose -f docker-compose-airflow.yml build
-docker compose -f docker-compose-airflow.yml up airflow-init      # one-shot
-docker compose -f docker-compose-airflow.yml up -d
+docker compose build airflow-webserver airflow-scheduler airflow-dag-processor airflow-init
+docker compose up airflow-init      # one-shot
+docker compose up -d
 
 open http://localhost:8082          # login: admin / admin
 ```
@@ -115,7 +115,7 @@ curl -s -X POST http://localhost:8082/api/v2/dags/dbt_medallion_hourly/dagRuns \
 
 ## Files
 ```
-docker-compose-airflow.yml     # 4 services: api-server, scheduler, dag-processor, postgres
+docker-compose.yml             # Airflow plus the optional Metabase/OpenMetadata services
 airflow/Dockerfile             # apache/airflow:3.x + dbt-watsonx-presto + boto3/prestodb
 airflow/requirements.txt
 airflow/dags/

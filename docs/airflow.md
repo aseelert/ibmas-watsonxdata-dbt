@@ -70,7 +70,7 @@ flowchart TB
 | `airflow/dags/dag_dbt_medallion.py` | DAG `dbt_medallion_hourly` — `@hourly`, one `BashOperator` per dbt model, mirroring the dbt `ref()` lineage. Builds `dbt_demo_{raw,bronze,silver,gold}`. |
 | `airflow/dags/dag_spark_medallion.py` | DAG `spark_medallion_hourly` — `@hourly`, submits one Spark job then verifies each layer. Builds `spark_demo_{bronze,silver,gold}`. |
 | `airflow/dags/common/wxd.py` | The single place auth / TLS / Presto / Spark-REST logic lives, mirroring the standalone scripts (`get_token.py`, `submit_spark_application.py`, `bootstrap_watsonxdata.py`, `query_gold.py`) so nothing is duplicated. |
-| `docker-compose-airflow.yml` | The local stack: `airflow-postgres` (metadata DB), one-shot `airflow-init`, `airflow-webserver` (api-server, UI on **8082**), `airflow-scheduler`, `airflow-dag-processor`. |
+| `docker-compose.yml` | The local stack: `airflow-postgres` (metadata DB), one-shot `airflow-init`, `airflow-webserver` (api-server, UI on **8082**), `airflow-scheduler`, `airflow-dag-processor`, plus the optional Metabase/OpenMetadata services. |
 | `airflow/Dockerfile` | Pinned `apache/airflow:3.2.2` image plus the repo's dbt/Presto/boto3 dependencies. |
 
 !!! tip "Parity with the standalone demos"
@@ -86,9 +86,9 @@ Airflow runs entirely on your laptop in Docker. Only Presto and Spark are remote
 cp .env.example .env                                # fill in your WXD_* values
 cp profiles/profiles.example.yml profiles/profiles.yml
 
-docker compose -f docker-compose-airflow.yml build
-docker compose -f docker-compose-airflow.yml up airflow-init     # one-shot DB migrate + admin seed
-docker compose -f docker-compose-airflow.yml up -d
+docker compose build airflow-webserver airflow-scheduler airflow-dag-processor airflow-init
+docker compose up airflow-init     # one-shot DB migrate + admin seed
+docker compose up -d
 
 open http://localhost:8082          # login: admin / admin
 ```
@@ -96,7 +96,7 @@ open http://localhost:8082          # login: admin / admin
 The same `.env` and `profiles.yml` that drive the standalone dbt/Spark demos drive Airflow — there is no separate configuration. Port **8082** is used so it never clashes with OpenMetadata's bundled Airflow on 8080.
 
 !!! tip "All-in-one entry point"
-    A root `docker-compose.yml` bundles all three optional stacks (Metabase, Airflow, OpenMetadata) into **one** Compose project (`ibmas-watsonxdata-dbt`). From the repo root, `docker compose build && docker compose up airflow-init && docker compose up -d` brings everything up together; `docker compose down -v` stops it all. The per-stack `-f docker-compose-airflow.yml` commands above still work for running just Airflow on its own.
+    The root `docker-compose.yml` is the supported Compose entry point for the optional services. From the repo root, `docker compose build && docker compose up airflow-init && docker compose up -d` brings everything up together; `docker compose down -v` stops it all.
 
 In the UI, unpause a DAG (`dbt_medallion_hourly` or `spark_medallion_hourly`) with its toggle, then click **Trigger** to run it now. Prefer the command line? Airflow 3 exposes a REST API:
 
@@ -120,10 +120,10 @@ curl -s -X POST http://localhost:8082/api/v2/dags/dbt_medallion_hourly/dagRuns \
 
 ```bash
 # Stop the stack, keep the metadata DB (DAG history, connections):
-docker compose -f docker-compose-airflow.yml down
+docker compose down
 
 # Stop and wipe everything (forces a fresh airflow-init next start):
-docker compose -f docker-compose-airflow.yml down -v
+docker compose down -v
 ```
 
 !!! note "One external dependency: the engines must be awake"
@@ -147,11 +147,11 @@ docker compose -f docker-compose-airflow.yml down -v
 
 | Symptom | Likely cause & fix |
 | --- | --- |
-| `up -d` exits or the webserver never goes healthy | The `airflow-init` one-shot didn't finish first. Run it on its own — `docker compose -f docker-compose-airflow.yml up airflow-init` — wait for it to exit `0`, then `up -d`. |
-| Port 8082 already in use | Another process holds the port. Edit the `airflow-webserver` `ports:` mapping in `docker-compose-airflow.yml` (e.g. `8083:8080`), then `up -d` again. |
+| `up -d` exits or the webserver never goes healthy | The `airflow-init` one-shot didn't finish first. Run it on its own — `docker compose up airflow-init` — wait for it to exit `0`, then `up -d`. |
+| Port 8082 already in use | Another process holds the port. Edit the `airflow-webserver` `ports:` mapping in `docker-compose.yml` (e.g. `8083:8080`), then `up -d` again. |
 | A DAG shows no runs after you unpause it | Unpausing only enables the **schedule**; to run immediately click **Trigger** in the UI (or POST a `dagRuns` as shown above). |
 | A task fails with an auth or `authenticator was not loaded` error | The watsonx.data **Presto** (or **Spark**) engine is suspended/resuming. Start the engine and clear the failed task to retry — the Spark DAG re-mints its token automatically. |
-| DAGs don't appear in the list | The `airflow-dag-processor` parses `airflow/dags/`; give it a few seconds, then check its logs: `docker compose -f docker-compose-airflow.yml logs airflow-dag-processor`. |
+| DAGs don't appear in the list | The `airflow-dag-processor` parses `airflow/dags/`; give it a few seconds, then check its logs: `docker compose logs airflow-dag-processor`. |
 
 For the underlying credentials and `WXD_*` values every task reads, see the [Configuration](configuration.md) page.
 
