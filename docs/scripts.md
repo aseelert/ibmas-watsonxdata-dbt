@@ -247,6 +247,7 @@ Requires the silver schema to exist (run dbt or Spark path first).
 
 ```bash
 python scripts/prepare_openmetadata_dbt_artifacts.py            # full run: seed+run+test+docs
+python scripts/prepare_openmetadata_dbt_artifacts.py --docs-only # lineage only: docs generate + stage
 python scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt  # use existing target/*.json
 python scripts/prepare_openmetadata_dbt_artifacts.py --skip-seed # skip seed step only
 ```
@@ -257,10 +258,27 @@ into `openmetadata/dbt-artifacts/`.
 
 | Flag | Default | What it does |
 |------|---------|--------------|
+| `--docs-only` | off | Lineage-only mode: run **only** `dbt docs generate` (no seed/run/test), then stage. Requires the medallion tables to already exist. Mutually exclusive with `--skip-dbt`. |
 | `--skip-dbt` | off | Only copy existing `target/*.json` artifacts; do not run any dbt commands. |
 | `--skip-seed` | off | Skip the `dbt seed` step but still run `dbt run`, `dbt test`, and `dbt docs generate`. |
 | `--artifact-dir <path>` | `openmetadata/dbt-artifacts/` | Directory where the staged artifacts are written. |
 | `--retries <n>` | `1` | Number of retries for each dbt command. |
+
+---
+
+#### `generate_lineage_docs.sh`
+
+```bash
+scripts/generate_lineage_docs.sh                 # refresh lineage artifacts only
+scripts/generate_lineage_docs.sh --retries 3     # flags forwarded to the python stager
+```
+
+A thin, lineage-only convenience wrapper around
+`prepare_openmetadata_dbt_artifacts.py --docs-only`. It runs **only**
+`dbt docs generate` (no seed/run/test) and stages the three artifacts OpenMetadata
+reads. Use it when the medallion tables are already built and you just want fresh
+lineage/column metadata for the catalogue. All flags are forwarded verbatim to the
+python stager (e.g. `--artifact-dir`, `--retries`); do not pass `--skip-dbt`.
 
 ---
 
@@ -272,6 +290,19 @@ python scripts/upload_dbt_artifacts.py
 
 Pushes staged artifacts to `s3://iceberg-bucket/openmetadata/dbt-artifacts/dbt_demo/`
 so OpenMetadata can read them during ingestion.
+
+#### `apply_openmetadata_governance.py`
+
+```bash
+python scripts/apply_openmetadata_governance.py --mode online
+python scripts/apply_openmetadata_governance.py --mode offline --strict
+```
+
+Applies the OpenMetadata governance layer after table and dbt lineage ingestion:
+`MedallionGlossary`, `MedallionLayer`, `DemoDataDomain`, and
+`MetadataIngestionMode`. The main ingestion script runs it automatically. Use this
+manual command only when you want to re-apply glossary terms, descriptions, or
+auto-classification tags without re-running the full ingestion.
 
 ---
 

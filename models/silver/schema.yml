@@ -3,82 +3,188 @@ version: 2
 models:
   - name: silver_customers
     description: Clean, typed customer dimension.
+    meta:
+      glossary_terms: ["MedallionGlossary.SilverLayer", "MedallionGlossary.Customer"]
+      classification_tags: ["MedallionLayer.Silver", "DemoDataDomain.Customer"]
     columns:
       - name: customer_id
+        description: Stable customer identifier.
         tests:
           - not_null
           - unique
+      - name: first_name
+        description: Trimmed customer given name.
+      - name: last_name
+        description: Trimmed customer family name.
+      - name: email
+        description: Lower-cased and trimmed customer email address.
+        meta:
+          classification_tags: ["DemoDataDomain.PII"]
+      - name: signup_date
+        description: Customer signup date.
+      - name: country
+        description: Upper-cased customer country code.
+      - name: transformed_at
+        description: Timestamp when the silver row was produced.
   - name: silver_products
     description: Clean, typed product dimension.
+    meta:
+      glossary_terms: ["MedallionGlossary.SilverLayer", "MedallionGlossary.Product"]
+      classification_tags: ["MedallionLayer.Silver", "DemoDataDomain.Product"]
     columns:
       - name: product_id
+        description: Stable product identifier.
         tests:
           - not_null
           - unique
+      - name: product_name
+        description: Trimmed product display name.
+      - name: category
+        description: Product category used by gold marts.
+      - name: unit_price
+        description: Product unit price cast to DECIMAL(12,2).
+        meta:
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: transformed_at
+        description: Timestamp when the silver row was produced.
   - name: silver_orders
     description: Clean, typed order headers.
+    meta:
+      glossary_terms: ["MedallionGlossary.SilverLayer", "MedallionGlossary.Order"]
+      classification_tags: ["MedallionLayer.Silver", "DemoDataDomain.Order"]
     columns:
       - name: order_id
+        description: Stable order header identifier.
         tests:
           - not_null
           - unique
       - name: customer_id
+        description: Customer identifier on the order header.
         tests:
           - relationships:
               arguments:
                 to: ref('silver_customers')
                 field: customer_id
+      - name: order_ts
+        description: Order timestamp cast from the source string.
+      - name: order_date
+        description: Calendar date derived from order_ts.
       - name: status
+        description: Lower-cased order lifecycle status.
         tests:
           - accepted_values:
               arguments:
                 values: ['completed', 'returned', 'pending', 'cancelled']
+      - name: payment_method
+        description: Lower-cased payment method recorded on the order.
+      - name: transformed_at
+        description: Timestamp when the silver row was produced.
   - name: silver_order_items
     description: Clean, typed order line items.
+    meta:
+      glossary_terms: ["MedallionGlossary.SilverLayer", "MedallionGlossary.OrderItem"]
+      classification_tags: ["MedallionLayer.Silver", "DemoDataDomain.Order"]
     columns:
       - name: order_item_id
+        description: Stable order line identifier.
         tests:
           - not_null
           - unique
       - name: order_id
+        description: Parent order identifier.
         tests:
           - relationships:
               arguments:
                 to: ref('silver_orders')
                 field: order_id
       - name: product_id
+        description: Product identifier on the order line.
         tests:
           - relationships:
               arguments:
                 to: ref('silver_products')
                 field: product_id
+      - name: quantity
+        description: Quantity cast to integer, filtered to positive values.
+      - name: discount_pct
+        description: Discount percentage cast to DECIMAL(5,2).
+        meta:
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: transformed_at
+        description: Timestamp when the silver row was produced.
   - name: silver_sales_enriched
     description: Conformed, joined order-line fact (the augmented/enriched silver layer). One row per order item, enriched with order, product, and customer attributes. Single source for the gold marts.
+    meta:
+      glossary_terms: ["MedallionGlossary.SilverLayer", "MedallionGlossary.OrderItem", "MedallionGlossary.RevenueMetric"]
+      classification_tags: ["MedallionLayer.Silver", "DemoDataDomain.Order", "DemoDataDomain.FinancialMetric"]
     columns:
       - name: order_item_id
+        description: Stable order line identifier.
         tests:
           - not_null
           - unique
       - name: order_id
+        description: Parent order identifier.
         tests:
           - relationships:
               arguments:
                 to: ref('silver_orders')
                 field: order_id
+      - name: order_date
+        description: Calendar date for the order line.
+      - name: order_ts
+        description: Original order timestamp.
+      - name: status
+        description: Normalized order lifecycle status.
+      - name: payment_method
+        description: Normalized payment method.
       - name: customer_id
+        description: Customer identifier joined from the order header.
         tests:
           - relationships:
               arguments:
                 to: ref('silver_customers')
                 field: customer_id
+      - name: customer_country
+        description: Customer country code joined from the customer dimension.
       - name: product_id
+        description: Product identifier on the order line.
         tests:
           - relationships:
               arguments:
                 to: ref('silver_products')
                 field: product_id
+      - name: product_name
+        description: Product display name joined from the product dimension.
+      - name: category
+        description: Product category joined from the product dimension.
+      - name: quantity
+        description: Units purchased on the order line.
+      - name: unit_price
+        description: Unit price from the product dimension.
+        meta:
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: discount_pct
+        description: Discount percentage applied to the order line.
+        meta:
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: gross_amount
+        description: Quantity multiplied by unit price before discount.
+        meta:
+          glossary_terms: ["MedallionGlossary.RevenueMetric"]
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: net_amount
+        description: Quantity multiplied by unit price after discount.
+        meta:
+          glossary_terms: ["MedallionGlossary.RevenueMetric"]
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: transformed_at
+        description: Timestamp when the enriched fact row was produced.
   - name: time_spine_daily
     description: Daily time spine used by dbt Semantic Layer / MetricFlow validation and OpenMetadata-friendly dbt artifacts.
+    meta:
+      glossary_terms: ["MedallionGlossary.SilverLayer"]
+      classification_tags: ["MedallionLayer.Silver"]
     time_spine:
       standard_granularity_column: date_day
     columns:

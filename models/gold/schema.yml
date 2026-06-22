@@ -3,24 +3,89 @@ version: 2
 models:
   - name: gold_daily_sales
     description: Daily sales KPI mart by date and product category. Materialized as a physical table, built from silver_sales_enriched.
+    meta:
+      glossary_terms: ["MedallionGlossary.GoldLayer", "MedallionGlossary.RevenueMetric"]
+      classification_tags: ["MedallionLayer.Gold", "DemoDataDomain.Order", "DemoDataDomain.FinancialMetric"]
     columns:
       - name: order_date
+        description: Calendar order date for the KPI grain.
         tests:
           - not_null
       - name: category
+        description: Product category for the KPI grain.
         tests:
           - not_null
+      - name: order_count
+        description: Count of completed orders for the date and category.
+      - name: units_sold
+        description: Sum of units sold for completed orders.
+      - name: net_revenue
+        description: Net revenue for completed orders.
+        meta:
+          glossary_terms: ["MedallionGlossary.RevenueMetric"]
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
   - name: gold_category_performance
     description: "Gold VIEW layered on the gold_daily_sales TABLE. Revenue and units rolled up to one row per product category. Computed on demand. The custom macro macros/materialized_view.sql implements CREATE MATERIALIZED VIEW for when the Iceberg connector adds support."
+    meta:
+      glossary_terms: ["MedallionGlossary.GoldLayer", "MedallionGlossary.Product", "MedallionGlossary.RevenueMetric"]
+      classification_tags: ["MedallionLayer.Gold", "DemoDataDomain.Product", "DemoDataDomain.FinancialMetric"]
     columns:
       - name: category
+        description: Product category.
         tests:
           - not_null
           - unique
+      - name: total_orders
+        description: Total completed orders for the category.
+      - name: total_units
+        description: Total units sold for the category.
+      - name: total_revenue
+        description: Total net revenue for the category.
+        meta:
+          glossary_terms: ["MedallionGlossary.RevenueMetric"]
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: avg_revenue_per_unit
+        description: Average net revenue per unit sold.
+        meta:
+          glossary_terms: ["MedallionGlossary.RevenueMetric"]
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
   - name: gold_customer_360
     description: Customer-level analytics mart for demo dashboards and ad hoc SQL.
+    meta:
+      glossary_terms: ["MedallionGlossary.GoldLayer", "MedallionGlossary.Customer360", "MedallionGlossary.Customer", "MedallionGlossary.RevenueMetric"]
+      classification_tags: ["MedallionLayer.Gold", "DemoDataDomain.Customer", "DemoDataDomain.FinancialMetric"]
     columns:
       - name: customer_id
+        description: Stable customer identifier.
         tests:
           - not_null
           - unique
+      - name: first_name
+        description: Customer given name.
+      - name: last_name
+        description: Customer family name.
+      - name: email
+        description: Customer email address.
+        meta:
+          classification_tags: ["DemoDataDomain.PII"]
+      - name: country
+        description: Customer country code.
+      - name: signup_date
+        description: Customer signup date.
+      - name: completed_orders
+        description: Count of completed orders for the customer.
+      - name: returned_orders
+        description: Count of returned orders for the customer.
+      - name: pending_orders
+        description: Count of pending orders for the customer.
+      - name: cancelled_orders
+        description: Count of cancelled orders for the customer.
+      - name: lifetime_value
+        description: Customer lifetime net revenue from completed orders.
+        meta:
+          glossary_terms: ["MedallionGlossary.RevenueMetric"]
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
+      - name: last_completed_order_ts
+        description: Timestamp of the customer's most recent completed order.
+      - name: last_activity_ts
+        description: Timestamp of the customer's most recent order activity.

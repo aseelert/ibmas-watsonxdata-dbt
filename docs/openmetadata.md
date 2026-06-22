@@ -1,7 +1,7 @@
 # OpenMetadata: dbt Lineage in a Local Docker UI
 
 !!! info "What OpenMetadata does"
-    OpenMetadata is a **metadata catalog** — think of it as a glossary and a map of your data all in one place. It answers three questions at a glance: **where** did each table come from (the lineage graph), **what** does each column mean (descriptions you wrote in `schema.yml`), and **whether** the data quality tests passed last time dbt ran. In this demo, OpenMetadata does not connect to the live Presto cluster at all. It reads the JSON files that dbt produces after a run and draws the Bronze → Silver → Gold transformation graph inside a browser UI at `localhost:8585`. That means you can show the full lineage story offline, without any watsonx.data credentials.
+    OpenMetadata is a **metadata catalog** — think of it as a glossary and a map of your data all in one place. It answers three questions at a glance: **where** did each table come from (the lineage graph), **what** does each column mean (descriptions you wrote in `schema.yml`), and **whether** the data quality tests passed last time dbt ran. In this demo, OpenMetadata first tries a live Presto metadata scan so the catalog reflects the real watsonx.data tables. If that live connection fails, it falls back to the staged dbt artifacts and still builds the same catalog entities and lineage offline.
 
 !!! warning "OpenMetadata is OPTIONAL in this demo"
     The medallion pipeline runs fine without it. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) paths build every gold table on their own. OpenMetadata is here only to *visualise the lineage* of what dbt already built. Skip it if you only want the pipeline; run it if you want to show where each number came from. For a live point-and-click BI view of the same gold tables, see [Metabase](metabase.md) instead — the two are complementary (Metabase queries the data; OpenMetadata maps where it came from).
@@ -16,15 +16,21 @@ flowchart LR
   seeds["CSV seeds/"]
   dbt["dbt models\nrunning against Presto"]
   docs["dbt docs generate"]
+  live["live Presto metadata scan"]
+  fallback["offline table seed\nfrom catalog.json"]
   artifacts["target/\nmanifest.json\ncatalog.json\nrun_results.json"]
   ingest["metadata ingest CLI\nopenmetadata-ingestion"]
+  gov["governance pass\nglossary + tags"]
   om["OpenMetadata server\nDocker on localhost:8585"]
   browser["Browser\nlocalhost:8585"]
 
-  seeds --> dbt --> docs --> artifacts --> ingest --> om --> browser
+  seeds --> dbt --> docs --> artifacts --> ingest
+  live --> ingest
+  artifacts --> fallback --> ingest
+  ingest --> gov --> om --> browser
 ```
 
-The dbt JSON files are the only bridge between dbt and OpenMetadata. No live database connection is needed during the ingestion step.
+The preferred path uses a live Presto metadata scan to create the table entities, then dbt artifacts attach lineage, descriptions, and test results. If Presto is unavailable, the offline fallback creates the same table entities from `catalog.json`, then the same dbt lineage and governance pass run.
 
 ## Prerequisites
 
@@ -87,6 +93,20 @@ cp target/manifest.json \
    openmetadata/dbt-artifacts/
 ```
 
+!!! tip "One-step lineage refresh"
+    The two commands above (generate + stage) are bundled in a dedicated
+    lineage-only script. When the medallion tables already exist and you just
+    want fresh lineage, run:
+
+    ```bash
+    scripts/generate_lineage_docs.sh
+    ```
+
+    It runs **only** `dbt docs generate` (no seed/run/test) and stages
+    `manifest.json`, `catalog.json`, and `run_results.json` into
+    `openmetadata/dbt-artifacts/`. For a full rebuild first, use
+    `python scripts/prepare_openmetadata_dbt_artifacts.py` instead.
+
 !!! note "If `catalog.json` is missing"
     `catalog.json` requires a live Presto connection because it queries the warehouse for column metadata. If Presto is unavailable, run `dbt docs generate` later and repeat the copy step. OpenMetadata can still show model lineage from `manifest.json` alone — it just shows fewer column details.
 
@@ -94,7 +114,7 @@ cp target/manifest.json \
 
 ## Step 3: Run the Ingestion Script
 
-The `metadata ingest` command (from the `openmetadata-ingestion` Python package) reads the YAML config file and pushes the dbt model graph, column descriptions, and test results into the OpenMetadata database. This step reads only the three JSON files — no live Presto connection is required.
+The ingestion script runs three passes: discover the real tables from Presto, fall back to offline dbt metadata if that fails, then attach dbt lineage and governance metadata.
 
 ```bash
 source .venv/bin/activate
@@ -103,11 +123,14 @@ bash openmetadata/ingestion/run-ingestion.sh
 
 The script does the following automatically:
 
-1. Installs `openmetadata-ingestion[dbt]==1.13.0.0` into the virtual environment.
+1. Installs `openmetadata-ingestion[dbt,presto]==1.13.0.0` into the virtual environment.
 2. Fetches a short-lived JWT token from the local OpenMetadata API.
-3. Substitutes the token into the YAML config and writes a temporary file to `/tmp/`.
-4. Creates the `watsonxdata-presto` database service in OpenMetadata (safe to run more than once — a `409 Conflict` response means the service already exists and is skipped).
-5. Runs `metadata ingest` to push all dbt models, lineage edges, descriptions, and test results into OpenMetadata.
+3. Renders `openmetadata/ingestion/metadata-ingestion.yaml` and tries a live Presto metadata scan.
+4. If the live scan fails or `WXD_OM_SKIP_LIVE=1` is set, runs `scripts/seed_openmetadata_tables.py` to create the table entities from staged `catalog.json`.
+5. Runs dbt ingestion from `openmetadata/ingestion/dbt-ingestion.yaml` to attach dbt models, lineage edges, descriptions, and test results.
+6. Runs `scripts/apply_openmetadata_governance.py` to apply glossary terms, classifications, fallback descriptions, and the online/offline ingestion-mode tag.
+
+See [OpenMetadata Glossary & Classification](openmetadata-governance.md) for the glossary terms, classifications, and auto-classification rules.
 
 ---
 
@@ -130,6 +153,7 @@ Follow these steps to reach the lineage graph:
 5. Click any node in the graph to jump to that model's detail page.
 6. Click a **column name** inside a model card to see the description you wrote in `schema.yml` — this is documentation-as-code made visible.
 7. Click the **Data Quality** tab to see which dbt tests passed (shown in green) or failed (shown in red) from the last run.
+8. Open the **Tags** and **Glossary Terms** sections on a table or column to see the auto-applied medallion layer, domain, ingestion-mode, and business glossary labels.
 
 !!! tip "See the full medallion chain at once"
     In the Lineage tab, click **Expand All** to see the complete Bronze → Silver → Gold chain with every intermediate model visible on screen at the same time.
@@ -202,6 +226,41 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
     | `dbtConfigSource` | `dbt*FilePath` | Absolute paths to the three JSON files copied from `target/`. |
     | `workflowConfig` | `hostPort` | The OpenMetadata API endpoint — matches the Docker Compose default port. |
     | `workflowConfig` | `jwtToken` | A short-lived token fetched at runtime by `run-ingestion.sh` — the placeholder `__JWT_TOKEN__` is replaced by `sed` before the file is used. |
+
+??? note "openmetadata/ingestion/metadata-ingestion.yaml"
+
+    This is the live Presto metadata pass. It discovers the actual watsonx.data tables before dbt lineage is attached.
+
+    ```yaml
+    source:
+      type: presto
+      serviceName: watsonxdata-presto
+      serviceConnection:
+        config:
+          type: Presto
+          hostPort: __WXD_HOST__:__WXD_PORT__
+          catalog: __WXD_CATALOG__
+          username: __WXD_USER__
+          password: __WXD_API_KEY__
+          connectionArguments:
+            protocol: https
+            requests_kwargs:
+              verify: __WXD_CA_PEM__
+      sourceConfig:
+        config:
+          type: DatabaseMetadata
+          markDeletedTables: false
+          includeTables: true
+          includeViews: true
+          schemaFilterPattern:
+            includes:
+              - "^dbt_demo_raw$"
+              - "^dbt_demo_bronze$"
+              - "^dbt_demo_silver$"
+              - "^dbt_demo_gold$"
+    ```
+
+    Set `WXD_OM_SKIP_LIVE=1` when you want to force the offline dbt-artifact path.
 
 ---
 

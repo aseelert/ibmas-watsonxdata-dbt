@@ -55,6 +55,11 @@ USAGE examples:
      full pipeline (seed + run + test + docs) then stage.
  - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py --skip-seed``
      skip the seed refresh but still run/test/docs.
+ - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py --docs-only``
+     lineage-only: run just ``dbt docs generate`` (no seed/run/test) then stage.
+     Use when the medallion tables already exist and you only need fresh
+     lineage/column metadata. The ``scripts/generate_lineage_docs.sh`` wrapper
+     is a convenience entry point for exactly this mode.
  - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt``
      only re-copy existing ``target/*.json`` into the staging directory.
  - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py \\
@@ -139,6 +144,14 @@ def main() -> int:
         help="Do not refresh dbt seed tables before running dbt models.",
     )
     parser.add_argument(
+        "--docs-only",
+        action="store_true",
+        help=(
+            "Lineage-only mode: run ONLY `dbt docs generate` (no seed/run/test), "
+            "then stage. Requires the medallion tables to already exist."
+        ),
+    )
+    parser.add_argument(
         "--artifact-dir",
         help="Directory where OpenMetadata-readable artifacts should be staged.",
     )
@@ -157,12 +170,19 @@ def main() -> int:
     print(f"repo root: {ROOT}")
     print(f"skip-dbt={args.skip_dbt} skip-seed={args.skip_seed} retries={args.retries}")
 
+    if args.skip_dbt and args.docs_only:
+        raise SystemExit("--skip-dbt and --docs-only are mutually exclusive.")
+
     if not args.skip_dbt:
-        if not args.skip_seed:
-            _run(["scripts/dbt_env.sh", "seed", "--full-refresh"], args.retries)
-        _run(["scripts/dbt_env.sh", "run"], args.retries)
-        _run(["scripts/dbt_env.sh", "test"], args.retries)
-        _run(["scripts/dbt_env.sh", "docs", "generate"], args.retries)
+        if args.docs_only:
+            # Lineage-only: refresh just the artifacts OpenMetadata reads.
+            _run(["scripts/dbt_env.sh", "docs", "generate"], args.retries)
+        else:
+            if not args.skip_seed:
+                _run(["scripts/dbt_env.sh", "seed", "--full-refresh"], args.retries)
+            _run(["scripts/dbt_env.sh", "run"], args.retries)
+            _run(["scripts/dbt_env.sh", "test"], args.retries)
+            _run(["scripts/dbt_env.sh", "docs", "generate"], args.retries)
 
     source_dir = ROOT / "target"
     target_dir = (

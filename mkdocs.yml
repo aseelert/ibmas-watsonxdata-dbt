@@ -82,6 +82,7 @@ nav:
     - "Airflow — Schedule the Pipeline": airflow.md
   - Governance (optional):
     - "Lineage UI (OpenMetadata)": openmetadata.md
+    - "Glossary & Classification (OpenMetadata)": openmetadata-governance.md
     - "Lineage Standard (OpenLineage)": openlineage.md
     - "BI & Dashboards (Metabase)": metabase.md
     - "Semantic Models": semantic-models.md

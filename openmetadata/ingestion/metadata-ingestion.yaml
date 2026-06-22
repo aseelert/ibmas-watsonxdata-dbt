@@ -1,0 +1,65 @@
+# -----------------------------------------------------------------------------
+#  metadata-ingestion.yaml — OPTIONAL live Presto metadata ingestion for OpenMetadata.
+#
+#  WHAT / WHY
+#    The "live" path of the optional OpenMetadata demo. It points OpenMetadata
+#    directly at the watsonx.data Presto engine so OM discovers the REAL tables
+#    and columns (and can later profile / sample them). run-ingestion.sh renders
+#    + runs this BEFORE the dbt ingestion so the dbt lineage has live tables to
+#    attach to. If this live connection fails (e.g. Presto down, cert/API-key
+#    issues), run-ingestion.sh falls back to the OFFLINE seed
+#    (scripts/seed_openmetadata_tables.py), which creates the same table entities
+#    from the staged dbt catalog.json without any live connection.
+#
+#  NOTE on the LhInstanceId header
+#    dbt's watsonx_presto adapter sends an `LhInstanceId` HTTP header, but
+#    OpenMetadata's Presto connector is pyhive-based and pyhive REFUSES custom
+#    request headers ("Cannot override requests argument headers"). The header is
+#    NOT required here because the Presto host already resolves to the single
+#    presto651 engine — so we authenticate with BasicAuth (API key) over TLS and
+#    omit the header. (Verified: CheckAccess / GetSchemas / GetTables all pass.)
+#
+#  Placeholders substituted at run time by run-ingestion.sh (from .env):
+#    __JWT_TOKEN__    OpenMetadata ingestion-bot JWT (from get_om_token.py)
+#    __WXD_HOST__     Presto host            (WXD_HOST)
+#    __WXD_PORT__     Presto port            (WXD_PORT, e.g. 443)
+#    __WXD_USER__     Presto username        (WXD_USER, e.g. ibmlhapikey_cpadmin)
+#    __WXD_API_KEY__  Presto password/APIkey (WXD_API_KEY)
+#    __WXD_CATALOG__  Iceberg catalog        (WXD_CATALOG, e.g. iceberg_data)
+#    __WXD_CA_PEM__   absolute path to the watsonx CA cert (from WXD_SSL_VERIFY)
+# -----------------------------------------------------------------------------
+source:
+  type: presto
+  serviceName: watsonxdata-presto
+  serviceConnection:
+    config:
+      type: Presto
+      hostPort: __WXD_HOST__:__WXD_PORT__
+      catalog: __WXD_CATALOG__
+      username: __WXD_USER__
+      password: __WXD_API_KEY__
+      connectionArguments:
+        protocol: https
+        requests_kwargs:
+          verify: __WXD_CA_PEM__
+  sourceConfig:
+    config:
+      type: DatabaseMetadata
+      markDeletedTables: false
+      includeTables: true
+      includeViews: true
+      schemaFilterPattern:
+        includes:
+          - "^dbt_demo_raw$"
+          - "^dbt_demo_bronze$"
+          - "^dbt_demo_silver$"
+          - "^dbt_demo_gold$"
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: __JWT_TOKEN__

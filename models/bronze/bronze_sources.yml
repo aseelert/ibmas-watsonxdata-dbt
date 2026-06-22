@@ -3,42 +3,107 @@ version: 2
 seeds:
   - name: raw_customers
     description: Landing customer records loaded by dbt seed into the raw schema.
+    meta:
+      glossary_terms: ["MedallionGlossary.RawLanding", "MedallionGlossary.Customer"]
+      classification_tags: ["MedallionLayer.Raw", "DemoDataDomain.Customer"]
     columns:
       - name: customer_id
+        description: Stable customer identifier from the source CSV.
         tests:
           - not_null
           - unique
+      - name: first_name
+        description: Customer given name.
+      - name: last_name
+        description: Customer family name.
       - name: email
+        description: Customer email address.
+        meta:
+          classification_tags: ["DemoDataDomain.PII"]
         tests:
           - not_null
+      - name: signup_date
+        description: Date the customer signed up.
+      - name: country
+        description: Customer country code.
   - name: raw_products
     description: Landing product master data loaded by dbt seed into the raw schema.
+    meta:
+      glossary_terms: ["MedallionGlossary.RawLanding", "MedallionGlossary.Product"]
+      classification_tags: ["MedallionLayer.Raw", "DemoDataDomain.Product"]
     columns:
       - name: product_id
+        description: Stable product identifier from the source CSV.
         tests:
           - not_null
           - unique
+      - name: product_name
+        description: Product display name.
+      - name: category
+        description: Product category used for reporting.
+      - name: unit_price
+        description: Source product unit price.
+        meta:
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
   - name: raw_orders
     description: Landing order header data loaded by dbt seed into the raw schema.
+    meta:
+      glossary_terms: ["MedallionGlossary.RawLanding", "MedallionGlossary.Order"]
+      classification_tags: ["MedallionLayer.Raw", "DemoDataDomain.Order"]
     columns:
       - name: order_id
+        description: Stable order header identifier from the source CSV.
         tests:
           - not_null
           - unique
+      - name: customer_id
+        description: Customer identifier on the order header.
+      - name: order_ts
+        description: Timestamp when the order was placed.
+      - name: status
+        description: Source order lifecycle status.
+      - name: payment_method
+        description: Payment method recorded on the order.
   - name: raw_order_items
     description: Landing order line items loaded by dbt seed into the raw schema.
+    meta:
+      glossary_terms: ["MedallionGlossary.RawLanding", "MedallionGlossary.OrderItem"]
+      classification_tags: ["MedallionLayer.Raw", "DemoDataDomain.Order"]
     columns:
       - name: order_item_id
+        description: Stable order line identifier from the source CSV.
         tests:
           - not_null
           - unique
+      - name: order_id
+        description: Parent order identifier.
+      - name: product_id
+        description: Product identifier on the order line.
+      - name: quantity
+        description: Number of units purchased on the order line.
+      - name: discount_pct
+        description: Discount percentage applied to the order line.
+        meta:
+          classification_tags: ["DemoDataDomain.FinancialMetric"]
 
 models:
   - name: bronze_customers
     description: Raw customer records plus ingestion metadata.
+    meta:
+      glossary_terms: ["MedallionGlossary.BronzeLayer", "MedallionGlossary.Customer"]
+      classification_tags: ["MedallionLayer.Bronze", "DemoDataDomain.Customer"]
   - name: bronze_products
     description: Raw product records plus ingestion metadata.
+    meta:
+      glossary_terms: ["MedallionGlossary.BronzeLayer", "MedallionGlossary.Product"]
+      classification_tags: ["MedallionLayer.Bronze", "DemoDataDomain.Product"]
   - name: bronze_orders
     description: Raw order records plus ingestion metadata.
+    meta:
+      glossary_terms: ["MedallionGlossary.BronzeLayer", "MedallionGlossary.Order"]
+      classification_tags: ["MedallionLayer.Bronze", "DemoDataDomain.Order"]
   - name: bronze_order_items
     description: Raw order item records plus ingestion metadata.
+    meta:
+      glossary_terms: ["MedallionGlossary.BronzeLayer", "MedallionGlossary.OrderItem"]
+      classification_tags: ["MedallionLayer.Bronze", "DemoDataDomain.Order"]
