@@ -1,0 +1,2960 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A beginner-friendly customer demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.">
+      
+      
+      
+      
+        <link rel="prev" href="../scripts/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Troubleshooting - watsonx.data · dbt · Spark Medallion Demo</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"IBM Plex Sans";--md-code-font:"IBM Plex Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            watsonx.data · dbt · Spark Medallion Demo
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Workshop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../lineage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Understand
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dbt-demo/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Build a Medallion (dbt or Spark)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ingestion/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Ingest & Compare
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../airflow/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Orchestrate (optional)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../openmetadata/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance (optional)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../configuration/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    watsonx.data · dbt · Spark Medallion Demo
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workshop
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workshop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1 · Prepare Your Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understand
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Understand
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    When to Use Which (dbt · Spark · cpdctl)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a Medallion (dbt or Spark)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build a Medallion (dbt or Spark)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dbt-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A · dbt — SQL Governance (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spark-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest & Compare
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ingest & Compare
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest Raw Data — cpdctl (loader)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sql-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQL — Compare dbt vs Spark Gold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestrate (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Orchestrate (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../airflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow — Schedule the Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openmetadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage UI (OpenMetadata)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openmetadata-governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary & Classification (OpenMetadata)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openlineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage Standard (OpenLineage)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metabase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BI & Dashboards (Metabase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../semantic-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Semantic Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-setup-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Setup Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Setup Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-not-found-or-wrong-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python not found or wrong version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#env-missing-or-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .env missing or empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certswatsonxdata-capem-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certs/watsonxdata-ca.pem not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connection-json-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connection JSON not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-a-dbt-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A — dbt Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path A — dbt Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#remotedisconnected-connectionabortederror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoteDisconnected / ConnectionAbortedError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#500-authentication-error-authenticator-not-loaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        500 Authentication Error / authenticator not loaded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not_supported-materialized-views-are-not-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NOT_SUPPORTED: Materialized views are not supported
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbt-run-hangs-no-output-for-several-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dbt run hangs / no output for several minutes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-b-spark-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B — Spark Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path B — Spark Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-fails-connection-refused-on-minio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload fails / connection refused on MinIO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-port-forward-exited-early-namespaces-cpd-instance-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc port-forward exited early / namespaces "cpd-instance" not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark-job-stays-in-starting-for-more-than-five-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spark job stays in STARTING for more than five minutes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finished-with-return_code-0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FINISHED with return_code != 0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark-job-not-appearing-in-watsonxdata-ingestion-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spark job not appearing in watsonx.data Ingestion history
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-c-cpdctl-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C — cpdctl Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path C — cpdctl Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#i002-invalid-input-provided-storage-name-on-a-registered-bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        I002 Invalid input provided — --storage-name on a registered bucket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpdctl-command-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cpdctl: command not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#401-unauthorized-when-running-cpdctl-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        401 Unauthorized when running cpdctl commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#openmetadata-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenMetadata Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OpenMetadata Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openmetadata-not-ready-after-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenMetadata not ready after 10 minutes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#401-unauthorized-during-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        401 Unauthorized during ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#catalogjson-missing-or-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        catalog.json missing or not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#package-version-mismatch-during-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Package version mismatch during ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general-presto-watsonxdata-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Presto / watsonx.data Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General Presto / watsonx.data Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#503-service-unavailable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        503 Service Unavailable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssl-certificate-error-all-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSL certificate error (all tools)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mkdocs-port-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MkDocs port already in use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wxd_spark_dry_runtrue-job-never-submits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WXD_SPARK_DRY_RUN=true — job never submits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-setup-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Setup Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Setup Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-not-found-or-wrong-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python not found or wrong version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#env-missing-or-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .env missing or empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certswatsonxdata-capem-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certs/watsonxdata-ca.pem not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connection-json-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connection JSON not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-a-dbt-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A — dbt Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path A — dbt Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#remotedisconnected-connectionabortederror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RemoteDisconnected / ConnectionAbortedError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#500-authentication-error-authenticator-not-loaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        500 Authentication Error / authenticator not loaded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not_supported-materialized-views-are-not-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NOT_SUPPORTED: Materialized views are not supported
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dbt-run-hangs-no-output-for-several-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dbt run hangs / no output for several minutes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-b-spark-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B — Spark Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path B — Spark Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-fails-connection-refused-on-minio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload fails / connection refused on MinIO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-port-forward-exited-early-namespaces-cpd-instance-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc port-forward exited early / namespaces "cpd-instance" not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark-job-stays-in-starting-for-more-than-five-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spark job stays in STARTING for more than five minutes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finished-with-return_code-0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FINISHED with return_code != 0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark-job-not-appearing-in-watsonxdata-ingestion-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spark job not appearing in watsonx.data Ingestion history
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-c-cpdctl-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C — cpdctl Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path C — cpdctl Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#i002-invalid-input-provided-storage-name-on-a-registered-bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        I002 Invalid input provided — --storage-name on a registered bucket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpdctl-command-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cpdctl: command not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#401-unauthorized-when-running-cpdctl-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        401 Unauthorized when running cpdctl commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#openmetadata-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenMetadata Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OpenMetadata Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openmetadata-not-ready-after-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenMetadata not ready after 10 minutes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#401-unauthorized-during-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        401 Unauthorized during ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#catalogjson-missing-or-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        catalog.json missing or not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#package-version-mismatch-during-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Package version mismatch during ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general-presto-watsonxdata-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Presto / watsonx.data Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General Presto / watsonx.data Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#503-service-unavailable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        503 Service Unavailable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssl-certificate-error-all-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSL certificate error (all tools)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mkdocs-port-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MkDocs port already in use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wxd_spark_dry_runtrue-job-never-submits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WXD_SPARK_DRY_RUN=true — job never submits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="troubleshooting">Troubleshooting</h1>
+<div class="admonition note">
+<p class="admonition-title">How to read this page</p>
+<p>Find the path you were running when the error happened, then look up the error message.
+Setup issues that appear before any path are in the first section. Path-specific errors follow
+in separate sections. If your error message does not appear here, check the General Presto section
+at the bottom — many failures trace back to a cluster or TLS issue that cuts across all paths.</p>
+</div>
+<hr />
+<h2 id="common-setup-issues">Common Setup Issues</h2>
+<p>These errors appear during the initial environment setup, before you run any ingestion path.
+Resolve them first — every path depends on a working environment.</p>
+<hr />
+<h3 id="python-not-found-or-wrong-version">Python not found or wrong version</h3>
+<p>Python commands fail with <code>command not found</code> or the wrong version number is printed.</p>
+<p>The workshop requires exactly Python 3.11. The <code>dbt-watsonx-presto</code> adapter has only been tested
+against 3.11; using 3.12 or 3.10 often produces silent dependency conflicts.</p>
+<p><strong>Verify which Python you have:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python3.11<span class="w"> </span>--version
+</code></pre></div>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Python 3.11.x
+</code></pre></div>
+<p>If the command returns <code>command not found</code>, install Python 3.11 from
+<a href="https://www.python.org/downloads/">python.org</a> before continuing.</p>
+<p><strong>Always use the virtual environment interpreter directly when activating fails:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>.venv/bin/python<span class="w"> </span>scripts/prepare_watsonx_env.py
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Activate before running scripts</p>
+<p>Open every new terminal with <code>source .venv/bin/activate</code>. The <code>(.venv)</code> prefix in your prompt
+confirms the environment is active. If the prefix is absent, scripts will pick up the system
+Python instead, which will likely be the wrong version or missing packages.</p>
+</div>
+<hr />
+<h3 id="env-missing-or-empty"><code>.env</code> missing or empty</h3>
+<p>Scripts exit immediately with errors such as <code>KeyError: 'WXD_API_KEY'</code> or
+<code>WXD_API_KEY is not set</code>.</p>
+<p>The <code>.env</code> file holds your API key and the connection values written by
+<code>prepare_watsonx_env.py</code>. Without it nothing can authenticate.</p>
+<p><strong>Create it from the template:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
+</code></pre></div>
+<p><strong>Set your Software Hub API key:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Open .env in any editor and fill in this line:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">WXD_API_KEY</span><span class="o">=</span>&lt;your-software-hub-api-key&gt;
+</code></pre></div>
+<p>Then re-run the environment preparation so all other values are filled in automatically:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Never commit <code>.env</code></p>
+<p><code>.env</code> is in <code>.gitignore</code> and must stay there. It contains your real API key. Verify with
+<code>git status</code> — <code>.env</code> must never appear as a file to commit.</p>
+</div>
+<hr />
+<h3 id="certswatsonxdata-capem-not-found"><code>certs/watsonxdata-ca.pem</code> not found</h3>
+<p>Any command that talks to Presto or the cluster API exits with an SSL error such as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>WXD_SSL_VERIFY path does not exist: certs/watsonxdata-ca.pem
+</code></pre></div>
+<p>The certificate file is not committed to the repository — it is written to disk by the
+environment preparation script from the connection JSON.</p>
+<p><strong>Regenerate the file:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+</code></pre></div>
+<p><strong>Confirm it exists:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ls<span class="w"> </span>certs/watsonxdata-ca.pem
+</code></pre></div>
+<p>If <code>watsonx_data/instance_details.json</code> is missing or empty, the script cannot extract the
+certificate. See "Connection JSON not found" below.</p>
+<hr />
+<h3 id="connection-json-not-found">Connection JSON not found</h3>
+<p><code>prepare_watsonx_env.py</code> exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>FileNotFoundError: watsonx_data/instance_details.json not found
+</code></pre></div>
+<p>The connection JSON is a file you export from the watsonx.data console. It contains the
+Presto endpoint address, your instance ID, and the SSL certificate chain.</p>
+<p><strong>Export it from the watsonx.data console:</strong></p>
+<ol>
+<li>Open the watsonx.data console in your browser.</li>
+<li>Go to <strong>Infrastructure manager</strong> and click your Presto engine (<code>presto651</code>).</li>
+<li>Click <strong>Download connection details</strong>.</li>
+<li>Save the file as <code>watsonx_data/instance_details.json</code> inside the repository root.</li>
+</ol>
+<p>If your administrator gave you a pre-exported file, copy it there directly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cp<span class="w"> </span>/path/to/presto-connection.json<span class="w"> </span>watsonx_data/instance_details.json
+</code></pre></div>
+<p>Then re-run setup step 5:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">One JSON per environment</p>
+<p>If the administrator rotates the certificate or the cluster changes, request a fresh JSON
+and run <code>prepare_watsonx_env.py --overwrite</code> to apply the new values.</p>
+</div>
+<hr />
+<h2 id="path-a-dbt-errors">Path A — dbt Errors</h2>
+<p>These errors occur while running the dbt path: <code>dbt_env.sh seed</code>, <code>dbt_env.sh run</code>,
+<code>dbt_env.sh test</code>, or <code>query_gold.py</code>.</p>
+<hr />
+<h3 id="remotedisconnected-connectionabortederror">RemoteDisconnected / ConnectionAbortedError</h3>
+<p>dbt exits with a message similar to:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>RemoteDisconnected(&#39;Remote end closed connection without response&#39;)
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>http.client.RemoteDisconnected: Remote end closed connection without response
+</code></pre></div>
+<p>Presto has a hard limit on concurrent open connections. When dbt runs too many threads in
+parallel, the cluster drops some of them mid-query.</p>
+<p><strong>Reduce thread count and retry:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Use <code>--select</code> to avoid re-running completed models</p>
+<p>If the error happened part-way through, use <code>--select</code> to restart only from the failed model
+rather than re-running the whole pipeline:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>silver_sales_enriched+
+</code></pre></div>
+<p>The <code>+</code> suffix tells dbt to also run all downstream dependencies.</p>
+</div>
+<hr />
+<h3 id="500-authentication-error-authenticator-not-loaded">500 Authentication Error / authenticator not loaded</h3>
+<p>dbt exits with an error similar to:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>500 Authentication Error
+</code></pre></div>
+<p>or the Presto Python client prints:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>PrestoAuthenticationException: authenticator not loaded
+</code></pre></div>
+<p>The bearer token that dbt uses to authenticate against Presto has expired. Tokens are
+short-lived; you need to refresh them at the start of every session.</p>
+<p><strong>Refresh the token:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+</code></pre></div>
+<p>Then retry the dbt command that failed. The <code>--overwrite</code> flag forces the script to fetch a
+new token even if <code>.env</code> already has values.</p>
+<div class="admonition note">
+<p class="admonition-title">Token lifetime</p>
+<p>IBM Software Hub tokens typically expire after a few hours. If you started the workshop in
+the morning and return after lunch, run <code>prepare_watsonx_env.py --overwrite</code> before
+continuing.</p>
+</div>
+<hr />
+<h3 id="not_supported-materialized-views-are-not-supported">NOT_SUPPORTED: Materialized views are not supported</h3>
+<p>dbt exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>PrestoQueryError: NOT_SUPPORTED: Materialized views are not supported for Iceberg
+</code></pre></div>
+<p>This is expected behavior, not a bug. The gold layer in this demo uses two <strong>SQL views</strong> —
+<code>gold_category_performance</code> and <code>gold_customer_360</code>. These are stored query definitions, not
+materialized caches. The <code>dbt-watsonx-presto</code> adapter maps dbt <code>materialized='view'</code> to a
+Presto <code>CREATE VIEW</code> statement, which is fully supported.</p>
+<p>If you see this error, a model config has accidentally set <code>materialized='materialized_view'</code>.
+Check the model file and correct it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="err">{{</span><span class="w"> </span><span class="n">config</span><span class="p">(</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">    </span><span class="n">materialized</span><span class="o">=</span><span class="s1">&#39;view&#39;</span><span class="w">   </span><span class="c1">-- correct: plain SQL view</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>dbt materialization</th>
+<th>What Presto creates</th>
+<th>Supported?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>table</code></td>
+<td><code>CREATE TABLE AS SELECT</code></td>
+<td>Yes</td>
+<td>Used for <code>gold_daily_sales</code></td>
+</tr>
+<tr>
+<td><code>view</code></td>
+<td><code>CREATE VIEW</code></td>
+<td>Yes</td>
+<td>Used for <code>gold_category_performance</code>, <code>gold_customer_360</code></td>
+</tr>
+<tr>
+<td><code>materialized_view</code></td>
+<td><code>CREATE MATERIALIZED VIEW</code></td>
+<td><strong>No</strong></td>
+<td>Not supported by Iceberg connector</td>
+</tr>
+<tr>
+<td><code>incremental</code></td>
+<td><code>INSERT INTO ... SELECT</code></td>
+<td>Partial</td>
+<td>Requires careful config; not used in this demo</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="dbt-run-hangs-no-output-for-several-minutes">dbt run hangs / no output for several minutes</h3>
+<p>dbt starts, prints a few model names, then appears to freeze with no further output.</p>
+<p>The Presto cluster is under load. When too many queries are queued simultaneously, new ones
+wait. This is most common when multiple workshop participants run the full pipeline at the
+same time.</p>
+<p><strong>Build one layer at a time with a reduced thread count:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:bronze
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:silver
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:gold
+</code></pre></div>
+<p>This reduces the number of simultaneous Presto connections from however many models are in
+the graph down to one at a time. The run takes longer but is less likely to contend with
+other workshop participants.</p>
+<div class="admonition warning">
+<p class="admonition-title">Ctrl-C and dbt cleanup</p>
+<p>If you press Ctrl-C during a dbt run, the interrupted model may be in a partially written
+state. Add <code>--full-refresh</code> when you retry a <code>run</code> to force dbt to drop and recreate the
+table from scratch rather than appending to a partial result.</p>
+</div>
+<hr />
+<h2 id="path-b-spark-errors">Path B — Spark Errors</h2>
+<p>These errors occur while running the Spark path: <code>upload_spark_assets.py</code>,
+<code>submit_spark_application.py</code>, or <code>spark_application_status.py</code>.</p>
+<hr />
+<h3 id="upload-fails-connection-refused-on-minio">Upload fails / connection refused on MinIO</h3>
+<p><code>upload_spark_assets.py</code> exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>ConnectionRefusedError: [Errno 111] Connection refused
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL
+</code></pre></div>
+<p>In some OpenShift deployments MinIO is not reachable from outside the cluster. The upload
+script needs a port-forward to reach it.</p>
+<p><strong>Open a port-forward in a separate terminal and keep it running:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>oc<span class="w"> </span>login<span class="w"> </span>https://api.watson.ibmas-zocp-techcluster.org:6443
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-instance<span class="w"> </span>port-forward<span class="w"> </span>svc/ibm-lh-lakehouse-minio-svc<span class="w"> </span><span class="m">19000</span>:9000
+</code></pre></div>
+<p><strong>In your working terminal, override the endpoint before uploading:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">WXD_OBJECT_STORE_ENDPOINT</span><span class="o">=</span>http://127.0.0.1:19000
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>python<span class="w"> </span>scripts/upload_spark_assets.py
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Automatic port-forwarding</p>
+<p>Set <code>WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true</code> in <code>.env</code> to have the upload script open the
+port-forward for you. This requires <code>oc</code> to be installed and you to be already logged in.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Keep the port-forward terminal open</p>
+<p>The moment you close the terminal running the <code>oc port-forward</code> command, the tunnel closes
+and uploads fail with <code>Connection refused</code>. Open a dedicated terminal for the port-forward
+and leave it running for the entire Spark demo.</p>
+</div>
+<hr />
+<h3 id="oc-port-forward-exited-early-namespaces-cpd-instance-not-found"><code>oc port-forward exited early</code> / <code>namespaces "cpd-instance" not found</code></h3>
+<p>The uploader fails immediately and <code>minio-port-forward.log</code> shows this error. By
+default the script writes that file under the first writable runtime log directory:
+<code>WXD_OBJECT_STORE_LOG_DIR</code>, Airflow's <code>/opt/airflow/logs</code>, repo <code>logs/</code>, then <code>/tmp</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Error from server (NotFound): namespaces &quot;cpd-instance&quot; not found
+</code></pre></div>
+<p>Your <code>oc</code> is pointed at the <strong>wrong cluster</strong>. The script's <code>oc</code> calls use whatever your
+current kubeconfig context is, and that context is talking to a cluster that has no
+<code>cpd-instance</code> namespace (a common cause is a local dev cluster — kind, OrbStack, CRC —
+left as the default).</p>
+<p><strong>Check which cluster you are on and what is available:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>oc<span class="w"> </span>config<span class="w"> </span>current-context<span class="w">        </span><span class="c1"># the active context</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>oc<span class="w"> </span>config<span class="w"> </span>get-contexts<span class="w">           </span><span class="c1"># all contexts; find the one for the watsonx.data cluster</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>oc<span class="w"> </span>whoami<span class="w"> </span>--show-server<span class="w">          </span><span class="c1"># confirm the API URL is the right cluster</span>
+</code></pre></div>
+<p><strong>Switch to the correct context, then re-run:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>oc<span class="w"> </span>config<span class="w"> </span>use-context<span class="w"> </span>&lt;watsonx-data-context&gt;
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>python<span class="w"> </span>scripts/upload_spark_assets.py
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Pin the context so this can't recur</p>
+<p>Set <code>WXD_OPENSHIFT_CONTEXT=&lt;watsonx-data-context&gt;</code> in <code>.env</code>. The uploader and
+<code>cleanup_minio.py</code> then pass <code>--context</code> on every <code>oc</code> call, so they always target the
+right cluster regardless of your default context.</p>
+</div>
+<hr />
+<h3 id="spark-job-stays-in-starting-for-more-than-five-minutes">Spark job stays in <code>STARTING</code> for more than five minutes</h3>
+<p>The status script returns <code>STARTING</code> on every poll, never progressing to <code>RUNNING</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>state: STARTING
+</code></pre></div>
+<p>The Spark engine needs to pull the PySpark runtime container image. On first submission this
+can take three to five minutes. If it takes longer, the image pull may have stalled or the
+engine may be misconfigured.</p>
+<p><strong>Check the Spark engine logs in the watsonx.data console:</strong></p>
+<ol>
+<li>Open the watsonx.data console.</li>
+<li>Go to <strong>Infrastructure manager → Spark engine <code>spark656</code> → Applications</strong>.</li>
+<li>Find your application ID and click it.</li>
+<li>Look at the <strong>Events</strong> or <strong>Logs</strong> tab for image pull errors or resource quota messages.</li>
+</ol>
+<p><strong>From the terminal, check the engine's current application list:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w"> </span>&lt;application-id&gt;
+</code></pre></div>
+<pre class="mermaid"><code>flowchart LR
+    SUBMITTED["Submitted"] --&gt; STARTING["STARTING\n(image pull)"]
+    STARTING --&gt; RUNNING["RUNNING\n(job active)"]
+    RUNNING --&gt; FINISHED["FINISHED\nreturn_code 0"]
+    RUNNING --&gt; FAILED["FAILED\nreturn_code != 0"]
+    STARTING --&gt; FAILED</code></pre>
+<div class="admonition note">
+<p class="admonition-title">There is no 'approved' state for Spark applications</p>
+<p>Spark application states are <code>accepted</code>, <code>running</code>, <code>finished</code>, <code>failed</code>, and <code>stopped</code>.
+The word "approved" belongs to other watsonx.data workflows (like cpdctl ingestion jobs),
+not to Spark submissions.</p>
+</div>
+<hr />
+<h3 id="finished-with-return_code-0"><code>FINISHED</code> with <code>return_code != 0</code></h3>
+<p>The status script returns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>state: FINISHED
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>return_code: 1
+</code></pre></div>
+<p>The Spark job launched and ran, but the PySpark script itself threw an unhandled exception
+and exited with a non-zero code. The Spark framework marks it as finished (not failed) but
+records the non-zero exit.</p>
+<p><strong>Find the driver logs in the watsonx.data console:</strong></p>
+<ol>
+<li>Go to <strong>Infrastructure manager → Spark engine <code>spark656</code> → Applications</strong>.</li>
+<li>Click your application by ID.</li>
+<li>Open the <strong>Driver logs</strong> or <strong>Spark UI</strong> link.</li>
+<li>Search the logs for <code>Exception</code> or <code>Error</code> to find the root cause.</li>
+</ol>
+<p>Common causes and fixes:</p>
+<table>
+<thead>
+<tr>
+<th>Symptom in logs</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Path does not exist: s3a://iceberg-bucket/spark_demo/raw/</code></td>
+<td>CSV files not uploaded</td>
+<td>Re-run <code>python scripts/upload_spark_assets.py</code></td>
+</tr>
+<tr>
+<td><code>Schema iceberg_data.spark_demo_bronze not found</code></td>
+<td>Schema bootstrap skipped</td>
+<td>Run <code>python scripts/bootstrap_watsonxdata.py</code> first</td>
+</tr>
+<tr>
+<td><code>NoCredentialsError</code> / <code>Access Denied</code></td>
+<td>Wrong MinIO credentials in Spark config</td>
+<td>Verify <code>WXD_OBJECT_STORE_ACCESS_KEY</code> and <code>WXD_OBJECT_STORE_SECRET_KEY</code> in <code>.env</code></td>
+</tr>
+<tr>
+<td><code>OutOfMemoryError</code></td>
+<td>Spark worker has insufficient memory</td>
+<td>Check cluster resource usage in the console and retry when other jobs are done</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="spark-job-not-appearing-in-watsonxdata-ingestion-history">Spark job not appearing in watsonx.data Ingestion history</h3>
+<p>You submitted the Spark demo job but cannot find it under
+<strong>Data manager → Ingestion → History</strong>.</p>
+<p>This is by design. The demo Spark job is a <strong>PySpark application</strong> submitted through the
+Spark applications API. The Ingestion history only shows jobs created by the platform's
+built-in ingestion service — jobs that begin with <code>ingestion-&lt;id&gt;</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Where you look</th>
+<th>What it shows</th>
+<th>Does the Spark demo job appear?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data manager → Ingestion → History</strong></td>
+<td>Jobs created by the native ingestion service (names like <code>ingestion-&lt;id&gt;</code>)</td>
+<td><strong>No</strong> — by design</td>
+</tr>
+<tr>
+<td><strong>Infrastructure manager → Spark engine <code>spark656</code> → Applications</strong></td>
+<td>Every application submitted to the Spark engine</td>
+<td><strong>Yes</strong> — look here</td>
+</tr>
+</tbody>
+</table>
+<p>Find the job under <strong>Infrastructure manager → Spark → Applications</strong>, or check its status
+from the terminal:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w"> </span>&lt;application-id&gt;
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">If you want a job that appears in Ingestion history, use Path C</p>
+<p>The cpdctl native ingestion path (Path C) submits jobs through the ingestion service so
+they appear under Data manager → Ingestion. See <a href="../ingestion/">ingestion.md</a>.</p>
+</div>
+<hr />
+<h2 id="path-c-cpdctl-errors">Path C — cpdctl Errors</h2>
+<p>These errors occur while running the cpdctl native ingestion path.</p>
+<p>Note: Path C (cpdctl) is an ingestion loader, not a transformation engine like Paths A/B. Its output (spark_demo_cpdctl_raw) is raw and must be transformed by dbt or Spark to become a medallion.</p>
+<hr />
+<h3 id="i002-invalid-input-provided-storage-name-on-a-registered-bucket">I002 Invalid input provided — <code>--storage-name</code> on a registered bucket</h3>
+<p><code>cpdctl</code> returns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>Error: I002 Invalid input provided: --storage-name is not valid for registered storage
+</code></pre></div>
+<p><code>iceberg-bucket</code> is already registered in the watsonx.data catalog, so the ingestion service
+auto-detects the bucket from the <code>s3://iceberg-bucket/…</code> path. Passing <code>--storage-name</code> in
+addition to the path triggers the unregistered-storage code path, which rejects the request.</p>
+<p><strong>Fix: omit <code>--storage-name</code> entirely when the bucket is registered.</strong></p>
+<p>If your script sets <code>WXD_INGEST_STORAGE_NAME</code> in <code>.env</code>, clear it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># In .env — remove or comment out this line:</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="c1"># WXD_INGEST_STORAGE_NAME=iceberg-bucket</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Bucket situation</th>
+<th>Use <code>--storage-name</code>?</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bucket is registered in watsonx.data catalog</td>
+<td><strong>No</strong> — omit the flag</td>
+<td><code>iceberg-bucket</code> in this workshop</td>
+</tr>
+<tr>
+<td>Bucket is external / not registered</td>
+<td><strong>Yes</strong> — required</td>
+<td>A personal S3 bucket not added to the catalog</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="cpdctl-command-not-found"><code>cpdctl: command not found</code></h3>
+<p>Any <code>cpdctl</code> command returns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>cpdctl: command not found
+</code></pre></div>
+<p>The binary is not on your <code>PATH</code>. Either it was not installed yet, or it was extracted to a
+directory that your shell does not check.</p>
+<p><strong>Install the binary and add it to PATH:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="c1"># macOS Apple Silicon</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>-o<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="w">  </span>https://github.com/IBM/cpdctl/releases/download/v1.8.233/cpdctl_darwin_arm64.tar.gz
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span>-C<span class="w"> </span>~/.local/bin<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/cpdctl
+</code></pre></div>
+<p>If <code>~/.local/bin</code> is not on your <code>PATH</code>, add it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Then verify:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>cpdctl<span class="w"> </span>version
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Make the PATH change permanent</p>
+<p>Add the <code>export PATH</code> line to <code>~/.zshrc</code> (macOS) or <code>~/.bashrc</code> (Linux) so cpdctl is
+available in every new terminal.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Architecture</th>
+<th>Filename to download</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>macOS</td>
+<td>Apple Silicon (M1/M2/M3)</td>
+<td><code>cpdctl_darwin_arm64.tar.gz</code></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>Intel</td>
+<td><code>cpdctl_darwin_amd64.tar.gz</code></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>x86-64</td>
+<td><code>cpdctl_linux_amd64.tar.gz</code></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>ARM64</td>
+<td><code>cpdctl_linux_arm64.tar.gz</code></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td>x86-64</td>
+<td><code>cpdctl_windows_amd64.zip</code></td>
+</tr>
+</tbody>
+</table>
+<p>Full release list: <a href="https://github.com/IBM/cpdctl/releases">github.com/IBM/cpdctl/releases</a></p>
+<hr />
+<h3 id="401-unauthorized-when-running-cpdctl-commands">401 Unauthorized when running cpdctl commands</h3>
+<p><code>cpdctl</code> returns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>Error: 401 Unauthorized
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>FAILED: The user credentials are invalid or the token has expired.
+</code></pre></div>
+<p>The profile stored in <code>cpdctl</code> does not have a valid API key, or the key has expired or been
+rotated. Re-creating the profile from the current <code>.env</code> values fixes this.</p>
+<p><strong>Re-run the profile setup command:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nb">set</span><span class="w"> </span>-a<span class="p">;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.env<span class="p">;</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>+a
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>cpdctl<span class="w"> </span>config<span class="w"> </span>profile<span class="w"> </span><span class="nb">set</span><span class="w"> </span>wxd-demo<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="w">  </span>--url<span class="w"> </span><span class="s2">&quot;https://</span><span class="si">${</span><span class="nv">WXD_CPD_HOST</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="w">  </span>--username<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_CPD_USERNAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="w">  </span>--apikey<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_API_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="w">  </span>--env<span class="w"> </span><span class="s2">&quot;WATSONX_DATA_INSTANCE_ID=</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Then confirm the profile is active:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>cpdctl<span class="w"> </span>config<span class="w"> </span>profile<span class="w"> </span>get<span class="w"> </span>wxd-demo
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Check <code>SSL_CERT_FILE</code> after profile setup</p>
+<p>After reopening a terminal, re-export the CA certificate path before running cpdctl:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+</code></pre></div>
+<p>Without this, cpdctl may return a TLS error that looks like a 401 but is actually a
+certificate rejection at the transport layer.</p>
+</div>
+<hr />
+<h2 id="openmetadata-errors">OpenMetadata Errors</h2>
+<p>These errors occur during the OpenMetadata lineage demo at <code>localhost:8585</code>.</p>
+<hr />
+<h3 id="openmetadata-not-ready-after-10-minutes">OpenMetadata not ready after 10 minutes</h3>
+<p>The <code>curl</code> health poll keeps printing:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>waiting for OpenMetadata...
+</code></pre></div>
+<p>and never prints a version response.</p>
+<p>Docker is still pulling images or the JVM inside the OpenMetadata container is still
+starting. The first pull downloads approximately 3 GB.</p>
+<p><strong>Check the server container logs:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>openmetadata/docker-compose.yml<span class="w"> </span>logs<span class="w"> </span>openmetadata-server<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+</code></pre></div>
+<p>Look for <code>INFO: Started server process</code> near the bottom. If you see Java stack traces, wait
+two more minutes and check again — JVM cold start is the slowest part.</p>
+<p><strong>Check that Docker has enough memory:</strong></p>
+<p>OpenMetadata needs at least 6 GB of RAM allocated to Docker Desktop. Open Docker Desktop
+Settings → Resources and confirm the Memory slider is set to 6 GB or higher.</p>
+<div class="admonition note">
+<p class="admonition-title">Subsequent starts are fast</p>
+<p>Once images are pulled and cached locally, the containers start in under a minute.
+The long wait only happens the first time.</p>
+</div>
+<hr />
+<h3 id="401-unauthorized-during-ingestion">401 Unauthorized during ingestion</h3>
+<p>The ingestion script exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>ERROR - 401 Unauthorized: JWT token is invalid or expired
+</code></pre></div>
+<p>OpenMetadata issues short-lived JWT tokens. If the Docker containers were stopped and
+restarted since the script last ran, the old token in the YAML config is no longer valid.</p>
+<p><strong>Rerun the ingestion script — it fetches a fresh token automatically:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
+</code></pre></div>
+<p>The script calls the OpenMetadata API to get a new token, substitutes it into the YAML
+config, and runs <code>metadata ingest</code> with the fresh credentials.</p>
+<hr />
+<h3 id="catalogjson-missing-or-not-found"><code>catalog.json</code> missing or not found</h3>
+<p>The ingestion script exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>ERROR - catalog.json not found at openmetadata/dbt-artifacts/catalog.json
+</code></pre></div>
+<p>or OpenMetadata shows models without column details.</p>
+<p><code>catalog.json</code> is only produced by <code>dbt docs generate</code>, not by <code>dbt run</code> or <code>dbt test</code>.
+It requires a live Presto connection because it queries the warehouse for column metadata.</p>
+<p><strong>Generate the artifacts and copy them:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>docs<span class="w"> </span>generate<span class="w"> </span>--no-compile
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>cp<span class="w"> </span>target/manifest.json<span class="w"> </span>target/catalog.json<span class="w"> </span>target/run_results.json<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a><span class="w">   </span>openmetadata/dbt-artifacts/
+</code></pre></div>
+<p><strong>If Presto is temporarily unavailable</strong>, you can still show lineage from <code>manifest.json</code>
+alone by skipping the catalog step:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py<span class="w"> </span>--skip-dbt
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+</code></pre></div>
+<p>Then rerun the full artifact generation when Presto recovers:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title"><code>manifest.json</code> vs <code>catalog.json</code></p>
+<p><code>manifest.json</code> is all that is needed for the lineage graph. <code>catalog.json</code> adds column
+names and data types to the model detail view. If <code>catalog.json</code> is missing, lineage still
+works — you just see fewer column details in the table pages.</p>
+</div>
+<hr />
+<h3 id="package-version-mismatch-during-ingestion">Package version mismatch during ingestion</h3>
+<p>The ingestion script fails with a pip error such as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>ERROR: No matching distribution found for openmetadata-ingestion[dbt]==1.13.0.0
+</code></pre></div>
+<p>The pinned version <code>1.13.0.0</code> is no longer available from the package index. Install without
+a version pin and rerun:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;openmetadata-ingestion[dbt]&quot;</span>
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
+</code></pre></div>
+<hr />
+<h2 id="general-presto-watsonxdata-errors">General Presto / watsonx.data Errors</h2>
+<p>These errors can appear in any path because all paths ultimately talk to the Presto cluster
+or the watsonx.data API.</p>
+<hr />
+<h3 id="503-service-unavailable">503 Service Unavailable</h3>
+<p>Any script that connects to Presto returns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>503 Service Unavailable
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>requests.exceptions.HTTPError: 503 Server Error: Service Unavailable
+</code></pre></div>
+<p>The Presto cluster is restarting or temporarily overloaded. This is transient — the cluster
+does not need user intervention.</p>
+<p><strong>Wait 2–3 minutes and retry the command that failed.</strong> The cluster self-heals. If the 503
+persists beyond five minutes, notify the workshop administrator — the Presto pod on OpenShift
+may need to be restarted manually.</p>
+<div class="admonition note">
+<p class="admonition-title">Why Presto restarts</p>
+<p>In a workshop environment multiple participants submit queries simultaneously. Occasionally
+the cluster recycles a worker pod to reclaim memory. The coordinator remains available and
+most queries queue rather than fail, but some connections made at exactly the wrong moment
+see a 503.</p>
+</div>
+<hr />
+<h3 id="ssl-certificate-error-all-tools">SSL certificate error (all tools)</h3>
+<p>Any command that talks to the cluster exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED]
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+</code></pre></div>
+<p>The watsonx.data cluster uses a certificate issued by an internal OpenShift CA. Your tools
+need to trust that CA. The certificate file must be present at <code>certs/watsonxdata-ca.pem</code>
+and pointed to by the right environment variable for each tool.</p>
+<p><strong>For Python scripts and dbt (via <code>WXD_SSL_VERIFY</code> in <code>.env</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="c1"># Confirm the file exists</span>
+<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>ls<span class="w"> </span>certs/watsonxdata-ca.pem
+<a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a>
+<a id="__codelineno-59-4" name="__codelineno-59-4" href="#__codelineno-59-4"></a><span class="c1"># If missing, regenerate it</span>
+<a id="__codelineno-59-5" name="__codelineno-59-5" href="#__codelineno-59-5"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+</code></pre></div>
+<p><strong>For cpdctl (via <code>SSL_CERT_FILE</code> environment variable):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+</code></pre></div>
+<p><strong>For general Python requests (fallback):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">REQUESTS_CA_BUNDLE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Do not use <code>--insecure</code> or <code>verify=False</code></p>
+<p>Disabling TLS verification silences the error but exposes your API key to interception.
+Fix the certificate path instead — it takes 30 seconds and keeps your credentials safe.</p>
+</div>
+<hr />
+<h3 id="mkdocs-port-already-in-use">MkDocs port already in use</h3>
+<p><code>mkdocs serve</code> exits with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>ERROR - Address already in use: 127.0.0.1:8000
+</code></pre></div>
+<p>Another process is already using port 8000. Choose any free port:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>mkdocs<span class="w"> </span>serve<span class="w"> </span>-a<span class="w"> </span><span class="m">127</span>.0.0.1:8001
+</code></pre></div>
+<p>Then open <code>http://127.0.0.1:8001</code> in your browser.</p>
+<hr />
+<h3 id="wxd_spark_dry_runtrue-job-never-submits"><code>WXD_SPARK_DRY_RUN=true</code> — job never submits</h3>
+<p>You ran the Spark submit script but no application ID was printed and nothing appears in the
+engine's Applications tab.</p>
+<p>The dry-run flag is set to <code>true</code>, which prints the job payload without sending it to the
+cluster. This is intentional for verifying config — set the flag to <code>false</code> to submit for
+real:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/submit_spark_application.py
+</code></pre></div>
+<p>Or set it permanently in <code>.env</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../scripts/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Scripts">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Scripts
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

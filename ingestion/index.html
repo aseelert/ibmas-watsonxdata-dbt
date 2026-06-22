@@ -1,0 +1,2519 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A beginner-friendly customer demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.">
+      
+      
+      
+      
+        <link rel="prev" href="../spark-demo/">
+      
+      
+        <link rel="next" href="../sql-demo/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Ingest Raw Data — cpdctl (loader) - watsonx.data · dbt · Spark Medallion Demo</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"IBM Plex Sans";--md-code-font:"IBM Plex Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#loading-data-two-transform-engines-dbt-spark-one-native-loader-cpdctl" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            watsonx.data · dbt · Spark Medallion Demo
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ingest Raw Data — cpdctl (loader)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Workshop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../lineage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Understand
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dbt-demo/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Build a Medallion (dbt or Spark)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Ingest & Compare
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../airflow/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Orchestrate (optional)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../openmetadata/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance (optional)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../configuration/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    watsonx.data · dbt · Spark Medallion Demo
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workshop
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workshop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1 · Prepare Your Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understand
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Understand
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    When to Use Which (dbt · Spark · cpdctl)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a Medallion (dbt or Spark)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build a Medallion (dbt or Spark)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dbt-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A · dbt — SQL Governance (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spark-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest & Compare
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ingest & Compare
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest Raw Data — cpdctl (loader)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest Raw Data — cpdctl (loader)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#at-a-glance-two-pipelines-and-one-loader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At a glance — two pipelines and one loader
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-each-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use each path
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="When to use each path">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-a-dbt-sql-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A · dbt — SQL governance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-b-spark-python-etl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B · Spark — Python ETL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-c-cpdctl-native-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C · cpdctl — native ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-cpdctl-does-not-do-and-how-to-finish-the-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What cpdctl does NOT do — and how to finish the job
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-same-data-three-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The same data, three schemas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-c-walkthrough-cpdctl-native-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C Walkthrough — cpdctl Native Ingestion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path C Walkthrough — cpdctl Native Ingestion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-install-cpdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Install cpdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-configure-the-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Configure the profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-trust-the-cluster-ca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Trust the cluster CA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-stage-csv-files-in-object-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Stage CSV files in object storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-run-the-ingestion-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — Run the ingestion script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-watch-the-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Watch the jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-query-after-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to query after ingestion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sql-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQL — Compare dbt vs Spark Gold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestrate (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Orchestrate (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../airflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow — Schedule the Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openmetadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage UI (OpenMetadata)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openmetadata-governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary & Classification (OpenMetadata)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openlineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage Standard (OpenLineage)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metabase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BI & Dashboards (Metabase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../semantic-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Semantic Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#at-a-glance-two-pipelines-and-one-loader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At a glance — two pipelines and one loader
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-each-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use each path
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="When to use each path">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-a-dbt-sql-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A · dbt — SQL governance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-b-spark-python-etl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B · Spark — Python ETL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-c-cpdctl-native-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C · cpdctl — native ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-cpdctl-does-not-do-and-how-to-finish-the-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What cpdctl does NOT do — and how to finish the job
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-same-data-three-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The same data, three schemas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-c-walkthrough-cpdctl-native-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C Walkthrough — cpdctl Native Ingestion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path C Walkthrough — cpdctl Native Ingestion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-install-cpdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Install cpdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-configure-the-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Configure the profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-trust-the-cluster-ca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Trust the cluster CA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-stage-csv-files-in-object-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Stage CSV files in object storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-run-the-ingestion-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — Run the ingestion script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-watch-the-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Watch the jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-query-after-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to query after ingestion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="loading-data-two-transform-engines-dbt-spark-one-native-loader-cpdctl">Loading Data: Two Transform Engines (dbt, Spark) + One Native Loader (cpdctl)</h1>
+<div class="admonition abstract">
+<p class="admonition-title">The central question</p>
+<p>You have four CSV files. <strong>dbt</strong> and <strong>Spark</strong> are two full pipelines that load <strong>and</strong>
+clean/transform the CSVs into a medallion (Bronze → Silver → Gold). <strong>cpdctl</strong> is a native
+loader that lands the raw CSVs as-is in <code>spark_demo_cpdctl_raw</code> (clean them afterward with dbt
+or Spark). This page compares all three at a glance, then walks through <strong>cpdctl native
+ingestion</strong> in step-by-step detail — including how to finish the job with a dbt or Spark
+post-action.</p>
+</div>
+<hr />
+<h2 id="at-a-glance-two-pipelines-and-one-loader">At a glance — two pipelines and one loader</h2>
+<p>Each path is a different philosophy: one uses SQL, one uses Python, one uses an IBM CLI that talks
+directly to the platform's ingestion service. But note a difference <strong>in kind</strong>: dbt and Spark
+perform the whole medallion (raw → bronze → silver → gold), while cpdctl performs only the raw
+ingest step — the equivalent of <code>dbt seed</code> or Spark's raw CSV read.</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Tool</th>
+<th>Language</th>
+<th>Who uses it</th>
+<th>Shows in UI Ingestion history?</th>
+<th>Best for</th>
+<th>Schema written to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A · dbt</td>
+<td>dbt-watsonx-presto adapter</td>
+<td>SQL</td>
+<td>Analytics engineers, data teams</td>
+<td>No — visible in dbt logs and OpenMetadata lineage</td>
+<td>Governed SQL transforms, tests, documentation, pull-request review</td>
+<td><code>dbt_demo_raw</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code></td>
+</tr>
+<tr>
+<td>B · Spark</td>
+<td><code>submit_spark_application.py</code></td>
+<td>Python</td>
+<td>Data engineers, ML engineers</td>
+<td>No — visible under Infrastructure manager → Spark → Applications</td>
+<td>Large data, Python libraries, distributed joins, ML feature prep</td>
+<td><code>spark_demo_bronze</code>, <code>spark_demo_silver</code>, <code>spark_demo_gold</code></td>
+</tr>
+<tr>
+<td>C · cpdctl</td>
+<td><code>cpdctl wx-data ingestion</code></td>
+<td>CLI (drives Spark)</td>
+<td>Platform operators, anyone who wants UI-tracked loads</td>
+<td><strong>Yes</strong> — appears under Data manager → Ingestion</td>
+<td>IBM-native loads that appear in the platform audit history</td>
+<td><code>spark_demo_cpdctl_raw</code></td>
+</tr>
+</tbody>
+</table>
+<p>All three paths produce <strong>Apache Iceberg tables</strong> stored in <strong>MinIO</strong> (the S3-compatible object
+store) and queryable through <strong>Presto SQL</strong> at the same endpoint. The difference: dbt and Spark
+produce transformed bronze/silver/gold tables, while cpdctl produces only <strong>raw</strong> ingest tables in
+<code>spark_demo_cpdctl_raw</code>.</p>
+<pre class="mermaid"><code>flowchart LR
+    CSV["CSV files\nin MinIO\ns3://iceberg-bucket/"]
+
+    subgraph A["Path A — dbt"]
+        direction TB
+        A1["dbt seed\n(SQL via Presto)"]
+        A2["dbt_demo_raw\nBronze / Silver / Gold"]
+        A1 --&gt; A2
+    end
+
+    subgraph B["Path B — Spark"]
+        direction TB
+        B1["submit_spark_application.py\n(PySpark job)"]
+        B2["spark_demo_bronze\nSilver / Gold"]
+        B1 --&gt; B2
+    end
+
+    subgraph C["cpdctl — ingest only"]
+        direction TB
+        C1["cpdctl wx-data ingestion create\n(drives Spark engine)"]
+        C2["spark_demo_cpdctl_raw\nRAW: .customers / .products\n.orders / .order_items"]
+        C1 --&gt; C2
+    end
+
+    CSV --&gt; A1
+    CSV --&gt; B1
+    CSV --&gt; C1
+
+    A2 --&gt; Presto["Presto SQL\niceberg_data catalog"]
+    B2 --&gt; Presto
+    C2 --&gt; Presto
+    C2 -. "transform with dbt or Spark\n(post-action)" .-&gt; A1
+    C2 -. "transform with dbt or Spark\n(post-action)" .-&gt; B1</code></pre>
+<hr />
+<h2 id="when-to-use-each-path">When to use each path</h2>
+<h3 id="path-a-dbt-sql-governance">Path A · dbt — SQL governance</h3>
+<p>Use dbt when your team needs to <strong>review every transformation</strong> as code. dbt compiles SQL
+<code>SELECT</code> statements into Presto-executed <code>CREATE TABLE AS</code> or <code>INSERT</code> statements, runs
+configurable data tests, generates a documentation website, and emits lineage metadata that
+OpenMetadata can consume.</p>
+<ul>
+<li>Seeds 1,704 rows from CSV into <code>dbt_demo_raw</code> (50 customers, 20 products, 500 orders, 1,134 order_items)</li>
+<li>Bronze models clean nulls and cast types; silver models join and enrich; gold models aggregate</li>
+<li><code>gold_daily_sales</code> is a TABLE; <code>gold_category_performance</code> and <code>gold_customer_360</code> are VIEWs</li>
+<li>Every model is version-controlled SQL — reviewable in a pull request</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Best fit</p>
+<p>Analytics engineering teams that treat data transformations as software: code review, CI tests,
+documentation-as-code.</p>
+</div>
+<h3 id="path-b-spark-python-etl">Path B · Spark — Python ETL</h3>
+<p>Use Spark when the volume or complexity exceeds what a single Presto query can do efficiently.
+The Spark engine inside watsonx.data is a distributed compute cluster; you submit a PySpark
+application that reads raw CSV, applies Python logic, and writes partitioned Iceberg tables.</p>
+<ul>
+<li>Writes PARQUET format; silver/gold tables partitioned by <code>month(order_date)</code> (partition column <code>order_date_month</code>)</li>
+<li>Medallion layers: <code>spark_demo_bronze</code> (raw copy), <code>spark_demo_silver</code> (cleaned and joined),
+  <code>spark_demo_gold</code> (aggregated)</li>
+<li>You can import any Python library available on the Spark cluster</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Best fit</p>
+<p>Data engineers processing large files, binary formats, ML feature engineering, or complex
+multi-dataset joins.</p>
+</div>
+<h3 id="path-c-cpdctl-native-ingestion">Path C · cpdctl — native ingestion</h3>
+<p>Use the cpdctl ingestion path when you want the load to appear in the <strong>watsonx.data console
+under Data manager → Ingestion</strong>. This is the platform's native ingestion service — it runs on
+the Spark engine, but you do not write any Spark code. You point the CLI at a CSV in object
+storage, name a target Iceberg table, and the service does the rest.</p>
+<ul>
+<li>No transformation logic — loads raw CSV as-is into <code>spark_demo_cpdctl_raw.&lt;table&gt;</code></li>
+<li>Jobs appear in the platform UI audit history immediately</li>
+<li>Same result is achievable from the watsonx.data web console without a terminal</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Best fit</p>
+<p>Platform operators who want a traceable, UI-visible load without writing transformation code,
+or anyone demonstrating the platform's built-in ingestion capability.</p>
+</div>
+<p><strong>Why cpdctl instead of <code>dbt seed</code> (or Spark's raw CSV read)?</strong></p>
+<p>cpdctl is an alternative to the <strong>raw-load step</strong> only — not a substitute for the dbt or Spark
+transformation engine. Compare it to <code>dbt seed</code> / Spark's raw read, not to the entire pipeline:</p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Speed for a one-off load</td>
+<td>cpdctl is faster to set up than either path — no Python environment, no PySpark script. Point at a file and go.</td>
+</tr>
+<tr>
+<td>Works from your laptop</td>
+<td>You upload the CSV from your local machine directly into MinIO and trigger the load via CLI — no cluster-side code to write or deploy.</td>
+</tr>
+<tr>
+<td>Audit history in the UI</td>
+<td>Every cpdctl ingestion run appears under <strong>Data manager → Ingestion</strong> in the watsonx.data console. Neither dbt seed nor Spark jobs appear there — they are visible only in dbt logs or the Spark engine's own UI.</td>
+</tr>
+<tr>
+<td>No code to maintain</td>
+<td><code>dbt seed</code> requires a CSV to live in the dbt project and be committed to Git. <code>Spark</code> requires a Python script. cpdctl needs only a command and a file path — nothing to version or review.</td>
+</tr>
+<tr>
+<td>Enterprise operator workflow</td>
+<td>A DBA or data steward who does not know Python or SQL can run cpdctl from a terminal or trigger the same action from the console GUI.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When NOT to use cpdctl:</strong></p>
+<ul>
+<li>You need transformation logic during load (use dbt or Spark).</li>
+<li>You need to load data on a schedule or in a pipeline (use dbt + Airflow, or Spark).</li>
+<li>You need the load to appear in dbt lineage or OpenMetadata (use <code>dbt seed</code> + dbt models).</li>
+<li>The source file is not a flat CSV (use Spark for JSON, Parquet, binary formats).</li>
+</ul>
+<hr />
+<h2 id="what-cpdctl-does-not-do-and-how-to-finish-the-job">What cpdctl does NOT do — and how to finish the job</h2>
+<p>cpdctl is a <strong>loader</strong>, the analogue of <code>dbt seed</code> or Spark's raw CSV read. It lands raw CSV in
+<code>spark_demo_cpdctl_raw</code> and <strong>stops at raw</strong> — it does not build Bronze, Silver, or Gold. To turn
+cpdctl-ingested data into a medallion you run a <strong>dbt or Spark transform as a post-action</strong> that
+reads from <code>spark_demo_cpdctl_raw</code>:</p>
+<blockquote>
+<p><strong>cpdctl (ingest front-end) + dbt or Spark (transform back-end) = one full pipeline.</strong></p>
+<p>By contrast, dbt and Spark are each <strong>self-contained</strong> — each ingests <em>and</em> transforms on its own.</p>
+</blockquote>
+<div class="admonition tip">
+<p class="admonition-title">The schema name points at its intended consumer — Spark</p>
+<p>The raw landing is called <code>spark_demo_cpdctl_raw</code> precisely because <strong>Spark is the expected
+back-end</strong> for finishing the job: it sits in the <code>spark_demo_*</code> family and the Spark-finish
+path below writes straight on into <code>spark_demo_bronze</code>. dbt works too, but the Spark route is
+the natural continuation of a cpdctl ingest.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Where the cpdctl raw landing lives</p>
+<p><code>WXD_SCHEMA_LOCATION_BASE</code> is unset, so the schema is created with no <code>location</code> clause and the
+<code>iceberg_data</code> catalog places it at its default warehouse — the object-store bucket root. The
+cpdctl-ingested tables land directly under <code>s3://iceberg-bucket/spark_demo_cpdctl_raw/</code> (no
+nesting, no <code>.db</code> suffix), alongside the <code>dbt_demo_*</code> and <code>spark_demo_*</code> schemas.</p>
+</div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Finish with dbt</label><label for="__tabbed_1_2">Finish with Spark</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Point a dbt model at the cpdctl-ingested raw table using <code>{{ ref() }}</code>-style CTAS against the
+ingest schema. (The IBM <code>dbt-watsonx-presto</code> adapter does not support <code>{{ source() }}</code>, so
+reference the table by its fully qualified name in the model SQL.)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- models/bronze_from_cpdctl/bronze_orders_cpdctl.sql</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="err">{{</span><span class="w"> </span><span class="n">config</span><span class="p">(</span><span class="n">materialized</span><span class="o">=</span><span class="s1">&#39;table&#39;</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">select</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">order_id</span><span class="p">,</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span><span class="w"> </span><span class="n">order_ts</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">payment_method</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="k">current_timestamp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">_ingested_at</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="s1">&#39;cpdctl&#39;</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">_ingested_by</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">from</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">orders</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">where</span><span class="w"> </span><span class="n">order_id</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>Read the cpdctl-ingested raw table with Spark and write a managed bronze Iceberg table.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="s2">&quot;iceberg_data.spark_demo_cpdctl_raw.orders&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">(</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">df</span><span class="o">.</span><span class="n">writeTo</span><span class="p">(</span><span class="s2">&quot;iceberg_data.spark_demo_bronze.bronze_orders_cpdctl&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>      <span class="o">.</span><span class="n">using</span><span class="p">(</span><span class="s2">&quot;iceberg&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>      <span class="o">.</span><span class="n">tableProperty</span><span class="p">(</span><span class="s2">&quot;write.format.default&quot;</span><span class="p">,</span> <span class="s2">&quot;parquet&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>      <span class="o">.</span><span class="n">createOrReplace</span><span class="p">()</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>From that bronze table you continue through silver and gold exactly as Paths A and B do.</p>
+<hr />
+<h2 id="the-same-data-three-schemas">The same data, three schemas</h2>
+<p>Each path ingests the same four source CSV files, but produces a <strong>different layer</strong>: dbt and Spark
+land <em>transformed bronze</em> tables, while cpdctl lands <em>raw ingest</em> tables (the analogue of dbt's
+<code>dbt_demo_raw</code> seed layer — not bronze).</p>
+<table>
+<thead>
+<tr>
+<th>Source CSV</th>
+<th>dbt — Bronze (transformed)</th>
+<th>Spark — Bronze (transformed)</th>
+<th>cpdctl — Raw ingest (no transform)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>raw_customers.csv</code> (50 rows)</td>
+<td><code>dbt_demo_raw.raw_customers</code> → <code>dbt_demo_bronze.bronze_customers</code></td>
+<td><code>spark_demo_bronze.bronze_customers</code></td>
+<td><code>spark_demo_cpdctl_raw.customers</code></td>
+</tr>
+<tr>
+<td><code>raw_products.csv</code> (20 rows)</td>
+<td><code>dbt_demo_raw.raw_products</code> → <code>dbt_demo_bronze.bronze_products</code></td>
+<td><code>spark_demo_bronze.bronze_products</code></td>
+<td><code>spark_demo_cpdctl_raw.products</code></td>
+</tr>
+<tr>
+<td><code>raw_orders.csv</code> (500 rows)</td>
+<td><code>dbt_demo_raw.raw_orders</code> → <code>dbt_demo_bronze.bronze_orders</code></td>
+<td><code>spark_demo_bronze.bronze_orders</code></td>
+<td><code>spark_demo_cpdctl_raw.orders</code></td>
+</tr>
+<tr>
+<td><code>raw_order_items.csv</code> (1,134 rows)</td>
+<td><code>dbt_demo_raw.raw_order_items</code> → <code>dbt_demo_bronze.bronze_order_items</code></td>
+<td><code>spark_demo_bronze.bronze_order_items</code></td>
+<td><code>spark_demo_cpdctl_raw.order_items</code></td>
+</tr>
+</tbody>
+</table>
+<p>cpdctl's output corresponds to dbt's <strong>raw seed</strong> layer, not bronze — only dbt and Spark continue
+past raw to transformed bronze/silver/gold. All three catalogs sit inside <code>iceberg_data</code> on the same
+Presto engine, so you can <code>JOIN</code> across schemas in a single query (remembering cpdctl's tables are
+raw, not transformed gold).</p>
+<hr />
+<hr />
+<h2 id="path-c-walkthrough-cpdctl-native-ingestion">Path C Walkthrough — cpdctl Native Ingestion</h2>
+<div class="admonition info">
+<p class="admonition-title">What cpdctl is</p>
+<p><code>cpdctl</code> is the IBM Cloud Pak for Data command-line interface. The <code>wx-data</code> plugin lets you
+manage watsonx.data objects — buckets, engines, catalogs, and ingestion jobs — without opening
+a browser. When you run an ingestion job via <code>cpdctl</code>, it shows up in the watsonx.data console
+under <strong>Data manager → Ingestion</strong>, exactly like jobs started from the UI. The underlying
+compute engine is Spark; you do not write any Spark code.</p>
+</div>
+<hr />
+<h3 id="step-1-install-cpdctl">Step 1 — Install cpdctl</h3>
+<p><code>cpdctl</code> is a single binary distributed as a <code>.tar.gz</code> archive from GitHub releases. Download it,
+extract it to a directory on your <code>PATH</code>, and verify the version.</p>
+<div class="admonition note">
+<p class="admonition-title">Skip this step if cpdctl is already on PATH</p>
+<p>Run <code>cpdctl version</code> first. If you get a version string back, jump to Step 2.</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># macOS (Apple Silicon — arm64)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>-o<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>https://github.com/IBM/cpdctl/releases/download/v1.8.233/cpdctl_darwin_arm64.tar.gz
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span>-C<span class="w"> </span>~/.local/bin<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/cpdctl
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>cpdctl<span class="w"> </span>version
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Other operating systems</p>
+<p>Replace <code>darwin_arm64</code> with <code>linux_amd64</code>, <code>linux_arm64</code>, or <code>windows_amd64</code> for your
+platform. The full list is at
+<a href="https://github.com/IBM/cpdctl/releases">github.com/IBM/cpdctl/releases</a>.</p>
+</div>
+<hr />
+<h3 id="step-2-configure-the-profile">Step 2 — Configure the profile</h3>
+<p>A <code>cpdctl</code> profile stores the connection details for one watsonx.data instance. You create it
+once; every subsequent command uses <code>--profile wxd-demo</code> (or sets it as the default).</p>
+<p>The values come from your <code>.env</code> file in the project root.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Load all environment variables from .env</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">set</span><span class="w"> </span>-a<span class="p">;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.env<span class="p">;</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>+a
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Create (or overwrite) the profile named wxd-demo</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>cpdctl<span class="w"> </span>config<span class="w"> </span>profile<span class="w"> </span><span class="nb">set</span><span class="w"> </span>wxd-demo<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>--url<span class="w"> </span><span class="s2">&quot;https://</span><span class="si">${</span><span class="nv">WXD_CPD_HOST</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span>--username<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_CPD_USERNAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span>--apikey<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_API_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span>--env<span class="w"> </span><span class="s2">&quot;WATSONX_DATA_INSTANCE_ID=</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>What each flag does:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>What it sets</th>
+<th>Example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--url</code></td>
+<td>HTTPS endpoint of the Cloud Pak for Data cluster</td>
+<td><code>https://cpd.apps.watson.ibmas-zocp-techcluster.org</code></td>
+</tr>
+<tr>
+<td><code>--username</code></td>
+<td>CPD username for this instance</td>
+<td><code>admin</code></td>
+</tr>
+<tr>
+<td><code>--apikey</code></td>
+<td>API key that authenticates this user</td>
+<td><code>&lt;your-key&gt;</code></td>
+</tr>
+<tr>
+<td><code>--env WATSONX_DATA_INSTANCE_ID</code></td>
+<td>The internal ID of the watsonx.data service on this CPD cluster</td>
+<td><code>1234-abcd-...</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="step-3-trust-the-cluster-ca">Step 3 — Trust the cluster CA</h3>
+<p>watsonx.data runs on OpenShift with a custom TLS certificate that was not issued by a public
+certificate authority. Without this step, <code>cpdctl</code> will reject the connection with an SSL
+verification error.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+</code></pre></div>
+<p>This environment variable tells the Go TLS library (used by <code>cpdctl</code>) to trust the CA certificate
+bundled in this repository's <code>certs/</code> directory. Set it in every terminal session before running
+<code>cpdctl</code> commands, or add it to your shell profile.</p>
+<div class="admonition note">
+<p class="admonition-title">Where the certificate comes from</p>
+<p>The <code>certs/watsonxdata-ca.pem</code> file is included in this repo. It was exported from the
+OpenShift cluster's ingress CA. Do not use <code>--insecure</code> as an alternative — it disables all
+TLS verification and is not safe in a workshop environment with real credentials.</p>
+</div>
+<hr />
+<h3 id="step-4-stage-csv-files-in-object-storage">Step 4 — Stage CSV files in object storage</h3>
+<p>The watsonx.data ingestion service reads CSV files from MinIO (the S3-compatible object store
+inside the cluster). The CSV files need to be uploaded there before the ingestion job can read
+them.</p>
+<p>The Spark demo path already uploads these files — run the same upload script:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>scripts/upload_spark_assets.py
+</code></pre></div>
+<p>This uploads the four CSV files to <code>s3://iceberg-bucket/spark_demo/raw/</code> under the paths the
+ingestion script expects. If you already ran the Spark demo, the files are already there.</p>
+<div class="admonition info">
+<p class="admonition-title">What MinIO is</p>
+<p>MinIO is an open-source object store that is API-compatible with Amazon S3. watsonx.data
+uses it as the backing store for Iceberg table data and as a staging area for file ingestion.
+The <code>s3://iceberg-bucket/</code> path maps to a bucket registered in the watsonx.data catalog.</p>
+</div>
+<hr />
+<h3 id="step-5-run-the-ingestion-script">Step 5 — Run the ingestion script</h3>
+<p>The ingestion script creates the target schema if it does not exist, then submits one ingestion
+job per CSV file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w">            </span><span class="c1"># submit all four jobs</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--wait<span class="w">     </span><span class="c1"># submit, then poll until all jobs finish</span>
+</code></pre></div>
+<div class="admonition success">
+<p class="admonition-title">Auth is self-healing — Step 2 is a one-time convenience, not a per-run requirement</p>
+<p>Before submitting anything, the script validates <code>WXD_API_KEY</code> against CPD and re-syncs
+cpdctl's cached credentials from <code>.env</code> (profile <code>WXD_CPDCTL_PROFILE</code>, default <code>wxd-demo</code>).
+cpdctl caches credentials in <code>~/.cpdctl.config.json</code> and never reads <code>.env</code> on its own, so a
+rotated key would otherwise fail mid-job with
+<code>An error occurred while performing the 'authenticate' step: Unauthorized</code>. Re-syncing every
+run makes that impossible. If the key itself is expired you get a clear 401 message:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>WXD_API_KEY was rejected by CPD (401). The key is expired or revoked.
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  Refresh it, then re-run this script:
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    python scripts/get_token.py --refresh-key
+</code></pre></div>
+</div>
+<p>Internally, for each CSV file the script calls <code>cpdctl wx-data ingestion create</code>. The equivalent
+bare CLI command for the customers file looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cpdctl<span class="w"> </span>wx-data<span class="w"> </span>ingestion<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>--instance-id<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>--source-data-files<span class="w"> </span>s3://iceberg-bucket/spark_demo/raw/raw_customers.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>--source-file-type<span class="w"> </span>csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span>--target-table<span class="w"> </span>iceberg_data.spark_demo_cpdctl_raw.customers<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span>--engine-id<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_SPARK_ENGINE_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span>--job-id<span class="w"> </span>ingest-customers-demo
+</code></pre></div>
+<p>The script runs this pattern for all four CSVs (<code>customers</code>, <code>products</code>, <code>orders</code>, <code>order_items</code>)
+and prints each <code>job_id</code> and the console link to monitor progress.</p>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Checking authentication...
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  WXD_API_KEY valid against CPD  [OK]
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  Syncing cpdctl profile &#39;wxd-demo&#39; (user &#39;wxd-demo_user&#39;) from .env...
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  cpdctl profile &#39;wxd-demo&#39; ready  [OK]
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>SQL&gt; create schema if not exists iceberg_data.spark_demo_cpdctl_raw ...
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>$ cpdctl wx-data ingestion create --instance-id ... --job-id ingest-customers-1781856578 ...
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>...
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>==========================================================================
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>Submitted 4 ingestion job(s); 0 failed.
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>  job_id: ingest-customers-1781856578
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>  job_id: ingest-products-1781856578
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>  job_id: ingest-orders-1781856578
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>  job_id: ingest-order_items-1781856578
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>Check status anytime:  python ingest_with_cpdctl.py --status --batch 1781856578
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>==========================================================================
+</code></pre></div>
+<p>Each run stamps a <strong>batch id</strong> (the trailing number on every <code>job_id</code>). Note it — you pass it
+back to <code>--status</code> to check that run later (see Step 6).</p>
+<div class="admonition warning">
+<p class="admonition-title">Do not pass <code>--storage-name</code> for a registered bucket</p>
+<p><code>iceberg-bucket</code> is already <strong>registered</strong> in watsonx.data, so the service auto-detects it
+from the <code>s3://</code> path. Passing <code>--storage-name</code> then triggers the <em>unregistered/transient</em>
+storage flow and the job fails with <code>I002 Invalid input provided</code>. Only set
+<code>WXD_INGEST_STORAGE_NAME</code> (which adds <code>--storage-name</code> to the command) when ingesting from
+storage that is <strong>not</strong> registered in the watsonx.data catalog.</p>
+</div>
+<hr />
+<h3 id="step-6-watch-the-jobs">Step 6 — Watch the jobs</h3>
+<p>The simplest way is to let the script poll for you. Either submit and wait in one shot with
+<code>--wait</code>, or check a previous run with <code>--status --batch &lt;id&gt;</code> (the batch id printed in Step 5):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Check the status of all four jobs for a batch and exit</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span><span class="m">1781856578</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Poll every 20s until all jobs reach a terminal state (or --timeout, default 900s)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span><span class="m">1781856578</span><span class="w"> </span>--wait
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Ingestion status:
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  finished     ingest-customers-1781856578
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  finished     ingest-products-1781856578
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>  finished     ingest-orders-1781856578
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  finished     ingest-order_items-1781856578
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>  All 4 job(s) finished successfully.
+</code></pre></div>
+<p>The script exits <code>0</code> only when <strong>every</strong> job reached a successful terminal state, so it doubles
+as a pipeline gate. Tune polling with <code>--interval &lt;seconds&gt;</code> and <code>--timeout &lt;seconds&gt;</code>.</p>
+<details class="note">
+<summary>Underlying bare cpdctl commands</summary>
+<p><code>--status</code> wraps <code>cpdctl wx-data ingestion get</code>. You can also call cpdctl directly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># List the 10 most recent ingestion jobs</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>cpdctl<span class="w"> </span>wx-data<span class="w"> </span>ingestion<span class="w"> </span>list<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>--instance-id<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span>--jobs-per-page<span class="w"> </span><span class="m">10</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># Watch a specific job (add --engine-logs for the Spark log)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>cpdctl<span class="w"> </span>wx-data<span class="w"> </span>ingestion<span class="w"> </span>get<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span>--instance-id<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span>--job-id<span class="w"> </span>ingest-customers-1781856578
+</code></pre></div>
+</details>
+<p>In the UI: open the watsonx.data console, navigate to <strong>Data manager → Ingestion</strong>. Each job
+listed there is exactly what <code>cpdctl wx-data ingestion list</code> returns — the CLI and the UI share
+the same job store.</p>
+<div class="admonition note">
+<p class="admonition-title">Ingestion runs on the Spark engine</p>
+<p>The jobs execute on the Spark engine (<code>spark656</code> in this cluster). Folder ingestion — loading
+an entire directory of identically shaped files into one table — is a Spark-only capability.
+Because the four CSVs in this demo have different column shapes, each is ingested into its own
+table.</p>
+</div>
+<hr />
+<h2 id="what-to-query-after-ingestion">What to query after ingestion</h2>
+<p>Once all four jobs show <code>FINISHED</code>, the tables are live Iceberg tables queryable through Presto.
+Connect to the Presto endpoint and run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">-- Confirm the tables exist</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">SHOW</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>     Table
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>------------
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a> customers
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a> order_items
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a> orders
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a> products
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>(4 rows)
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">-- Spot-check row counts (should match seed data)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">SELECT</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="s1">&#39;customers&#39;</span><span class="w">   </span><span class="k">AS</span><span class="w"> </span><span class="n">tbl</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">rows</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">customers</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;products&#39;</span><span class="p">,</span><span class="w">   </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">products</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;orders&#39;</span><span class="p">,</span><span class="w">     </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">orders</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;order_items&#39;</span><span class="p">,</span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">order_items</span><span class="p">;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>    tbl      | rows
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>-------------+------
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a> customers   |   50
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a> products    |   20
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a> orders      |  500
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a> order_items | 1134
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>(4 rows)
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">-- Join across the cpdctl schema — same Presto catalog, same Iceberg format</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">SELECT</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">first_name</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">last_name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_name</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">country</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">order_id</span><span class="p">)</span><span class="w">         </span><span class="k">AS</span><span class="w"> </span><span class="n">total_orders</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span><span class="p">)</span><span class="w">    </span><span class="k">AS</span><span class="w"> </span><span class="n">total_revenue</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">customers</span><span class="w">   </span><span class="k">c</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">orders</span><span class="w">      </span><span class="n">o</span><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">customer_id</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">customer_id</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">order_items</span><span class="w"> </span><span class="n">oi</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">order_id</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">order_id</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="k">JOIN</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">products</span><span class="w">    </span><span class="n">p</span><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">product_id</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">product_id</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">first_name</span><span class="p">,</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">country</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">total_revenue</span><span class="w"> </span><span class="k">DESC</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="k">LIMIT</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+</code></pre></div>
+<div class="admonition example">
+<p class="admonition-title">Cross-schema join</p>
+<p>Because dbt and Spark (full pipelines) and cpdctl (raw loader) all write to the same
+<code>iceberg_data</code> catalog, you can join the <code>spark_demo_cpdctl_raw</code> tables against
+<code>dbt_demo_raw</code> (dbt) or <code>spark_demo_bronze</code> (Spark) in a single query — but remember
+cpdctl's tables are <strong>raw</strong>, not transformed gold.</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">-- Compare customer counts across all three paths in one query</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;dbt&#39;</span><span class="w">    </span><span class="k">AS</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">dbt_demo_raw</span><span class="p">.</span><span class="n">raw_customers</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;spark&#39;</span><span class="p">,</span><span class="w">  </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_bronze</span><span class="p">.</span><span class="n">bronze_customers</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;cpdctl&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">spark_demo_cpdctl_raw</span><span class="p">.</span><span class="n">customers</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="next-step">Next step</h2>
+<p>The dbt and Spark paths have built full medallions; cpdctl has loaded the raw ingest landing
+(<code>spark_demo_cpdctl_raw</code>). To turn that raw landing into a medallion, run dbt or Spark
+transformations against <code>spark_demo_cpdctl_raw</code> (see <a href="#what-cpdctl-does-not-do-and-how-to-finish-the-job">What cpdctl does NOT do</a>
+above) — cpdctl (ingest front-end) + dbt or Spark (transform back-end) = one complete pipeline.</p>
+<p>The SQL demo page runs queries that compare the <strong>dbt and Spark gold layers</strong> side by side, and
+shows how to inspect the cpdctl raw ingest tables.</p>
+<p><a class="md-button md-button--primary" href="../sql-demo/">SQL — Compare All Paths →</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../spark-demo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: B · Spark — Python ETL (full pipeline)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                B · Spark — Python ETL (full pipeline)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../sql-demo/" class="md-footer__link md-footer__link--next" aria-label="Next: SQL — Compare dbt vs Spark Gold">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                SQL — Compare dbt vs Spark Gold
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

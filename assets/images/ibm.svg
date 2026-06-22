@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 48" role="img" aria-label="IBM">
+  <defs>
+    <pattern id="ibmStripes" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="3.6" fill="currentColor"/>
+    </pattern>
+  </defs>
+  <text x="60" y="38" text-anchor="middle" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif"
+        font-weight="700" font-size="40" letter-spacing="1" fill="url(#ibmStripes)">IBM</text>
+</svg>

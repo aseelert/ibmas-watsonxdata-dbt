@@ -1,0 +1,2667 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A beginner-friendly customer demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.">
+      
+      
+      
+      
+        <link rel="prev" href="../configuration/">
+      
+      
+        <link rel="next" href="../scripts/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>File Guide - watsonx.data · dbt · Spark Medallion Demo</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"IBM Plex Sans";--md-code-font:"IBM Plex Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#repository-file-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            watsonx.data · dbt · Spark Medallion Demo
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              File Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Workshop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../lineage/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Understand
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dbt-demo/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Build a Medallion (dbt or Spark)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ingestion/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Ingest & Compare
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../airflow/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Orchestrate (optional)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../openmetadata/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance (optional)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../configuration/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    watsonx.data · dbt · Spark Medallion Demo
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workshop
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workshop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1 · Prepare Your Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understand
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Understand
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & Data Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choosing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    When to Use Which (dbt · Spark · cpdctl)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a Medallion (dbt or Spark)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build a Medallion (dbt or Spark)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dbt-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A · dbt — SQL Governance (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spark-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest & Compare
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ingest & Compare
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingest Raw Data — cpdctl (loader)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sql-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQL — Compare dbt vs Spark Gold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestrate (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Orchestrate (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../airflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow — Schedule the Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openmetadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage UI (OpenMetadata)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openmetadata-governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary & Classification (OpenMetadata)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openlineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage Standard (OpenLineage)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metabase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BI & Dashboards (Metabase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../semantic-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Semantic Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#root-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seeds-source-csv-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        seeds/ — Source CSV files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="seeds/ — Source CSV files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sample-rows-header-first-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample rows (header + first 5)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#models-dbt-sql-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/ — dbt SQL models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="models/ — dbt SQL models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modelsbronze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/bronze/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelssilver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/silver/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelsgold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/gold/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelssemantic_modelsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/semantic_models.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#macros-dbt-macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macros/ — dbt macros
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spark-spark-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        spark/ — Spark application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scripts-python-helper-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/ — Python helper scripts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#openmetadata-openmetadata-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        openmetadata/ — OpenMetadata integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#certs-tls-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certs/ — TLS certificate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#profiles-dbt-connection-profile-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        profiles/ — dbt connection profile template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generated-and-local-only-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated and local-only paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-storage-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object storage layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#root-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Root directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seeds-source-csv-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        seeds/ — Source CSV files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="seeds/ — Source CSV files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sample-rows-header-first-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample rows (header + first 5)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#models-dbt-sql-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/ — dbt SQL models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="models/ — dbt SQL models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modelsbronze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/bronze/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelssilver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/silver/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelsgold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/gold/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelssemantic_modelsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        models/semantic_models.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#macros-dbt-macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macros/ — dbt macros
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spark-spark-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        spark/ — Spark application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scripts-python-helper-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/ — Python helper scripts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#openmetadata-openmetadata-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        openmetadata/ — OpenMetadata integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#certs-tls-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certs/ — TLS certificate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#profiles-dbt-connection-profile-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        profiles/ — dbt connection profile template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generated-and-local-only-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated and local-only paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-storage-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object storage layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="repository-file-guide">Repository File Guide</h1>
+<p>Every script, model, and config file in this repo plays a specific role. When a workshop step tells you to run a script or edit a file, look it up here to understand what it does before you run it.</p>
+<div class="admonition info">
+<p class="admonition-title">How to use this page</p>
+<p>Workshop steps reference scripts and config files by name. Find the file in this guide to read a plain-English description of its purpose, what it reads, and what it writes. Read this page once at the start, then use it as a reference throughout the day.</p>
+</div>
+<p>The diagram below shows how the files depend on each other — follow the arrows from left to right:</p>
+<pre class="mermaid"><code>flowchart LR
+    A[".env + connection JSON"]
+    B["seeds/*.csv"]
+    C["scripts/"]
+    D["models/ (dbt SQL)"]
+    E["spark/load_medallion_demo.py"]
+    F["openmetadata/"]
+    G["certs/watsonxdata-ca.pem"]
+
+    A --&gt;|"env vars"| C
+    A --&gt;|"connection"| D
+    A --&gt;|"connection"| E
+    B --&gt;|"dbt seed"| D
+    B --&gt;|"upload_spark_assets"| E
+    C --&gt;|"prepare_watsonx_env"| G
+    G --&gt;|"SSL verify"| D
+    G --&gt;|"SSL verify"| E
+    D --&gt;|"dbt docs + artifacts"| F
+    C --&gt;|"prepare_openmetadata"| F</code></pre>
+<hr />
+<h2 id="root-directory">Root directory</h2>
+<p>These files live at the top level of the repo. Most of them are read at the start of every workshop session.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+<th>Plain-English purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.env.example</code></td>
+<td>Shell variable template</td>
+<td>The safe starting point — copy this to <code>.env</code> and fill in your credentials. Contains every variable the project needs, with comments explaining each one. Never committed with real secrets.</td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td>Local environment secrets</td>
+<td>Your actual credentials and endpoint URLs. Loaded by every Python script and by dbt via <code>profiles/profiles.example.yml</code>. Git-ignored.</td>
+</tr>
+<tr>
+<td><code>requirements.txt</code></td>
+<td>Python dependency list</td>
+<td>The Python packages the helper scripts need. Install once with <code>pip install -r requirements.txt</code> inside your virtual environment.</td>
+</tr>
+<tr>
+<td><code>dbt_project.yml</code></td>
+<td>dbt project configuration</td>
+<td>Tells dbt the project name, where models live, and which Iceberg schema to write each medallion layer into. Schema names are driven by environment variables so you can override them without editing SQL.</td>
+</tr>
+<tr>
+<td><code>packages.yml</code></td>
+<td>dbt package list</td>
+<td>Declares the <code>dbt-watsonx-presto</code> adapter package. Run <code>dbt deps</code> to download it into <code>dbt_packages/</code>.</td>
+</tr>
+<tr>
+<td><code>mkdocs.yml</code></td>
+<td>MkDocs site configuration</td>
+<td>Controls the navigation structure and theme for this documentation site. Run <code>mkdocs serve</code> to preview locally.</td>
+</tr>
+<tr>
+<td><code>README.md</code></td>
+<td>Quick-start guide</td>
+<td>One-page orientation to the project — what it does, prerequisites, and the three-command path to a running demo.</td>
+</tr>
+<tr>
+<td><code>docker-compose.yml</code></td>
+<td>All-in-one Docker entry point</td>
+<td>Root Compose file for the optional local services under one project (<code>ibmas-watsonxdata-dbt</code>). Airflow is defined directly here; Metabase and OpenMetadata are included. From the repo root: <code>docker compose up -d</code> starts everything together; <code>docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor</code> starts Airflow; <code>docker compose down -v</code> removes it all.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Copy <code>.env.example</code> first</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
+</code></pre></div>
+Then open <code>.env</code> and replace the placeholder values with the credentials your instructor provided. Everything downstream depends on this file being correct.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Never commit <code>.env</code></p>
+<p>The <code>.gitignore</code> file already excludes <code>.env</code>. If you accidentally stage it, run <code>git reset HEAD .env</code> before committing.</p>
+</div>
+<hr />
+<h2 id="seeds-source-csv-files"><code>seeds/</code> — Source CSV files</h2>
+<p>Seeds are static CSV files that dbt loads as raw Iceberg tables. Think of them as the starting data for the entire demo — no external database or API is needed.</p>
+<p>dbt reads these files and runs <code>INSERT</code> statements to populate the <code>dbt_demo_raw</code> schema in watsonx.data. The Spark path also uses the same CSVs, uploading them to MinIO so the Spark engine can read them directly.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Rows</th>
+<th>What it contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>seeds/raw_customers.csv</code></td>
+<td>50</td>
+<td>Customer master data: ID, name, email, country, registration date</td>
+</tr>
+<tr>
+<td><code>seeds/raw_products.csv</code></td>
+<td>20</td>
+<td>Product catalog: ID, name, category, unit price</td>
+</tr>
+<tr>
+<td><code>seeds/raw_orders.csv</code></td>
+<td>500</td>
+<td>Order headers: ID, customer ID, order date, status, payment method</td>
+</tr>
+<tr>
+<td><code>seeds/raw_order_items.csv</code></td>
+<td>1 134</td>
+<td>Order line items: <code>order_item_id</code>, <code>order_id</code>, <code>product_id</code>, <code>quantity</code>, <code>discount_pct</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Total seed volume</p>
+<p>The four files together contain 1,704 data rows (50 customers, 20 products, 500 orders, 1,134 order items). The dataset is intentionally small so every query returns in seconds on the shared Presto cluster.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Browse the source CSVs</p>
+<p>All four files live in the <a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/tree/main/seeds"><code>seeds/</code> folder on GitHub</a>:
+<a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_customers.csv">raw_customers.csv</a> ·
+<a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_products.csv">raw_products.csv</a> ·
+<a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_orders.csv">raw_orders.csv</a> ·
+<a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/seeds/raw_order_items.csv">raw_order_items.csv</a></p>
+</div>
+<h3 id="sample-rows-header-first-5">Sample rows (header + first 5)</h3>
+<p><strong><code>raw_customers.csv</code></strong> — one row per customer:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>customer_id,first_name,last_name,email,signup_date,country
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>1001,Amina,Khan,amina.khan@example.com,2025-10-29,DE
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>1002,Lukas,Weber,lukas.weber@example.com,2025-10-07,DE
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>1003,Sofia,Rossi,sofia.rossi@example.com,2025-12-10,DE
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>1004,Noah,Smith,noah.smith@example.com,2025-12-02,DE
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>1005,Maya,Schneider,maya.schneider@example.com,2025-11-27,DE
+</code></pre></div>
+<p><strong><code>raw_products.csv</code></strong> — one row per product:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>product_id,product_name,category,unit_price
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>2001,Portable Solar Charger,Electronics,49.9
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>2002,Insulated Water Bottle,Home,24.5
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>2003,Trail Backpack 35L,Outdoor,89.0
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>2004,Noise Cancelling Earbuds,Electronics,129.0
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>2005,Bamboo Desk Organizer,Office,34.0
+</code></pre></div>
+<p><strong><code>raw_orders.csv</code></strong> — one row per order header (note <code>order_ts</code>, a timestamp):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>order_id,customer_id,order_ts,status,payment_method
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>3001,1013,2026-05-18 19:32:33,completed,card
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>3002,1043,2026-02-15 06:04:58,pending,card
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>3003,1006,2026-02-16 04:53:02,completed,card
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>3004,1018,2026-03-31 01:02:42,returned,card
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>3005,1011,2026-03-14 21:10:06,completed,card
+</code></pre></div>
+<p><strong><code>raw_order_items.csv</code></strong> — one row per order line (links an order to a product):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>order_item_id,order_id,product_id,quantity,discount_pct
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>1,3001,2013,2,0.00
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>2,3001,2005,1,0.15
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>3,3002,2011,2,0.00
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>4,3002,2005,2,0.15
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>5,3003,2001,1,0.05
+</code></pre></div>
+<p>To load the seeds into watsonx.data:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>dbt<span class="w"> </span>seed
+</code></pre></div>
+<p>dbt writes the rows into <code>iceberg_data.dbt_demo_raw</code> as Parquet-backed Iceberg tables, partitioned by <code>month(order_date)</code> (partition column <code>order_date_month</code>) where applicable.</p>
+<div class="admonition example">
+<p class="admonition-title">Verify the seed loaded</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">dbt_demo_raw</span><span class="p">.</span><span class="n">raw_order_items</span><span class="p">;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">-- expected: 1134</span>
+</code></pre></div>
+</div>
+<hr />
+<h2 id="models-dbt-sql-models"><code>models/</code> — dbt SQL models</h2>
+<p>A dbt model is a single <code>.sql</code> file that becomes a table or view in watsonx.data. dbt compiles the SQL, resolves <code>ref()</code> dependencies, and runs the statements against Presto in the correct order.</p>
+<p>The models are organized into three sub-directories that correspond to the medallion architecture layers:</p>
+<pre class="mermaid"><code>flowchart LR
+    R["dbt_demo_raw\n(seeds)"]
+    B["dbt_demo_bronze\n(models/bronze/)"]
+    S["dbt_demo_silver\n(models/silver/)"]
+    G["dbt_demo_gold\n(models/gold/)"]
+
+    R --&gt; B --&gt; S --&gt; G</code></pre>
+<h3 id="modelsbronze"><code>models/bronze/</code></h3>
+<p>Bronze models copy data from the raw seed tables and add ingestion metadata columns (<code>_ingested_at</code>, <code>_ingested_by</code>, <code>_source_file</code>, <code>_ingest_batch_id</code>). No business logic is applied here — the goal is a faithful, auditable record of exactly what arrived.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Source seed</th>
+<th>What it adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bronze_customers.sql</code></td>
+<td><code>raw_customers</code></td>
+<td>Ingestion timestamp and source tag</td>
+</tr>
+<tr>
+<td><code>bronze_products.sql</code></td>
+<td><code>raw_products</code></td>
+<td>Ingestion timestamp and source tag</td>
+</tr>
+<tr>
+<td><code>bronze_orders.sql</code></td>
+<td><code>raw_orders</code></td>
+<td>Ingestion timestamp and source tag</td>
+</tr>
+<tr>
+<td><code>bronze_order_items.sql</code></td>
+<td><code>raw_order_items</code></td>
+<td>Ingestion timestamp and source tag</td>
+</tr>
+</tbody>
+</table>
+<p><code>bronze_sources.yml</code> documents the seed tables (via a <code>seeds:</code> block) and defines <code>not_null</code>/<code>unique</code> tests on every primary key. Bronze models reference seeds via <code>{{ ref('raw_*') }}</code> rather than dbt sources (the adapter does not support sources). dbt runs these tests automatically when you run <code>dbt test</code>.</p>
+<h3 id="modelssilver"><code>models/silver/</code></h3>
+<p>Silver models clean and type-cast the bronze data, enforce referential integrity between tables, and join entities into a single enriched fact model. This is where business rules live.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>silver_customers.sql</code></td>
+<td>Typed customer dimension — casts strings to correct types, normalises country codes</td>
+</tr>
+<tr>
+<td><code>silver_products.sql</code></td>
+<td>Typed product dimension — casts price to DECIMAL, standardises category labels</td>
+</tr>
+<tr>
+<td><code>silver_orders.sql</code></td>
+<td>Typed order headers — casts order_date to DATE, validates status against an allowed-values list</td>
+</tr>
+<tr>
+<td><code>silver_order_items.sql</code></td>
+<td>Typed order line items — casts quantity and amount columns to correct numeric types</td>
+</tr>
+<tr>
+<td><code>silver_sales_enriched.sql</code></td>
+<td>Joined fact model — one row per order line item, enriched with customer, product, and order attributes; this is the single source of truth for gold mart aggregations</td>
+</tr>
+<tr>
+<td><code>time_spine_daily.sql</code></td>
+<td>Daily time spine — one row per calendar day for 2026; required by dbt Semantic Layer / MetricFlow for time-series metrics</td>
+</tr>
+</tbody>
+</table>
+<p><code>schema.yml</code> in this directory declares column-level tests: <code>unique</code>, <code>not_null</code>, <code>accepted_values</code>, and <code>relationships</code> (foreign key checks between tables).</p>
+<div class="admonition note">
+<p class="admonition-title">Silver is where data quality is enforced</p>
+<p>If a test fails in silver, the gold layer will not build correctly. Run <code>dbt test --select silver</code> after any data change.</p>
+</div>
+<h3 id="modelsgold"><code>models/gold/</code></h3>
+<p>Gold models are the analytics-ready outputs — the tables and views that a BI tool or ad-hoc analyst would query. Materialization is controlled by the <code>WXD_GOLD_MATERIALIZED</code> environment variable (default: <code>view</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Materialization</th>
+<th>What it contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gold_daily_sales.sql</code></td>
+<td>TABLE</td>
+<td>Aggregated daily sales KPIs — order count, units sold, net revenue (by date and product category)</td>
+</tr>
+<tr>
+<td><code>gold_category_performance.sql</code></td>
+<td>VIEW</td>
+<td>Revenue and units rolled up to one row per product category, queried on demand from <code>gold_daily_sales</code></td>
+</tr>
+<tr>
+<td><code>gold_customer_360.sql</code></td>
+<td>VIEW</td>
+<td>Customer-level analytics — total orders, lifetime value, average order value, days since last order</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title"><code>gold_daily_sales</code> is a physical table, not a view</p>
+<p>The two view models (<code>gold_category_performance</code>, <code>gold_customer_360</code>) read from <code>gold_daily_sales</code>. Run <code>dbt run --select gold_daily_sales</code> first if you rebuild only part of the gold layer.</p>
+</div>
+<h3 id="modelssemantic_modelsyml"><code>models/semantic_models.yml</code></h3>
+<p>The semantic layer sits on top of the gold and silver models and defines metrics in a way that BI tools can consume without writing custom SQL. This file declares two semantic models:</p>
+<table>
+<thead>
+<tr>
+<th>Semantic model</th>
+<th>Grain</th>
+<th>Source model</th>
+<th>Key measures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>daily_sales</code></td>
+<td>One row per day per category</td>
+<td><code>gold_daily_sales</code></td>
+<td><code>total_orders</code>, <code>total_units_sold</code>, <code>total_net_revenue</code></td>
+</tr>
+<tr>
+<td><code>sales_orders</code></td>
+<td>One row per order line item</td>
+<td><code>silver_sales_enriched</code></td>
+<td><code>gross_revenue</code>, <code>net_revenue</code>, <code>units_sold</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What is a semantic model?</p>
+<p>A semantic model is a named, reusable definition of a business concept (like "net revenue") that is independent of any single SQL query. dbt MetricFlow uses these definitions to generate the correct SQL automatically when a BI tool requests a metric.</p>
+</div>
+<hr />
+<h2 id="macros-dbt-macros"><code>macros/</code> — dbt macros</h2>
+<p>Macros are reusable Jinja/SQL functions that dbt calls during compilation. They let you share logic across models without copy-pasting SQL.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>macros/generate_schema_name.sql</code></td>
+<td>Overrides dbt's default schema-naming behaviour so that schema names come directly from environment variables (e.g. <code>WXD_BRONZE_SCHEMA</code>) rather than being prefixed with the dbt target name. Without this macro, dbt would write to <code>dev_dbt_demo_bronze</code> instead of <code>dbt_demo_bronze</code>.</td>
+</tr>
+<tr>
+<td><code>macros/create_medallion_schemas.sql</code></td>
+<td>Creates all four demo schemas (<code>_raw</code>, <code>_bronze</code>, <code>_silver</code>, <code>_gold</code>) in one call. Called by <code>scripts/bootstrap_watsonxdata.py</code> via <code>dbt run-operation</code>.</td>
+</tr>
+<tr>
+<td><code>macros/materialized_view.sql</code></td>
+<td>Defines a custom <code>materialized_view</code> materialization for the <code>watsonx_presto</code> adapter. It issues <code>CREATE MATERIALIZED VIEW ... AS SELECT ...</code> followed by <code>REFRESH MATERIALIZED VIEW</code>. <strong>Note:</strong> the Presto Iceberg connector in the current watsonx.data version does not support materialized views — this macro is forward-looking and reserved for when that support lands. Use the standard <code>view</code> materialization today.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Materialized views are not yet usable</p>
+<p>If you set <code>+materialized: materialized_view</code> on any gold model, Presto will raise an error. The macro exists as a reference implementation for a future release.</p>
+</div>
+<hr />
+<h2 id="spark-spark-application"><code>spark/</code> — Spark application</h2>
+<p>The Spark directory contains a self-contained PySpark job that reproduces the entire bronze-silver-gold medallion transformation using the watsonx.data Spark engine instead of dbt.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spark/load_medallion_demo.py</code></td>
+<td>Full PySpark medallion job — reads the demo CSVs from MinIO (<code>s3a://iceberg-bucket/spark_demo/raw/</code>), applies bronze ingestion metadata, silver type-casting and joins, and writes gold aggregations into the <code>spark_demo_bronze/silver/gold</code> schemas. All output is written as Parquet-backed Iceberg tables. The job is designed to be uploaded to MinIO and submitted via the watsonx.data REST API.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Why run both dbt and Spark?</p>
+<p>The two paths write to different schemas (<code>dbt_demo_*</code> for dbt, <code>spark_demo_*</code> for Spark) so you can query both in the same Presto session and compare the outputs side by side. The data is identical — the difference is the tooling and governance model.</p>
+</div>
+<p>To run the Spark path, use the helper scripts in order:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>scripts/upload_spark_assets.py<span class="w">    </span><span class="c1"># upload PySpark file + CSVs to MinIO</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python<span class="w"> </span>scripts/submit_spark_application.py<span class="w">  </span><span class="c1"># submit to Spark engine via REST</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w">  </span><span class="c1"># poll until FINISHED</span>
+</code></pre></div>
+<hr />
+<h2 id="scripts-python-helper-scripts"><code>scripts/</code> — Python helper scripts</h2>
+<p>These scripts handle everything that dbt and Spark cannot do by themselves: setting up credentials, bootstrapping schemas, uploading files to object storage, and querying results.</p>
+<p>All scripts read environment variables from <code>.env</code> via <code>python-dotenv</code>. Run them from the repo root directory with your virtual environment active.</p>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>When to run</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prepare_watsonx_env.py</code></td>
+<td>Once, at setup</td>
+<td>Reads the watsonx.data Presto connection JSON export (<code>watsonx_data/instance_details.json</code>), writes the TLS certificate to <code>certs/watsonxdata-ca.pem</code>, and populates <code>.env</code> with the host, port, catalog, and instance ID values</td>
+</tr>
+<tr>
+<td><code>bootstrap_watsonxdata.py</code></td>
+<td>Once, at setup</td>
+<td>Calls <code>dbt run-operation create_medallion_schemas</code> to create the four demo schemas in the <code>iceberg_data</code> catalog on watsonx.data; safe to re-run (<code>CREATE SCHEMA IF NOT EXISTS</code>)</td>
+</tr>
+<tr>
+<td><code>upload_spark_assets.py</code></td>
+<td>Before Spark demo</td>
+<td>Uploads <code>spark/load_medallion_demo.py</code> and all four seed CSVs to MinIO via the S3 API; opens an <code>oc port-forward</code> to MinIO automatically if <code>WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true</code></td>
+</tr>
+<tr>
+<td><code>submit_spark_application.py</code></td>
+<td>Spark demo step</td>
+<td>Submits <code>load_medallion_demo.py</code> to the watsonx.data Spark engine REST endpoint; prints the application ID you need for the status check</td>
+</tr>
+<tr>
+<td><code>spark_application_status.py</code></td>
+<td>After submission</td>
+<td>Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by <code>submit_spark_application.py</code></td>
+</tr>
+<tr>
+<td><code>query_gold.py</code></td>
+<td>After any demo path</td>
+<td>Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI</td>
+</tr>
+<tr>
+<td><code>ingest_with_cpdctl.py</code></td>
+<td>cpdctl demo path</td>
+<td>Uses <code>cpdctl wx-data ingestion create</code> to load the seed CSVs from MinIO into Iceberg tables in the <code>spark_demo_cpdctl_raw</code> schema; each job appears in the watsonx.data console under <strong>Data manager &gt; Ingestion (history)</strong>. It only LOADS raw CSV into <code>spark_demo_cpdctl_raw</code> (the analogue of <code>dbt seed</code>) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against <code>spark_demo_cpdctl_raw</code> as a post-action (cpdctl + dbt/Spark = full pipeline)</td>
+</tr>
+<tr>
+<td><code>prepare_openmetadata_dbt_artifacts.py</code></td>
+<td>Before OpenMetadata demo</td>
+<td>By default runs <code>dbt seed --full-refresh</code>, <code>dbt run</code>, <code>dbt test</code>, and <code>dbt docs generate</code>, then copies <code>manifest.json</code>, <code>catalog.json</code>, and <code>run_results.json</code> from <code>target/</code> into <code>openmetadata/dbt-artifacts/</code>; those files are what OpenMetadata reads for lineage. Flags: <code>--docs-only</code> (lineage only — <code>dbt docs generate</code> + stage, no seed/run/test), <code>--skip-dbt</code> (copy existing <code>target/*.json</code> only), <code>--skip-seed</code> (skip the seed step), <code>--artifact-dir &lt;path&gt;</code> (override the staging directory), <code>--retries &lt;n&gt;</code> (retries per dbt command, default 1)</td>
+</tr>
+<tr>
+<td><code>generate_lineage_docs.sh</code></td>
+<td>Refresh OpenMetadata lineage only</td>
+<td>Thin wrapper around <code>prepare_openmetadata_dbt_artifacts.py --docs-only</code>: runs <strong>only</strong> <code>dbt docs generate</code> (no seed/run/test) and stages the three artifacts into <code>openmetadata/dbt-artifacts/</code>. Use when the medallion tables already exist and you only need fresh lineage/column metadata. Flags are forwarded to the python stager</td>
+</tr>
+<tr>
+<td><code>upload_dbt_artifacts.py</code></td>
+<td>OpenMetadata (S3 path)</td>
+<td>Uploads the staged dbt artifacts from <code>openmetadata/dbt-artifacts/</code> to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files</td>
+</tr>
+<tr>
+<td><code>cleanup_watsonxdata.py</code></td>
+<td>Reset — schemas</td>
+<td>Drops all tables/views and the schemas themselves: <code>dbt_demo_{raw,bronze,silver,gold}</code>, <code>spark_demo_{bronze,silver,gold}</code>, and the cpdctl raw schema (<code>WXD_INGEST_SCHEMA</code>, default <code>spark_demo_cpdctl_raw</code>). Catalog objects only — Iceberg data files in MinIO are removed by <code>cleanup_minio.py</code></td>
+</tr>
+<tr>
+<td><code>cleanup_minio.py</code></td>
+<td>Reset — object storage</td>
+<td>Deletes only the demo's own prefixes inside <code>iceberg-bucket</code> (the medallion schema folders, the <code>spark_demo/</code> app+CSVs, and <code>openmetadata/dbt-artifacts/</code>); verifies the prefixes end empty and reports that the bucket itself is kept. <code>--dry-run</code> previews. Needs an <code>oc</code> session</td>
+</tr>
+<tr>
+<td><code>reset_demo.sh</code></td>
+<td>Reset — everything</td>
+<td>One command to get back to a clean rerun. Flags: <code>--docker</code> (tear down the Metabase/Airflow/OpenMetadata stacks — containers + volumes + the demo's own images), <code>--schemas</code>, <code>--minio</code>, <code>--warehouse</code> (= schemas + minio), <code>--all</code>; plus <code>--dry-run</code>, <code>--keep-images</code>, <code>--purge-base-images</code>, <code>-y</code>. Scoped to this demo only — see the <a href="../scripts/#10-reset_demosh-full-reset-for-a-100-clean-rerun">Scripts page</a></td>
+</tr>
+<tr>
+<td><code>dbt_env.sh</code></td>
+<td>Shell convenience</td>
+<td>Sources <code>.env</code> and activates the virtual environment, then passes all remaining arguments to the <code>dbt</code> command; use this when your shell does not source <code>.env</code> automatically</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition example">
+<p class="admonition-title">Typical setup sequence (run once)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>dbt<span class="w"> </span>deps
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>dbt<span class="w"> </span>seed
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>dbt<span class="w"> </span>run
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>dbt<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>python<span class="w"> </span>scripts/query_gold.py
+</code></pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">cpdctl prerequisite</p>
+<p><code>ingest_with_cpdctl.py</code> requires the <code>cpdctl</code> binary on your PATH. Download it from the IBM GitHub release page and configure a context for this CPD instance before running the script. The script prints the required <code>cpdctl config</code> commands if the binary is not found.</p>
+</div>
+<hr />
+<h2 id="openmetadata-openmetadata-integration"><code>openmetadata/</code> — OpenMetadata integration</h2>
+<p>OpenMetadata 1.13.0 runs locally in Docker and provides a data catalog UI where you can browse the dbt model lineage, column descriptions, and test results. The files in this directory start the service and push dbt metadata into it.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>openmetadata/docker-compose.yml</code></td>
+<td>Defines five Docker services: <code>mysql</code> (OpenMetadata metadata store), <code>elasticsearch</code> (search index), <code>execute-migrate-all</code> (a one-shot migration init container that runs the database migrations and then exits before the server starts), <code>openmetadata-server</code> (the application, exposed on port 8585), and <code>ingestion</code> (an embedded Airflow instance for managed ingestion pipelines). Start with <code>docker compose -f openmetadata/docker-compose.yml up -d</code>.</td>
+</tr>
+<tr>
+<td><code>openmetadata/ingestion/dbt-ingestion.yaml</code></td>
+<td>OpenMetadata ingestion connector configuration — tells the <code>metadata ingest</code> command where to find the local dbt artifacts and how to connect to the Presto service at <code>ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443</code>. The <code>__JWT_TOKEN__</code> placeholder is replaced at runtime by <code>run-ingestion.sh</code>.</td>
+</tr>
+<tr>
+<td><code>openmetadata/ingestion/run-ingestion.sh</code></td>
+<td>End-to-end ingestion runner — installs <code>openmetadata-ingestion[dbt]==1.13.0.0</code>, calls <code>get_om_token.py</code> for a fresh JWT, substitutes the token into <code>dbt-ingestion.yaml</code>, creates the Presto database service in OpenMetadata via the REST API if it does not exist, and runs <code>metadata ingest</code>.</td>
+</tr>
+<tr>
+<td><code>openmetadata/ingestion/get_om_token.py</code></td>
+<td>Logs in to OpenMetadata as <code>admin</code>, retrieves the <code>ingestion-bot</code> user ID, generates a one-hour JWT for that bot, and prints the token to stdout. Called by <code>run-ingestion.sh</code> — not meant to be run directly.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">OpenMetadata is local only</p>
+<p>The Docker Compose stack runs entirely on your laptop. It does not connect to the OpenShift cluster; it reads the dbt artifact JSON files from disk at <code>openmetadata/dbt-artifacts/</code>. Run <code>prepare_openmetadata_dbt_artifacts.py</code> before starting ingestion to ensure the artifacts are current.</p>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Start OpenMetadata and run ingestion</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 1. Start the stack (first run takes 2-3 minutes to initialise)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>openmetadata/docker-compose.yml<span class="w"> </span>up<span class="w"> </span>-d
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># 2. Wait for the server to be healthy</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Open http://localhost:8585 — login: admin / admin</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># 3. Stage current dbt artifacts</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># 4. Run the dbt ingestion</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
+</code></pre></div>
+</div>
+<hr />
+<h2 id="certs-tls-certificate"><code>certs/</code> — TLS certificate</h2>
+<p>Watsonx.data runs behind an OpenShift route with a custom CA. Python scripts and dbt need this certificate to validate the TLS connection.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+<th>How it is created</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>certs/watsonxdata-ca.pem</code></td>
+<td>PEM-encoded TLS certificate chain for the watsonx.data Presto endpoint</td>
+<td>Generated automatically by <code>scripts/prepare_watsonx_env.py</code> from the certificate field inside <code>watsonx_data/instance_details.json</code>. You should not need to create or edit this file manually.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Certificate path must match <code>.env</code></p>
+<p>The <code>WXD_SSL_VERIFY</code> variable in <code>.env</code> must point to this file. The default value is <code>certs/watsonxdata-ca.pem</code> (relative to the repo root). If you move the file, update the variable.</p>
+</div>
+<hr />
+<h2 id="profiles-dbt-connection-profile-template"><code>profiles/</code> — dbt connection profile template</h2>
+<p>dbt looks for a file called <code>profiles.yml</code> in <code>~/.dbt/</code> (your home directory) to find connection details. The repo ships a template so you know exactly what fields are required.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>profiles/profiles.example.yml</code></td>
+<td>Template <code>profiles.yml</code> for the <code>dbt-watsonx-presto</code> adapter. Copy this to <code>~/.dbt/profiles.yml</code> and confirm the environment variable names match your <code>.env</code>. All connection values are read from environment variables at runtime — you never hardcode credentials in this file.</td>
+</tr>
+</tbody>
+</table>
+<p>The profile connects to Presto using <code>BasicAuth</code> with your IBM Software Hub API key as the password:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">watsonxdata_medallion_demo</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dev</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">outputs</span><span class="p">:</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">dev</span><span class="p">:</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">watsonx_presto</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">      </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BasicAuth</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">      </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_USER&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span><span class="w">          </span><span class="c1"># ibmlhapikey_&lt;username&gt;</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">      </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_API_KEY&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span><span class="w">   </span><span class="c1"># IBM Software Hub API key</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">      </span><span class="nt">catalog</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_CATALOG&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span><span class="w">    </span><span class="c1"># iceberg_data</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_HOST&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">      </span><span class="nt">ssl_verify</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_SSL_VERIFY&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">      </span><span class="nt">http_headers</span><span class="p">:</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">        </span><span class="nt">LhInstanceId</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_INSTANCE_ID&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Verify your dbt connection</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>dbt<span class="w"> </span>debug
+</code></pre></div>
+This prints a connection test result for every field in <code>profiles.yml</code>. A green <code>OK</code> next to "Connection test" means dbt can reach Presto.</p>
+</div>
+<hr />
+<h2 id="generated-and-local-only-paths">Generated and local-only paths</h2>
+<p>These paths are created at runtime and are not committed to the repository.</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Created by</th>
+<th>What it contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.venv/</code></td>
+<td><code>python -m venv .venv</code></td>
+<td>Python virtual environment with all workshop dependencies</td>
+</tr>
+<tr>
+<td><code>target/</code></td>
+<td><code>dbt run</code>, <code>dbt docs generate</code></td>
+<td>Compiled SQL, execution manifests, and documentation artifacts</td>
+</tr>
+<tr>
+<td><code>openmetadata/dbt-artifacts/</code></td>
+<td><code>prepare_openmetadata_dbt_artifacts.py</code></td>
+<td>Staged copies of <code>manifest.json</code>, <code>catalog.json</code>, <code>run_results.json</code> for OpenMetadata ingestion</td>
+</tr>
+<tr>
+<td><code>site/</code></td>
+<td><code>mkdocs build</code></td>
+<td>Generated HTML for this documentation site</td>
+</tr>
+<tr>
+<td><code>logs/</code></td>
+<td>Port-forward scripts</td>
+<td>Output from <code>oc port-forward</code> sessions and query logs</td>
+</tr>
+<tr>
+<td><code>watsonx_data/instance_details.json</code></td>
+<td>Manual export from watsonx.data UI</td>
+<td>Presto connection JSON containing the certificate and endpoint — your starting point for setup</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="object-storage-layout">Object storage layout</h2>
+<p>All three demo paths share one object-store bucket, <code>iceberg-bucket</code>, backed by the
+<code>iceberg_data</code> catalog. <code>WXD_SCHEMA_LOCATION_BASE</code> is unset, so every schema is created with no
+<code>location</code> clause and lands at the catalog's default warehouse — the <strong>bucket root</strong>. There is no
+nesting and no <code>.db</code> suffix: each schema is a top-level prefix.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>s3://iceberg-bucket/
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>├── dbt_demo_raw/          # dbt seed (raw layer)              — Presto/dbt
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>├── dbt_demo_bronze/       # dbt bronze                         — Presto/dbt
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>├── dbt_demo_silver/       # dbt silver                         — Presto/dbt
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>├── dbt_demo_gold/         # dbt gold                           — Presto/dbt
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>├── spark_demo/
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>│   ├── app/load_medallion_demo.py   # PySpark app
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>│   └── raw/raw_*.csv                # staged source CSVs (Spark + cpdctl read these)
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>├── spark_demo_bronze/     # Spark bronze (no .db)              — Spark engine
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>├── spark_demo_silver/     # Spark silver (no .db)              — Spark engine
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>├── spark_demo_gold/       # Spark gold   (no .db)              — Spark engine
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>├── spark_demo_cpdctl_raw/ # cpdctl native-ingest raw landing  — cpdctl (Presto-created schema)
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>└── openmetadata/dbt-artifacts/dbt_demo/   # OpenMetadata lineage artifacts
+</code></pre></div>
+<p>The Spark schemas have no <code>.db</code> suffix because their namespaces are pre-created via Presto before
+the Spark job runs. dbt and Spark stay on separate engines and separate schemas; cpdctl produces a
+raw landing that Spark (or dbt) then consumes. Every prefix below is queryable through Presto via
+the <code>iceberg_data</code> catalog.</p>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Producer</th>
+<th>What reads it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dbt_demo_raw/</code></td>
+<td>dbt seed (Presto)</td>
+<td>dbt bronze models</td>
+</tr>
+<tr>
+<td><code>dbt_demo_bronze/</code> <code>dbt_demo_silver/</code> <code>dbt_demo_gold/</code></td>
+<td>dbt run (Presto)</td>
+<td>next dbt layer; BI / SQL clients read gold</td>
+</tr>
+<tr>
+<td><code>spark_demo/app/</code>, <code>spark_demo/raw/</code></td>
+<td>upload script (MinIO)</td>
+<td>Spark engine and cpdctl read the staged CSVs and the app</td>
+</tr>
+<tr>
+<td><code>spark_demo_bronze/</code> <code>spark_demo_silver/</code> <code>spark_demo_gold/</code></td>
+<td>Spark engine</td>
+<td>next Spark layer; BI / SQL clients read gold</td>
+</tr>
+<tr>
+<td><code>spark_demo_cpdctl_raw/</code></td>
+<td>cpdctl native ingest (Presto-created schema)</td>
+<td>a dbt or Spark transform run as a post-action</td>
+</tr>
+<tr>
+<td><code>openmetadata/dbt-artifacts/dbt_demo/</code></td>
+<td><code>prepare_openmetadata_dbt_artifacts.py</code></td>
+<td>OpenMetadata ingestion (lineage)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Resetting these prefixes for a clean rerun</p>
+<p><code>scripts/cleanup_minio.py</code> deletes <strong>exactly these demo prefixes</strong> (and nothing else) so a
+rerun starts clean. The <code>iceberg-bucket</code> bucket itself is always kept, and any non-demo
+folders in it (e.g. another project's data) are left untouched — the script lists the
+bucket's top-level folders at the end and labels which are demo vs. not. Run
+<code>python scripts/cleanup_minio.py --dry-run</code> to preview, or use the all-in-one
+<code>scripts/reset_demo.sh</code> (see the <a href="../scripts/#9-cleanup_miniopy-delete-the-demos-minio-files">Scripts page</a>).
+Recommended order: drop the schemas first (<code>cleanup_watsonxdata.py</code>), then sweep MinIO —
+<code>reset_demo.sh --warehouse</code> does both in that order.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../configuration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Configuration &amp; Files">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Configuration & Files
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../scripts/" class="md-footer__link md-footer__link--next" aria-label="Next: Scripts">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Scripts
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,478 @@
+/* =========================================================================
+   watsonx.data · dbt · Spark medallion demo — IBM Carbon-inspired theme
+   Typography: IBM Plex Sans (Light) · smaller compact scale · light + dark
+   ========================================================================= */
+
+/* ---- Material brand hooks (palette: custom) -------------------------- */
+:root {
+  --md-primary-fg-color:        #0f62fe;  /* IBM Blue 60 */
+  --md-primary-fg-color--light: #4589ff;
+  --md-primary-fg-color--dark:  #0043ce;
+  --md-accent-fg-color:         #0043ce;
+
+  /* Carbon neutrals */
+  --ink:        #161616;
+  --ink-soft:   #393939;
+  --muted:      #525252;
+  --line:       #e0e0e0;
+  --surface:    #ffffff;
+  --surface-2:  #f4f4f4;
+  --surface-3:  #ffffff;
+
+  /* Brand + medallion accents */
+  --blue:    #0f62fe;
+  --cyan:    #1192e8;
+  --purple:  #8a3ffc;
+  --teal:    #007d79;
+  --bronze:  #b46d3c;
+  --silver:  #6f7079;
+  --gold:    #b28600;
+  --green:   #198038;
+
+  --bronze-bg: #fbf1e8;
+  --silver-bg: #f1f2f4;
+  --gold-bg:   #fcf4d6;
+  --raw-bg:    #edf5ff;
+
+  --radius: 10px;
+  --shadow: 0 1px 0 rgba(22,22,22,0.04), 0 8px 24px rgba(22,22,22,0.06);
+}
+
+/* dark mode (slate) overrides */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #4589ff;
+  --md-accent-fg-color:         #78a9ff;
+  --md-default-bg-color:        #161616;
+  --md-default-fg-color:        #f4f4f4;
+
+  --ink:        #f4f4f4;
+  --ink-soft:   #e0e0e0;
+  --muted:      #a8a8a8;
+  --line:       #393939;
+  --surface:    #262626;
+  --surface-2:  #1f1f1f;
+  --surface-3:  #2a2a2a;
+
+  --blue:    #78a9ff;
+  --cyan:    #33b1ff;
+  --purple:  #be95ff;
+  --bronze:  #d99a64;
+  --silver:  #b9bcc4;
+  --gold:    #e8b800;
+  --green:   #42be65;
+
+  --bronze-bg: #2a2017;
+  --silver-bg: #232427;
+  --gold-bg:   #2a2510;
+  --raw-bg:    #16213a;
+
+  --shadow: 0 1px 0 rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.45);
+}
+
+/* ---- Typography: IBM Plex Light, compact scale ---------------------- */
+:root {
+  --md-text-font-family: "IBM Plex Sans";
+}
+
+body,
+.md-typeset {
+  font-weight: 300;                 /* IBM Plex Light */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.md-typeset {
+  font-size: 0.74rem;               /* smaller, denser body */
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.md-typeset h1 {
+  font-weight: 600;
+  font-size: 1.78rem;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+  margin: 0 0 0.7rem;
+}
+
+.md-typeset h2 {
+  font-weight: 500;
+  font-size: 1.22rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-top: 2.2rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.md-typeset h3 {
+  font-weight: 500;
+  font-size: 0.96rem;
+  color: var(--ink);
+}
+
+.md-typeset h4 { font-weight: 500; font-size: 0.82rem; }
+
+.md-typeset strong { font-weight: 600; color: var(--ink); }
+
+code, kbd, pre, .md-typeset code { font-feature-settings: "liga" 0; }
+.md-typeset code { font-size: 0.82em; }
+
+/* tighter, calmer nav + toc */
+.md-nav { font-size: 0.7rem; }
+.md-nav__title { font-weight: 600; }
+
+/* Black IBM Carbon-style header, white text, no logo icon */
+.md-header,
+.md-tabs {
+  background-color: #161616;
+  color: #ffffff;
+}
+.md-header { box-shadow: 0 1px 0 rgba(255,255,255,0.08); }
+.md-header__title { font-weight: 500; letter-spacing: -0.01em; }
+/* remove the default header logo/book icon (no header icons) */
+.md-header__button.md-logo { display: none; }
+.md-tabs { border-bottom: 1px solid rgba(255,255,255,0.12); }
+.md-tabs__link { opacity: 0.78; font-weight: 400; }
+.md-tabs__link:hover,
+.md-tabs__link--active { opacity: 1; }
+/* keep search field legible on the black bar */
+.md-search__form { background-color: rgba(255,255,255,0.12); }
+.md-search__form:hover { background-color: rgba(255,255,255,0.2); }
+[data-md-color-scheme="slate"] .md-header,
+[data-md-color-scheme="slate"] .md-tabs { background-color: #0b0b0b; }
+
+/* ---- Hero ------------------------------------------------------------ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 2.4rem 2.2rem 2.1rem;
+  margin: 0 0 1.6rem;
+  background:
+    radial-gradient(900px 280px at 88% -10%, rgba(138,63,252,0.12), transparent 60%),
+    radial-gradient(700px 260px at 0% 0%, rgba(15,98,254,0.12), transparent 55%),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0f62fe, #8a3ffc 45%, #1192e8 75%, #007d79);
+}
+
+.hero .eyebrow {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 0.7rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.6rem;
+  max-width: 820px;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.hero p {
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.3rem;
+}
+
+.hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 8px;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 0.76rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.hero-actions a:hover { transform: translateY(-1px); border-color: var(--blue); }
+
+.hero-actions a.primary {
+  border-color: transparent;
+  background: var(--blue);
+  color: #ffffff;
+}
+.hero-actions a.primary:hover { background: var(--md-primary-fg-color--dark); }
+[data-md-color-scheme="slate"] .hero-actions a.primary { color: #001141; }
+
+/* ---- Brand strip (logos) ------------------------------------------- */
+.brand-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.6rem 2.4rem;
+  margin: 1.4rem 0 2rem;
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.brand-strip p { display: contents; margin: 0; }
+
+.brand-strip .brand-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 0.2rem;
+}
+
+.brand-strip img {
+  height: 30px;
+  width: auto;
+  color: var(--ink);                 /* drives currentColor in SVG wordmarks */
+  opacity: 0.92;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.brand-strip img:hover { opacity: 1; transform: translateY(-1px); }
+
+/* ---- Card grids ----------------------------------------------------- */
+.quick-grid,
+.concept-grid,
+.layer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.85rem;
+  margin: 1.1rem 0 1.7rem;
+}
+
+.card {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.05rem;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.card:hover { transform: translateY(-2px); border-color: var(--blue); }
+
+.card h3 { margin: 0 0 0.35rem; font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+.card p  { margin: 0; font-size: 0.74rem; color: var(--muted); line-height: 1.55; }
+
+.metric {
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--blue);
+  margin-bottom: 0.45rem;
+}
+
+/* ---- Pills ---------------------------------------------------------- */
+.pill-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+/* ---- Medallion layer cards ----------------------------------------- */
+.layer-grid .card { border-top: 3px solid var(--line); }
+.card.raw    { border-top-color: var(--blue);   background: var(--raw-bg); }
+.card.bronze { border-top-color: var(--bronze); background: var(--bronze-bg); }
+.card.silver { border-top-color: var(--silver); background: var(--silver-bg); }
+.card.gold   { border-top-color: var(--gold);   background: var(--gold-bg); }
+
+.card .layer-tag {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.45rem;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+.card.raw    .layer-tag { background: var(--blue); }
+.card.bronze .layer-tag { background: var(--bronze); }
+.card.silver .layer-tag { background: var(--silver); }
+.card.gold   .layer-tag { background: var(--gold); color: #1a1400; }
+
+/* ---- Step list ------------------------------------------------------ */
+.path-list { counter-reset: steps; display: grid; gap: 0.6rem; margin: 1rem 0 1.8rem; }
+
+.path-step {
+  counter-increment: steps;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.path-step::before {
+  content: counter(steps);
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.path-step strong { display: block; font-size: 0.8rem; color: var(--ink); }
+.path-step span   { font-size: 0.73rem; color: var(--muted); }
+
+/* ---- Column-level lineage table ------------------------------------ */
+.lineage-table-wrap { overflow-x: auto; margin: 1.1rem 0 1.8rem; }
+
+table.lineage {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+table.lineage th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 0.5rem 0.7rem;
+}
+table.lineage thead .raw    { background: var(--blue); }
+table.lineage thead .bronze { background: var(--bronze); }
+table.lineage thead .silver { background: var(--silver); }
+table.lineage thead .gold   { background: var(--gold); color:#1a1400; }
+
+table.lineage td {
+  padding: 0.42rem 0.7rem;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--ink-soft);
+}
+table.lineage td code {
+  background: var(--surface-2);
+  padding: 0.05rem 0.32rem;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+table.lineage tbody tr:nth-child(even) td { background: var(--surface-2); }
+table.lineage .arrow { color: var(--muted); text-align: center; padding: 0 0.2rem; }
+table.lineage .new { color: var(--green); font-weight: 500; }
+
+/* object-type chips */
+.obj {
+  display: inline-block;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.08rem 0.4rem;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+.obj.csv   { background: var(--raw-bg);    color: var(--blue); }
+.obj.table { background: var(--silver-bg); color: var(--silver); }
+.obj.view  { background: var(--gold-bg);   color: var(--gold); }
+
+/* ---- Comparison table ---------------------------------------------- */
+.comparison-table td, .comparison-table th { vertical-align: top; }
+
+.md-typeset table:not([class]) {
+  font-size: 0.71rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.md-typeset table:not([class]) th {
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* ---- Admonitions, details, code ------------------------------------ */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--radius);
+  font-size: 0.73rem;
+  border-width: 1px;
+  box-shadow: var(--shadow);
+}
+.md-typeset pre > code { border-radius: var(--radius); }
+.md-typeset .highlight { font-size: 0.74rem; }
+
+/* ---- Mermaid diagrams ---------------------------------------------- */
+.md-typeset .mermaid {
+  margin: 1.3rem 0;
+  text-align: center;
+}
+.md-typeset .mermaid svg {
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 0.7rem;
+  box-shadow: var(--shadow);
+}
+
+/* ---- Section intro lede -------------------------------------------- */
+.lede {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 760px;
+  margin: 0 0 1.3rem;
+}
+
+/* ---- Reduced motion ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 1.6rem 1.2rem; }
+  .brand-strip { gap: 1rem 1.4rem; }
+  .brand-strip img { height: 24px; }
+}

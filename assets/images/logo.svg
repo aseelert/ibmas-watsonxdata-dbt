@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Medallion lakehouse">
+  <g transform="translate(24 25)">
+    <ellipse cx="0" cy="11" rx="17" ry="5.5" fill="#f1c21b"/>
+    <ellipse cx="0" cy="2" rx="17" ry="5.5" fill="#c0c0c8"/>
+    <ellipse cx="0" cy="-7" rx="17" ry="5.5" fill="#cd7f32"/>
+    <ellipse cx="0" cy="-16" rx="17" ry="5.5" fill="#ffffff" stroke="#0f62fe" stroke-width="1.6"/>
+  </g>
+</svg>
