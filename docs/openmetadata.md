@@ -6,6 +6,9 @@
 !!! warning "OpenMetadata is OPTIONAL in this demo"
     The medallion pipeline runs fine without it. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) paths build every gold table on their own. OpenMetadata is here only to *visualise the lineage* of what dbt already built. Skip it if you only want the pipeline; run it if you want to show where each number came from. For a live point-and-click BI view of the same gold tables, see [Metabase](metabase.md) instead — the two are complementary (Metabase queries the data; OpenMetadata maps where it came from).
 
+<img width="2019" height="1086" alt="image" src="https://github.ibm.com/user-attachments/assets/1aeebdb9-8bf0-4f02-b042-212d5431d48d" />
+
+
 ## Architecture
 
 ```mermaid
