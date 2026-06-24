@@ -79,7 +79,7 @@ SIDE EFFECTS / EXIT
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from airflow.sdk import dag, task, Param
 from airflow.exceptions import AirflowException, AirflowSkipException
@@ -217,7 +217,13 @@ def spark_medallion_hourly():
             """Submit load_medallion_demo.py; return the application id."""
             import requests
 
-            logical_date = context["logical_date"]
+            dag_run = context.get("dag_run")
+            logical_date = (
+                context.get("logical_date")
+                or getattr(dag_run, "logical_date", None)
+                or getattr(dag_run, "run_after", None)
+                or datetime.now(timezone.utc)
+            )
             batch_id = f"{SPARK_BASE_SCHEMA}_{logical_date.strftime('%Y%m%d_%H%M')}"
 
             application = os.getenv(

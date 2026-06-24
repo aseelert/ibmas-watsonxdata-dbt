@@ -54,6 +54,11 @@ x-airflow-common: &airflow-common
     DBT_TARGET_PATH: /opt/airflow/logs/dbt-runtime/target
     DBT_LOG_PATH: /opt/airflow/logs/dbt-runtime/logs
     WXD_OBJECT_STORE_LOG_DIR: /opt/airflow/logs
+    # Airflow containers cannot run host-side `oc port-forward`. If you enable
+    # the Spark DAG's upload_assets param, start the port-forward on the host:
+    #   oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
+    WXD_OBJECT_STORE_ENDPOINT: http://host.docker.internal:19000
+    WXD_OBJECT_STORE_AUTO_PORT_FORWARD: "false"
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - airflow-logs:/opt/airflow/logs
