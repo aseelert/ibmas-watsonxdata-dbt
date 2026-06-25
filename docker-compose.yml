@@ -136,3 +136,4 @@ volumes:
 include:
   - docker-compose-metabase.yml
   - openmetadata/docker-compose.yml
+  - confluent/docker-compose.yml

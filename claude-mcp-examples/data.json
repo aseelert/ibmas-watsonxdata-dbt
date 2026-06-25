@@ -1,0 +1,1969 @@
+{
+  "meta": {
+    "project": "ibmas-ingest-demo",
+    "project_id": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+    "base_url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org",
+    "source": "IBM watsonx.data intelligence MCP server only",
+    "lineage_service": "unavailable (HTTP 404) \u2014 medallion lineage reconstructed from MCP layer metadata",
+    "business_terms": "none assigned to assets (get_asset_glossary_artifacts returned none); governance present via auto-discovered data classes",
+    "generated": "2026-06-25"
+  },
+  "layers": {
+    "ingest": {
+      "label": "Landing / Ingest",
+      "schema": "lakehouse_demo_ingest",
+      "color": "#7c5cff"
+    },
+    "bronze": {
+      "label": "Bronze (raw + lineage)",
+      "schema": "lakehouse_demo_bronze",
+      "color": "#cd7f32"
+    },
+    "silver": {
+      "label": "Silver (clean / conformed)",
+      "schema": "lakehouse_demo_silver",
+      "color": "#aab2bd"
+    },
+    "gold": {
+      "label": "Gold (business marts)",
+      "schema": "lakehouse_demo_gold",
+      "color": "#ffd34d"
+    }
+  },
+  "kpis": {
+    "n_assets": 17,
+    "avg_dq": 98.23,
+    "total_records": 3236,
+    "n_classes": 13,
+    "n_columns": 122
+  },
+  "assets": [
+    {
+      "name": "products",
+      "id": "fe74fed3-7470-463c-a35d-d9c9bad7183c",
+      "layer": "ingest",
+      "schema": "lakehouse_demo_ingest",
+      "records": 8,
+      "pk_suggested": 2,
+      "fk_suggested": 1,
+      "n_cols": 4,
+      "n_classified": 3,
+      "dq": {
+        "overall": 95.83,
+        "validity": 87.5,
+        "consistency": null,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 97.9,
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Organization Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "category",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Completeness"
+          ]
+        },
+        {
+          "name": "unit_price",
+          "type": "DOUBLE",
+          "quality": 91.67,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/fe74fed3-7470-463c-a35d-d9c9bad7183c?context=cpd"
+    },
+    {
+      "name": "orders",
+      "id": "6a95b469-9c42-4078-aa37-378ac94e82fa",
+      "layer": "ingest",
+      "schema": "lakehouse_demo_ingest",
+      "records": 13,
+      "pk_suggested": 1,
+      "fk_suggested": 4,
+      "n_cols": 5,
+      "n_classified": 5,
+      "dq": {
+        "overall": 96.92,
+        "validity": 87.69,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 95.9,
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_ts",
+          "type": "TIMESTAMP",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "quality": 92.31,
+          "data_class": "Organization Name",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "payment_method",
+          "type": "varchar",
+          "quality": 87.18,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/6a95b469-9c42-4078-aa37-378ac94e82fa?context=cpd"
+    },
+    {
+      "name": "customers",
+      "id": "edc3cf16-7d69-41d6-82bf-4230aaa00b34",
+      "layer": "ingest",
+      "schema": "lakehouse_demo_ingest",
+      "records": 8,
+      "pk_suggested": 4,
+      "fk_suggested": 0,
+      "n_cols": 6,
+      "n_classified": 5,
+      "dq": {
+        "overall": 100.0,
+        "validity": 100.0,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 100.0,
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "first_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "last_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Last Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "email",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Email Address",
+          "checks": [
+            "Uniqueness",
+            "Completeness",
+            "Consistency",
+            "Validity"
+          ]
+        },
+        {
+          "name": "signup_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "country",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Country Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/edc3cf16-7d69-41d6-82bf-4230aaa00b34?context=cpd"
+    },
+    {
+      "name": "order_items",
+      "id": "9ae57cb0-0123-407c-bf0d-d2e6fd9f5a5b",
+      "layer": "ingest",
+      "schema": "lakehouse_demo_ingest",
+      "records": 19,
+      "pk_suggested": 1,
+      "fk_suggested": 6,
+      "n_cols": 5,
+      "n_classified": 2,
+      "dq": {
+        "overall": 95.79,
+        "validity": 87.37,
+        "consistency": null,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 95.3,
+      "columns": [
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "quality": 84.21,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "discount_pct",
+          "type": "DOUBLE",
+          "quality": 92.11,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/9ae57cb0-0123-407c-bf0d-d2e6fd9f5a5b?context=cpd"
+    },
+    {
+      "name": "bronze_products",
+      "id": "fc561f29-617c-4704-8709-36449c7ae73c",
+      "layer": "bronze",
+      "schema": "lakehouse_demo_bronze",
+      "records": 20,
+      "pk_suggested": 1,
+      "fk_suggested": 2,
+      "n_cols": 8,
+      "n_classified": 7,
+      "dq": {
+        "overall": 99.38,
+        "validity": 97.5,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 99.4,
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Text",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "category",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Completeness"
+          ]
+        },
+        {
+          "name": "unit_price",
+          "type": "DOUBLE",
+          "quality": 95,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "_ingested_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "_ingested_by",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_source_file",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_ingest_batch_id",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/fc561f29-617c-4704-8709-36449c7ae73c?context=cpd"
+    },
+    {
+      "name": "bronze_orders",
+      "id": "eb10fdc0-d5e6-44ca-ab53-4a9ae3f82fcc",
+      "layer": "bronze",
+      "schema": "lakehouse_demo_bronze",
+      "records": 500,
+      "pk_suggested": 1,
+      "fk_suggested": 4,
+      "n_cols": 9,
+      "n_classified": 9,
+      "dq": {
+        "overall": 98.55,
+        "validity": 94.2,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 98.1,
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_ts",
+          "type": "TIMESTAMP",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "quality": 94.2,
+          "data_class": "Organization Name",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "payment_method",
+          "type": "varchar",
+          "quality": 88.4,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_ingested_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "_ingested_by",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_source_file",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_ingest_batch_id",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/eb10fdc0-d5e6-44ca-ab53-4a9ae3f82fcc?context=cpd"
+    },
+    {
+      "name": "bronze_customers",
+      "id": "bd376e17-e422-460d-9f19-0f94c9df29cb",
+      "layer": "bronze",
+      "schema": "lakehouse_demo_bronze",
+      "records": 50,
+      "pk_suggested": 4,
+      "fk_suggested": 8,
+      "n_cols": 10,
+      "n_classified": 9,
+      "dq": {
+        "overall": 100.0,
+        "validity": 100.0,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 100.0,
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "first_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "First Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "last_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Last Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "email",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Email Address",
+          "checks": [
+            "Uniqueness",
+            "Completeness",
+            "Consistency",
+            "Validity"
+          ]
+        },
+        {
+          "name": "signup_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "country",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Country Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_ingested_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "_ingested_by",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_source_file",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_ingest_batch_id",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/bd376e17-e422-460d-9f19-0f94c9df29cb?context=cpd"
+    },
+    {
+      "name": "bronze_order_items",
+      "id": "3f5a2a23-0846-42e5-a126-f998146ea953",
+      "layer": "bronze",
+      "schema": "lakehouse_demo_bronze",
+      "records": null,
+      "pk_suggested": 1,
+      "fk_suggested": 6,
+      "n_cols": 9,
+      "n_classified": 6,
+      "dq": {
+        "overall": 98.65,
+        "validity": 94.59,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 97.5,
+      "columns": [
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "quality": 96.67,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "discount_pct",
+          "type": "DOUBLE",
+          "quality": 80.65,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "_ingested_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "_ingested_by",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_source_file",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "_ingest_batch_id",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Indicator",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/3f5a2a23-0846-42e5-a126-f998146ea953?context=cpd"
+    },
+    {
+      "name": "silver_customers",
+      "id": "ed9bd4af-b082-4d56-90e8-38bbe13d7809",
+      "layer": "silver",
+      "schema": "lakehouse_demo_silver",
+      "records": 50,
+      "pk_suggested": 4,
+      "fk_suggested": 8,
+      "n_cols": 7,
+      "n_classified": 7,
+      "dq": {
+        "overall": 100.0,
+        "validity": 100.0,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 100.0,
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "first_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "First Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "last_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Last Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "email",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Email Address",
+          "checks": [
+            "Uniqueness",
+            "Completeness",
+            "Consistency",
+            "Validity"
+          ]
+        },
+        {
+          "name": "signup_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "country",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Country Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "transformed_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/ed9bd4af-b082-4d56-90e8-38bbe13d7809?context=cpd"
+    },
+    {
+      "name": "silver_orders",
+      "id": "e87bc6c3-b68d-4956-99a1-ce3555b1d862",
+      "layer": "silver",
+      "schema": "lakehouse_demo_silver",
+      "records": 500,
+      "pk_suggested": 1,
+      "fk_suggested": 4,
+      "n_cols": 7,
+      "n_classified": 7,
+      "dq": {
+        "overall": 98.14,
+        "validity": 92.54,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 97.5,
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_ts",
+          "type": "TIMESTAMP",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "quality": 94.2,
+          "data_class": "Organization Name",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "payment_method",
+          "type": "varchar",
+          "quality": 88.4,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "transformed_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/e87bc6c3-b68d-4956-99a1-ce3555b1d862?context=cpd"
+    },
+    {
+      "name": "silver_products",
+      "id": "62e4e29c-7f99-4859-aeaa-2ceb51eabf61",
+      "layer": "silver",
+      "schema": "lakehouse_demo_silver",
+      "records": 20,
+      "pk_suggested": 1,
+      "fk_suggested": 2,
+      "n_cols": 5,
+      "n_classified": 5,
+      "dq": {
+        "overall": 98.89,
+        "validity": 96.67,
+        "consistency": null,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 99.3,
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Text",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "category",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Completeness"
+          ]
+        },
+        {
+          "name": "unit_price",
+          "type": "DECIMAL(12,2)",
+          "quality": 96.67,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "transformed_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/62e4e29c-7f99-4859-aeaa-2ceb51eabf61?context=cpd"
+    },
+    {
+      "name": "silver_order_items",
+      "id": "061fcea1-066d-4ca5-91eb-cee31fd1abb2",
+      "layer": "silver",
+      "schema": "lakehouse_demo_silver",
+      "records": null,
+      "pk_suggested": 1,
+      "fk_suggested": 5,
+      "n_cols": 6,
+      "n_classified": 4,
+      "dq": {
+        "overall": 99.44,
+        "validity": 98.32,
+        "consistency": null,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 99.4,
+      "columns": [
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "quality": 96.63,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "discount_pct",
+          "type": "DECIMAL(5,2)",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "transformed_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/061fcea1-066d-4ca5-91eb-cee31fd1abb2?context=cpd"
+    },
+    {
+      "name": "silver_sales_enriched",
+      "id": "ac4000e1-f258-4c61-8fb5-ed36777e6a43",
+      "layer": "silver",
+      "schema": "lakehouse_demo_silver",
+      "records": 1134,
+      "pk_suggested": 1,
+      "fk_suggested": 7,
+      "n_cols": 17,
+      "n_classified": 12,
+      "dq": {
+        "overall": 97.4,
+        "validity": 89.6,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 96.1,
+      "columns": [
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "quality": 93.2,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_ts",
+          "type": "TIMESTAMP",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "quality": 94.23,
+          "data_class": "Organization Name",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "payment_method",
+          "type": "varchar",
+          "quality": 88.3,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "customer_country",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Country Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "product_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Text",
+          "checks": [
+            "Completeness"
+          ]
+        },
+        {
+          "name": "category",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Completeness"
+          ]
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "unit_price",
+          "type": "DECIMAL(12,2)",
+          "quality": 94.35,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "discount_pct",
+          "type": "DECIMAL(5,2)",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "gross_amount",
+          "type": "DECIMAL(14,2)",
+          "quality": 81.6,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "net_amount",
+          "type": "DECIMAL(14,2)",
+          "quality": 82.45,
+          "data_class": null,
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "transformed_at",
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/ac4000e1-f258-4c61-8fb5-ed36777e6a43?context=cpd"
+    },
+    {
+      "name": "time_spine_daily",
+      "id": "e2093ad4-9f2f-476b-8b31-712c7dcc0639",
+      "layer": "silver",
+      "schema": "lakehouse_demo_silver",
+      "records": 365,
+      "pk_suggested": null,
+      "fk_suggested": null,
+      "n_cols": 1,
+      "n_classified": 1,
+      "dq": {
+        "overall": 100.0,
+        "validity": 100.0,
+        "consistency": null,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 100.0,
+      "columns": [
+        {
+          "name": "date_day",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/e2093ad4-9f2f-476b-8b31-712c7dcc0639?context=cpd"
+    },
+    {
+      "name": "gold_customer_360",
+      "id": "67193b4c-f930-4759-b4e2-d0b67b9671d3",
+      "layer": "gold",
+      "schema": "lakehouse_demo_gold",
+      "records": 50,
+      "pk_suggested": 4,
+      "fk_suggested": 8,
+      "n_cols": 13,
+      "n_classified": 13,
+      "dq": {
+        "overall": 98.59,
+        "validity": 94.36,
+        "consistency": 100.0,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 97.9,
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "quality": 100,
+          "data_class": "Customer Number",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "first_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "First Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "last_name",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Last Name",
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "email",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Email Address",
+          "checks": [
+            "Uniqueness",
+            "Completeness",
+            "Consistency",
+            "Validity"
+          ]
+        },
+        {
+          "name": "country",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Country Code",
+          "checks": [
+            "Validity",
+            "Completeness",
+            "Consistency"
+          ]
+        },
+        {
+          "name": "signup_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "completed_orders",
+          "type": "BIGINT",
+          "quality": 89,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "returned_orders",
+          "type": "BIGINT",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "pending_orders",
+          "type": "BIGINT",
+          "quality": 99,
+          "data_class": "Boolean",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "cancelled_orders",
+          "type": "BIGINT",
+          "quality": 93,
+          "data_class": "Boolean",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "lifetime_value",
+          "type": "DECIMAL(14,2)",
+          "quality": 92,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "last_completed_order_ts",
+          "type": "TIMESTAMP",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "last_activity_ts",
+          "type": "TIMESTAMP",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/67193b4c-f930-4759-b4e2-d0b67b9671d3?context=cpd"
+    },
+    {
+      "name": "gold_category_performance",
+      "id": "5183bd38-5204-47a4-834f-604855f668b0",
+      "layer": "gold",
+      "schema": "lakehouse_demo_gold",
+      "records": 5,
+      "pk_suggested": 3,
+      "fk_suggested": 0,
+      "n_cols": 5,
+      "n_classified": 4,
+      "dq": {
+        "overall": 98.33,
+        "validity": 95.0,
+        "consistency": null,
+        "uniqueness": 100.0,
+        "completeness": 100.0
+      },
+      "col_avg": 98.7,
+      "columns": [
+        {
+          "name": "category",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": null,
+          "checks": [
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "total_orders",
+          "type": "BIGINT",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "total_units",
+          "type": "BIGINT",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "total_revenue",
+          "type": "DECIMAL(14,2)",
+          "quality": 93.33,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "avg_revenue_per_unit",
+          "type": "DECIMAL(14,2)",
+          "quality": 100,
+          "data_class": "Identifier",
+          "checks": [
+            "Validity",
+            "Uniqueness",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/5183bd38-5204-47a4-834f-604855f668b0?context=cpd"
+    },
+    {
+      "name": "gold_daily_sales",
+      "id": "ae46b938-b082-49c7-a945-853e16df3151",
+      "layer": "gold",
+      "schema": "lakehouse_demo_gold",
+      "records": 494,
+      "pk_suggested": 0,
+      "fk_suggested": 1,
+      "n_cols": 5,
+      "n_classified": 5,
+      "dq": {
+        "overall": 94.05,
+        "validity": 88.11,
+        "consistency": null,
+        "uniqueness": null,
+        "completeness": 100.0
+      },
+      "col_avg": 95.2,
+      "columns": [
+        {
+          "name": "order_date",
+          "type": "DATE",
+          "quality": 100,
+          "data_class": "Date",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "category",
+          "type": "varchar",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Completeness"
+          ]
+        },
+        {
+          "name": "order_count",
+          "type": "BIGINT",
+          "quality": 100,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "units_sold",
+          "type": "BIGINT",
+          "quality": 98.38,
+          "data_class": "Code",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        },
+        {
+          "name": "net_revenue",
+          "type": "DECIMAL(14,2)",
+          "quality": 77.83,
+          "data_class": "Quantity",
+          "checks": [
+            "Validity",
+            "Completeness"
+          ]
+        }
+      ],
+      "url": "https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/ae46b938-b082-49c7-a945-853e16df3151?context=cpd"
+    }
+  ],
+  "edges": [
+    [
+      "products",
+      "bronze_products"
+    ],
+    [
+      "orders",
+      "bronze_orders"
+    ],
+    [
+      "customers",
+      "bronze_customers"
+    ],
+    [
+      "order_items",
+      "bronze_order_items"
+    ],
+    [
+      "bronze_products",
+      "silver_products"
+    ],
+    [
+      "bronze_orders",
+      "silver_orders"
+    ],
+    [
+      "bronze_customers",
+      "silver_customers"
+    ],
+    [
+      "bronze_order_items",
+      "silver_order_items"
+    ],
+    [
+      "silver_order_items",
+      "silver_sales_enriched"
+    ],
+    [
+      "silver_orders",
+      "silver_sales_enriched"
+    ],
+    [
+      "silver_products",
+      "silver_sales_enriched"
+    ],
+    [
+      "silver_customers",
+      "silver_sales_enriched"
+    ],
+    [
+      "silver_sales_enriched",
+      "gold_daily_sales"
+    ],
+    [
+      "silver_sales_enriched",
+      "gold_customer_360"
+    ],
+    [
+      "silver_customers",
+      "gold_customer_360"
+    ],
+    [
+      "gold_daily_sales",
+      "gold_category_performance"
+    ]
+  ],
+  "relationships": [
+    [
+      "orders",
+      "customer_id",
+      "customers",
+      "customer_id",
+      "Customer Number"
+    ],
+    [
+      "order_items",
+      "order_id",
+      "orders",
+      "order_id",
+      "Identifier"
+    ],
+    [
+      "order_items",
+      "product_id",
+      "products",
+      "product_id",
+      "Identifier"
+    ],
+    [
+      "bronze_orders",
+      "customer_id",
+      "bronze_customers",
+      "customer_id",
+      "Customer Number"
+    ],
+    [
+      "silver_orders",
+      "customer_id",
+      "silver_customers",
+      "customer_id",
+      "Customer Number"
+    ],
+    [
+      "silver_order_items",
+      "order_id",
+      "silver_orders",
+      "order_id",
+      "Identifier"
+    ],
+    [
+      "silver_order_items",
+      "product_id",
+      "silver_products",
+      "product_id",
+      "Code"
+    ],
+    [
+      "silver_sales_enriched",
+      "customer_id",
+      "silver_customers",
+      "customer_id",
+      "Customer Number"
+    ],
+    [
+      "silver_sales_enriched",
+      "product_id",
+      "silver_products",
+      "product_id",
+      "Code"
+    ],
+    [
+      "silver_sales_enriched",
+      "order_id",
+      "silver_orders",
+      "order_id",
+      "Identifier"
+    ],
+    [
+      "gold_customer_360",
+      "customer_id",
+      "silver_customers",
+      "customer_id",
+      "Customer Number"
+    ]
+  ],
+  "data_classes": {
+    "Identifier": [
+      "products.product_id",
+      "products.unit_price",
+      "orders.order_id",
+      "order_items.order_item_id",
+      "bronze_products.product_id",
+      "bronze_products.unit_price",
+      "bronze_orders.order_id",
+      "bronze_order_items.order_item_id",
+      "silver_orders.order_id",
+      "silver_products.product_id",
+      "silver_products.unit_price",
+      "silver_order_items.order_item_id",
+      "silver_sales_enriched.order_item_id",
+      "gold_customer_360.lifetime_value",
+      "gold_category_performance.total_orders",
+      "gold_category_performance.total_units",
+      "gold_category_performance.total_revenue",
+      "gold_category_performance.avg_revenue_per_unit"
+    ],
+    "Organization Name": [
+      "products.product_name",
+      "orders.status",
+      "bronze_orders.status",
+      "silver_orders.status",
+      "silver_sales_enriched.status"
+    ],
+    "Customer Number": [
+      "orders.customer_id",
+      "customers.customer_id",
+      "bronze_orders.customer_id",
+      "bronze_customers.customer_id",
+      "silver_customers.customer_id",
+      "silver_orders.customer_id",
+      "silver_sales_enriched.customer_id",
+      "gold_customer_360.customer_id"
+    ],
+    "Date": [
+      "orders.order_ts",
+      "customers.signup_date",
+      "bronze_products._ingested_at",
+      "bronze_orders.order_ts",
+      "bronze_orders._ingested_at",
+      "bronze_customers.signup_date",
+      "bronze_customers._ingested_at",
+      "bronze_order_items._ingested_at",
+      "silver_customers.signup_date",
+      "silver_customers.transformed_at",
+      "silver_orders.order_ts",
+      "silver_orders.order_date",
+      "silver_orders.transformed_at",
+      "silver_products.transformed_at",
+      "silver_order_items.transformed_at",
+      "silver_sales_enriched.order_date",
+      "silver_sales_enriched.order_ts",
+      "silver_sales_enriched.transformed_at",
+      "time_spine_daily.date_day",
+      "gold_customer_360.signup_date",
+      "gold_customer_360.last_completed_order_ts",
+      "gold_customer_360.last_activity_ts",
+      "gold_daily_sales.order_date"
+    ],
+    "Code": [
+      "orders.payment_method",
+      "order_items.quantity",
+      "bronze_products.category",
+      "bronze_orders.payment_method",
+      "bronze_order_items.product_id",
+      "bronze_order_items.quantity",
+      "silver_orders.payment_method",
+      "silver_products.category",
+      "silver_order_items.product_id",
+      "silver_order_items.quantity",
+      "silver_sales_enriched.payment_method",
+      "silver_sales_enriched.product_id",
+      "silver_sales_enriched.category",
+      "silver_sales_enriched.quantity",
+      "gold_customer_360.completed_orders",
+      "gold_customer_360.returned_orders",
+      "gold_daily_sales.category",
+      "gold_daily_sales.order_count",
+      "gold_daily_sales.units_sold"
+    ],
+    "Last Name": [
+      "customers.last_name",
+      "bronze_customers.last_name",
+      "silver_customers.last_name",
+      "gold_customer_360.last_name"
+    ],
+    "Email Address": [
+      "customers.email",
+      "bronze_customers.email",
+      "silver_customers.email",
+      "gold_customer_360.email"
+    ],
+    "Country Code": [
+      "customers.country",
+      "bronze_customers.country",
+      "silver_customers.country",
+      "silver_sales_enriched.customer_country",
+      "gold_customer_360.country"
+    ],
+    "Text": [
+      "bronze_products.product_name",
+      "silver_products.product_name",
+      "silver_sales_enriched.product_name"
+    ],
+    "Indicator": [
+      "bronze_products._ingested_by",
+      "bronze_products._ingest_batch_id",
+      "bronze_orders._ingested_by",
+      "bronze_orders._source_file",
+      "bronze_orders._ingest_batch_id",
+      "bronze_customers._ingested_by",
+      "bronze_customers._ingest_batch_id",
+      "bronze_order_items._ingested_by",
+      "bronze_order_items._ingest_batch_id"
+    ],
+    "First Name": [
+      "bronze_customers.first_name",
+      "silver_customers.first_name",
+      "gold_customer_360.first_name"
+    ],
+    "Boolean": [
+      "gold_customer_360.pending_orders",
+      "gold_customer_360.cancelled_orders"
+    ],
+    "Quantity": [
+      "gold_daily_sales.net_revenue"
+    ]
+  }
+}

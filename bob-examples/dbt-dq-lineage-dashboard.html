@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt Medallion — DQ &amp; Lineage Dashboard | ibmas-ingest-demo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; background: #f7f8fa; color: #1f2328; }
+  a { color: #3b82d4; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── layout ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; }
+
+  /* ── header ── */
+  .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 18px; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p  { color: #57606a; font-size: 13px; margin-top: 4px; }
+  .header-meta { display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap; }
+  .header-meta span { font-size: 12px; color: #57606a; }
+  .header-meta strong { color: #1f2328; }
+
+  /* ── section titles ── */
+  .section { margin-bottom: 36px; }
+  .section-title { font-size: 15px; font-weight: 700; color: #1f2328; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 8px; }
+  .section-title .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: #e5e7eb; color: #57606a; }
+
+  /* ── score hero row ── */
+  .score-hero { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .score-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 12px 12px; position: relative; overflow: hidden; }
+  .score-card .layer-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #fff; padding: 2px 7px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
+  .layer-raw    { background: #7c5cd8; }
+  .layer-bronze { background: #c47a1b; }
+  .layer-silver { background: #6b7280; }
+  .layer-gold   { background: #ca8a04; }
+  .score-card .asset-name { font-size: 12px; font-weight: 600; color: #1f2328; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+  .score-card .dq-score  { font-size: 28px; font-weight: 800; line-height: 1; }
+  .score-card .dq-label  { font-size: 10px; color: #57606a; }
+  .score-good   { color: #16a34a; }
+  .score-warn   { color: #ca8a04; }
+  .score-bad    { color: #dc2626; }
+  .score-card .dq-bar-track { height: 4px; background: #e5e7eb; border-radius: 4px; margin-top: 8px; }
+  .score-card .dq-bar-fill  { height: 4px; border-radius: 4px; }
+
+  /* ── dimension table ── */
+  .dim-table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+  thead th { background: #f7f8fa; text-align: left; padding: 9px 12px; font-weight: 600; font-size: 12px; color: #57606a; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #fafafa; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 20px; font-weight: 600; }
+  .pill-good   { background: #dcfce7; color: #15803d; }
+  .pill-warn   { background: #fef9c3; color: #a16207; }
+  .pill-bad    { background: #fee2e2; color: #b91c1c; }
+  .pill-na     { background: #f3f4f6; color: #6b7280; }
+  .score-num { font-weight: 700; }
+
+  /* ── mini bar ── */
+  .mini-bar { display: flex; align-items: center; gap: 6px; }
+  .mini-bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 4px; }
+  .mini-bar-fill  { height: 6px; border-radius: 4px; }
+  .fill-good  { background: #22c55e; }
+  .fill-warn  { background: #eab308; }
+  .fill-bad   { background: #ef4444; }
+
+  /* ── lineage SVG diagram ── */
+  .lineage-wrap { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; overflow-x: auto; }
+  svg.lineage { display: block; min-width: 860px; font-family: inherit; }
+
+  /* ── records table ── */
+  .rec-badge { font-size: 12px; font-weight: 700; background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; }
+
+  /* ── governance chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 11px; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; }
+  .chip-term  { border-color: #7c5cd8; color: #7c5cd8; background: #f5f3ff; }
+  .chip-class { border-color: #0891b2; color: #0891b2; background: #ecfeff; }
+  .chip-tag   { border-color: #059669; color: #059669; background: #ecfdf5; }
+  .chip-pii   { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+
+  /* ── relationships grid ── */
+  .rel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rel-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .rel-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .rel-row { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
+  .rel-row:last-child { border-bottom: none; }
+  .rel-from { font-weight: 600; color: #3b82d4; }
+  .rel-via  { color: #57606a; font-size: 11px; }
+  .rel-to   { font-weight: 600; color: #16a34a; }
+  .arrow { color: #9ca3af; }
+
+  /* ── presto info ── */
+  .info-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px; }
+  .info-box p { font-size: 13px; line-height: 1.7; color: #374151; }
+  .info-box code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace; color: #1f2328; }
+
+  /* ── 2-col layout for governance ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── footer ── */
+  .foot { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 11px; color: #9ca3af; }
+
+  @media (max-width: 700px) {
+    .two-col  { grid-template-columns: 1fr; }
+    .rel-grid { grid-template-columns: 1fr; }
+    .score-hero { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══════════════════════════════════════════════════════ HEADER -->
+  <div class="header">
+    <h1>dbt Medallion — Data Quality &amp; Lineage Dashboard</h1>
+    <p>Project: <strong>ibmas-ingest-demo</strong> &nbsp;·&nbsp; Engine: <strong>Presto / IBM watsonx.data (Iceberg)</strong> &nbsp;·&nbsp; Format: <strong>PARQUET (partitioned)</strong></p>
+    <div class="header-meta">
+      <span><strong>Platform:</strong> IBM watsonx.data Intelligence (CPD)</span>
+      <span><strong>Layers:</strong> Raw → Bronze → Silver → Gold</span>
+      <span><strong>Total Assets:</strong> 12 models + 4 seeds</span>
+      <span><strong>Total Records:</strong> ~3,360 across pipeline</span>
+      <span><strong>Generated:</strong> 2025-07 via MCP live data</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 1 — OVERALL DQ SCORES -->
+  <div class="section">
+    <div class="section-title">Overall Data Quality Score per Asset <span class="badge">Live from watsonx.data Intelligence</span></div>
+    <div class="score-hero">
+
+      <!-- RAW seeds (no DQ profile, shown as reference) -->
+      <div class="score-card">
+        <span class="layer-tag layer-raw">Raw</span>
+        <div class="asset-name">raw_customers</div>
+        <div class="dq-score score-good">CSV</div>
+        <div class="dq-label">seed — 50 rows</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:100%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-raw">Raw</span>
+        <div class="asset-name">raw_orders</div>
+        <div class="dq-score score-good">CSV</div>
+        <div class="dq-label">seed — 500 rows</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:100%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-raw">Raw</span>
+        <div class="asset-name">raw_products</div>
+        <div class="dq-score score-good">CSV</div>
+        <div class="dq-label">seed — 20 rows</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:100%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-raw">Raw</span>
+        <div class="asset-name">raw_order_items</div>
+        <div class="dq-score score-good">CSV</div>
+        <div class="dq-label">seed — 1,134 rows</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:100%"></div></div>
+      </div>
+
+      <!-- BRONZE -->
+      <div class="score-card">
+        <span class="layer-tag layer-bronze">Bronze</span>
+        <div class="asset-name">bronze_customers</div>
+        <div class="dq-score score-good">100.0</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:100%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-bronze">Bronze</span>
+        <div class="asset-name">bronze_orders</div>
+        <div class="dq-score score-good">98.55</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:98.55%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-bronze">Bronze</span>
+        <div class="asset-name">bronze_products</div>
+        <div class="dq-score score-good">99.38</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:99.38%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-bronze">Bronze</span>
+        <div class="asset-name">bronze_order_items</div>
+        <div class="dq-score score-good">98.65</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:98.65%"></div></div>
+      </div>
+
+      <!-- SILVER -->
+      <div class="score-card">
+        <span class="layer-tag layer-silver">Silver</span>
+        <div class="asset-name">silver_customers</div>
+        <div class="dq-score score-good">100.0</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:100%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-silver">Silver</span>
+        <div class="asset-name">silver_orders</div>
+        <div class="dq-score score-good">98.14</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:98.14%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-silver">Silver</span>
+        <div class="asset-name">silver_products</div>
+        <div class="dq-score score-good">98.89</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:98.89%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-silver">Silver</span>
+        <div class="asset-name">silver_order_items</div>
+        <div class="dq-score score-good">99.44</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:99.44%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-silver">Silver</span>
+        <div class="asset-name">silver_sales_enriched</div>
+        <div class="dq-score score-good">97.40</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-warn" style="width:97.4%"></div></div>
+      </div>
+
+      <!-- GOLD -->
+      <div class="score-card">
+        <span class="layer-tag layer-gold">Gold</span>
+        <div class="asset-name">gold_daily_sales</div>
+        <div class="dq-score score-warn">94.05</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-warn" style="width:94.05%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-gold">Gold</span>
+        <div class="asset-name">gold_customer_360</div>
+        <div class="dq-score score-good">98.59</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:98.59%"></div></div>
+      </div>
+      <div class="score-card">
+        <span class="layer-tag layer-gold">Gold</span>
+        <div class="asset-name">gold_category_performance</div>
+        <div class="dq-score score-good">98.33</div>
+        <div class="dq-label">overall DQ score</div>
+        <div class="dq-bar-track"><div class="dq-bar-fill fill-good" style="width:98.33%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 2 — DQ DIMENSIONS TABLE -->
+  <div class="section">
+    <div class="section-title">DQ Dimensions per Asset <span class="badge">validity · completeness · uniqueness · consistency</span></div>
+    <div class="dim-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Asset</th>
+            <th>Overall</th>
+            <th>Validity</th>
+            <th>Completeness</th>
+            <th>Uniqueness</th>
+            <th>Consistency</th>
+            <th>Records</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- BRONZE -->
+          <tr>
+            <td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td>
+            <td><strong>bronze_customers</strong></td>
+            <td><span class="score-num score-good">100.0</span></td>
+            <td>
+              <div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div>
+            </td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">50</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/bd376e17-e422-460d-9f19-0f94c9df29cb/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td>
+            <td><strong>bronze_orders</strong></td>
+            <td><span class="score-num score-good">98.55</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:94.2%"></div></div>94.20</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">500</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/eb10fdc0-d5e6-44ca-ab53-4a9ae3f82fcc/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td>
+            <td><strong>bronze_products</strong></td>
+            <td><span class="score-num score-good">99.38</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:97.5%"></div></div>97.50</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">20</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/fc561f29-617c-4704-8709-36449c7ae73c/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td>
+            <td><strong>bronze_order_items</strong></td>
+            <td><span class="score-num score-good">98.65</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:94.59%"></div></div>94.59</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">1,134</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/3f5a2a23-0846-42e5-a126-f998146ea953/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <!-- SILVER -->
+          <tr>
+            <td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td>
+            <td><strong>silver_customers</strong></td>
+            <td><span class="score-num score-good">100.0</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">50</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/ed9bd4af-b082-4d56-90e8-38bbe13d7809/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td>
+            <td><strong>silver_orders</strong></td>
+            <td><span class="score-num score-good">98.14</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:92.54%"></div></div>92.54</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">500</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/e87bc6c3-b68d-4956-99a1-ce3555b1d862/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td>
+            <td><strong>silver_products</strong></td>
+            <td><span class="score-num score-good">98.89</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:96.67%"></div></div>96.67</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="pill pill-na">n/a</span></td>
+            <td><span class="rec-badge">20</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/62e4e29c-7f99-4859-aeaa-2ceb51eabf61/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td>
+            <td><strong>silver_order_items</strong></td>
+            <td><span class="score-num score-good">99.44</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:98.32%"></div></div>98.32</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="pill pill-na">n/a</span></td>
+            <td><span class="rec-badge">1,134</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/061fcea1-066d-4ca5-91eb-cee31fd1abb2/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td>
+            <td><strong>silver_sales_enriched</strong></td>
+            <td><span class="score-num score-warn">97.40</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-bad" style="width:89.6%"></div></div>89.60</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">1,134</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/ac4000e1-f258-4c61-8fb5-ed36777e6a43/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <!-- GOLD -->
+          <tr>
+            <td><span class="pill" style="background:#fef9c3;color:#a16207">Gold</span></td>
+            <td><strong>gold_daily_sales</strong></td>
+            <td><span class="score-num score-warn">94.05</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-bad" style="width:88.11%"></div></div>88.11</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="pill pill-na">n/a</span></td>
+            <td><span class="pill pill-na">n/a</span></td>
+            <td><span class="rec-badge">~320</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/ae46b938-b082-49c7-a945-853e16df3151/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#fef9c3;color:#a16207">Gold</span></td>
+            <td><strong>gold_customer_360</strong></td>
+            <td><span class="score-num score-good">98.59</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:94.36%"></div></div>94.36</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="rec-badge">50</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/67193b4c-f930-4759-b4e2-d0b67b9671d3/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+          <tr>
+            <td><span class="pill" style="background:#fef9c3;color:#a16207">Gold</span></td>
+            <td><strong>gold_category_performance</strong></td>
+            <td><span class="score-num score-good">98.33</span></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-warn" style="width:95%"></div></div>95.00</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><div class="mini-bar"><div class="mini-bar-track"><div class="mini-bar-fill fill-good" style="width:100%"></div></div>100.0</div></td>
+            <td><span class="pill pill-na">n/a</span></td>
+            <td><span class="rec-badge">4</span></td>
+            <td><a href="https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/projects/2d2415ea-71b5-4215-a7b6-b32a4889611e/data-assets/5183bd38-5204-47a4-834f-604855f668b0/data-quality" target="_blank">DQ Report</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 3 — LINEAGE DIAGRAM -->
+  <div class="section">
+    <div class="section-title">Data Pipeline Lineage — Medallion Architecture <span class="badge">Raw → Bronze → Silver → Gold</span></div>
+    <div class="lineage-wrap">
+      <svg class="lineage" viewBox="0 0 1040 440" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#9ca3af"/>
+          </marker>
+          <marker id="arr-gold" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#ca8a04"/>
+          </marker>
+        </defs>
+
+        <!-- ── Layer labels ── -->
+        <text x="18" y="18" font-size="10" font-weight="700" fill="#7c5cd8" letter-spacing="1">RAW / SEED</text>
+        <text x="18" y="138" font-size="10" font-weight="700" fill="#c47a1b" letter-spacing="1">BRONZE</text>
+        <text x="18" y="258" font-size="10" font-weight="700" fill="#6b7280" letter-spacing="1">SILVER</text>
+        <text x="18" y="378" font-size="10" font-weight="700" fill="#ca8a04" letter-spacing="1">GOLD</text>
+
+        <!-- ── lane backgrounds ── -->
+        <rect x="0" y="22"  width="1040" height="104" rx="0" fill="#f5f3ff" opacity="0.4"/>
+        <rect x="0" y="126" width="1040" height="104" rx="0" fill="#fffbeb" opacity="0.5"/>
+        <rect x="0" y="230" width="1040" height="130" rx="0" fill="#f9fafb" opacity="0.6"/>
+        <rect x="0" y="360" width="1040" height="78"  rx="0" fill="#fefce8" opacity="0.6"/>
+
+        <!-- ════════════════ RAW nodes ════════════════ -->
+        <!-- raw_customers  x=90  y=50 -->
+        <rect x="60"  y="38" width="108" height="36" rx="6" fill="#7c5cd8" opacity="0.15" stroke="#7c5cd8" stroke-width="1.5"/>
+        <text x="114" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#5b21b6">raw_customers</text>
+        <text x="114" y="65" text-anchor="middle" font-size="9"  fill="#7c5cd8">50 rows · CSV</text>
+
+        <!-- raw_orders  x=230 -->
+        <rect x="200" y="38" width="100" height="36" rx="6" fill="#7c5cd8" opacity="0.15" stroke="#7c5cd8" stroke-width="1.5"/>
+        <text x="250" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#5b21b6">raw_orders</text>
+        <text x="250" y="65" text-anchor="middle" font-size="9"  fill="#7c5cd8">500 rows · CSV</text>
+
+        <!-- raw_products  x=365 -->
+        <rect x="332" y="38" width="106" height="36" rx="6" fill="#7c5cd8" opacity="0.15" stroke="#7c5cd8" stroke-width="1.5"/>
+        <text x="385" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#5b21b6">raw_products</text>
+        <text x="385" y="65" text-anchor="middle" font-size="9"  fill="#7c5cd8">20 rows · CSV</text>
+
+        <!-- raw_order_items  x=490 -->
+        <rect x="456" y="38" width="116" height="36" rx="6" fill="#7c5cd8" opacity="0.15" stroke="#7c5cd8" stroke-width="1.5"/>
+        <text x="514" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#5b21b6">raw_order_items</text>
+        <text x="514" y="65" text-anchor="middle" font-size="9"  fill="#7c5cd8">1,134 rows · CSV</text>
+
+        <!-- ════════════════ BRONZE nodes ════════════════ -->
+        <!-- bronze_customers  x=90 -->
+        <rect x="60"  y="152" width="108" height="36" rx="6" fill="#c47a1b" opacity="0.15" stroke="#c47a1b" stroke-width="1.5"/>
+        <text x="114" y="166" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">bronze_customers</text>
+        <text x="114" y="179" text-anchor="middle" font-size="9"  fill="#c47a1b">DQ 100.0 · 50 rows</text>
+
+        <!-- bronze_orders  x=230 -->
+        <rect x="200" y="152" width="100" height="36" rx="6" fill="#c47a1b" opacity="0.15" stroke="#c47a1b" stroke-width="1.5"/>
+        <text x="250" y="166" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">bronze_orders</text>
+        <text x="250" y="179" text-anchor="middle" font-size="9"  fill="#c47a1b">DQ 98.55 · 500 rows</text>
+
+        <!-- bronze_products  x=365 -->
+        <rect x="332" y="152" width="106" height="36" rx="6" fill="#c47a1b" opacity="0.15" stroke="#c47a1b" stroke-width="1.5"/>
+        <text x="385" y="166" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">bronze_products</text>
+        <text x="385" y="179" text-anchor="middle" font-size="9"  fill="#c47a1b">DQ 99.38 · 20 rows</text>
+
+        <!-- bronze_order_items  x=490 -->
+        <rect x="456" y="152" width="116" height="36" rx="6" fill="#c47a1b" opacity="0.15" stroke="#c47a1b" stroke-width="1.5"/>
+        <text x="514" y="166" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">bronze_order_items</text>
+        <text x="514" y="179" text-anchor="middle" font-size="9"  fill="#c47a1b">DQ 98.65 · 1,134 rows</text>
+
+        <!-- ════════════════ SILVER nodes ════════════════ -->
+        <!-- silver_customers  x=90 -->
+        <rect x="60"  y="268" width="108" height="40" rx="6" fill="#6b7280" opacity="0.12" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="114" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">silver_customers</text>
+        <text x="114" y="298" text-anchor="middle" font-size="9"  fill="#6b7280">DQ 100.0 · 50 rows</text>
+
+        <!-- silver_orders  x=230 -->
+        <rect x="200" y="268" width="100" height="40" rx="6" fill="#6b7280" opacity="0.12" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="250" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">silver_orders</text>
+        <text x="250" y="298" text-anchor="middle" font-size="9"  fill="#6b7280">DQ 98.14 · 500 rows</text>
+
+        <!-- silver_products  x=365 -->
+        <rect x="332" y="268" width="106" height="40" rx="6" fill="#6b7280" opacity="0.12" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="385" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">silver_products</text>
+        <text x="385" y="298" text-anchor="middle" font-size="9"  fill="#6b7280">DQ 98.89 · 20 rows</text>
+
+        <!-- silver_order_items  x=490 -->
+        <rect x="456" y="268" width="116" height="40" rx="6" fill="#6b7280" opacity="0.12" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="514" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">silver_order_items</text>
+        <text x="514" y="298" text-anchor="middle" font-size="9"  fill="#6b7280">DQ 99.44 · 1,134 rows</text>
+
+        <!-- silver_sales_enriched  x=665 -->
+        <rect x="600" y="268" width="132" height="40" rx="6" fill="#3b82d4" opacity="0.12" stroke="#3b82d4" stroke-width="2"/>
+        <text x="666" y="283" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">silver_sales_enriched</text>
+        <text x="666" y="298" text-anchor="middle" font-size="9"  fill="#3b82d4">DQ 97.40 · 1,134 rows</text>
+
+        <!-- ════════════════ GOLD nodes ════════════════ -->
+        <!-- gold_daily_sales  x=665 -->
+        <rect x="560" y="378" width="122" height="40" rx="6" fill="#ca8a04" opacity="0.15" stroke="#ca8a04" stroke-width="1.5"/>
+        <text x="621" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#a16207">gold_daily_sales</text>
+        <text x="621" y="408" text-anchor="middle" font-size="9"  fill="#ca8a04">DQ 94.05 · ~320 rows</text>
+
+        <!-- gold_customer_360  x=415 -->
+        <rect x="360" y="378" width="122" height="40" rx="6" fill="#ca8a04" opacity="0.15" stroke="#ca8a04" stroke-width="1.5"/>
+        <text x="421" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#a16207">gold_customer_360</text>
+        <text x="421" y="408" text-anchor="middle" font-size="9"  fill="#ca8a04">DQ 98.59 · 50 rows</text>
+
+        <!-- gold_category_performance  x=795 -->
+        <rect x="748" y="378" width="146" height="40" rx="6" fill="#ca8a04" opacity="0.15" stroke="#ca8a04" stroke-width="2"/>
+        <text x="821" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#a16207">gold_category_perf.</text>
+        <text x="821" y="408" text-anchor="middle" font-size="9"  fill="#ca8a04">DQ 98.33 · 4 rows (VIEW)</text>
+
+        <!-- ════════════════ EDGES raw → bronze ════════════════ -->
+        <line x1="114" y1="74"  x2="114" y2="150" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="250" y1="74"  x2="250" y2="150" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="385" y1="74"  x2="385" y2="150" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="514" y1="74"  x2="514" y2="150" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- ════════════════ EDGES bronze → silver (straight) ════════════════ -->
+        <line x1="114" y1="188" x2="114" y2="266" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="250" y1="188" x2="250" y2="266" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="385" y1="188" x2="385" y2="266" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="514" y1="188" x2="514" y2="266" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- ════════════════ EDGES silver → silver_sales_enriched (JOIN) ════════════════ -->
+        <path d="M 168 288 Q 340 245 598 285" stroke="#3b82d4" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <path d="M 300 288 Q 400 260 598 285" stroke="#3b82d4" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <path d="M 438 285 L 598 285" stroke="#3b82d4" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+        <path d="M 572 285 L 598 285" stroke="#3b82d4" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+
+        <!-- ════════════════ EDGES silver_sales_enriched → gold ════════════════ -->
+        <path d="M 666 308 L 666 340 L 621 340 L 621 376" stroke="#ca8a04" stroke-width="2" fill="none" marker-end="url(#arr-gold)"/>
+        <path d="M 666 308 L 666 340 L 821 340 L 821 376" stroke="#ca8a04" stroke-width="2" fill="none" marker-end="url(#arr-gold)"/>
+        <!-- gold_daily_sales → gold_category_performance -->
+        <path d="M 682 398 L 746 398" stroke="#ca8a04" stroke-width="1.5" fill="none" marker-end="url(#arr-gold)" stroke-dasharray="3,2"/>
+
+        <!-- silver_customers + silver_sales_enriched → gold_customer_360 -->
+        <path d="M 168 295 Q 260 360 358 395" stroke="#ca8a04" stroke-width="1.5" fill="none" stroke-dasharray="3,2" marker-end="url(#arr-gold)"/>
+
+        <!-- ════════════════ JOIN label ════════════════ -->
+        <rect x="490" y="248" width="56" height="16" rx="4" fill="#dbeafe"/>
+        <text x="518" y="260" text-anchor="middle" font-size="9" font-weight="700" fill="#1d4ed8">4-way JOIN</text>
+
+        <!-- Presto label -->
+        <rect x="750" y="270" width="82" height="16" rx="4" fill="#f0fdf4"/>
+        <text x="791" y="282" text-anchor="middle" font-size="9" font-weight="600" fill="#15803d">Presto/Iceberg</text>
+        <rect x="750" y="290" width="82" height="14" rx="4" fill="#f0fdf4"/>
+        <text x="791" y="301" text-anchor="middle" font-size="8" fill="#15803d">PARQUET PARTITION</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 4 — KEY RELATIONSHIPS -->
+  <div class="section">
+    <div class="section-title">Key Relationships &amp; Foreign Keys <span class="badge">dbt relationship tests</span></div>
+    <div class="rel-grid">
+      <div class="rel-card">
+        <h4>Order Domain</h4>
+        <div class="rel-row">
+          <span class="rel-from">silver_orders</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">customer_id</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_customers</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">silver_order_items</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">order_id</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_orders</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">silver_order_items</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">product_id</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_products</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">silver_sales_enriched</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">order_id</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_orders</span>
+        </div>
+      </div>
+      <div class="rel-card">
+        <h4>Enriched Fact Joins</h4>
+        <div class="rel-row">
+          <span class="rel-from">silver_sales_enriched</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">customer_id</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_customers</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">silver_sales_enriched</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">product_id</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_products</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">gold_daily_sales</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">aggregates</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_sales_enriched</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">gold_category_perf.</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">rolls up</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">gold_daily_sales</span>
+        </div>
+      </div>
+      <div class="rel-card">
+        <h4>Gold Customer 360 Inputs</h4>
+        <div class="rel-row">
+          <span class="rel-from">silver_customers</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">LEFT JOIN</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">gold_customer_360</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">silver_sales_enriched</span>
+          <span class="arrow">→</span>
+          <span class="rel-via">aggregates metrics</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">gold_customer_360</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">customer_id</span>
+          <span class="arrow">·</span>
+          <span class="rel-via">unique + not_null test</span>
+          <span class="arrow">·</span>
+          <span class="rel-to">PK verified</span>
+        </div>
+      </div>
+      <div class="rel-card">
+        <h4>Record Counts Flow</h4>
+        <div class="rel-row">
+          <span class="rel-from">raw_customers</span>
+          <span class="rel-via">50 rows</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">bronze/silver/gold: 50</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">raw_orders</span>
+          <span class="rel-via">500 rows</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">bronze/silver: 500</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">raw_order_items</span>
+          <span class="rel-via">1,134 rows</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">silver_sales_enriched: 1,134</span>
+        </div>
+        <div class="rel-row">
+          <span class="rel-from">gold_daily_sales</span>
+          <span class="rel-via">~320 rows</span>
+          <span class="arrow">→</span>
+          <span class="rel-to">gold_category_perf: 4 rows</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 5 — COLUMN SCHEMA + PII -->
+  <div class="section">
+    <div class="section-title">Column-level Classification — PII, Financial &amp; Data Classes</div>
+    <div class="dim-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Classification Tag</th>
+            <th>Data Class (watsonx)</th>
+            <th>dbt Test</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>silver_customers / gold_customer_360</td><td><strong>customer_id</strong></td><td>INTEGER</td><td><span class="chip chip-term">DemoDataDomain.Customer</span></td><td><span class="chip chip-class">Customer ID</span></td><td><span class="pill pill-good">not_null · unique</span></td></tr>
+          <tr><td>silver_customers / gold_customer_360</td><td><strong>email</strong></td><td>STRING</td><td><span class="chip chip-pii">DemoDataDomain.PII</span></td><td><span class="chip chip-class">Customer Email Address</span></td><td><span class="pill pill-good">not_null</span></td></tr>
+          <tr><td>silver_customers / gold_customer_360</td><td><strong>first_name</strong></td><td>STRING</td><td><span class="chip chip-tag">DemoDataDomain.Customer</span></td><td><span class="chip chip-class">Customer First Name</span></td><td>&mdash;</td></tr>
+          <tr><td>silver_customers / gold_customer_360</td><td><strong>last_name</strong></td><td>STRING</td><td><span class="chip chip-tag">DemoDataDomain.Customer</span></td><td><span class="chip chip-class">Customer Last Name</span></td><td>&mdash;</td></tr>
+          <tr><td>silver_customers / gold_customer_360</td><td><strong>country</strong></td><td>STRING</td><td><span class="chip chip-tag">DemoDataDomain.Customer</span></td><td><span class="chip chip-class">Customer Country</span></td><td>&mdash;</td></tr>
+          <tr><td>silver_orders</td><td><strong>order_id</strong></td><td>INTEGER</td><td><span class="chip chip-term">DemoDataDomain.Order</span></td><td>&mdash;</td><td><span class="pill pill-good">not_null · unique</span></td></tr>
+          <tr><td>silver_orders</td><td><strong>status</strong></td><td>STRING</td><td><span class="chip chip-term">DemoDataDomain.Order</span></td><td><span class="chip chip-class">Customer Status</span></td><td><span class="pill pill-good">accepted_values</span></td></tr>
+          <tr><td>silver_order_items</td><td><strong>discount_pct</strong></td><td>DECIMAL(5,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td><span class="chip chip-class">Company Financial Rating</span></td><td>&mdash;</td></tr>
+          <tr><td>silver_products</td><td><strong>unit_price</strong></td><td>DECIMAL(12,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td>silver_sales_enriched</td><td><strong>gross_amount</strong></td><td>DECIMAL(14,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td>silver_sales_enriched</td><td><strong>net_amount</strong></td><td>DECIMAL(14,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td>gold_daily_sales</td><td><strong>net_revenue</strong></td><td>DECIMAL(14,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td>gold_customer_360</td><td><strong>lifetime_value</strong></td><td>DECIMAL(14,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td>gold_category_performance</td><td><strong>avg_revenue_per_unit</strong></td><td>DECIMAL(14,2)</td><td><span class="chip chip-tag">DemoDataDomain.FinancialMetric</span></td><td>&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 6 — GOVERNANCE -->
+  <div class="section">
+    <div class="section-title">Business Terms &amp; Data Classes <span class="badge">27 terms · 30 data classes from watsonx.data Intelligence</span></div>
+    <div class="two-col">
+      <div class="info-box">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">Business Glossary Terms (sample)</h4>
+        <div class="chip-group">
+          <span class="chip chip-term">Customer ID</span>
+          <span class="chip chip-term">Customer First Name</span>
+          <span class="chip chip-term">Customer Last Name</span>
+          <span class="chip chip-term">Customer Email Address</span>
+          <span class="chip chip-term">Customer Country</span>
+          <span class="chip chip-term">Customer Status</span>
+          <span class="chip chip-term">Customer Date of Birth</span>
+          <span class="chip chip-term">Customer Credit Score</span>
+          <span class="chip chip-term">Customer Risk Score</span>
+          <span class="chip chip-term">Customer Risk Category</span>
+          <span class="chip chip-term">Customer Annual Income</span>
+          <span class="chip chip-term">Customer Marketing Consent</span>
+          <span class="chip chip-term">Customer Registration Timestamp</span>
+          <span class="chip chip-term">Customer Preferred Contact Channel</span>
+          <span class="chip chip-term">Policy Customer ID</span>
+          <span class="chip chip-term">Claim Customer ID</span>
+        </div>
+      </div>
+      <div class="info-box">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">Data Classes (sample)</h4>
+        <div class="chip-group">
+          <span class="chip chip-class">Customer ID</span>
+          <span class="chip chip-class">Customer Email Address</span>
+          <span class="chip chip-class">Customer First Name</span>
+          <span class="chip chip-class">Customer Last Name</span>
+          <span class="chip chip-class">Customer Country</span>
+          <span class="chip chip-class">Customer Status</span>
+          <span class="chip chip-class">Customer Phone Number</span>
+          <span class="chip chip-class">Customer Credit Score</span>
+          <span class="chip chip-class">Customer Risk Score</span>
+          <span class="chip chip-class">Customer Date of Birth</span>
+          <span class="chip chip-class">Customer Number</span>
+          <span class="chip chip-class">Company Financial Rating</span>
+          <span class="chip chip-class">Universal Product Code (UPC)</span>
+          <span class="chip chip-class">Customer Marketing Consent</span>
+          <span class="chip chip-class">Policy Customer ID</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="info-box">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">Classification Tags defined in dbt schema.yml</h4>
+        <div class="chip-group">
+          <span class="chip chip-tag">MedallionLayer.Raw</span>
+          <span class="chip chip-tag">MedallionLayer.Bronze</span>
+          <span class="chip chip-tag">MedallionLayer.Silver</span>
+          <span class="chip chip-tag">MedallionLayer.Gold</span>
+          <span class="chip chip-tag">DemoDataDomain.Customer</span>
+          <span class="chip chip-tag">DemoDataDomain.Order</span>
+          <span class="chip chip-tag">DemoDataDomain.Product</span>
+          <span class="chip chip-tag">DemoDataDomain.FinancialMetric</span>
+          <span class="chip chip-pii">DemoDataDomain.PII</span>
+          <span class="chip chip-term">MedallionGlossary.RawLanding</span>
+          <span class="chip chip-term">MedallionGlossary.BronzeLayer</span>
+          <span class="chip chip-term">MedallionGlossary.SilverLayer</span>
+          <span class="chip chip-term">MedallionGlossary.GoldLayer</span>
+          <span class="chip chip-term">MedallionGlossary.Customer</span>
+          <span class="chip chip-term">MedallionGlossary.Order</span>
+          <span class="chip chip-term">MedallionGlossary.OrderItem</span>
+          <span class="chip chip-term">MedallionGlossary.Product</span>
+          <span class="chip chip-term">MedallionGlossary.RevenueMetric</span>
+          <span class="chip chip-term">MedallionGlossary.Customer360</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 7 — PRESTO + ICEBERG INFO -->
+  <div class="section">
+    <div class="section-title">Presto / IBM watsonx.data Iceberg Execution Details</div>
+    <div class="info-box">
+      <p>
+        All dbt models execute via <strong>Presto</strong> against an <strong>Apache Iceberg</strong> table format on IBM watsonx.data.
+        Silver and Gold tables use <code>format = 'PARQUET'</code> with <code>partitioning = ARRAY['month(order_date)']</code> for time-based query pruning.
+        The <code>gold_category_performance</code> model is a <strong>VIEW</strong> (no stored data) computed on-demand over <code>gold_daily_sales</code>.
+        bronze models carry ingestion metadata columns: <code>_ingested_at</code>, <code>_ingested_by</code>, <code>_source_file</code>, <code>_ingest_batch_id</code>.
+        The silver layer applies explicit type casts (<code>CAST … AS INTEGER / DATE / TIMESTAMP / DECIMAL</code>), lower/upper/trim normalisation,
+        and <code>WHERE email IS NOT NULL</code> / <code>WHERE order_id IS NOT NULL</code> deduplication filters before writing Parquet.
+        The enriched silver fact <code>silver_sales_enriched</code> is the <em>single source of truth</em> read by all three Gold marts —
+        no raw data is re-joined at Gold level. The <code>datastage-join</code> asset discovered in the project confirms a parallel DataStage pipeline also
+        writes to the same project scope.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ SECTION 8 — ASSET REGISTRY TABLE -->
+  <div class="section">
+    <div class="section-title">Full Asset Registry <span class="badge">ibmas-ingest-demo project</span></div>
+    <div class="dim-table-wrap">
+      <table>
+        <thead>
+          <tr><th>Asset Name</th><th>Layer</th><th>Materialization</th><th>Asset ID</th><th>Columns (key)</th><th>DQ Score</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>raw_customers</td><td><span class="pill" style="background:#ede9fe;color:#5b21b6">Raw</span></td><td>seed/CSV</td><td><code style="font-size:10px">edc3cf16</code></td><td>customer_id, email, country</td><td><span class="pill pill-na">CSV</span></td></tr>
+          <tr><td>raw_orders</td><td><span class="pill" style="background:#ede9fe;color:#5b21b6">Raw</span></td><td>seed/CSV</td><td><code style="font-size:10px">6a95b469</code></td><td>order_id, customer_id, status</td><td><span class="pill pill-na">CSV</span></td></tr>
+          <tr><td>raw_products</td><td><span class="pill" style="background:#ede9fe;color:#5b21b6">Raw</span></td><td>seed/CSV</td><td><code style="font-size:10px">fe74fed3</code></td><td>product_id, category, unit_price</td><td><span class="pill pill-na">CSV</span></td></tr>
+          <tr><td>raw_order_items</td><td><span class="pill" style="background:#ede9fe;color:#5b21b6">Raw</span></td><td>seed/CSV</td><td><code style="font-size:10px">—</code></td><td>order_item_id, quantity, discount_pct</td><td><span class="pill pill-na">CSV</span></td></tr>
+          <tr><td>bronze_customers</td><td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td><td>table</td><td><code style="font-size:10px">bd376e17</code></td><td>+_ingested_at, _source_file</td><td><span class="pill pill-good">100.0</span></td></tr>
+          <tr><td>bronze_orders</td><td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td><td>table</td><td><code style="font-size:10px">eb10fdc0</code></td><td>+_ingested_at, _source_file</td><td><span class="pill pill-good">98.55</span></td></tr>
+          <tr><td>bronze_products</td><td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td><td>table</td><td><code style="font-size:10px">fc561f29</code></td><td>+_ingested_at, _source_file</td><td><span class="pill pill-good">99.38</span></td></tr>
+          <tr><td>bronze_order_items</td><td><span class="pill" style="background:#fef3c7;color:#92400e">Bronze</span></td><td>table</td><td><code style="font-size:10px">3f5a2a23</code></td><td>+_ingested_at, _source_file</td><td><span class="pill pill-good">98.65</span></td></tr>
+          <tr><td>silver_customers</td><td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td><td>table</td><td><code style="font-size:10px">ed9bd4af</code></td><td>typed + normalised</td><td><span class="pill pill-good">100.0</span></td></tr>
+          <tr><td>silver_orders</td><td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td><td>table PARQUET</td><td><code style="font-size:10px">e87bc6c3</code></td><td>order_date derived, status typed</td><td><span class="pill pill-good">98.14</span></td></tr>
+          <tr><td>silver_products</td><td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td><td>table</td><td><code style="font-size:10px">62e4e29c</code></td><td>unit_price DECIMAL(12,2)</td><td><span class="pill pill-good">98.89</span></td></tr>
+          <tr><td>silver_order_items</td><td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td><td>table</td><td><code style="font-size:10px">061fcea1</code></td><td>quantity INT, discount_pct DEC</td><td><span class="pill pill-good">99.44</span></td></tr>
+          <tr><td>silver_sales_enriched</td><td><span class="pill" style="background:#f3f4f6;color:#374151">Silver</span></td><td>table PARQUET part.</td><td><code style="font-size:10px">ac4000e1</code></td><td>4-way JOIN, gross/net amount</td><td><span class="pill pill-warn">97.40</span></td></tr>
+          <tr><td>gold_daily_sales</td><td><span class="pill" style="background:#fef9c3;color:#a16207">Gold</span></td><td>table PARQUET part.</td><td><code style="font-size:10px">ae46b938</code></td><td>order_date, category, net_revenue</td><td><span class="pill pill-warn">94.05</span></td></tr>
+          <tr><td>gold_customer_360</td><td><span class="pill" style="background:#fef9c3;color:#a16207">Gold</span></td><td>view</td><td><code style="font-size:10px">67193b4c</code></td><td>lifetime_value, completed_orders</td><td><span class="pill pill-good">98.59</span></td></tr>
+          <tr><td>gold_category_performance</td><td><span class="pill" style="background:#fef9c3;color:#a16207">Gold</span></td><td>VIEW (on-demand)</td><td><code style="font-size:10px">5183bd38</code></td><td>total_revenue, avg_revenue_per_unit</td><td><span class="pill pill-good">98.33</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="foot">
+    Data sourced live from IBM watsonx.data Intelligence MCP &nbsp;·&nbsp; Project: ibmas-ingest-demo &nbsp;·&nbsp; Engine: Presto / Apache Iceberg &nbsp;·&nbsp; dbt project: watsonxdata_medallion_demo
+    <br>Made with IBM Bob
+  </div>
+</div>
+</body>
+</html>

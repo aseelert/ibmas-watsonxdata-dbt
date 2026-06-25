@@ -1,0 +1,340 @@
+# =============================================================================
+#  Confluent Streaming Stack — Kafka + Flink + Iceberg → watsonx.data (silver)
+#  Fourth parallel approach alongside dbt, Spark, and cpdctl.
+#
+#  PREREQUISITE — run once before docker compose up:
+#    bash confluent/scripts/expose_minio_route.sh
+#    # Sets WXD_OBJECT_STORE_ENDPOINT to the OpenShift Route URL so Flink and
+#    # iceberg-rest write directly to the real iceberg-bucket (no local MinIO).
+#
+#  Port allocation (no collisions with existing stacks):
+#    29092 — Kafka (host)
+#    28081 — Schema Registry
+#    28080 — Kafbat UI
+#    28181 — Iceberg REST catalog
+#    28085 — Flink Web UI (JobManager)
+#    28083 — Flink SQL Gateway
+# =============================================================================
+
+networks:
+  confluent-network:
+    name: confluent-network
+    driver: bridge
+
+volumes:
+  confluent-kafka-data:
+    name: confluent-kafka-data
+
+# ---------------------------------------------------------------------------
+# Re-usable fragments
+# ---------------------------------------------------------------------------
+x-flink-common: &flink-common
+  image: wxd-flink:1.20
+  build:
+    context: ./flink
+    dockerfile: Dockerfile
+  networks:
+    - confluent-network
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  env_file:
+    - ../.env
+  restart: unless-stopped
+
+services:
+  # ---------------------------------------------------------------------------
+  # Kafka — KRaft mode, no Zookeeper
+  # ---------------------------------------------------------------------------
+  confluent-kafka:
+    image: confluentinc/cp-kafka:7.7.1
+    container_name: confluent-kafka
+    hostname: confluent-kafka
+    networks:
+      - confluent-network
+    ports:
+      - "29092:29092"
+    volumes:
+      - confluent-kafka-data:/var/lib/kafka/data
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://confluent-kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@confluent-kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Schema Registry
+  # ---------------------------------------------------------------------------
+  confluent-schema-registry:
+    image: confluentinc/cp-schema-registry:7.7.1
+    container_name: confluent-schema-registry
+    hostname: confluent-schema-registry
+    networks:
+      - confluent-network
+    ports:
+      - "28081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: confluent-schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: confluent-kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    depends_on:
+      confluent-kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # Kafbat UI
+  # ---------------------------------------------------------------------------
+  confluent-kafbat-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: confluent-kafbat-ui
+    hostname: confluent-kafbat-ui
+    networks:
+      - confluent-network
+    ports:
+      - "28080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: confluent-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: confluent-kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://confluent-schema-registry:8081
+      DYNAMIC_CONFIG_ENABLED: "true"
+    depends_on:
+      confluent-schema-registry:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Iceberg REST catalog — SQLite-backed, writes data to real iceberg-bucket via Route
+  # ---------------------------------------------------------------------------
+  confluent-iceberg-rest:
+    image: apache/iceberg-rest-fixture:1.9.1
+    container_name: confluent-iceberg-rest
+    hostname: confluent-iceberg-rest
+    networks:
+      - confluent-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "28181:8181"
+    env_file:
+      - ../.env
+    environment:
+      # Warehouse on the real iceberg-bucket via the OpenShift Route
+      CATALOG_WAREHOUSE: "s3://iceberg-bucket/confluent_silver/"
+      # Route URL set by expose_minio_route.sh (WXD_OBJECT_STORE_ENDPOINT in .env)
+      CATALOG_S3_ENDPOINT: "${WXD_OBJECT_STORE_ENDPOINT}"
+      CATALOG_S3_PATH__STYLE__ACCESS: "true"
+      CATALOG_IO__IMPL: "org.apache.iceberg.aws.s3.S3FileIO"
+      AWS_ACCESS_KEY_ID: "${WXD_OBJECT_STORE_ACCESS_KEY}"
+      AWS_SECRET_ACCESS_KEY: "${WXD_OBJECT_STORE_SECRET_KEY}"
+      AWS_REGION: "${WXD_OBJECT_STORE_REGION:-us-east-1}"
+      # SQLite JDBC catalog — WAL + IMMEDIATE (firefighter pattern for concurrency)
+      CATALOG_CATALOG__IMPL: "org.apache.iceberg.jdbc.JdbcCatalog"
+      CATALOG_URI: "jdbc:sqlite:/tmp/iceberg.db?busy_timeout=30000&journal_mode=WAL&transaction_mode=IMMEDIATE"
+      CATALOG_JDBC_SCHEMA__VERSION: "V1"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/v1/config"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Flink JobManager
+  # ---------------------------------------------------------------------------
+  confluent-flink-jobmanager:
+    <<: *flink-common
+    container_name: confluent-flink-jobmanager
+    hostname: confluent-flink-jobmanager
+    ports:
+      - "28085:8081"
+    command: jobmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: confluent-flink-jobmanager
+        rest.address: 0.0.0.0
+        rest.bind-address: 0.0.0.0
+        execution.checkpointing.interval: 30000
+        parallelism.default: 2
+        s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
+        s3.path.style.access: true
+        s3.access-key: ${WXD_OBJECT_STORE_ACCESS_KEY}
+        s3.secret-key: ${WXD_OBJECT_STORE_SECRET_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/v1/overview"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Flink TaskManager
+  # ---------------------------------------------------------------------------
+  confluent-flink-taskmanager:
+    <<: *flink-common
+    container_name: confluent-flink-taskmanager
+    hostname: confluent-flink-taskmanager
+    command: taskmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: confluent-flink-jobmanager
+        taskmanager.numberOfTaskSlots: 8
+        taskmanager.memory.process.size: 2048m
+        s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
+        s3.path.style.access: true
+        s3.access-key: ${WXD_OBJECT_STORE_ACCESS_KEY}
+        s3.secret-key: ${WXD_OBJECT_STORE_SECRET_KEY}
+    depends_on:
+      confluent-flink-jobmanager:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Flink SQL Gateway
+  # ---------------------------------------------------------------------------
+  confluent-flink-sql-gateway:
+    <<: *flink-common
+    container_name: confluent-flink-sql-gateway
+    hostname: confluent-flink-sql-gateway
+    ports:
+      - "28083:8083"
+    command: sql-gateway.sh start-foreground
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: confluent-flink-jobmanager
+        sql-gateway.endpoint.rest.address: 0.0.0.0
+        sql-gateway.endpoint.rest.port: 8083
+        s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
+        s3.path.style.access: true
+        s3.access-key: ${WXD_OBJECT_STORE_ACCESS_KEY}
+        s3.secret-key: ${WXD_OBJECT_STORE_SECRET_KEY}
+    depends_on:
+      confluent-flink-jobmanager:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # One-shot: create Kafka topics
+  # ---------------------------------------------------------------------------
+  confluent-kafka-init:
+    image: confluentinc/cp-kafka:7.7.1
+    container_name: confluent-kafka-init
+    networks:
+      - confluent-network
+    volumes:
+      - ./scripts/create-topics.sh:/create-topics.sh:ro
+    entrypoint: ["/bin/bash", "/create-topics.sh"]
+    environment:
+      KAFKA_BROKER: confluent-kafka:9092
+    depends_on:
+      confluent-kafka:
+        condition: service_healthy
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # One-shot: create watsonx.data schemas via Presto (Phase A — before Flink)
+  # ---------------------------------------------------------------------------
+  confluent-schema-prep:
+    image: python:3.12-slim
+    container_name: confluent-schema-prep
+    networks:
+      - confluent-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./scripts:/scripts:ro
+      - ../scripts:/repo-scripts:ro
+      - ../certs:/app/certs:ro
+      - ../.env:/app/.env:ro
+    working_dir: /app
+    env_file:
+      - ../.env
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        pip install --quiet presto-python-client requests python-dotenv && \
+        cp /scripts/prep_iceberg_schemas.py . && \
+        python prep_iceberg_schemas.py --phase schema
+    depends_on:
+      confluent-kafka-init:
+        condition: service_completed_successfully
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # One-shot: submit Flink SQL jobs (runs after schemas created + iceberg-rest ready)
+  # ---------------------------------------------------------------------------
+  confluent-flink-runner:
+    <<: *flink-common
+    container_name: confluent-flink-runner
+    hostname: confluent-flink-runner
+    volumes:
+      - ./flink/sql/silver_jobs.sql:/opt/sql/silver_jobs.sql:ro
+      - ./scripts/submit-flink.sh:/opt/submit-flink.sh:ro
+    entrypoint: ["/bin/bash", "/opt/submit-flink.sh"]
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: confluent-flink-jobmanager
+        s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
+        s3.path.style.access: true
+        s3.access-key: ${WXD_OBJECT_STORE_ACCESS_KEY}
+        s3.secret-key: ${WXD_OBJECT_STORE_SECRET_KEY}
+      SQL_FILE: /opt/sql/silver_jobs.sql
+    depends_on:
+      confluent-schema-prep:
+        condition: service_completed_successfully
+      confluent-flink-jobmanager:
+        condition: service_healthy
+      confluent-flink-taskmanager:
+        condition: service_started
+      confluent-iceberg-rest:
+        condition: service_healthy
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # One-shot: register Flink-written Iceberg tables into watsonx.data (Phase B)
+  # ---------------------------------------------------------------------------
+  confluent-prep:
+    image: python:3.12-slim
+    container_name: confluent-prep
+    networks:
+      - confluent-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./scripts:/scripts:ro
+      - ../scripts:/repo-scripts:ro
+      - ../certs:/app/certs:ro
+      - ../.env:/app/.env:ro
+    working_dir: /app
+    env_file:
+      - ../.env
+    environment:
+      ICEBERG_REST_URL: "http://confluent-iceberg-rest:8181"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        pip install --quiet presto-python-client requests python-dotenv && \
+        cp /scripts/prep_iceberg_schemas.py . && \
+        python prep_iceberg_schemas.py --phase register
+    depends_on:
+      confluent-flink-runner:
+        condition: service_completed_successfully
+    restart: "no"
