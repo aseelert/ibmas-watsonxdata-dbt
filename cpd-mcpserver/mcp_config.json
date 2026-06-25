@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "watsonxdata-documents": {
+      "command": "/Users/aseelert/GitHub/ibmas-watsonxdata-dbt/.venv/bin/python",
+      "args": [
+        "/Users/aseelert/GitHub/ibmas-watsonxdata-dbt/cpd-mcpserver/run_mcp_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "/Users/aseelert/GitHub/ibmas-watsonxdata-dbt"
+      },
+      "description": "IBM watsonx.data Document Library MCP Server - Enables AI agents to query document libraries, scan project content, and create DataStage flows",
+      "capabilities": [
+        "document_search",
+        "natural_language_query",
+        "library_discovery",
+        "project_content_scanning",
+        "datastage_flow_creation",
+        "metadata_extraction",
+        "schema_analysis"
+      ]
+    }
+  }
+}

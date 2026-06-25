@@ -6,3 +6,7 @@ python-dotenv>=1.0,<2.0
 requests>=2.31,<3.0
 mkdocs>=1.6,<2.0
 mkdocs-material>=9.5,<10.0
+
+# MCP Server dependencies
+uv>=0.11,<1.0
+ibm-watsonxdata-dl-retrieval-mcp-server>=0.2.9,<1.0

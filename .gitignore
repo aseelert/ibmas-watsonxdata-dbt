@@ -1,6 +1,8 @@
 .env
 .env.*
 !.env.example
+.claude/
+.bob/
 .venv/
 venv/
 logs/
