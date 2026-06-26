@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../confluent-internals/">
+      
+      
+        <link rel="next" href="../ingestion/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>C-alt · DataStage — No-Code Gold (Confluent path) - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#c-alt-datastage-no-code-gold-for-the-confluent-path" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              C-alt · DataStage — No-Code Gold (Confluent path)
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href=".." class="md-tabs__link">
           
   
   
@@ -224,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+        <a href="../lineage/" class="md-tabs__link">
           
   
   
@@ -242,11 +251,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +279,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../ingestion/" class="md-tabs__link">
           
   
   
@@ -290,7 +301,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/airflow/" class="md-tabs__link">
+        <a href="../airflow/" class="md-tabs__link">
           
   
   
@@ -312,7 +323,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../openmetadata/" class="md-tabs__link">
           
   
   
@@ -334,7 +345,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../configuration/" class="md-tabs__link">
           
   
   
@@ -376,7 +387,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -419,7 +430,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href=".." class="md-nav__link ">
               
   
   
@@ -463,7 +474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../setup/" class="md-nav__link">
         
   
   
@@ -558,7 +569,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../lineage/" class="md-nav__link">
         
   
   
@@ -586,7 +597,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../choosing/" class="md-nav__link">
         
   
   
@@ -614,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../glossary/" class="md-nav__link">
         
   
   
@@ -646,8 +657,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -665,19 +678,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -695,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -713,7 +729,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../dbt-demo/" class="md-nav__link">
         
   
   
@@ -741,7 +757,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../spark-demo/" class="md-nav__link">
         
   
   
@@ -769,7 +785,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../confluent-demo/" class="md-nav__link">
         
   
   
@@ -797,7 +813,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../confluent-internals/" class="md-nav__link">
         
   
   
@@ -822,10 +838,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C-alt · DataStage — No-Code Gold (Confluent path)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -841,6 +884,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#spark-vs-datastage-same-gold-two-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spark vs DataStage — same Gold, two engines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-it-create_datastage_flowpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run it — create_datastage_flow.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify-it-matches-everything-else" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify it matches everything else
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -918,7 +1036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../ingestion/" class="md-nav__link">
         
   
   
@@ -946,7 +1064,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../sql-demo/" class="md-nav__link">
         
   
   
@@ -1037,7 +1155,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../airflow/" class="md-nav__link">
         
   
   
@@ -1136,7 +1254,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../openmetadata/" class="md-nav__link">
         
   
   
@@ -1164,7 +1282,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1192,7 +1310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../openlineage/" class="md-nav__link">
         
   
   
@@ -1220,7 +1338,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../metabase/" class="md-nav__link">
         
   
   
@@ -1248,7 +1366,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../semantic-models/" class="md-nav__link">
         
   
   
@@ -1345,7 +1463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -1373,7 +1491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../files/" class="md-nav__link">
         
   
   
@@ -1401,7 +1519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../scripts/" class="md-nav__link">
         
   
   
@@ -1429,7 +1547,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1474,6 +1592,71 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#spark-vs-datastage-same-gold-two-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spark vs DataStage — same Gold, two engines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-it-create_datastage_flowpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run it — create_datastage_flow.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify-it-matches-everything-else" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify it matches everything else
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1486,8 +1669,155 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="c-alt-datastage-no-code-gold-for-the-confluent-path">C-alt — DataStage: No-Code Gold for the Confluent Path</h1>
+<div class="admonition abstract">
+<p class="admonition-title">What this page is</p>
+<p>The Confluent streaming path builds its <strong>Silver</strong> layer with Flink, then builds <strong>Gold</strong>
+with a <em>second</em> engine. By default that engine is watsonx.data <strong>Spark</strong> (code-first). This
+page covers the alternative: <strong>IBM DataStage</strong> — the same Gold logic expressed as a visual,
+no-code ETL flow. Both engines read <code>confluent_demo_silver</code> and write the <em>same</em>
+<code>confluent_demo_gold</code> marts, so the parity contract is unchanged.</p>
+<blockquote>
+<p><strong>One Silver, two ways to build Gold — pick the engine, get identical numbers.</strong></p>
+</blockquote>
+</div>
+<hr />
+<h2 id="spark-vs-datastage-same-gold-two-engines">Spark vs DataStage — same Gold, two engines</h2>
+<p>The choice is set in <code>.env</code> with <code>CONFLUENT_GOLD_ENGINE</code>:</p>
+<table>
+<thead>
+<tr>
+<th><code>CONFLUENT_GOLD_ENGINE</code></th>
+<th>How Gold is built</th>
+<th>Demo story</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spark</code> (default)</td>
+<td>A watsonx.data Spark job runs the Gold SQL</td>
+<td>Code-first; reuses the Spark engine you already provisioned</td>
+<td>Data engineers comfortable with code</td>
+</tr>
+<tr>
+<td><code>datastage</code></td>
+<td>An IBM DataStage flow runs the same logic as visual ETL</td>
+<td>Enterprise GUI ETL on the same lakehouse data — no code to read</td>
+<td>Teams that standardise on DataStage</td>
+</tr>
+</tbody>
+</table>
+<p>Both paths produce the identical three marts in <code>confluent_demo_gold</code>:</p>
+<ul>
+<li><code>confluent_gold_daily_sales</code> — one row per <code>order_date</code></li>
+<li><code>confluent_gold_category_performance</code> — one row per product category</li>
+<li><code>confluent_gold_customer_360</code> — one row per customer (LEFT join, 0-filled)</li>
+</ul>
+<pre class="mermaid"><code>flowchart LR
+    SIL["confluent_demo_silver\n(Flink-written Iceberg)"]
+    SPARK["Spark job\n(CONFLUENT_GOLD_ENGINE=spark)"]
+    DS["DataStage flow\n(CONFLUENT_GOLD_ENGINE=datastage)"]
+    GOLD["confluent_demo_gold\nidentical marts"]
+    SIL --&gt; SPARK --&gt; GOLD
+    SIL --&gt; DS --&gt; GOLD</code></pre>
+<div class="admonition info">
+<p class="admonition-title">Why offer DataStage at all?</p>
+<p>Many enterprises already run <strong>DataStage</strong> as their governed, audited ETL tool with a visual
+canvas, role-based access, and operational scheduling. Showing that DataStage lands the
+<em>exact same</em> Gold as Spark proves the lakehouse is engine-neutral: the business logic, not
+the tool, defines the result.</p>
+</div>
+<hr />
+<h2 id="prerequisites">Prerequisites</h2>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Silver layer built</td>
+<td><code>confluent_demo_silver</code> must already exist (run the <a href="../confluent-demo/">Confluent path</a> with <code>--watsonxdata</code> first).</td>
+</tr>
+<tr>
+<td>DataStage project</td>
+<td>A Cloud Pak for Data project named <strong><code>ibmas-ingest-demo</code></strong> must exist.</td>
+</tr>
+<tr>
+<td>Project id</td>
+<td><code>WXD_DATASTAGE_PROJECT_ID=2d2415ea-71b5-4215-a7b6-b32a4889611e</code></td>
+</tr>
+<tr>
+<td>Project name</td>
+<td><code>WXD_DATASTAGE_PROJECT_NAME=ibmas-ingest-demo</code></td>
+</tr>
+<tr>
+<td>Auth</td>
+<td>Reuses <code>WXD_API_KEY</code> + <code>WXD_CPD_USERNAME</code> (<code>cpadmin</code>) against <code>WXD_CPD_HOST</code> — the same credentials as every other path.</td>
+</tr>
+<tr>
+<td>Engine selector</td>
+<td>Set <code>CONFLUENT_GOLD_ENGINE=datastage</code> in <code>.env</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>All of these values live in <code>.env</code> (documented in <a href="../configuration/">Configuration</a>); nothing is
+hardcoded. If the project id or name differs in your cluster, change the env vars and the script
+follows them automatically.</p>
+<hr />
+<h2 id="run-it-create_datastage_flowpy">Run it — <code>create_datastage_flow.py</code></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. point the gold engine at DataStage</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">#    in .env:  CONFLUENT_GOLD_ENGINE=datastage</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. create (and run) the DataStage flow in the ibmas-ingest-demo project</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>scripts/create_datastage_flow.py
+</code></pre></div>
+<p>The script authenticates to Cloud Pak for Data with your API key, targets the
+<code>ibmas-ingest-demo</code> project, and creates the DataStage flow that reads
+<code>confluent_demo_silver</code> and writes the three <code>confluent_demo_gold</code> marts. Because the auth and
+project come entirely from <code>.env</code>, the same command works on any cluster once those values are set.</p>
+<div class="admonition tip">
+<p class="admonition-title">Preview before you build</p>
+<p>Like the other scripts in this repo, prefer to inspect what will run first. Pass <code>--help</code>
+to see the available flags (project override, dry-run/preview, and confirmation options).</p>
+</div>
+<hr />
+<h2 id="verify-it-matches-everything-else">Verify it matches everything else</h2>
+<p>The verification step is identical no matter which engine built Gold:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>scripts/reconcile_gold.py
+</code></pre></div>
+<p>A clean run reports <strong>zero differing rows</strong> when DataStage-built <code>confluent_demo_gold</code> is compared
+against the dbt and Spark Gold marts — exactly as it does when Spark builds the Confluent Gold.
+That is the proof: switching the Gold engine from Spark to DataStage changes <em>how</em> the marts are
+built, never <em>what</em> they contain.</p>
+<hr />
+<h2 id="next-steps">Next steps</h2>
+<ul>
+<li>Back to the streaming walkthrough: <a href="../confluent-demo/">Confluent — Streaming</a>.</li>
+<li>Choosing between engines and paths: <a href="../choosing/">When to Use Which</a>.</li>
+<li>Env vars and the hosts model: <a href="../configuration/">Configuration</a>.</li>
+<li>Script flags: <a href="../scripts/#confluent-streaming-scripts">Scripts</a>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1505,6 +1835,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../confluent-internals/" class="md-footer__link md-footer__link--prev" aria-label="Previous: C · Confluent — How It Works (deep dive)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                C · Confluent — How It Works (deep dive)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../ingestion/" class="md-footer__link md-footer__link--next" aria-label="Next: Ingest Raw Data — cpdctl (loader)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Ingest Raw Data — cpdctl (loader)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1532,10 +1900,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

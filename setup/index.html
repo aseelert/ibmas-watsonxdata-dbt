@@ -263,7 +263,7 @@
   
     
   
-  Build a Medallion (dbt or Spark)
+  Build a Medallion (dbt · Spark · Confluent)
 
         </a>
       </li>
@@ -695,6 +695,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#8c-etchosts-entries-required-for-all-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8c · /etc/hosts entries — required for all paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#8b-ibm-cpdctl-needed-for-the-cpdctl-path-only" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -839,7 +850,7 @@
   <span class="md-ellipsis">
     
   
-    When to Use Which (dbt · Spark · cpdctl)
+    When to Use Which (dbt · Spark · Confluent · cpdctl)
   
 
     
@@ -901,6 +912,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -924,7 +941,7 @@
   <span class="md-ellipsis">
     
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
     
@@ -940,7 +957,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
           </label>
@@ -989,6 +1006,90 @@
     
   
     B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — Streaming (Kafka→Flink→Iceberg)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — How It Works (deep dive)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datastage-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C-alt · DataStage — No-Code Gold (Confluent path)
   
 
     
@@ -1796,6 +1897,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#8c-etchosts-entries-required-for-all-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8c · /etc/hosts entries — required for all paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#8b-ibm-cpdctl-needed-for-the-cpdctl-path-only" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2343,6 +2455,43 @@ official Red Hat mirror always serves the <strong>newest stable</strong> <code>o
 <p>Then log in to the cluster (your administrator provides the API server URL and token/credentials):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>oc<span class="w"> </span>login<span class="w"> </span>https://api.watson.ibmas-zocp-techcluster.org:6443
 </code></pre></div>
+<h3 id="8c-etchosts-entries-required-for-all-paths">8c · <code>/etc/hosts</code> entries — required for all paths</h3>
+<p>The cluster runs on a <strong>private network</strong> (<code>10.10.0.x</code>). A bastion/HAProxy node at <code>9.82.206.23</code>
+forwards ports 80, 443, and 6443 to the cluster ingress and API VIPs. The cluster's wildcard DNS
+(<code>*.apps.watson.ibmas-zocp-techcluster.org</code>) is <strong>not</strong> in public DNS — your workstation must
+resolve it via <code>/etc/hosts</code>.</p>
+<p><strong>Validate with one command</strong> (uses <code>.venv</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>python<span class="w"> </span>scripts/check_hosts.py
+</code></pre></div>
+<p><strong>Or add all entries manually</strong> (requires <code>sudo</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="s">9.82.206.23  api.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="s">9.82.206.23  api-int.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="s">9.82.206.23  console-openshift-console.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="s">9.82.206.23  oauth-openshift.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="s">9.82.206.23  downloads-openshift-console.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="s">9.82.206.23  cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="s">9.82.206.23  ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="s">9.82.206.23  ibm-lh-lakehouse-cas-svc-cpd-instance.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="s">9.82.206.23  ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org</span>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a><span class="s">EOF</span>
+</code></pre></div>
+<p>Expected output from <code>check_hosts.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>Checking /etc/hosts entries for watson.ibmas-zocp-techcluster.org ...
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>  api.watson.ibmas-zocp-techcluster.org                       ✓  9.82.206.23  TCP:6443 OK
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>  console-openshift-console.apps.watson...                    ✓  9.82.206.23  TCP:443  OK
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>  cpd-cpd-instance.apps.watson...                             ✓  9.82.206.23  TCP:443  OK
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>  ibm-lh-lakehouse-presto651-presto-svc.apps.watson...        ✓  9.82.206.23  TCP:443  OK
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>  ibm-lh-minio-route-cpd-instance.apps.watson...             ✓  9.82.206.23  TCP:443  OK
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>All 9 required entries present and reachable.
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Windows users</p>
+<p>Edit <code>C:\Windows\System32\drivers\etc\hosts</code> as Administrator and add the same lines.
+<code>check_hosts.py</code> works on Windows too.</p>
+</div>
 <h3 id="8b-ibm-cpdctl-needed-for-the-cpdctl-path-only">8b · IBM <code>cpdctl</code> — needed for the cpdctl path only</h3>
 <p><code>cpdctl</code> is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data
 ingestion service directly, bypassing dbt/Spark for the LOAD step (you still use dbt or Spark to
@@ -2354,41 +2503,41 @@ the matching binary. Swap the asset name for your platform.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">macOS (Apple Silicon)</label><label for="__tabbed_4_2">Linux</label><label for="__tabbed_4_3">Windows (PowerShell)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nv">CPDCTL_VERSION</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://api.github.com/repos/IBM/cpdctl/releases/latest<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s1">&#39;&quot;tag_name&quot;: *&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;&quot;&#39;</span><span class="w"> </span>-f4<span class="k">)</span>
-<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Latest cpdctl: </span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>-o<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">  </span><span class="s2">&quot;https://github.com/IBM/cpdctl/releases/download/</span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">/cpdctl_darwin_arm64.tar.gz&quot;</span>
-<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span>-C<span class="w"> </span>~/.local/bin<span class="w"> </span>cpdctl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/cpdctl
-<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>cpdctl<span class="w"> </span>version
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="nv">CPDCTL_VERSION</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://api.github.com/repos/IBM/cpdctl/releases/latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s1">&#39;&quot;tag_name&quot;: *&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;&quot;&#39;</span><span class="w"> </span>-f4<span class="k">)</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Latest cpdctl: </span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>-o<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="w">  </span><span class="s2">&quot;https://github.com/IBM/cpdctl/releases/download/</span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">/cpdctl_darwin_arm64.tar.gz&quot;</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span>-C<span class="w"> </span>~/.local/bin<span class="w"> </span>cpdctl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/cpdctl
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>cpdctl<span class="w"> </span>version
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># x86-64; use cpdctl_linux_ppc64le / cpdctl_linux_s390x for other arches</span>
-<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="nv">CPDCTL_VERSION</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://api.github.com/repos/IBM/cpdctl/releases/latest<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s1">&#39;&quot;tag_name&quot;: *&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;&quot;&#39;</span><span class="w"> </span>-f4<span class="k">)</span>
-<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Latest cpdctl: </span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>-o<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="w">  </span><span class="s2">&quot;https://github.com/IBM/cpdctl/releases/download/</span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">/cpdctl_linux_amd64.tar.gz&quot;</span>
-<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span>-C<span class="w"> </span>~/.local/bin<span class="w"> </span>cpdctl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/cpdctl
-<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>cpdctl<span class="w"> </span>version
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># x86-64; use cpdctl_linux_ppc64le / cpdctl_linux_s390x for other arches</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="nv">CPDCTL_VERSION</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://api.github.com/repos/IBM/cpdctl/releases/latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s1">&#39;&quot;tag_name&quot;: *&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;&quot;&#39;</span><span class="w"> </span>-f4<span class="k">)</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Latest cpdctl: </span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>-o<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="w">  </span><span class="s2">&quot;https://github.com/IBM/cpdctl/releases/download/</span><span class="si">${</span><span class="nv">CPDCTL_VERSION</span><span class="si">}</span><span class="s2">/cpdctl_linux_amd64.tar.gz&quot;</span>
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>tar<span class="w"> </span>-xzf<span class="w"> </span>cpdctl.tar.gz<span class="w"> </span>-C<span class="w"> </span>~/.local/bin<span class="w"> </span>cpdctl<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/cpdctl
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>cpdctl<span class="w"> </span>version
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nv">$tag</span> <span class="p">=</span> <span class="p">(</span><span class="nb">Invoke-RestMethod</span> <span class="n">https</span><span class="p">://</span><span class="n">api</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">repos</span><span class="p">/</span><span class="n">IBM</span><span class="p">/</span><span class="n">cpdctl</span><span class="p">/</span><span class="n">releases</span><span class="p">/</span><span class="n">latest</span><span class="p">).</span><span class="n">tag_name</span>
-<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="nb">Write-Host</span> <span class="s2">&quot;Latest cpdctl: $tag&quot;</span>
-<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="nb">Invoke-WebRequest</span> <span class="n">-UseBasicParsing</span> <span class="p">`</span>
-<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>  <span class="n">-Uri</span> <span class="s2">&quot;https://github.com/IBM/cpdctl/releases/download/$tag/cpdctl_windows_amd64.tar.gz&quot;</span> <span class="p">`</span>
-<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>  <span class="n">-OutFile</span> <span class="n">cpdctl</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>
-<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="n">tar</span> <span class="n">-xzf</span> <span class="n">cpdctl</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span> <span class="n">-C</span> <span class="s2">&quot;$env:USERPROFILE\bin&quot;</span> <span class="n">cpdctl</span><span class="p">.</span><span class="n">exe</span>
-<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="n">cpdctl</span> <span class="n">version</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="nv">$tag</span> <span class="p">=</span> <span class="p">(</span><span class="nb">Invoke-RestMethod</span> <span class="n">https</span><span class="p">://</span><span class="n">api</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">repos</span><span class="p">/</span><span class="n">IBM</span><span class="p">/</span><span class="n">cpdctl</span><span class="p">/</span><span class="n">releases</span><span class="p">/</span><span class="n">latest</span><span class="p">).</span><span class="n">tag_name</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="nb">Write-Host</span> <span class="s2">&quot;Latest cpdctl: $tag&quot;</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="nb">Invoke-WebRequest</span> <span class="n">-UseBasicParsing</span> <span class="p">`</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>  <span class="n">-Uri</span> <span class="s2">&quot;https://github.com/IBM/cpdctl/releases/download/$tag/cpdctl_windows_amd64.tar.gz&quot;</span> <span class="p">`</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>  <span class="n">-OutFile</span> <span class="n">cpdctl</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a><span class="n">tar</span> <span class="n">-xzf</span> <span class="n">cpdctl</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span> <span class="n">-C</span> <span class="s2">&quot;$env:USERPROFILE\bin&quot;</span> <span class="n">cpdctl</span><span class="p">.</span><span class="n">exe</span>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="n">cpdctl</span> <span class="n">version</span>
 </code></pre></div>
 <p>Ensure <code>%USERPROFILE%\bin</code> is on your <code>PATH</code>. (<code>tar</code> ships with Windows 10+.)</p>
 </div>
 </div>
 </div>
 <p>Expected output (version reflects whatever is current):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>cpdctl version 1.x.x ...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>cpdctl version 1.x.x ...
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">All <code>cpdctl</code> assets</p>
@@ -2396,16 +2545,16 @@ the matching binary. Swap the asset name for your platform.</p>
 <a href="https://github.com/IBM/cpdctl/releases/latest">latest release page</a>.</p>
 </div>
 <p>After installing the <code>cpdctl</code> binary, configure a profile for this workshop environment. The values come from <code>.env</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="nb">set</span><span class="w"> </span>-a<span class="p">;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.env<span class="p">;</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>+a
-<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>
-<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>cpdctl<span class="w"> </span>config<span class="w"> </span>profile<span class="w"> </span><span class="nb">set</span><span class="w"> </span>wxd-demo<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="w">  </span>--url<span class="w"> </span><span class="s2">&quot;https://</span><span class="si">${</span><span class="nv">WXD_CPD_HOST</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="w">  </span>--username<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_CPD_USERNAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="w">  </span>--apikey<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_API_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="w">  </span>--env<span class="w"> </span><span class="s2">&quot;WATSONX_DATA_INSTANCE_ID=</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="nb">set</span><span class="w"> </span>-a<span class="p">;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.env<span class="p">;</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>+a
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>cpdctl<span class="w"> </span>config<span class="w"> </span>profile<span class="w"> </span><span class="nb">set</span><span class="w"> </span>wxd-demo<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="w">  </span>--url<span class="w"> </span><span class="s2">&quot;https://</span><span class="si">${</span><span class="nv">WXD_CPD_HOST</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a><span class="w">  </span>--username<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_CPD_USERNAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="w">  </span>--apikey<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WXD_API_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="w">  </span>--env<span class="w"> </span><span class="s2">&quot;WATSONX_DATA_INSTANCE_ID=</span><span class="si">${</span><span class="nv">WXD_INSTANCE_ID</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div>
 <p>Then tell cpdctl to trust the cluster CA certificate:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Add SSL_CERT_FILE to your shell profile</p>
@@ -2424,12 +2573,12 @@ the matching binary. Swap the asset name for your platform.</p>
 <div class="admonition success">
 <p class="admonition-title">The happy path from here — Path A · dbt</p>
 <p>Setup is done. The actual medallion build runs on the next page, <a href="../dbt-demo/">Path A — dbt</a>, in this order:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py<span class="w">   </span><span class="c1"># create the 4 schemas (raw/bronze/silver/gold)</span>
-<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>dbt<span class="w"> </span>deps<span class="w">                                  </span><span class="c1"># download the dbt-watsonx-presto adapter package</span>
-<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>dbt<span class="w"> </span>seed<span class="w">                                  </span><span class="c1"># load 4 raw tables: 50 + 20 + 500 + 1,134 rows</span>
-<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>dbt<span class="w"> </span>run<span class="w">                                   </span><span class="c1"># build 13 models: 4 bronze, 6 silver, 3 gold</span>
-<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>dbt<span class="w"> </span><span class="nb">test</span><span class="w">                                  </span><span class="c1"># run the data-quality tests (all should pass)</span>
-<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w">              </span><span class="c1"># see the gold marts — the business payoff</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py<span class="w">   </span><span class="c1"># create the 4 schemas (raw/bronze/silver/gold)</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>dbt<span class="w"> </span>deps<span class="w">                                  </span><span class="c1"># download the dbt-watsonx-presto adapter package</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>dbt<span class="w"> </span>seed<span class="w">                                  </span><span class="c1"># load 4 raw tables: 50 + 20 + 500 + 1,134 rows</span>
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>dbt<span class="w"> </span>run<span class="w">                                   </span><span class="c1"># build 13 models: 4 bronze, 6 silver, 3 gold</span>
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>dbt<span class="w"> </span><span class="nb">test</span><span class="w">                                  </span><span class="c1"># run the data-quality tests (all should pass)</span>
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w">              </span><span class="c1"># see the gold marts — the business payoff</span>
 </code></pre></div>
 <p>On a clean instance the whole dbt path finishes in roughly two minutes.</p>
 </div>

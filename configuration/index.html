@@ -261,7 +261,7 @@
   
     
   
-  Build a Medallion (dbt or Spark)
+  Build a Medallion (dbt · Spark · Confluent)
 
         </a>
       </li>
@@ -604,7 +604,7 @@
   <span class="md-ellipsis">
     
   
-    When to Use Which (dbt · Spark · cpdctl)
+    When to Use Which (dbt · Spark · Confluent · cpdctl)
   
 
     
@@ -666,6 +666,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -689,7 +695,7 @@
   <span class="md-ellipsis">
     
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
     
@@ -705,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
           </label>
@@ -754,6 +760,90 @@
     
   
     B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — Streaming (Kafka→Flink→Iceberg)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — How It Works (deep dive)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datastage-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C-alt · DataStage — No-Code Gold (Confluent path)
   
 
     
@@ -1454,10 +1544,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#object-store-minio-spark-uploads" class="md-nav__link">
+  <a href="#object-store-minio-spark-uploads-and-confluent-streaming" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Object store (MinIO) — Spark uploads
+        Object store (MinIO) — Spark uploads and Confluent streaming
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluent-streaming-path-confluent-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confluent streaming path (confluent/ folder)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-env-hosts-model-external-bastion-vs-in-cluster-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The env / hosts model — external bastion vs in-cluster domain
       
     </span>
   </a>
@@ -1763,10 +1875,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#object-store-minio-spark-uploads" class="md-nav__link">
+  <a href="#object-store-minio-spark-uploads-and-confluent-streaming" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Object store (MinIO) — Spark uploads
+        Object store (MinIO) — Spark uploads and Confluent streaming
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluent-streaming-path-confluent-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confluent streaming path (confluent/ folder)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-env-hosts-model-external-bastion-vs-in-cluster-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The env / hosts model — external bastion vs in-cluster domain
       
     </span>
   </a>
@@ -2200,16 +2334,39 @@ have a sensible default in the template). Variables shown commented-out are opti
 </tr>
 </tbody>
 </table>
-<h3 id="object-store-minio-spark-uploads">Object store (MinIO) — Spark uploads</h3>
+<h3 id="object-store-minio-spark-uploads-and-confluent-streaming">Object store (MinIO) — Spark uploads and Confluent streaming</h3>
+<div class="admonition info">
+<p class="admonition-title">MinIO is exposed via an OpenShift Route on this cluster</p>
+<p><code>ibm-lh-lakehouse-minio-svc</code> is a <strong>ClusterIP</strong> service. An OpenShift <strong>Route</strong> has been created
+(<code>ibm-lh-minio-route</code>) that exposes it externally over HTTPS through the cluster HAProxy bastion
+(<code>9.82.206.23:443</code>). This means Docker containers (Flink, iceberg-rest) and local Python scripts
+can reach MinIO directly — no <code>oc port-forward</code> tunnel is needed.</p>
+<p><strong><code>WXD_OBJECT_STORE_ENDPOINT</code> must be set to the Route URL:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>WXD_OBJECT_STORE_ENDPOINT=https://ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+</code></pre></div></p>
+<p>The Route URL must also be resolvable from your workstation. Because the cluster uses a private
+DNS zone (<code>*.apps.watson.ibmas-zocp-techcluster.org</code>), you need the entries below in
+<code>/etc/hosts</code> — or verify them with <code>python scripts/check_hosts.py</code>.</p>
+</div>
 <div class="admonition warning">
-<p class="admonition-title">MinIO is reachable only through <code>oc</code> on this cluster</p>
-<p><code>ibm-lh-lakehouse-minio-svc</code> is a <strong>ClusterIP</strong> service with <strong>no Route</strong>, so it is <strong>not</strong>
-reachable from your workstation directly. The Spark upload therefore needs <code>oc</code> to open a
-port-forward. Setting <code>WXD_OBJECT_STORE_ACCESS_KEY</code> / <code>_SECRET_KEY</code> by hand only skips <em>reading
-the secret</em> — it does <strong>not</strong> remove the tunnel. Pointing <code>WXD_OBJECT_STORE_ENDPOINT</code> at a
-non-localhost URL works only if an administrator first exposes MinIO via an OpenShift <strong>Route</strong>
-(which places object storage on the network — a deliberate security decision). The S3 transfer
-itself is pure Python (boto3); <code>oc</code> only provides the tunnel and reads the secret.</p>
+<p class="admonition-title">Required <code>/etc/hosts</code> entries (workstation)</p>
+<p>The cluster's wildcard DNS (<code>*.apps.watson.ibmas-zocp-techcluster.org</code>) is not published to
+the public internet. All cluster routes are reachable via the bastion HAProxy at <code>9.82.206.23</code>
+which forwards both port 80 and 443 to the ingress VIP. Your workstation must have the
+following entries in <code>/etc/hosts</code> (macOS: <code>/etc/hosts</code>, Linux: <code>/etc/hosts</code>,
+Windows: <code>C:\Windows\System32\drivers\etc\hosts</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>9.82.206.23  api.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>9.82.206.23  api-int.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>9.82.206.23  console-openshift-console.apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>9.82.206.23  oauth-openshift.apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>9.82.206.23  downloads-openshift-console.apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>9.82.206.23  cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>9.82.206.23  ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>9.82.206.23  ibm-lh-lakehouse-cas-svc-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>9.82.206.23  ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+</code></pre></div>
+<p>Run <code>python scripts/check_hosts.py</code> to validate all entries at once. The script checks
+both DNS resolution and TCP reachability for each required hostname.</p>
 </div>
 <table>
 <thead>
@@ -2223,7 +2380,7 @@ itself is pure Python (boto3); <code>oc</code> only provides the tunnel and read
 <tr>
 <td><code>WXD_OBJECT_STORE_ENDPOINT</code></td>
 <td>manual</td>
-<td>S3 endpoint the uploader writes to (on this cluster <code>http://127.0.0.1:19000</code> via port-forward).</td>
+<td>S3 endpoint — set to the Route URL above (<code>https://ibm-lh-minio-route-cpd-instance.apps...</code>). The old port-forward value (<code>http://127.0.0.1:19000</code>) still works for local-only Spark uploads if no Route is available.</td>
 </tr>
 <tr>
 <td><code>WXD_OBJECT_STORE_INTERNAL_ENDPOINT</code></td>
@@ -2267,6 +2424,134 @@ itself is pure Python (boto3); <code>oc</code> only provides the tunnel and read
 </tr>
 </tbody>
 </table>
+<h3 id="confluent-streaming-path-confluent-folder">Confluent streaming path (<code>confluent/</code> folder)</h3>
+<p>The Confluent path (Kafka → Flink → Iceberg) adds a small set of <code>CONFLUENT_*</code> and
+<code>WXD_DATASTAGE_*</code> variables. Every other value it needs (Presto, MinIO, auth) is <strong>reused</strong> from
+the <code>WXD_*</code> variables above — nothing new is hardcoded. See the
+<a href="../confluent-demo/">Confluent walkthrough</a> and <a href="../datastage-demo/">DataStage page</a> for how they
+are used.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CONFLUENT_SILVER_SCHEMA</code></td>
+<td><code>confluent_demo_silver</code></td>
+<td>Iceberg schema for the Flink-written Silver tables (<code>confluent_silver_*</code>).</td>
+</tr>
+<tr>
+<td><code>CONFLUENT_GOLD_SCHEMA</code></td>
+<td><code>confluent_demo_gold</code></td>
+<td>Iceberg schema holding the three Confluent Gold marts, sitting next to dbt's <code>gold_*</code> and Spark's <code>spark_gold_*</code>.</td>
+</tr>
+<tr>
+<td><code>CONFLUENT_GOLD_ENGINE</code></td>
+<td><code>spark</code></td>
+<td>Which engine builds Gold: <code>spark</code> (default, code-first watsonx.data Spark job) or <code>datastage</code> (no-code visual ETL flow). Both read <code>confluent_demo_silver</code> and write the same <code>confluent_demo_gold</code> marts.</td>
+</tr>
+<tr>
+<td><code>SCHEMA_REGISTRY_URL</code></td>
+<td><code>http://localhost:28081</code></td>
+<td>Schema Registry endpoint <strong>from your workstation</strong>. Inside a Docker service on the compose network, use <code>http://confluent-schema-registry:8081</code> instead.</td>
+</tr>
+<tr>
+<td><code>WXD_DATASTAGE_PROJECT_ID</code></td>
+<td><code>2d2415ea-71b5-4215-a7b6-b32a4889611e</code></td>
+<td>GUID of the CPD project that holds the DataStage Gold flow (only used when <code>CONFLUENT_GOLD_ENGINE=datastage</code>).</td>
+</tr>
+<tr>
+<td><code>WXD_DATASTAGE_PROJECT_NAME</code></td>
+<td><code>ibmas-ingest-demo</code></td>
+<td>Human-readable name of that project (kept for reference; the GUID is what is addressed).</td>
+</tr>
+<tr>
+<td><code>ICEBERG_REST_URL</code></td>
+<td><code>http://confluent-iceberg-rest:8181</code></td>
+<td>In-container Iceberg REST catalog URL used by <code>prep_iceberg_schemas.py</code> Phase B. Override only when running outside Docker.</td>
+</tr>
+</tbody>
+</table>
+<p>DataStage auth reuses <code>WXD_API_KEY</code> + <code>WXD_CPD_USERNAME</code> (<code>cpadmin</code>) against <code>WXD_CPD_HOST</code> — the
+same credentials as every other path.</p>
+<div class="admonition info">
+<p class="admonition-title">Two values that change with WHERE the caller runs</p>
+<p><code>SCHEMA_REGISTRY_URL</code> and the Iceberg REST URL have a <strong>host</strong> form and an <strong>in-container</strong>
+form. Scripts you run from your laptop use the published host port (<code>localhost:28081</code> /
+<code>localhost:28181</code>); services running <em>inside</em> the Docker compose network use the container
+names (<code>confluent-schema-registry:8081</code> / <code>confluent-iceberg-rest:8181</code>). Using the wrong one
+is the most common "connection refused" cause on this path.</p>
+</div>
+<hr />
+<h3 id="the-env-hosts-model-external-bastion-vs-in-cluster-domain">The env / hosts model — external bastion vs in-cluster domain</h3>
+<p>This demo talks to <strong>one</strong> OpenShift cluster across <strong>two</strong> different networks. Keeping them
+straight is the key to the streaming and Spark paths working. Nothing below is hardcoded — these
+are the <strong>EXAMPLE</strong> values for the cluster the demo was last run against, all documented in
+<code>.env.example</code> and overridable for your own cluster.</p>
+<table>
+<thead>
+<tr>
+<th>Network</th>
+<th>What it is</th>
+<th>Example value</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>External (from your laptop)</strong></td>
+<td>Bastion / jump-host IP that forwards <code>*.apps.*</code> ports 80/443 to the cluster ingress</td>
+<td><code>9.82.206.23</code></td>
+<td><code>/etc/hosts</code> entries; all Route URLs resolve here</td>
+</tr>
+<tr>
+<td><strong>External — MinIO Route</strong></td>
+<td>OpenShift Route exposing MinIO over HTTP/HTTPS so Docker (Flink, iceberg-rest) can reach the object store</td>
+<td><code>ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org</code></td>
+<td><code>WXD_OBJECT_STORE_ENDPOINT</code>, Flink</td>
+</tr>
+<tr>
+<td><strong>In-cluster app domain</strong></td>
+<td>Wildcard DNS every Route/service hostname hangs off</td>
+<td><code>apps.watson.ibmas-zocp-techcluster.org</code></td>
+<td><code>WXD_HOST</code>, <code>WXD_CPD_HOST</code>, console + API endpoints</td>
+</tr>
+<tr>
+<td><strong>In-cluster MinIO service</strong></td>
+<td>ClusterIP service, only resolvable inside the cluster</td>
+<td><code>ibm-lh-lakehouse-minio-svc.cpd-instance.svc.cluster.local:9000</code></td>
+<td><code>WXD_OBJECT_STORE_INTERNAL_ENDPOINT</code></td>
+</tr>
+<tr>
+<td><strong>Login user</strong></td>
+<td>IBM Software Hub / CPD admin and SSH user on the bastion</td>
+<td><code>cpadmin</code></td>
+<td><code>WXD_CPD_USERNAME</code>; its <code>WXD_API_KEY</code> authenticates Presto, Spark, and DataStage</td>
+</tr>
+</tbody>
+</table>
+<p>Which variables face which network:</p>
+<ul>
+<li><strong>External-facing</strong> (reached from your laptop): <code>WXD_HOST</code>, <code>WXD_CPD_HOST</code>, <code>WXD_CPD_AUTH_URL</code>,
+  <code>WXD_OPENSHIFT_CONSOLE</code>, <code>WXD_OPENSHIFT_API</code>, <code>WXD_OBJECT_STORE_ENDPOINT</code> (the MinIO Route),
+  <code>SCHEMA_REGISTRY_URL</code>, and the bastion IP.</li>
+<li><strong>In-cluster only</strong>: <code>WXD_OBJECT_STORE_INTERNAL_ENDPOINT</code>, the <code>*.svc.cluster.local</code> service
+  names, and the in-container <code>confluent-schema-registry:8081</code> / <code>confluent-iceberg-rest:8181</code>
+  names.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Create the MinIO Route, then validate your hosts file</p>
+<p>The streaming path needs the MinIO Route to exist and the cluster hostnames to resolve to the
+bastion. Run these two helpers once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bash<span class="w"> </span>confluent/scripts/expose_minio_route.sh<span class="w">   </span><span class="c1"># creates ibm-lh-minio-route, writes WXD_OBJECT_STORE_ENDPOINT</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>scripts/check_hosts.py<span class="w">                  </span><span class="c1"># confirms every required hostname → 9.82.206.23 and is TCP-reachable</span>
+</code></pre></div>
+</div>
+<hr />
 <h3 id="optional-rest-auth-and-openmetadata">Optional — REST auth and OpenMetadata</h3>
 <table>
 <thead>
@@ -2325,22 +2610,22 @@ for the full flag reference. Always preview with <code>--dry-run</code> first.</
 <h2 id="dbt-profile-reference">dbt profile reference</h2>
 <p>dbt reads <code>~/.dbt/profiles.yml</code> (Windows: <code>%USERPROFILE%\.dbt\profiles.yml</code>). The shipped example
 pulls <strong>every value from <code>.env</code></strong>, so you copy it once and never edit it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">watsonxdata_medallion_demo</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dev</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">outputs</span><span class="p">:</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">dev</span><span class="p">:</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">watsonx_presto</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BasicAuth</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_USER&#39;,</span><span class="nv"> </span><span class="s">&#39;ibmlhapikey_cpadmin&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_API_KEY&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="nt">catalog</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_CATALOG&#39;,</span><span class="nv"> </span><span class="s">&#39;iceberg_data&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nt">schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_SCHEMA&#39;,</span><span class="nv"> </span><span class="s">&#39;dbt_demo&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_HOST&#39;,</span><span class="nv"> </span><span class="s">&#39;...&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_PORT&#39;,</span><span class="nv"> </span><span class="s">&#39;443&#39;)</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">int</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">ssl_verify</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_SSL_VERIFY&#39;,</span><span class="nv"> </span><span class="s">&#39;certs/watsonxdata-ca.pem&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">http_headers</span><span class="p">:</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="nt">LhInstanceId</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_INSTANCE_ID&#39;,</span><span class="nv"> </span><span class="s">&#39;...&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">threads</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;DBT_THREADS&#39;,</span><span class="nv"> </span><span class="s">&#39;4&#39;)</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">int</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">watsonxdata_medallion_demo</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dev</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">outputs</span><span class="p">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">dev</span><span class="p">:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">watsonx_presto</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BasicAuth</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">      </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_USER&#39;,</span><span class="nv"> </span><span class="s">&#39;ibmlhapikey_cpadmin&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_API_KEY&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="nt">catalog</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_CATALOG&#39;,</span><span class="nv"> </span><span class="s">&#39;iceberg_data&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="nt">schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_SCHEMA&#39;,</span><span class="nv"> </span><span class="s">&#39;dbt_demo&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_HOST&#39;,</span><span class="nv"> </span><span class="s">&#39;...&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_PORT&#39;,</span><span class="nv"> </span><span class="s">&#39;443&#39;)</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">int</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">      </span><span class="nt">ssl_verify</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_SSL_VERIFY&#39;,</span><span class="nv"> </span><span class="s">&#39;certs/watsonxdata-ca.pem&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">      </span><span class="nt">http_headers</span><span class="p">:</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">        </span><span class="nt">LhInstanceId</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;WXD_INSTANCE_ID&#39;,</span><span class="nv"> </span><span class="s">&#39;...&#39;)</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">      </span><span class="nt">threads</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">env_var(&#39;DBT_THREADS&#39;,</span><span class="nv"> </span><span class="s">&#39;4&#39;)</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">int</span><span class="nv"> </span><span class="s">}}&quot;</span>
 </code></pre></div>
 <p>The wrapper <code>scripts/dbt_env.sh</code> sources <code>.env</code> before calling dbt, so these <code>env_var(...)</code> lookups
 resolve. (On Windows, run dbt from a shell where <code>.env</code> is loaded — see below.)</p>
@@ -2361,8 +2646,8 @@ resolve. (On Windows, run dbt from a shell where <code>.env</code> is loaded —
 <li>Python: <code>py -3.11 -m venv .venv</code> then <code>.venv\Scripts\Activate.ps1</code>.</li>
 <li>dbt profile: <code>%USERPROFILE%\.dbt\profiles.yml</code> (create the <code>.dbt</code> folder if missing).</li>
 <li>Load <code>.env</code> into the session:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">Get-Content</span> <span class="p">.</span><span class="n">env</span> <span class="p">|</span> <span class="nb">Where-Object</span> <span class="p">{</span> <span class="nv">$_</span> <span class="o">-notmatch</span> <span class="s1">&#39;^\s*#&#39;</span> <span class="o">-and</span> <span class="nv">$_</span> <span class="o">-match</span> <span class="s1">&#39;=&#39;</span> <span class="p">}</span> <span class="p">|</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  <span class="k">ForEach</span><span class="n">-Object</span> <span class="p">{</span> <span class="nv">$k</span><span class="p">,</span><span class="nv">$v</span> <span class="p">=</span> <span class="nv">$_</span> <span class="n">-split</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span><span class="n">2</span><span class="p">;</span> <span class="nb">Set-Item</span> <span class="s2">&quot;env:$k&quot;</span> <span class="nv">$v</span> <span class="p">}</span>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">Get-Content</span> <span class="p">.</span><span class="n">env</span> <span class="p">|</span> <span class="nb">Where-Object</span> <span class="p">{</span> <span class="nv">$_</span> <span class="o">-notmatch</span> <span class="s1">&#39;^\s*#&#39;</span> <span class="o">-and</span> <span class="nv">$_</span> <span class="o">-match</span> <span class="s1">&#39;=&#39;</span> <span class="p">}</span> <span class="p">|</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  <span class="k">ForEach</span><span class="n">-Object</span> <span class="p">{</span> <span class="nv">$k</span><span class="p">,</span><span class="nv">$v</span> <span class="p">=</span> <span class="nv">$_</span> <span class="n">-split</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span><span class="n">2</span><span class="p">;</span> <span class="nb">Set-Item</span> <span class="s2">&quot;env:$k&quot;</span> <span class="nv">$v</span> <span class="p">}</span>
 </code></pre></div></li>
 <li><code>oc.exe</code> / <code>cpdctl.exe</code>: put them in a folder on your <code>PATH</code> (e.g. <code>%USERPROFILE%\bin</code>).
   Download <code>openshift-client-windows.zip</code> and the <code>cpdctl_windows_amd64.tar.gz</code> asset.</li>

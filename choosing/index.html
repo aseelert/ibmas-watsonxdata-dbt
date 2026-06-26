@@ -25,7 +25,7 @@
     
     
       
-        <title>When to Use Which (dbt · Spark · cpdctl) - watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>When to Use Which (dbt · Spark · Confluent · cpdctl) - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              When to Use Which (dbt · Spark · cpdctl)
+              When to Use Which (dbt · Spark · Confluent · cpdctl)
             
           </span>
         </div>
@@ -263,7 +263,7 @@
   
     
   
-  Build a Medallion (dbt or Spark)
+  Build a Medallion (dbt · Spark · Confluent)
 
         </a>
       </li>
@@ -618,7 +618,7 @@
   <span class="md-ellipsis">
     
   
-    When to Use Which (dbt · Spark · cpdctl)
+    When to Use Which (dbt · Spark · Confluent · cpdctl)
   
 
     
@@ -636,7 +636,7 @@
   <span class="md-ellipsis">
     
   
-    When to Use Which (dbt · Spark · cpdctl)
+    When to Use Which (dbt · Spark · Confluent · cpdctl)
   
 
     
@@ -662,10 +662,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#two-engines-one-loader" class="md-nav__link">
+  <a href="#three-engines-one-loader" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two engines, one loader
+        Three engines, one loader
       
     </span>
   </a>
@@ -784,6 +784,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -807,7 +813,7 @@
   <span class="md-ellipsis">
     
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
     
@@ -823,7 +829,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
           </label>
@@ -872,6 +878,90 @@
     
   
     B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — Streaming (Kafka→Flink→Iceberg)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — How It Works (deep dive)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datastage-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C-alt · DataStage — No-Code Gold (Confluent path)
   
 
     
@@ -1523,10 +1613,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#two-engines-one-loader" class="md-nav__link">
+  <a href="#three-engines-one-loader" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two engines, one loader
+        Three engines, one loader
       
     </span>
   </a>
@@ -1608,23 +1698,26 @@
 <h1 id="when-to-use-which-and-how-the-paths-combine">When to Use Which — and How the Paths Combine</h1>
 <div class="admonition abstract">
 <p class="admonition-title">The one idea to take away</p>
-<p><strong>dbt and Spark are two interchangeable, self-contained pipelines</strong> — each <em>ingests and
-transforms</em> the CSVs all the way through Bronze → Silver → Gold. <strong>cpdctl is an ingestion-only
-loader</strong> — like <code>dbt seed</code>, it lands the raw CSVs in <code>spark_demo_cpdctl_raw</code> and <em>stops at raw</em>.
-To turn cpdctl data into a medallion, you run <strong>dbt or Spark as a post-action</strong> over the ingest
-schema.</p>
+<p><strong>dbt, Spark, and Confluent are three interchangeable, self-contained pipelines</strong> — each
+<em>ingests and transforms</em> the same four CSVs all the way through Bronze → Silver → Gold, and
+all three must reach the <strong>identical Gold</strong> marts. dbt and Spark are <strong>batch</strong>; Confluent
+(Kafka → Flink → Iceberg) is <strong>streaming</strong>. <strong>cpdctl is an ingestion-only loader</strong> — like
+<code>dbt seed</code>, it lands the raw CSVs in <code>spark_demo_cpdctl_raw</code> and <em>stops at raw</em>. To turn
+cpdctl data into a medallion, you run <strong>dbt or Spark as a post-action</strong> over the ingest schema.</p>
 <blockquote>
-<p><strong>cpdctl (ingest) + dbt or Spark (transform) = one full pipeline.</strong></p>
+<p><strong>cpdctl (ingest) + dbt or Spark (transform) = one full pipeline.</strong>
+<strong>dbt, Spark, and Confluent each = one full pipeline on their own.</strong></p>
 </blockquote>
 </div>
 <hr />
-<h2 id="two-engines-one-loader">Two engines, one loader</h2>
+<h2 id="three-engines-one-loader">Three engines, one loader</h2>
 <table>
 <thead>
 <tr>
 <th></th>
 <th>dbt</th>
 <th>Spark</th>
+<th>Confluent (Flink)</th>
 <th>cpdctl</th>
 </tr>
 </thead>
@@ -1633,22 +1726,33 @@ schema.</p>
 <td><strong>Kind</strong></td>
 <td>Full pipeline</td>
 <td>Full pipeline</td>
+<td>Full pipeline (streaming)</td>
 <td>Ingest loader only</td>
+</tr>
+<tr>
+<td><strong>Batch or streaming?</strong></td>
+<td>Batch</td>
+<td>Batch</td>
+<td><strong>Streaming</strong></td>
+<td>Batch load</td>
 </tr>
 <tr>
 <td><strong>Does it transform?</strong></td>
 <td>Yes — raw → bronze → silver → gold</td>
 <td>Yes — bronze → silver → gold</td>
+<td>Yes — Kafka raw → Flink silver → Spark/DataStage gold</td>
 <td><strong>No</strong> — lands raw and stops</td>
 </tr>
 <tr>
 <td><strong>Language</strong></td>
 <td>SQL</td>
 <td>Python (PySpark)</td>
+<td>Flink SQL (+ Spark/DataStage for gold)</td>
 <td>CLI (no code)</td>
 </tr>
 <tr>
 <td><strong>Builds a medallion alone?</strong></td>
+<td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
 <td>No — needs dbt or Spark afterward</td>
@@ -1657,26 +1761,36 @@ schema.</p>
 <td><strong>Output schema</strong></td>
 <td><code>dbt_demo_raw/bronze/silver/gold</code></td>
 <td><code>spark_demo_bronze/silver/gold</code></td>
+<td>topics → <code>confluent_demo_silver</code> → <code>confluent_demo_gold</code></td>
 <td><code>spark_demo_cpdctl_raw</code> (raw)</td>
 </tr>
 <tr>
 <td><strong>UI ingestion history?</strong></td>
 <td>No</td>
 <td>No</td>
+<td>No (runs as a stream)</td>
 <td><strong>Yes</strong></td>
 </tr>
 <tr>
 <td><strong>Analogous to</strong></td>
 <td>—</td>
 <td>—</td>
+<td>Confluent Tableflow (Flink-on-Iceberg)</td>
 <td><code>dbt seed</code> / Spark's raw CSV read</td>
 </tr>
 </tbody>
 </table>
-<p>dbt and Spark are <strong>peers</strong> — pick whichever engine fits the team and workload; both produce the
-same medallion shape and the <a href="../sql-demo/">SQL comparison</a> proves their gold layers match exactly.
-cpdctl is <strong>not</strong> a third peer engine: it is a fast, UI-tracked way to get raw data <em>in</em>, which you
-then hand to dbt or Spark.</p>
+<p>dbt, Spark, and Confluent are <strong>peers</strong> — pick whichever engine fits the team and workload; all
+three produce the same medallion shape, and the <a href="../sql-demo/">SQL comparison</a> plus
+<code>scripts/reconcile_gold.py</code> prove their gold layers match exactly. cpdctl is <strong>not</strong> a fourth peer
+engine: it is a fast, UI-tracked way to get raw data <em>in</em>, which you then hand to dbt or Spark.</p>
+<div class="admonition info">
+<p class="admonition-title">Confluent gold is built by a second engine — Spark or DataStage</p>
+<p>The Confluent path always writes <strong>Silver</strong> with Flink, then builds <strong>Gold</strong> with a second
+engine chosen by <code>CONFLUENT_GOLD_ENGINE</code>: <strong>Spark</strong> (default, code-first) or <strong>DataStage</strong>
+(no-code visual ETL). Both write the same <code>confluent_demo_gold</code> marts — see the
+<a href="../datastage-demo/">DataStage page</a>.</p>
+</div>
 <hr />
 <h2 id="dbt-vs-spark-at-a-glance">dbt vs Spark — at a glance</h2>
 <p>dbt and Spark are interchangeable peers in this demo, but they make different trade-offs. The
@@ -1795,12 +1909,24 @@ on top to build the medallion.</p>
 <td><strong>dbt</strong></td>
 </tr>
 <tr>
-<td>"The data is huge, or I need Python / ML / streaming / messy parsing"</td>
+<td>"The data is huge, or I need Python / ML / messy parsing"</td>
 <td><strong>Spark</strong></td>
 </tr>
 <tr>
 <td>"I want distributed compute across many workers"</td>
 <td><strong>Spark</strong></td>
+</tr>
+<tr>
+<td>"Data arrives continuously and I want low-latency Silver/Gold"</td>
+<td><strong>Confluent (Kafka → Flink → Iceberg)</strong></td>
+</tr>
+<tr>
+<td>"I want Bronze to be a replayable event log, not a static table"</td>
+<td><strong>Confluent</strong></td>
+</tr>
+<tr>
+<td>"I want a no-code, visual, governed ETL canvas for the gold build"</td>
+<td><strong>Confluent with <code>CONFLUENT_GOLD_ENGINE=datastage</code></strong></td>
 </tr>
 <tr>
 <td>"I just need raw data loaded fast, with no code, tracked in the UI"</td>
@@ -1812,7 +1938,7 @@ on top to build the medallion.</p>
 </tr>
 </tbody>
 </table>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Use dbt</label><label for="__tabbed_1_2">Use Spark</label><label for="__tabbed_1_3">Use cpdctl</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Use dbt</label><label for="__tabbed_1_2">Use Spark</label><label for="__tabbed_1_3">Use Confluent (streaming)</label><label for="__tabbed_1_4">Use cpdctl</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <ul>
@@ -1827,6 +1953,19 @@ on top to build the medallion.</p>
 <li>The data is <strong>large</strong> or the logic needs <strong>Python</strong> (ML feature prep, custom parsing,
   billions-of-rows joins).</li>
 <li>You want distributed compute on the watsonx.data Spark engine.</li>
+</ul>
+</div>
+<div class="tabbed-block">
+<ul>
+<li>Data <strong>arrives continuously</strong> and you want Silver/Gold updated seconds after each row,
+  not on the next batch schedule.</li>
+<li>You want <strong>Bronze to be a replayable Kafka topic</strong> — rewind and reprocess without
+  re-ingesting the source.</li>
+<li>You want <strong>Schema Registry</strong> as the streaming governance point (the contract that rejects
+  malformed messages), the streaming analogue of dbt tests.</li>
+<li>For Gold, choose the second engine: <strong>Spark</strong> (code-first, default) or <strong>DataStage</strong>
+  (no-code visual ETL) via <code>CONFLUENT_GOLD_ENGINE</code>. See <a href="../confluent-demo/">Confluent</a> and
+  <a href="../datastage-demo/">DataStage</a>.</li>
 </ul>
 </div>
 <div class="tabbed-block">
@@ -1885,9 +2024,12 @@ lands them in <code>spark_demo_cpdctl_raw</code>.</p>
 <h2 id="next-step">Next step</h2>
 <ul>
 <li>New here? Start with <a href="../lineage/">Architecture &amp; Data Flow</a>.</li>
-<li>Ready to build? Run <a href="../dbt-demo/">Path A — dbt</a> or <a href="../spark-demo/">Path B — Spark</a>.</li>
+<li>Ready to build? Run <a href="../dbt-demo/">Path A — dbt</a>, <a href="../spark-demo/">Path B — Spark</a>, or
+  <a href="../confluent-demo/">Path C — Confluent streaming</a>.</li>
+<li>Want the no-code gold engine for the streaming path? See <a href="../datastage-demo/">DataStage</a>.</li>
 <li>Want UI-tracked ingestion? Run <a href="../ingestion/">cpdctl</a>, then transform with dbt or Spark.</li>
-<li>Built both engines? <a href="../sql-demo/">Compare the dbt and Spark gold layers</a>.</li>
+<li>Built multiple engines? <a href="../sql-demo/">Compare the dbt and Spark gold layers</a>, or run
+  <code>scripts/reconcile_gold.py</code> to compare all three.</li>
 </ul>
 
 

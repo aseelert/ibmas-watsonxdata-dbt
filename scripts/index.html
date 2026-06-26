@@ -261,7 +261,7 @@
   
     
   
-  Build a Medallion (dbt or Spark)
+  Build a Medallion (dbt · Spark · Confluent)
 
         </a>
       </li>
@@ -604,7 +604,7 @@
   <span class="md-ellipsis">
     
   
-    When to Use Which (dbt · Spark · cpdctl)
+    When to Use Which (dbt · Spark · Confluent · cpdctl)
   
 
     
@@ -666,6 +666,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -689,7 +695,7 @@
   <span class="md-ellipsis">
     
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
     
@@ -705,7 +711,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
           </label>
@@ -754,6 +760,90 @@
     
   
     B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — Streaming (Kafka→Flink→Iceberg)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — How It Works (deep dive)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datastage-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C-alt · DataStage — No-Code Gold (Confluent path)
   
 
     
@@ -1597,6 +1687,144 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confluent-streaming-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confluent streaming scripts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Confluent streaming scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check_hostspy-validate-etchosts-for-the-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        check_hosts.py — validate /etc/hosts for the cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentstartsh-the-one-entrypoint-subcommand-driven" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/start.sh — the one entrypoint (subcommand-driven)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptsingest_csv_to_kafkapy-csv-kafka-as-governed-avro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/ingest_csv_to_kafka.py — CSV → Kafka as governed Avro
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptsexpose_minio_routesh-open-a-door-to-the-real-object-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/expose_minio_route.sh — open a door to the real object store
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptscreate-topicssh-make-the-8-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/create-topics.sh — make the 8 topics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptssubmit-flinksh-render-placeholders-submit-the-9-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/submit-flink.sh — render placeholders + submit the 9 jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptsprep_iceberg_schemaspy-schemas-register-two-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/prep_iceberg_schemas.py — schemas + register (two phases)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptssubmit_confluent_goldpy-confluent-gold-via-spark-presto-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/submit_confluent_gold.py — Confluent gold via Spark (+ Presto VIEWs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptscreate_datastage_flowpy-no-code-gold-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/create_datastage_flow.py — no-code gold alternative
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scriptscreate_gold_viewspy-the-two-view-marts-via-presto-not-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/create_gold_views.py — the two VIEW marts, via Presto (NOT Spark)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scriptsreconcile_goldpy-prove-3-way-gold-parity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/reconcile_gold.py — prove 3-way gold parity
+      
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#8-cleanup_watsonxdatapy-drop-the-schemas" class="md-nav__link">
     <span class="md-ellipsis">
@@ -1916,6 +2144,144 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confluent-streaming-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confluent streaming scripts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Confluent streaming scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check_hostspy-validate-etchosts-for-the-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        check_hosts.py — validate /etc/hosts for the cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentstartsh-the-one-entrypoint-subcommand-driven" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/start.sh — the one entrypoint (subcommand-driven)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptsingest_csv_to_kafkapy-csv-kafka-as-governed-avro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/ingest_csv_to_kafka.py — CSV → Kafka as governed Avro
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptsexpose_minio_routesh-open-a-door-to-the-real-object-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/expose_minio_route.sh — open a door to the real object store
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptscreate-topicssh-make-the-8-topics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/create-topics.sh — make the 8 topics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptssubmit-flinksh-render-placeholders-submit-the-9-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/submit-flink.sh — render placeholders + submit the 9 jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptsprep_iceberg_schemaspy-schemas-register-two-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/prep_iceberg_schemas.py — schemas + register (two phases)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptssubmit_confluent_goldpy-confluent-gold-via-spark-presto-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/submit_confluent_gold.py — Confluent gold via Spark (+ Presto VIEWs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confluentscriptscreate_datastage_flowpy-no-code-gold-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confluent/scripts/create_datastage_flow.py — no-code gold alternative
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scriptscreate_gold_viewspy-the-two-view-marts-via-presto-not-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/create_gold_views.py — the two VIEW marts, via Presto (NOT Spark)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scriptsreconcile_goldpy-prove-3-way-gold-parity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scripts/reconcile_gold.py — prove 3-way gold parity
+      
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#8-cleanup_watsonxdatapy-drop-the-schemas" class="md-nav__link">
     <span class="md-ellipsis">
@@ -2004,21 +2370,36 @@
 <a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--wait<span class="w">          </span><span class="c1"># submit + poll to completion</span>
 <a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span>&lt;id&gt;<span class="w">   </span><span class="c1"># check a prior run</span>
 <a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="c1"># ── QUERY gold layer ─────────────────────────────────────────────────────────</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>python<span class="w"> </span>scripts/query_gold.py
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="c1"># ── OPTIONAL: Iceberg time travel demo ───────────────────────────────────────</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>python<span class="w"> </span>scripts/demo_time_travel.py
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="c1"># ── OPTIONAL: OpenMetadata artifacts ─────────────────────────────────────────</span>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
-<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>
-<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="c1"># ── TEARDOWN (destructive!) ───────────────────────────────────────────────────</span>
-<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w"> </span>--dry-run<span class="w">   </span><span class="c1"># preview everything that would be removed</span>
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w">             </span><span class="c1"># Docker stacks + schemas + MinIO files</span>
-<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="c1"># (or just the schemas, like before:)</span>
-<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>python<span class="w"> </span>scripts/cleanup_watsonxdata.py
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="c1"># ── PATH D · Confluent streaming (Kafka→Flink→Iceberg) ───────────────────────</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>python<span class="w"> </span>scripts/check_hosts.py<span class="w">                        </span><span class="c1"># verify /etc/hosts → bastion</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>bash<span class="w"> </span>confluent/scripts/expose_minio_route.sh<span class="w">         </span><span class="c1"># ONCE: expose real MinIO to Docker (writes WXD_OBJECT_STORE_ENDPOINT)</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--all<span class="w">                        </span><span class="c1"># local stack + 8 topics + produce 1,704 seed rows to Kafka</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--silver<span class="w">                     </span><span class="c1"># submit 9 Flink jobs → confluent_demo_silver + register_table</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="c1"># (if you re-run --silver from the host, Phase B re-registers the tables in watsonx.data)</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>python<span class="w"> </span>confluent/scripts/submit_confluent_gold.py<span class="w"> </span>--no-dry-run<span class="w"> </span>--wait<span class="w">   </span><span class="c1"># build confluent_demo_gold (Spark TABLE) — auto-creates the 2 Presto VIEWS</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="c1"># or, with CONFLUENT_GOLD_ENGINE=datastage:</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--gold<span class="w"> </span>--engine<span class="w"> </span>datastage<span class="w">    </span><span class="c1"># build the same gold via DataStage</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="c1"># (standalone: rebuild just the two Presto VIEW marts for either path)</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>python<span class="w"> </span>scripts/create_gold_views.py<span class="w"> </span>--path<span class="w"> </span>confluent
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="c1"># ── VERIFY 3-way parity (dbt == Spark == Confluent) ──────────────────────────</span>
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>python<span class="w"> </span>scripts/reconcile_gold.py<span class="w">                     </span><span class="c1"># gold = 494 / 5 / 50, identical across engines</span>
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="c1"># ── QUERY gold layer ─────────────────────────────────────────────────────────</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>python<span class="w"> </span>scripts/query_gold.py
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="c1"># ── OPTIONAL: Iceberg time travel demo ───────────────────────────────────────</span>
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>python<span class="w"> </span>scripts/demo_time_travel.py
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="c1"># ── OPTIONAL: OpenMetadata artifacts ─────────────────────────────────────────</span>
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a><span class="c1"># ── TEARDOWN (destructive!) ───────────────────────────────────────────────────</span>
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w"> </span>--dry-run<span class="w">   </span><span class="c1"># preview everything that would be removed</span>
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w">             </span><span class="c1"># Docker stacks + schemas + MinIO files</span>
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a><span class="c1"># (or just the schemas, like before:)</span>
+<a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a>python<span class="w"> </span>scripts/cleanup_watsonxdata.py
 </code></pre></div>
 <hr />
 <h2 id="step-by-step-reference">Step-by-step reference</h2>
@@ -2286,8 +2667,231 @@ so OpenMetadata can read them during ingestion.</p>
 manual command only when you want to re-apply glossary terms, descriptions, or
 auto-classification tags without re-running the full ingestion.</p>
 <hr />
+<h2 id="confluent-streaming-scripts">Confluent streaming scripts</h2>
+<p>These scripts drive the streaming path (Path D in the docs) — Kafka → Flink → Schema Registry →
+Iceberg → watsonx.data — plus the gold build and the 3-way parity check. See the
+<a href="../confluent-demo/">Confluent walkthrough</a> and the <a href="../datastage-demo/">DataStage page</a> for the
+full story. All hosts, schemas, and engine choices come from <code>.env</code> — nothing is hardcoded.</p>
+<div class="admonition info">
+<p class="admonition-title">Where each script lives</p>
+<p>The orchestrator and its helpers live under <strong><code>confluent/</code></strong>
+(<code>confluent/start.sh</code>, <code>confluent/scripts/*</code>). Three scripts that are <strong>shared</strong> with the
+Spark path live under <strong><code>scripts/</code></strong> (<code>scripts/create_gold_views.py</code>,
+<code>scripts/reconcile_gold.py</code>, <code>scripts/check_hosts.py</code>). Paths below are exact — copy them
+verbatim.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Env toggles for the gold build</p>
+<ul>
+<li><code>CONFLUENT_GOLD_ENGINE</code> — <code>spark</code> (default) or <code>datastage</code>; picks the gold engine.</li>
+<li><code>CONFLUENT_GOLD_S3_BRIDGE</code> — <strong>legacy, default off</strong> (<code>0</code>). The durable <code>s3a://</code> fix is
+  live, so leave it off; set <code>1</code> only as a fallback for old <code>s3://</code>-pathed tables.</li>
+<li><code>WXD_SPARK_CREATE_VIEWS</code> — <strong>default on</strong> (<code>true</code>). After a Spark gold app finishes, the
+  two Presto VIEW marts are created automatically; set <code>false</code> for table-only behaviour.
+  The Confluent submitter has its own <code>--no-views</code> flag for the same effect.</li>
+</ul>
+</div>
+<h3 id="check_hostspy-validate-etchosts-for-the-cluster"><code>check_hosts.py</code> — validate <code>/etc/hosts</code> for the cluster</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>scripts/check_hosts.py
+</code></pre></div>
+<p>The cluster's wildcard DNS (<code>*.apps.watson.ibmas-zocp-techcluster.org</code>) is <strong>not</strong> on the public
+internet — every hostname must resolve to the bastion <code>9.82.206.23</code> via <code>/etc/hosts</code>. This script
+checks all required entries at once: that each hostname is present, resolves to the expected
+bastion IP, <strong>and</strong> is TCP-reachable on its port (<code>6443</code> for the API, <code>443</code> for the Routes). It
+prints the exact lines to add (with a copy-paste <code>sudo tee</code> block) for anything missing, and exits
+<code>0</code> only when every entry passes. Run it before the Spark and Confluent paths.</p>
+<h3 id="confluentstartsh-the-one-entrypoint-subcommand-driven"><code>confluent/start.sh</code> — the one entrypoint (subcommand-driven)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>bash<span class="w"> </span>confluent/start.sh<span class="w">                       </span><span class="c1"># default = --all</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--all<span class="w">                 </span><span class="c1"># full local bring-up + seed Kafka</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--silver<span class="w">              </span><span class="c1"># submit the 9 Flink jobs → silver + register</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--gold<span class="w"> </span>--engine<span class="w"> </span>spark<span class="w"> </span><span class="c1"># build confluent_demo_gold (or --engine datastage)</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--status<span class="w">              </span><span class="c1"># health + per-topic counts + UI URLs (read-only)</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--stop<span class="w">                </span><span class="c1"># stop the 7 containers, keep data/volumes</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--reset<span class="w"> </span>-y<span class="w">            </span><span class="c1"># DESTRUCTIVE wipe of the Confluent surface</span>
+</code></pre></div>
+<p>The single, idempotent orchestrator for the whole streaming stack, run from the repo root. It
+picks <strong>one</strong> action; the default is <code>--all</code>. Global options <code>-y/--yes</code> (no prompts),
+<code>--dry-run</code> (preview only), and <code>-h/--help</code> apply to every action.</p>
+<table>
+<thead>
+<tr>
+<th>Subcommand</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--all</code> <em>(default)</em></td>
+<td>Full local bring-up: ensure <code>.venv</code> + <code>requirements.txt</code>, build the <code>wxd-flink:1.20</code> image (skipped if cached), start the <strong>7</strong> long-running services (Kafka, Schema Registry, Kafbat UI, Iceberg REST, Flink JobManager + TaskManager + SQL Gateway), wait for Kafka health, create the <strong>8</strong> topics, produce all <strong>1,704</strong> seed rows, print a status summary.</td>
+</tr>
+<tr>
+<td><code>--stack</code></td>
+<td>Start <strong>only</strong> the 7 long-running containers (venv + image + services). No topics, no seeding.</td>
+</tr>
+<tr>
+<td><code>--silver</code></td>
+<td>Run the Flink silver pipeline via three <code>watsonxdata</code>-profile one-shots: <code>confluent-schema-prep</code> (Phase A — create the <code>confluent_demo_silver</code> + <code>confluent_demo_gold</code> schemas in watsonx.data), <code>confluent-flink-runner</code> (submit the 9 jobs in <code>silver_jobs.sql</code>), and <code>confluent-prep</code> (Phase B — <code>register_table</code> the 5 silver tables). <strong>Requires a reachable MinIO Route + <code>WXD_OBJECT_STORE_ENDPOINT</code> in <code>.env</code></strong> — run <code>expose_minio_route.sh</code> first.</td>
+</tr>
+<tr>
+<td><code>--gold</code></td>
+<td>Build the <code>confluent_demo_gold</code> marts from silver. Uses <code>--engine</code> (<code>spark</code> default, or <code>datastage</code>); default comes from <code>CONFLUENT_GOLD_ENGINE</code>.</td>
+</tr>
+<tr>
+<td><code>--status</code></td>
+<td>Read-only: service health, per-topic message counts (via the Kafbat API), UI URLs. Safe anytime.</td>
+</tr>
+<tr>
+<td><code>--reset</code></td>
+<td><strong>Destructive.</strong> Delegates to <code>scripts/reset_demo.sh --confluent</code>.</td>
+</tr>
+<tr>
+<td><code>--stop</code></td>
+<td>Stop the 7 containers, keep data/volumes. Restart with <code>--stack</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>UIs after start: Kafbat <code>:28080</code>, Flink Web <code>:28085</code>, SQL Gateway <code>:28083</code>, Schema Registry
+<code>:28081</code>, Iceberg REST <code>:28181</code>. Force a Flink rebuild with <code>docker rmi wxd-flink:1.20</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Topic count — 8, not 4</p>
+<p>The stack creates <strong>8 topics</strong> (4 <code>raw_*</code> + 4 <code>silver_*</code>), driven by the subcommands above
+(<code>--all</code> seeds them, <code>--silver</code>/<code>--gold</code> run the pipeline). <code>sales_enriched</code> is <strong>not</strong> a
+topic — it is a Flink stream-stream join result written straight to Iceberg.</p>
+</div>
+<h3 id="confluentscriptsingest_csv_to_kafkapy-csv-kafka-as-governed-avro"><code>confluent/scripts/ingest_csv_to_kafka.py</code> — CSV → Kafka as governed Avro</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>.venv/bin/python<span class="w"> </span>confluent/scripts/ingest_csv_to_kafka.py
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> read the 4 seed CSVs and produce each row as an <strong>Avro</strong> message; the first message
+  per topic auto-registers subject <code>&lt;topic&gt;-value</code> from <code>confluent/schemas/*.avsc</code>. The raw Kafka
+  topics ARE the replayable "bronze".</li>
+<li><strong>When:</strong> automatically, during <code>--all</code> (after the topics exist).</li>
+<li><strong>Key flags/env:</strong> <code>--bootstrap-servers</code> (def <code>localhost:29092</code>), <code>--schema-registry-url</code>
+  (def <code>http://localhost:28081</code>), <code>--csv-dir</code> (def <code>seeds/</code>), <code>--schemas-dir</code>
+  (def <code>confluent/schemas/</code>). Type coercion is driven by the <code>.avsc</code> types; a mandatory-but-empty
+  cell skips the row (data-quality).</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">The loader produces Avro, not JSON</p>
+<p>Each row is produced as <strong>Avro</strong> via <code>AvroSerializer</code> + Schema Registry (not JSON) — the
+Schema Registry holds the contract for every topic.</p>
+</div>
+<h3 id="confluentscriptsexpose_minio_routesh-open-a-door-to-the-real-object-store"><code>confluent/scripts/expose_minio_route.sh</code> — open a door to the real object store</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>bash<span class="w"> </span>confluent/scripts/expose_minio_route.sh
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> create an OpenShift edge-TLS <strong>Route</strong> to <code>ibm-lh-lakehouse-minio-svc</code> so the
+  Docker containers can read/write the real <code>iceberg-bucket</code> without a port-forward tunnel; writes
+  <code>WXD_OBJECT_STORE_ENDPOINT</code> into <code>.env</code>.</li>
+<li><strong>When:</strong> <strong>ONCE</strong>, before submitting silver.</li>
+<li><strong>Key env:</strong> <code>WXD_OPENSHIFT_API</code>, <code>WXD_OC_TOKEN</code> (or context / user+password),
+  <code>WXD_OPENSHIFT_NAMESPACE</code> (def <code>cpd-instance</code>), <code>WXD_BASTION_IP</code>. Also updates <code>/etc/hosts</code>
+  (sudo) and curls <code>/minio/health/live</code> to verify.</li>
+</ul>
+<h3 id="confluentscriptscreate-topicssh-make-the-8-topics"><code>confluent/scripts/create-topics.sh</code> — make the 8 topics</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># runs automatically; manual:</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>confluent-kafka-init
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> idempotently create 4 <code>raw_*</code> + 4 <code>silver_*</code> topics (partitions 1, replication 1).
+  Auto-create is OFF on purpose, so all lanes are made up front.</li>
+<li><strong>When:</strong> one-shot container <code>confluent-kafka-init</code>, after Kafka is healthy.</li>
+</ul>
+<h3 id="confluentscriptssubmit-flinksh-render-placeholders-submit-the-9-jobs"><code>confluent/scripts/submit-flink.sh</code> — render placeholders + submit the 9 jobs</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># runs inside the confluent-flink-runner container during --silver</span>
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> substitute <code>${WXD_OBJECT_STORE_ENDPOINT}</code>, <code>${SCHEMA_REGISTRY_URL}</code>, and
+  <code>${CONFLUENT_SILVER_SCHEMA}</code> into <code>silver_jobs.sql</code> at submit time, wait for the JobManager + SQL
+  Gateway, <strong>cancel any existing <code>kafka-raw-to-silver</code>/<code>kafka-silver-to-iceberg</code> jobs</strong> (idempotent
+  re-run guard, waits for terminal state), then submit via <code>sql-client.sh gateway</code>.</li>
+<li><strong>When:</strong> automatically, inside <code>confluent-flink-runner</code> (<code>--silver</code>).</li>
+<li><strong>Notes:</strong> fails loudly if any <code>${...}</code> placeholder survives or if <code>WXD_OBJECT_STORE_ENDPOINT</code> is
+  empty. Injects the <strong>in-container</strong> Schema Registry URL <code>http://confluent-schema-registry:8081</code>
+  (the host <code>localhost:28081</code> is unreachable from inside Docker).</li>
+</ul>
+<h3 id="confluentscriptsprep_iceberg_schemaspy-schemas-register-two-phases"><code>confluent/scripts/prep_iceberg_schemas.py</code> — schemas + register (two phases)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>python<span class="w"> </span>confluent/scripts/prep_iceberg_schemas.py<span class="w"> </span>--phase<span class="w"> </span>all
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>python<span class="w"> </span>confluent/scripts/prep_iceberg_schemas.py<span class="w"> </span>--phase<span class="w"> </span>schema<span class="w">     </span><span class="c1"># Phase A only</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>python<span class="w"> </span>confluent/scripts/prep_iceberg_schemas.py<span class="w"> </span>--phase<span class="w"> </span>register<span class="w">   </span><span class="c1"># Phase B only</span>
+</code></pre></div>
+<ul>
+<li><strong>Phase A (<code>--phase schema</code>):</strong> create both <code>confluent_demo_silver</code> and <code>confluent_demo_gold</code>
+  schemas in watsonx.data via Presto, <strong>before</strong> Flink writes. (Service <code>confluent-schema-prep</code>.)</li>
+<li><strong>Phase B (<code>--phase register</code>):</strong> after Flink checkpoints, query the local Iceberg REST catalog
+  for each silver table's current <code>metadata.json</code>, strip back to the table directory, and
+  <code>CALL iceberg_data.system.register_table(...)</code> via Presto. Retries up to ~60s per table;
+  idempotent (skips already-registered). (Service <code>confluent-prep</code>.)</li>
+<li><strong>Tables registered (5):</strong> the four <code>confluent_silver_*</code> plus <code>confluent_silver_sales_enriched</code>.</li>
+</ul>
+<h3 id="confluentscriptssubmit_confluent_goldpy-confluent-gold-via-spark-presto-views"><code>confluent/scripts/submit_confluent_gold.py</code> — Confluent gold via Spark (+ Presto VIEWs)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>python<span class="w"> </span>confluent/scripts/submit_confluent_gold.py<span class="w">                    </span><span class="c1"># dry-run (default): prints redacted payload</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>python<span class="w"> </span>confluent/scripts/submit_confluent_gold.py<span class="w"> </span>--no-dry-run<span class="w"> </span>--wait
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> POST <code>confluent/spark/confluent_gold.py</code> to the watsonx.data Spark engine. The Spark
+  app writes <strong>only</strong> <code>confluent_gold_daily_sales</code> (a TABLE). After the app <strong>FINISHES</strong>, this
+  submitter runs <code>scripts/create_gold_views.py --path confluent</code> to create the two VIEW marts via
+  Presto — the dbt-parity materialisation.</li>
+<li><strong>When:</strong> after silver is registered, with the Spark engine running (<code>CONFLUENT_GOLD_ENGINE=spark</code>).
+  Reuses the same Spark machinery/credentials as <code>submit_spark_application.py</code>.</li>
+<li><strong>Key flags:</strong> defaults to <strong>dry-run</strong>; <code>--no-dry-run</code> to actually submit; <code>--wait</code> to poll to a
+  terminal state; <code>--no-views</code> to skip the Presto VIEWs (restores old table-only/wait behaviour).
+  Default sizing 1 core / 2G driver + executor.</li>
+<li><strong>Env:</strong> the s3→s3a bridge is <strong>disabled by default</strong>; set <code>CONFLUENT_GOLD_S3_BRIDGE=1</code> only as a
+  legacy fallback for old <code>s3://</code>-pathed tables.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Why a second engine for gold?</p>
+<p>Flink excels at per-row streaming transforms, but gold is <strong>aggregation</strong> over the whole silver
+set — a batch job. So Spark (or DataStage) reads the finished silver tables and builds the
+marts. Streaming silver + batch gold is the deliberate split.</p>
+</div>
+<h3 id="confluentscriptscreate_datastage_flowpy-no-code-gold-alternative"><code>confluent/scripts/create_datastage_flow.py</code> — no-code gold alternative</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># requires CONFLUENT_GOLD_ENGINE=datastage in .env</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>python<span class="w"> </span>confluent/scripts/create_datastage_flow.py<span class="w">                    </span><span class="c1"># dry-run (default): prints the request only</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>python<span class="w"> </span>confluent/scripts/create_datastage_flow.py<span class="w"> </span>--apply<span class="w"> </span>--run
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> when <code>CONFLUENT_GOLD_ENGINE=datastage</code>, author (and optionally run) a DataStage flow
+  in CP4D project <code>ibmas-ingest-demo</code> that builds the <strong>same</strong> <code>confluent_demo_gold</code> marts. Loads a
+  parameterized JSON template, substitutes env placeholders, and POSTs to the DataStage flows API.</li>
+<li><strong>When:</strong> instead of the Spark gold job. <strong>Needs a live CP4D cluster with the DataStage cartridge.</strong></li>
+<li><strong>Key flags:</strong> default <strong>dry-run</strong> (prints the request); <code>--apply</code> to create the flow; <code>--run</code> to
+  also compile + create a job + start a run. Needs <code>WXD_DATASTAGE_PROJECT_ID</code>,
+  <code>WXD_DATASTAGE_CONNECTION_REF</code>. See the <a href="../datastage-demo/">DataStage page</a> for prerequisites.</li>
+</ul>
+<h3 id="scriptscreate_gold_viewspy-the-two-view-marts-via-presto-not-spark"><code>scripts/create_gold_views.py</code> — the two VIEW marts, via Presto (NOT Spark)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>python<span class="w"> </span>scripts/create_gold_views.py<span class="w"> </span>--path<span class="w"> </span>confluent
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>python<span class="w"> </span>scripts/create_gold_views.py<span class="w"> </span>--path<span class="w"> </span>spark
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> create <code>*_gold_category_performance</code> and <code>*_gold_customer_360</code> as catalog <strong>VIEWs</strong>
+  using the exact dbt SQL, for either <code>--path spark</code> or <code>--path confluent</code>. Idempotent: drops any
+  pre-existing table OR view at each name first; never touches <code>gold_daily_sales</code>.</li>
+<li><strong>When:</strong> automatically, after a Spark gold app finishes (invoked by <code>submit_confluent_gold.py</code>
+  and by the Spark path's own submitter); run it standalone to rebuild just the two VIEWs.</li>
+<li><strong>Why via Presto:</strong> a Spark <code>CREATE VIEW</code> produces a <strong>Hive view</strong> that watsonx PrestoDB refuses
+  ("Hive views are not supported"). So Spark writes only the table; Presto owns the two views —
+  exactly like dbt. On the Spark path this auto-run is gated by <code>WXD_SPARK_CREATE_VIEWS</code> (default on).</li>
+</ul>
+<h3 id="scriptsreconcile_goldpy-prove-3-way-gold-parity"><code>scripts/reconcile_gold.py</code> — prove 3-way gold parity</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>python<span class="w"> </span>scripts/reconcile_gold.py<span class="w">                       </span><span class="c1"># all three paths</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>python<span class="w"> </span>scripts/reconcile_gold.py<span class="w"> </span>--paths<span class="w"> </span>dbt,confluent<span class="w"> </span><span class="c1"># any subset (min 2)</span>
+</code></pre></div>
+<ul>
+<li><strong>Purpose:</strong> the verification finale for the whole repository. Symmetric <code>EXCEPT</code> (both
+  directions) of the three canonical marts across <strong>dbt / Spark / Confluent</strong>; dbt is the reference
+  when present. Read-only; prints a PASS/FAIL table; exit <code>0</code> = identical, <code>1</code> = a discrepancy.</li>
+<li><strong>When:</strong> after all gold exists. The streaming-era successor to the
+  <a href="../sql-demo/">dbt-vs-Spark SQL comparison</a>.</li>
+<li><strong>Expected parity:</strong> gold = <strong>494</strong> <code>daily_sales</code> / <strong>5</strong> <code>category_performance</code> / <strong>50</strong>
+  <code>customer_360</code>, identical across all three engines (silver counts are <strong>50 / 20 / 500 / 1134 /
+  1134</strong>).</li>
+</ul>
+<hr />
 <h3 id="8-cleanup_watsonxdatapy-drop-the-schemas">8 · <code>cleanup_watsonxdata.py</code> — drop the schemas</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>scripts/cleanup_watsonxdata.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>python<span class="w"> </span>scripts/cleanup_watsonxdata.py
 </code></pre></div>
 <p>Drops every demo schema and the tables/views inside them: <code>dbt_demo_{raw,bronze,silver,gold}</code>,
 <code>spark_demo_{bronze,silver,gold}</code>, and the cpdctl raw schema (<code>WXD_INGEST_SCHEMA</code>,
@@ -2298,8 +2902,8 @@ default <code>spark_demo_cpdctl_raw</code>).</p>
 use <code>cleanup_minio.py</code> (or the all-in-one <code>reset_demo.sh</code> below) to delete those too.</p>
 </div>
 <h3 id="9-cleanup_miniopy-delete-the-demos-minio-files">9 · <code>cleanup_minio.py</code> — delete the demo's MinIO files</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>scripts/cleanup_minio.py<span class="w"> </span>--dry-run<span class="w">   </span><span class="c1"># list what would be deleted</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>python<span class="w"> </span>scripts/cleanup_minio.py<span class="w">             </span><span class="c1"># delete</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>python<span class="w"> </span>scripts/cleanup_minio.py<span class="w"> </span>--dry-run<span class="w">   </span><span class="c1"># list what would be deleted</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>python<span class="w"> </span>scripts/cleanup_minio.py<span class="w">             </span><span class="c1"># delete</span>
 </code></pre></div>
 <p>Scoped deletion of only the demo's own prefixes inside <code>iceberg-bucket</code>: the medallion
 schema folders (Iceberg table data at the bucket root), the <code>spark_demo/</code> asset prefix
@@ -2307,10 +2911,10 @@ schema folders (Iceberg table data at the bucket root), the <code>spark_demo/</c
 whole bucket. Needs an <code>oc</code> session (MinIO has no external Route on this cluster).</p>
 <h3 id="10-reset_demosh-full-reset-for-a-100-clean-rerun">10 · <code>reset_demo.sh</code> — full reset for a 100% clean rerun</h3>
 <p>One command that resets any combination of the three demo "surfaces":</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w"> </span>--dry-run<span class="w">     </span><span class="c1"># preview a full wipe (changes nothing)</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w">               </span><span class="c1"># Docker + schemas + MinIO</span>
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>scripts/reset_demo.sh<span class="w"> </span>--docker<span class="w">            </span><span class="c1"># just the local containers/volumes/images</span>
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>scripts/reset_demo.sh<span class="w"> </span>--warehouse<span class="w"> </span>-y<span class="w">      </span><span class="c1"># drop schemas + MinIO files, skip the prompt</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w"> </span>--dry-run<span class="w">     </span><span class="c1"># preview a full wipe (changes nothing)</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w">               </span><span class="c1"># Docker + schemas + MinIO</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>scripts/reset_demo.sh<span class="w"> </span>--docker<span class="w">            </span><span class="c1"># just the local containers/volumes/images</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>scripts/reset_demo.sh<span class="w"> </span>--warehouse<span class="w"> </span>-y<span class="w">      </span><span class="c1"># drop schemas + MinIO files, skip the prompt</span>
 </code></pre></div>
 <table>
 <thead>

@@ -259,7 +259,7 @@
   
     
   
-  Build a Medallion (dbt or Spark)
+  Build a Medallion (dbt · Spark · Confluent)
 
         </a>
       </li>
@@ -602,7 +602,7 @@
   <span class="md-ellipsis">
     
   
-    When to Use Which (dbt · Spark · cpdctl)
+    When to Use Which (dbt · Spark · Confluent · cpdctl)
   
 
     
@@ -664,6 +664,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -687,7 +693,7 @@
   <span class="md-ellipsis">
     
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
     
@@ -703,7 +709,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Build a Medallion (dbt or Spark)
+    Build a Medallion (dbt · Spark · Confluent)
   
 
           </label>
@@ -752,6 +758,90 @@
     
   
     B · Spark — Python ETL (full pipeline)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — Streaming (Kafka→Flink→Iceberg)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confluent-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C · Confluent — How It Works (deep dive)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datastage-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C-alt · DataStage — No-Code Gold (Confluent path)
   
 
     
@@ -1657,6 +1747,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#streaming-confluent-flink-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Streaming (Confluent / Flink) Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Streaming (Confluent / Flink) Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flink-image-build-fails-or-is-slow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flink image build fails or is slow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jobmanager-sql-gateway-iceberg-rest-not-healthy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JobManager / SQL Gateway / iceberg-rest not healthy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-vs-https-minio-route-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        http vs https MinIO Route mismatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-registry-avro-subject-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Registry / Avro subject errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#openmetadata-errors" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2053,6 +2204,67 @@
     <span class="md-ellipsis">
       
         401 Unauthorized when running cpdctl commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#streaming-confluent-flink-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Streaming (Confluent / Flink) Errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Streaming (Confluent / Flink) Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flink-image-build-fails-or-is-slow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flink image build fails or is slow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jobmanager-sql-gateway-iceberg-rest-not-healthy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JobManager / SQL Gateway / iceberg-rest not healthy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-vs-https-minio-route-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        http vs https MinIO Route mismatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-registry-avro-subject-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Registry / Avro subject errors
       
     </span>
   </a>
@@ -2723,18 +2935,157 @@ rotated. Re-creating the profile from the current <code>.env</code> values fixes
 certificate rejection at the transport layer.</p>
 </div>
 <hr />
+<h2 id="streaming-confluent-flink-errors">Streaming (Confluent / Flink) Errors</h2>
+<p>These errors occur while running the Confluent streaming path: <code>confluent/start.sh</code>,
+the Flink silver jobs, or the Iceberg REST catalog. See the
+<a href="../confluent-demo/">Confluent walkthrough</a> for the full run order.</p>
+<hr />
+<h3 id="flink-image-build-fails-or-is-slow">Flink image build fails or is slow</h3>
+<p><code>confluent/start.sh</code> stalls at:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>▶  Step 2/5 — Build custom Flink image (wxd-flink:1.20)
+</code></pre></div>
+<p>The first run builds the custom <code>wxd-flink:1.20</code> image (Flink plus the Iceberg, Kafka, and S3
+connector jars). This downloads several hundred MB and can take a few minutes. If it <strong>fails</strong>
+part-way (network drop, Docker out of disk), the half-built image is cached and reused, which
+hides the real error.</p>
+<p><strong>Force a clean rebuild:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>docker<span class="w"> </span>rmi<span class="w"> </span>wxd-flink:1.20<span class="w">            </span><span class="c1"># remove the cached (possibly broken) image</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>wxd-flink:1.20<span class="w"> </span>-f<span class="w"> </span>confluent/flink/Dockerfile<span class="w"> </span>confluent/flink/
+</code></pre></div>
+<p>Then re-run <code>bash confluent/start.sh</code>. Check Docker Desktop has enough disk (Settings →
+Resources) if the build dies with <code>no space left on device</code>.</p>
+<hr />
+<h3 id="jobmanager-sql-gateway-iceberg-rest-not-healthy">JobManager / SQL Gateway / iceberg-rest not healthy</h3>
+<p><code>confluent/start.sh --watsonxdata</code> hangs at:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>JobManager not ready — sleeping 3s
+</code></pre></div>
+<p>or the Flink runner exits before submitting any SQL. The silver job submission
+(<code>submit-flink.sh</code>) waits for <strong>two</strong> Flink endpoints and the Iceberg REST catalog to come up:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>http://confluent-flink-jobmanager:8081/v1/overview   (JobManager)
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>http://confluent-flink-sql-gateway:8083/v1/info       (SQL Gateway)
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a>http://confluent-iceberg-rest:8181                    (Iceberg REST)
+</code></pre></div>
+<p><strong>Check each service is up and read its logs:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>ps<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>confluent
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>docker<span class="w"> </span>logs<span class="w"> </span>confluent-flink-jobmanager<span class="w">   </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>docker<span class="w"> </span>logs<span class="w"> </span>confluent-flink-sql-gateway<span class="w">  </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a>docker<span class="w"> </span>logs<span class="w"> </span>confluent-iceberg-rest<span class="w">       </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JobManager never healthy</td>
+<td>TaskManager failed to register</td>
+<td><code>docker logs confluent-flink-taskmanager</code>; restart the stack</td>
+</tr>
+<tr>
+<td>SQL Gateway <code>UnresolvedAddressException</code></td>
+<td>container hostname not resolvable</td>
+<td>the runner already uses <code>gateway</code> mode against <code>confluent-flink-sql-gateway</code>; ensure all containers share <code>confluent-network</code></td>
+</tr>
+<tr>
+<td>iceberg-rest 5xx</td>
+<td>MinIO endpoint unreachable from the container</td>
+<td>fix the MinIO Route (next item)</td>
+</tr>
+</tbody>
+</table>
+<p>From the host, the same endpoints are exposed on <code>28085</code> (Web UI), <code>28083</code> (SQL Gateway), and
+<code>28181</code> (Iceberg REST). Visit <a href="http://localhost:28085">http://localhost:28085</a> to confirm the JobManager is alive.</p>
+<hr />
+<h3 id="http-vs-https-minio-route-mismatch">http vs https MinIO Route mismatch</h3>
+<p>Flink or <code>iceberg-rest</code> fails to write Silver with an S3 / connection error such as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>software.amazon.awssdk... UnknownHostException
+</code></pre></div>
+<p>or a TLS handshake failure against the MinIO endpoint.</p>
+<p>The containers reach the <strong>real</strong> watsonx.data MinIO through an OpenShift <strong>Route</strong>. Two things
+must line up: the Route URL in <code>.env</code> and the <code>s3.endpoint</code> the Flink SQL uses. A common trap is
+a <strong>scheme mismatch</strong> — the Route terminates TLS at the edge (HTTPS from outside) but Flink/iceberg
+inside the Docker network may be configured for plain <strong>HTTP</strong> to the same hostname.</p>
+<p><strong>Re-create the Route and sync <code>.env</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>bash<span class="w"> </span>confluent/scripts/expose_minio_route.sh
+</code></pre></div>
+<p>This (re)creates <code>ibm-lh-minio-route</code>, writes the correct
+<code>WXD_OBJECT_STORE_ENDPOINT=https://ibm-lh-minio-route-...</code> into <code>.env</code>, adds the hostname to
+<code>/etc/hosts</code>, and curls the health endpoint to confirm it returns <code>200</code>.</p>
+<p><strong>Verify the hostname resolves to the bastion</strong> (the Route is only reachable via <code>9.82.206.23</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>python<span class="w"> </span>scripts/check_hosts.py
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Match the scheme everywhere</p>
+<p>If you change the MinIO endpoint between <code>http://</code> and <code>https://</code>, change it <strong>consistently</strong>:
+<code>WXD_OBJECT_STORE_ENDPOINT</code> in <code>.env</code>, the <code>s3.endpoint</code> in
+<code>confluent/flink/sql/silver_jobs.sql</code>, and the iceberg-rest container config must all use the
+same scheme and hostname, or one side will fail the handshake.</p>
+</div>
+<hr />
+<h3 id="schema-registry-avro-subject-errors">Schema Registry / Avro subject errors</h3>
+<p>Producing or consuming fails with a Schema Registry error such as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>Subject &#39;raw_orders-value&#39; not found
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>Schema being registered is incompatible with an earlier schema
+</code></pre></div>
+<p>The Schema Registry (host port <code>28081</code>, in-container <code>http://confluent-schema-registry:8081</code>)
+governs the schema for each topic. <code>Subject not found</code> means nothing has registered that topic's
+schema yet; the incompatibility error means a producer tried to publish a shape that violates the
+subject's compatibility rules.</p>
+<p><strong>Check the registry is up and list subjects:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:28081/subjects
+<a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:28081/subjects/raw_orders-value/versions/latest
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Subject ... not found</code></td>
+<td>schema not registered yet</td>
+<td>re-run the producer; for JSON seed payloads no subject is required — confirm you are using the Avro path</td>
+</tr>
+<tr>
+<td><code>incompatible with an earlier schema</code></td>
+<td>column type/name changed</td>
+<td>bump compatibility mode, or delete the stale subject in a dev environment: <code>curl -X DELETE http://localhost:28081/subjects/&lt;subject&gt;</code></td>
+</tr>
+<tr>
+<td>connection refused on <code>28081</code></td>
+<td>registry container down</td>
+<td><code>docker logs confluent-schema-registry \| tail -30</code> and restart the stack</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">The seed loader uses JSON today</p>
+<p>The demo's seed loader produces JSON with the CSV column names, so it does <strong>not</strong> require a
+registered Avro subject. The Schema Registry is in the stack as the governance layer for when
+you enforce Avro schemas — the errors above apply once you switch producers to Avro.</p>
+</div>
+<hr />
 <h2 id="openmetadata-errors">OpenMetadata Errors</h2>
 <p>These errors occur during the OpenMetadata lineage demo at <code>localhost:8585</code>.</p>
 <hr />
 <h3 id="openmetadata-not-ready-after-10-minutes">OpenMetadata not ready after 10 minutes</h3>
 <p>The <code>curl</code> health poll keeps printing:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>waiting for OpenMetadata...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>waiting for OpenMetadata...
 </code></pre></div>
 <p>and never prints a version response.</p>
 <p>Docker is still pulling images or the JVM inside the OpenMetadata container is still
 starting. The first pull downloads approximately 3 GB.</p>
 <p><strong>Check the server container logs:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>openmetadata/docker-compose.yml<span class="w"> </span>logs<span class="w"> </span>openmetadata-server<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>openmetadata/docker-compose.yml<span class="w"> </span>logs<span class="w"> </span>openmetadata-server<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
 </code></pre></div>
 <p>Look for <code>INFO: Started server process</code> near the bottom. If you see Java stack traces, wait
 two more minutes and check again — JVM cold start is the slowest part.</p>
@@ -2749,36 +3100,36 @@ The long wait only happens the first time.</p>
 <hr />
 <h3 id="401-unauthorized-during-ingestion">401 Unauthorized during ingestion</h3>
 <p>The ingestion script exits with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>ERROR - 401 Unauthorized: JWT token is invalid or expired
+<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>ERROR - 401 Unauthorized: JWT token is invalid or expired
 </code></pre></div>
 <p>OpenMetadata issues short-lived JWT tokens. If the Docker containers were stopped and
 restarted since the script last ran, the old token in the YAML config is no longer valid.</p>
 <p><strong>Rerun the ingestion script — it fetches a fresh token automatically:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
 </code></pre></div>
 <p>The script calls the OpenMetadata API to get a new token, substitutes it into the YAML
 config, and runs <code>metadata ingest</code> with the fresh credentials.</p>
 <hr />
 <h3 id="catalogjson-missing-or-not-found"><code>catalog.json</code> missing or not found</h3>
 <p>The ingestion script exits with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>ERROR - catalog.json not found at openmetadata/dbt-artifacts/catalog.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a>ERROR - catalog.json not found at openmetadata/dbt-artifacts/catalog.json
 </code></pre></div>
 <p>or OpenMetadata shows models without column details.</p>
 <p><code>catalog.json</code> is only produced by <code>dbt docs generate</code>, not by <code>dbt run</code> or <code>dbt test</code>.
 It requires a live Presto connection because it queries the warehouse for column metadata.</p>
 <p><strong>Generate the artifacts and copy them:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>docs<span class="w"> </span>generate<span class="w"> </span>--no-compile
-<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>cp<span class="w"> </span>target/manifest.json<span class="w"> </span>target/catalog.json<span class="w"> </span>target/run_results.json<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a><span class="w">   </span>openmetadata/dbt-artifacts/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>docs<span class="w"> </span>generate<span class="w"> </span>--no-compile
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>cp<span class="w"> </span>target/manifest.json<span class="w"> </span>target/catalog.json<span class="w"> </span>target/run_results.json<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="w">   </span>openmetadata/dbt-artifacts/
 </code></pre></div>
 <p><strong>If Presto is temporarily unavailable</strong>, you can still show lineage from <code>manifest.json</code>
 alone by skipping the catalog step:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py<span class="w"> </span>--skip-dbt
-<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py<span class="w"> </span>--skip-dbt
+<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
 </code></pre></div>
 <p>Then rerun the full artifact generation when Presto recovers:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
-<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title"><code>manifest.json</code> vs <code>catalog.json</code></p>
@@ -2789,12 +3140,12 @@ works — you just see fewer column details in the table pages.</p>
 <hr />
 <h3 id="package-version-mismatch-during-ingestion">Package version mismatch during ingestion</h3>
 <p>The ingestion script fails with a pip error such as:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>ERROR: No matching distribution found for openmetadata-ingestion[dbt]==1.13.0.0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>ERROR: No matching distribution found for openmetadata-ingestion[dbt]==1.13.0.0
 </code></pre></div>
 <p>The pinned version <code>1.13.0.0</code> is no longer available from the package index. Install without
 a version pin and rerun:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;openmetadata-ingestion[dbt]&quot;</span>
-<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;openmetadata-ingestion[dbt]&quot;</span>
+<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
 </code></pre></div>
 <hr />
 <h2 id="general-presto-watsonxdata-errors">General Presto / watsonx.data Errors</h2>
@@ -2803,10 +3154,10 @@ or the watsonx.data API.</p>
 <hr />
 <h3 id="503-service-unavailable">503 Service Unavailable</h3>
 <p>Any script that connects to Presto returns:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>503 Service Unavailable
+<div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a>503 Service Unavailable
 </code></pre></div>
 <p>or:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>requests.exceptions.HTTPError: 503 Server Error: Service Unavailable
+<div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>requests.exceptions.HTTPError: 503 Server Error: Service Unavailable
 </code></pre></div>
 <p>The Presto cluster is restarting or temporarily overloaded. This is transient — the cluster
 does not need user intervention.</p>
@@ -2823,27 +3174,27 @@ see a 503.</p>
 <hr />
 <h3 id="ssl-certificate-error-all-tools">SSL certificate error (all tools)</h3>
 <p>Any command that talks to the cluster exits with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED]
 </code></pre></div>
 <p>or:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
+<div class="highlight"><pre><span></span><code><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate
 </code></pre></div>
 <p>The watsonx.data cluster uses a certificate issued by an internal OpenShift CA. Your tools
 need to trust that CA. The certificate file must be present at <code>certs/watsonxdata-ca.pem</code>
 and pointed to by the right environment variable for each tool.</p>
 <p><strong>For Python scripts and dbt (via <code>WXD_SSL_VERIFY</code> in <code>.env</code>):</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="c1"># Confirm the file exists</span>
-<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>ls<span class="w"> </span>certs/watsonxdata-ca.pem
-<a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a>
-<a id="__codelineno-59-4" name="__codelineno-59-4" href="#__codelineno-59-4"></a><span class="c1"># If missing, regenerate it</span>
-<a id="__codelineno-59-5" name="__codelineno-59-5" href="#__codelineno-59-5"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+<div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a><span class="c1"># Confirm the file exists</span>
+<a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>ls<span class="w"> </span>certs/watsonxdata-ca.pem
+<a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a>
+<a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a><span class="c1"># If missing, regenerate it</span>
+<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
 </code></pre></div>
 <p><strong>For cpdctl (via <code>SSL_CERT_FILE</code> environment variable):</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
 </code></pre></div>
 <p><strong>For general Python requests (fallback):</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
-<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">REQUESTS_CA_BUNDLE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
+<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">REQUESTS_CA_BUNDLE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem&quot;</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Do not use <code>--insecure</code> or <code>verify=False</code></p>
@@ -2853,10 +3204,10 @@ Fix the certificate path instead — it takes 30 seconds and keeps your credenti
 <hr />
 <h3 id="mkdocs-port-already-in-use">MkDocs port already in use</h3>
 <p><code>mkdocs serve</code> exits with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>ERROR - Address already in use: 127.0.0.1:8000
+<div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a>ERROR - Address already in use: 127.0.0.1:8000
 </code></pre></div>
 <p>Another process is already using port 8000. Choose any free port:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>mkdocs<span class="w"> </span>serve<span class="w"> </span>-a<span class="w"> </span><span class="m">127</span>.0.0.1:8001
+<div class="highlight"><pre><span></span><code><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a>mkdocs<span class="w"> </span>serve<span class="w"> </span>-a<span class="w"> </span><span class="m">127</span>.0.0.1:8001
 </code></pre></div>
 <p>Then open <code>http://127.0.0.1:8001</code> in your browser.</p>
 <hr />
@@ -2866,10 +3217,10 @@ engine's Applications tab.</p>
 <p>The dry-run flag is set to <code>true</code>, which prints the job payload without sending it to the
 cluster. This is intentional for verifying config — set the flag to <code>false</code> to submit for
 real:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/submit_spark_application.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/submit_spark_application.py
 </code></pre></div>
 <p>Or set it permanently in <code>.env</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span>
 </code></pre></div>
 
 
