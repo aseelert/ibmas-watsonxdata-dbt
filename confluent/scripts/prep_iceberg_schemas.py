@@ -24,14 +24,11 @@
 #  ENV VARS (read from .env via python-dotenv):
 #    WXD_USER, WXD_API_KEY, WXD_HOST, WXD_PORT, WXD_INSTANCE_ID,
 #    WXD_SSL_VERIFY, WXD_CATALOG (default: iceberg_data)
-#    CONFLUENT_SILVER_SCHEMA    (default: confluent_silver)
-#    CONFLUENT_TABLEFLOW_SCHEMA (default: confluent_tableflow)
+#    CONFLUENT_SILVER_SCHEMA    (default: confluent_demo_silver)
 #    ICEBERG_REST_URL           (default: http://confluent-iceberg-rest:8181)
 #
-#  PREREQUISITES
-#    presto-python-client==0.8.4  (already in requirements.txt)
-#    requests>=2.31               (already in requirements.txt)
-#    python-dotenv>=1.0           (already in requirements.txt)
+#  PREREQUISITES  (all in requirements.txt — installed into .venv)
+#    pip install -r requirements.txt   # or: bash confluent/start.sh (auto-installs)
 # =============================================================================
 from __future__ import annotations
 
@@ -65,13 +62,13 @@ except ImportError as exc:
 
 ROOT = Path(__file__).resolve().parents[2]
 
-# Silver tables Flink produces — must match silver_jobs.sql
+# Silver tables Flink produces — must match silver_jobs.sql sink table names
 SILVER_TABLES = [
-    "silver_customers",
-    "silver_products",
-    "silver_orders",
-    "silver_order_items",
-    "silver_sales_enriched",
+    "confluent_silver_customers",
+    "confluent_silver_products",
+    "confluent_silver_orders",
+    "confluent_silver_order_items",
+    "confluent_silver_sales_enriched",
 ]
 
 
@@ -144,15 +141,13 @@ def _execute(cur, sql: str, swallow: bool = False) -> bool:
 # ---------------------------------------------------------------------------
 
 def phase_schema() -> int:
-    silver_schema = os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_silver")
-    tableflow_schema = os.getenv("CONFLUENT_TABLEFLOW_SCHEMA", "confluent_tableflow")
+    silver_schema = os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_demo_silver")
 
     conn, catalog = _presto_connect()
     cur = conn.cursor()
 
-    for schema in [silver_schema, tableflow_schema]:
-        _execute(cur, f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
-        print(f"ensured {catalog}.{schema}")
+    _execute(cur, f"CREATE SCHEMA IF NOT EXISTS {catalog}.{silver_schema}")
+    print(f"ensured {catalog}.{silver_schema}")
 
     print("[OK] Phase A complete — schemas ready.")
     return 0
@@ -180,7 +175,7 @@ def _get_metadata_location(iceberg_rest_url: str, namespace: str, table: str) ->
 
 
 def phase_register() -> int:
-    silver_schema = os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_silver")
+    silver_schema = os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_demo_silver")
     iceberg_rest = os.getenv("ICEBERG_REST_URL", "http://confluent-iceberg-rest:8181")
 
     conn, catalog = _presto_connect()
@@ -217,22 +212,30 @@ def phase_register() -> int:
             print(f"  ERROR: could not find metadata location for {table} — skipping")
             continue
 
-        # metadata_loc from local REST catalog uses s3:// — keep as-is,
-        # Presto uses the same bucket path since Flink wrote to the real iceberg-bucket
-        print(f"  metadata_location for {table}: {metadata_loc}")
+        # Presto's register_table(schema, table, location) expects the TABLE LOCATION
+        # directory (not the metadata file path). Strip the /metadata/<file>.metadata.json
+        # suffix so Presto can discover the latest metadata.json automatically.
+        # e.g. s3://iceberg-bucket/.../silver_customers/metadata/00002-....metadata.json
+        #   →  s3://iceberg-bucket/.../silver_customers
+        table_location = metadata_loc
+        if "/metadata/" in metadata_loc and metadata_loc.endswith(".metadata.json"):
+            table_location = metadata_loc[: metadata_loc.rfind("/metadata/")]
+        print(f"  table_location for {table}: {table_location}")
 
+        # watsonx.data Presto uses positional arguments (not named).
+        # Pass the TABLE LOCATION directory — Presto discovers metadata.json from it.
         sql = (
             f"CALL {catalog}.system.register_table("
-            f"schema_name => '{silver_schema}', "
-            f"table_name => '{table}', "
-            f"metadata_location => '{metadata_loc}'"
+            f"'{silver_schema}', "
+            f"'{table}', "
+            f"'{table_location}'"
             f")"
         )
         if _execute(cur, sql, swallow=True):
             print(f"  registered {catalog}.{silver_schema}.{table} ✓")
             registered_count += 1
         else:
-            print(f"  WARN: register_table call failed for {table}")
+            print(f"  WARN: register_table failed for {table}")
 
     print(
         f"\n[OK] Phase B complete — "

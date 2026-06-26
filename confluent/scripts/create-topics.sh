@@ -14,7 +14,9 @@ until kafka-topics --bootstrap-server "${BROKER}" --list >/dev/null 2>&1; do
 done
 echo "Broker ready."
 
-for TOPIC in raw_customers raw_products raw_orders raw_order_items; do
+for TOPIC in \
+  raw_customers raw_products raw_orders raw_order_items \
+  silver_customers silver_products silver_orders silver_order_items; do
   kafka-topics \
     --bootstrap-server "${BROKER}" \
     --create \

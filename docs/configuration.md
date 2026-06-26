@@ -174,20 +174,48 @@ have a sensible default in the template). Variables shown commented-out are opti
 | `WXD_SPARK_APPLICATION` / `WXD_SPARK_INPUT_BASE` | manual | S3 paths to the uploaded PySpark app and raw CSVs. |
 | `WXD_SPARK_DRY_RUN` | manual (default `true`) | `true` prints the job payload without submitting. |
 
-### Object store (MinIO) — Spark uploads
+### Object store (MinIO) — Spark uploads and Confluent streaming
 
-!!! warning "MinIO is reachable only through `oc` on this cluster"
-    `ibm-lh-lakehouse-minio-svc` is a **ClusterIP** service with **no Route**, so it is **not**
-    reachable from your workstation directly. The Spark upload therefore needs `oc` to open a
-    port-forward. Setting `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` by hand only skips *reading
-    the secret* — it does **not** remove the tunnel. Pointing `WXD_OBJECT_STORE_ENDPOINT` at a
-    non-localhost URL works only if an administrator first exposes MinIO via an OpenShift **Route**
-    (which places object storage on the network — a deliberate security decision). The S3 transfer
-    itself is pure Python (boto3); `oc` only provides the tunnel and reads the secret.
+!!! info "MinIO is exposed via an OpenShift Route on this cluster"
+    `ibm-lh-lakehouse-minio-svc` is a **ClusterIP** service. An OpenShift **Route** has been created
+    (`ibm-lh-minio-route`) that exposes it externally over HTTPS through the cluster HAProxy bastion
+    (`9.82.206.23:443`). This means Docker containers (Flink, iceberg-rest) and local Python scripts
+    can reach MinIO directly — no `oc port-forward` tunnel is needed.
+
+    **`WXD_OBJECT_STORE_ENDPOINT` must be set to the Route URL:**
+    ```
+    WXD_OBJECT_STORE_ENDPOINT=https://ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+    ```
+
+    The Route URL must also be resolvable from your workstation. Because the cluster uses a private
+    DNS zone (`*.apps.watson.ibmas-zocp-techcluster.org`), you need the entries below in
+    `/etc/hosts` — or verify them with `python scripts/check_hosts.py`.
+
+!!! warning "Required `/etc/hosts` entries (workstation)"
+    The cluster's wildcard DNS (`*.apps.watson.ibmas-zocp-techcluster.org`) is not published to
+    the public internet. All cluster routes are reachable via the bastion HAProxy at `9.82.206.23`
+    which forwards both port 80 and 443 to the ingress VIP. Your workstation must have the
+    following entries in `/etc/hosts` (macOS: `/etc/hosts`, Linux: `/etc/hosts`,
+    Windows: `C:\Windows\System32\drivers\etc\hosts`):
+
+    ```text
+    9.82.206.23  api.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  api-int.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  console-openshift-console.apps.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  oauth-openshift.apps.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  downloads-openshift-console.apps.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  ibm-lh-lakehouse-cas-svc-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+    9.82.206.23  ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+    ```
+
+    Run `python scripts/check_hosts.py` to validate all entries at once. The script checks
+    both DNS resolution and TCP reachability for each required hostname.
 
 | Variable | Source | Meaning |
 |---|---|---|
-| `WXD_OBJECT_STORE_ENDPOINT` | manual | S3 endpoint the uploader writes to (on this cluster `http://127.0.0.1:19000` via port-forward). |
+| `WXD_OBJECT_STORE_ENDPOINT` | manual | S3 endpoint — set to the Route URL above (`https://ibm-lh-minio-route-cpd-instance.apps...`). The old port-forward value (`http://127.0.0.1:19000`) still works for local-only Spark uploads if no Route is available. |
 | `WXD_OBJECT_STORE_INTERNAL_ENDPOINT` | manual | In-cluster MinIO service URL — only resolvable inside the cluster, not from a laptop. |
 | `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | manual *or* auto from `oc` | MinIO credentials. If unset, the uploader reads them from the OpenShift secret. Setting them manually **still requires the `oc` port-forward** unless MinIO is exposed via a Route. |
 | `WXD_OBJECT_STORE_AUTO_PORT_FORWARD` | manual (default `true`) | Auto-start `oc port-forward` when the endpoint is `127.0.0.1`. |

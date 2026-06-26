@@ -45,20 +45,41 @@ if [[ -n "${WXD_OPENSHIFT_CONTEXT:-}" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 1. Ensure oc is logged in
+# 1. Ensure oc is logged in to the correct cluster
+#    Priority: WXD_OPENSHIFT_CONTEXT (existing kubeconfig context, fastest)
+#              > WXD_OC_TOKEN  > WXD_OC_USER/WXD_OC_PASSWORD
+#    Always re-login if the current server doesn't match WXD_OPENSHIFT_API.
 # ---------------------------------------------------------------------------
-if ! oc "${CTX_ARGS[@]}" whoami --show-server >/dev/null 2>&1; then
-  if [[ -z "${WXD_OC_TOKEN:-}" ]]; then
-    echo "ERROR: Not logged in with oc and WXD_OC_TOKEN is not set." >&2
-    echo "  Either run:  oc login ${WXD_OPENSHIFT_API:-<api-url>}" >&2
-    echo "  Or set WXD_OC_TOKEN in .env" >&2
-    exit 1
-  fi
-  echo "Logging in to OpenShift as token..."
-  oc "${CTX_ARGS[@]}" login "${WXD_OPENSHIFT_API}" --token="${WXD_OC_TOKEN}"
+TARGET_API="${WXD_OPENSHIFT_API:-}"
+if [[ -z "$TARGET_API" ]]; then
+  echo "ERROR: WXD_OPENSHIFT_API is not set in .env." >&2
+  exit 1
 fi
 
-echo "Connected: $(oc "${CTX_ARGS[@]}" whoami --show-server)"
+CURRENT_SERVER=$(oc "${CTX_ARGS[@]}" whoami --show-server 2>/dev/null || true)
+
+# Normalise both URLs (strip trailing slash) for comparison
+_norm() { echo "${1%/}"; }
+
+if [[ "$(_norm "$CURRENT_SERVER")" == "$(_norm "$TARGET_API")" ]]; then
+  echo "Already connected to ${TARGET_API}"
+elif [[ -n "${WXD_OC_TOKEN:-}" ]]; then
+  echo "Logging in to ${TARGET_API} with WXD_OC_TOKEN ..."
+  oc "${CTX_ARGS[@]}" login "${TARGET_API}" \
+    --token="${WXD_OC_TOKEN}" \
+    --insecure-skip-tls-verify=true
+elif [[ -n "${WXD_OC_USER:-}" && -n "${WXD_OC_PASSWORD:-}" ]]; then
+  echo "Logging in to ${TARGET_API} as ${WXD_OC_USER} ..."
+  oc "${CTX_ARGS[@]}" login "${TARGET_API}" \
+    --username="${WXD_OC_USER}" \
+    --password="${WXD_OC_PASSWORD}" \
+    --insecure-skip-tls-verify=true
+else
+  echo "ERROR: Cannot log in — set WXD_OPENSHIFT_CONTEXT, WXD_OC_TOKEN, or WXD_OC_USER+WXD_OC_PASSWORD in .env." >&2
+  exit 1
+fi
+
+echo "Connected: $(oc "${CTX_ARGS[@]}" whoami) @ $(oc "${CTX_ARGS[@]}" whoami --show-server)"
 
 # ---------------------------------------------------------------------------
 # 2. Create the Route (edge TLS — HTTPS from outside, HTTP inside cluster)
@@ -83,19 +104,64 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Read the assigned hostname and print instructions
+# 3. Read the assigned hostname
 # ---------------------------------------------------------------------------
 MINIO_HOST=$(oc "${CTX_ARGS[@]}" -n "${NAMESPACE}" \
   get route "${ROUTE_NAME}" \
   -o jsonpath='{.spec.host}')
 
+MINIO_URL="https://${MINIO_HOST}"
+
+# ---------------------------------------------------------------------------
+# 4. Add to /etc/hosts if not already present (needs sudo on macOS/Linux)
+#
+#    The bastion IP is the public IP that forwards *.apps.* port 443 to the
+#    cluster ingress VIP — derived from any existing apps.* /etc/hosts entry.
+#    Override by setting BASTION_IP env var or WXD_BASTION_IP in .env.
+# ---------------------------------------------------------------------------
+BASTION_IP="${WXD_BASTION_IP:-$(grep -m1 "\.apps\." /etc/hosts 2>/dev/null | awk '{print $1}')}"
+
+if [[ -z "$BASTION_IP" ]]; then
+  warn "Could not detect bastion IP from /etc/hosts."
+  warn "Run manually:"
+  warn "  echo '9.82.206.23 ${MINIO_HOST}' | sudo tee -a /etc/hosts"
+elif grep -qF "${MINIO_HOST}" /etc/hosts 2>/dev/null; then
+  echo "/etc/hosts already contains ${MINIO_HOST} — skipping."
+else
+  echo "Adding to /etc/hosts: ${BASTION_IP} ${MINIO_HOST} (requires sudo)..."
+  echo "${BASTION_IP} ${MINIO_HOST}" | sudo tee -a /etc/hosts
+  echo "/etc/hosts updated."
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Update WXD_OBJECT_STORE_ENDPOINT in .env
+# ---------------------------------------------------------------------------
+if grep -qE "^WXD_OBJECT_STORE_ENDPOINT=" "$REPO/.env" 2>/dev/null; then
+  sed -i '' "s|^WXD_OBJECT_STORE_ENDPOINT=.*|WXD_OBJECT_STORE_ENDPOINT=${MINIO_URL}|" "$REPO/.env"
+  echo ".env updated: WXD_OBJECT_STORE_ENDPOINT=${MINIO_URL}"
+else
+  echo "WXD_OBJECT_STORE_ENDPOINT=${MINIO_URL}" >> "$REPO/.env"
+  echo ".env appended: WXD_OBJECT_STORE_ENDPOINT=${MINIO_URL}"
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Verify the Route is reachable
+# ---------------------------------------------------------------------------
+echo ""
+echo "Testing Route connectivity..."
+HTTP_CODE=$(curl -sk "${MINIO_URL}/minio/health/live" -o /dev/null -w "%{http_code}" 2>/dev/null || echo "000")
+if [[ "$HTTP_CODE" == "200" ]]; then
+  echo "  MinIO Route reachable — HTTP ${HTTP_CODE} ✓"
+else
+  echo "  WARNING: MinIO Route returned HTTP ${HTTP_CODE} — may need a moment or /etc/hosts entry."
+  echo "  Retry with:  curl -sk ${MINIO_URL}/minio/health/live -o /dev/null -w '%{http_code}'"
+fi
+
 echo ""
 echo "============================================================"
 echo " MinIO Route ready:"
-echo "   https://${MINIO_HOST}"
+echo "   ${MINIO_URL}"
 echo ""
-echo " Add or update this line in your .env:"
-echo "   WXD_OBJECT_STORE_ENDPOINT=https://${MINIO_HOST}"
-echo ""
-echo " Then run:  docker compose up -d"
+echo " WXD_OBJECT_STORE_ENDPOINT updated in .env ✓"
+echo " Run:  docker compose up -d"
 echo "============================================================"

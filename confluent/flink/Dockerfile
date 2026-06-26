@@ -32,18 +32,34 @@ RUN curl -fsSL \
 RUN cp /opt/flink/opt/flink-s3-fs-hadoop-${FLINK_VER}.jar /opt/flink/lib/
 
 # ---------------------------------------------------------------------------
-# 4. Hadoop AWS S3A connector + AWS SDK bundle (needed for real MinIO writes)
+# 4. Hadoop JARs (unshaded) — provide HdfsConfiguration and Hadoop classes
 # ---------------------------------------------------------------------------
+# hadoop-common + hadoop-hdfs-client: real (unshaded) Hadoop classes required
+# by Flink's HadoopModuleFactory and flink-s3-fs-hadoop plugin at startup.
+# hadoop-aws: S3A connector that bridges hadoop-common to AWS SDK.
+RUN curl -fsSL \
+  "${MAVEN}/org/apache/hadoop/hadoop-common/${HADOOP_AWS_VER}/hadoop-common-${HADOOP_AWS_VER}.jar" \
+  -o /opt/flink/lib/hadoop-common-${HADOOP_AWS_VER}.jar
+
+RUN curl -fsSL \
+  "${MAVEN}/org/apache/hadoop/hadoop-hdfs-client/${HADOOP_AWS_VER}/hadoop-hdfs-client-${HADOOP_AWS_VER}.jar" \
+  -o /opt/flink/lib/hadoop-hdfs-client-${HADOOP_AWS_VER}.jar
+
 RUN curl -fsSL \
   "${MAVEN}/org/apache/hadoop/hadoop-aws/${HADOOP_AWS_VER}/hadoop-aws-${HADOOP_AWS_VER}.jar" \
   -o /opt/flink/lib/hadoop-aws-${HADOOP_AWS_VER}.jar
 
+# ---------------------------------------------------------------------------
+# 5. Iceberg AWS bundle — provides AWS SDK v2 classes for Iceberg S3FileIO
+# ---------------------------------------------------------------------------
+# iceberg-aws-bundle bundles software.amazon.awssdk (SDK v2) shaded inside,
+# satisfying the S3FileIO dependency that iceberg-flink-runtime expects.
 RUN curl -fsSL \
-  "${MAVEN}/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK_VER}/aws-java-sdk-bundle-${AWS_SDK_VER}.jar" \
-  -o /opt/flink/lib/aws-java-sdk-bundle-${AWS_SDK_VER}.jar
+  "${MAVEN}/org/apache/iceberg/iceberg-aws-bundle/${ICEBERG_VER}/iceberg-aws-bundle-${ICEBERG_VER}.jar" \
+  -o /opt/flink/lib/iceberg-aws-bundle-${ICEBERG_VER}.jar
 
 # ---------------------------------------------------------------------------
-# 5. Classpath so Hadoop S3A picks up all JARs
+# 6. Classpath so Hadoop S3A picks up all JARs
 # ---------------------------------------------------------------------------
 ENV HADOOP_CLASSPATH=/opt/flink/lib
 

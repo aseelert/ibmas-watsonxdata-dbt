@@ -10,9 +10,9 @@
 #    message to the matching Kafka topic. Nothing more — raw CSV rows as JSON,
 #    column names preserved exactly as CSV headers.
 #
-#  USAGE
-#    python confluent/scripts/ingest_csv_to_kafka.py
-#    python confluent/scripts/ingest_csv_to_kafka.py \
+#  USAGE (from repo root, using .venv)
+#    .venv/bin/python confluent/scripts/ingest_csv_to_kafka.py
+#    .venv/bin/python confluent/scripts/ingest_csv_to_kafka.py \
 #      --bootstrap-servers localhost:29092 \
 #      --csv-dir seeds/
 #
@@ -20,8 +20,8 @@
 #    KAFKA_BOOTSTRAP_SERVERS  — default: localhost:29092
 #    CSV_BASE_DIR             — default: seeds/  (relative to repo root)
 #
-#  PREREQUISITES
-#    pip install confluent-kafka python-dotenv
+#  PREREQUISITES  (already in requirements.txt — installed into .venv)
+#    pip install -r requirements.txt   # or: bash confluent/start.sh (auto-installs)
 # =============================================================================
 from __future__ import annotations
 
@@ -45,7 +45,8 @@ except ImportError as exc:
         "Install with: pip install confluent-kafka"
     ) from exc
 
-ROOT = Path(__file__).resolve().parents[2]
+_script = Path(__file__).resolve()
+ROOT = _script.parents[2] if len(_script.parents) > 2 else _script.parent
 
 # Map CSV filename stem → Kafka topic name
 TOPIC_MAP = {

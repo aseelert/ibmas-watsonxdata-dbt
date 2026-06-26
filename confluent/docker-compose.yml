@@ -138,7 +138,7 @@ services:
       - ../.env
     environment:
       # Warehouse on the real iceberg-bucket via the OpenShift Route
-      CATALOG_WAREHOUSE: "s3://iceberg-bucket/confluent_silver/"
+      CATALOG_WAREHOUSE: "s3://iceberg-bucket/confluent_demo_silver/"
       # Route URL set by expose_minio_route.sh (WXD_OBJECT_STORE_ENDPOINT in .env)
       CATALOG_S3_ENDPOINT: "${WXD_OBJECT_STORE_ENDPOINT}"
       CATALOG_S3_PATH__STYLE__ACCESS: "true"
@@ -170,7 +170,6 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
-        rest.address: 0.0.0.0
         rest.bind-address: 0.0.0.0
         execution.checkpointing.interval: 30000
         parallelism.default: 2
@@ -196,12 +195,16 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
-        taskmanager.numberOfTaskSlots: 8
-        taskmanager.memory.process.size: 2048m
+        taskmanager.numberOfTaskSlots: 16
+        taskmanager.memory.process.size: 3072m
         s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
         s3.path.style.access: true
         s3.access-key: ${WXD_OBJECT_STORE_ACCESS_KEY}
         s3.secret-key: ${WXD_OBJECT_STORE_SECRET_KEY}
+      # AWS SDK v2 (iceberg-aws-bundle) requires AWS_REGION env var
+      AWS_REGION: "${WXD_OBJECT_STORE_REGION:-us-east-1}"
+      AWS_ACCESS_KEY_ID: "${WXD_OBJECT_STORE_ACCESS_KEY}"
+      AWS_SECRET_ACCESS_KEY: "${WXD_OBJECT_STORE_SECRET_KEY}"
     depends_on:
       confluent-flink-jobmanager:
         condition: service_healthy
@@ -219,6 +222,7 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
+        rest.address: confluent-flink-jobmanager
         sql-gateway.endpoint.rest.address: 0.0.0.0
         sql-gateway.endpoint.rest.port: 8083
         s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
@@ -249,10 +253,13 @@ services:
 
   # ---------------------------------------------------------------------------
   # One-shot: create watsonx.data schemas via Presto (Phase A — before Flink)
+  # Only runs when profile "watsonxdata" is active:
+  #   docker compose --profile watsonxdata up
   # ---------------------------------------------------------------------------
   confluent-schema-prep:
     image: python:3.12-slim
     container_name: confluent-schema-prep
+    profiles: [watsonxdata]
     networks:
       - confluent-network
     extra_hosts:
@@ -262,6 +269,7 @@ services:
       - ../scripts:/repo-scripts:ro
       - ../certs:/app/certs:ro
       - ../.env:/app/.env:ro
+      - ../requirements.txt:/requirements.txt:ro
     working_dir: /app
     env_file:
       - ../.env
@@ -269,9 +277,10 @@ services:
       - /bin/sh
       - -c
       - |
-        pip install --quiet presto-python-client requests python-dotenv && \
+        python -m venv /opt/venv && \
+        /opt/venv/bin/pip install --quiet -r /requirements.txt && \
         cp /scripts/prep_iceberg_schemas.py . && \
-        python prep_iceberg_schemas.py --phase schema
+        /opt/venv/bin/python prep_iceberg_schemas.py --phase schema
     depends_on:
       confluent-kafka-init:
         condition: service_completed_successfully
@@ -279,10 +288,13 @@ services:
 
   # ---------------------------------------------------------------------------
   # One-shot: submit Flink SQL jobs (runs after schemas created + iceberg-rest ready)
+  # Only runs when profile "watsonxdata" is active:
+  #   docker compose --profile watsonxdata up
   # ---------------------------------------------------------------------------
   confluent-flink-runner:
     <<: *flink-common
     container_name: confluent-flink-runner
+    profiles: [watsonxdata]
     hostname: confluent-flink-runner
     volumes:
       - ./flink/sql/silver_jobs.sql:/opt/sql/silver_jobs.sql:ro
@@ -296,6 +308,8 @@ services:
         s3.access-key: ${WXD_OBJECT_STORE_ACCESS_KEY}
         s3.secret-key: ${WXD_OBJECT_STORE_SECRET_KEY}
       SQL_FILE: /opt/sql/silver_jobs.sql
+      SQL_GATEWAY_HOST: confluent-flink-sql-gateway
+      SQL_GATEWAY_PORT: "8083"
     depends_on:
       confluent-schema-prep:
         condition: service_completed_successfully
@@ -305,14 +319,19 @@ services:
         condition: service_started
       confluent-iceberg-rest:
         condition: service_healthy
+      confluent-flink-sql-gateway:
+        condition: service_started
     restart: "no"
 
   # ---------------------------------------------------------------------------
   # One-shot: register Flink-written Iceberg tables into watsonx.data (Phase B)
+  # Only runs when profile "watsonxdata" is active:
+  #   docker compose --profile watsonxdata up
   # ---------------------------------------------------------------------------
   confluent-prep:
     image: python:3.12-slim
     container_name: confluent-prep
+    profiles: [watsonxdata]
     networks:
       - confluent-network
     extra_hosts:
@@ -322,6 +341,7 @@ services:
       - ../scripts:/repo-scripts:ro
       - ../certs:/app/certs:ro
       - ../.env:/app/.env:ro
+      - ../requirements.txt:/requirements.txt:ro
     working_dir: /app
     env_file:
       - ../.env
@@ -331,9 +351,10 @@ services:
       - /bin/sh
       - -c
       - |
-        pip install --quiet presto-python-client requests python-dotenv && \
+        python -m venv /opt/venv && \
+        /opt/venv/bin/pip install --quiet -r /requirements.txt && \
         cp /scripts/prep_iceberg_schemas.py . && \
-        python prep_iceberg_schemas.py --phase register
+        /opt/venv/bin/python prep_iceberg_schemas.py --phase register
     depends_on:
       confluent-flink-runner:
         condition: service_completed_successfully

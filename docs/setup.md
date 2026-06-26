@@ -467,6 +467,53 @@ Then log in to the cluster (your administrator provides the API server URL and t
 oc login https://api.watson.ibmas-zocp-techcluster.org:6443
 ```
 
+### 8c · `/etc/hosts` entries — required for all paths
+
+The cluster runs on a **private network** (`10.10.0.x`). A bastion/HAProxy node at `9.82.206.23`
+forwards ports 80, 443, and 6443 to the cluster ingress and API VIPs. The cluster's wildcard DNS
+(`*.apps.watson.ibmas-zocp-techcluster.org`) is **not** in public DNS — your workstation must
+resolve it via `/etc/hosts`.
+
+**Validate with one command** (uses `.venv`):
+
+```bash
+python scripts/check_hosts.py
+```
+
+**Or add all entries manually** (requires `sudo`):
+
+```bash
+sudo tee -a /etc/hosts << 'EOF'
+9.82.206.23  api.watson.ibmas-zocp-techcluster.org
+9.82.206.23  api-int.watson.ibmas-zocp-techcluster.org
+9.82.206.23  console-openshift-console.apps.watson.ibmas-zocp-techcluster.org
+9.82.206.23  oauth-openshift.apps.watson.ibmas-zocp-techcluster.org
+9.82.206.23  downloads-openshift-console.apps.watson.ibmas-zocp-techcluster.org
+9.82.206.23  cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+9.82.206.23  ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
+9.82.206.23  ibm-lh-lakehouse-cas-svc-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+9.82.206.23  ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
+EOF
+```
+
+Expected output from `check_hosts.py`:
+
+```text
+Checking /etc/hosts entries for watson.ibmas-zocp-techcluster.org ...
+
+  api.watson.ibmas-zocp-techcluster.org                       ✓  9.82.206.23  TCP:6443 OK
+  console-openshift-console.apps.watson...                    ✓  9.82.206.23  TCP:443  OK
+  cpd-cpd-instance.apps.watson...                             ✓  9.82.206.23  TCP:443  OK
+  ibm-lh-lakehouse-presto651-presto-svc.apps.watson...        ✓  9.82.206.23  TCP:443  OK
+  ibm-lh-minio-route-cpd-instance.apps.watson...             ✓  9.82.206.23  TCP:443  OK
+
+All 9 required entries present and reachable.
+```
+
+!!! tip "Windows users"
+    Edit `C:\Windows\System32\drivers\etc\hosts` as Administrator and add the same lines.
+    `check_hosts.py` works on Windows too.
+
 ### 8b · IBM `cpdctl` — needed for the cpdctl path only
 
 `cpdctl` is the IBM Cloud Pak for Data command-line interface. It talks to the watsonx.data
