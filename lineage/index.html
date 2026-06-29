@@ -1,7 +1,4 @@
-
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
+<!DOCTYPE html><html lang="en" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -25,7 +22,7 @@
     
     
       
-        <title>Architecture & Data Flow - watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>Architecture &amp; Data Flow - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
@@ -45,8 +42,8 @@
       
         
         
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&display=fallback">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&amp;display=fallback">
         <style>:root{--md-text-font:"IBM Plex Sans";--md-code-font:"IBM Plex Mono"}</style>
       
     
@@ -59,7 +56,17 @@
 
     
     
-  </head>
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
   
   
     
@@ -97,12 +104,12 @@
     <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -114,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Architecture & Data Flow
+              Architecture &amp; Data Flow
             
           </span>
         </div>
@@ -127,20 +134,20 @@
     
     
     
-    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
       </label>
     
   
     
     
     
-    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
       </label>
     
   
@@ -156,24 +163,24 @@
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
         </button>
       </nav>
       
@@ -181,7 +188,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -285,7 +292,7 @@
   
     
   
-  Ingest & Compare
+  Ingest &amp; Compare
 
         </a>
       </li>
@@ -351,7 +358,7 @@
   
     
   
-  Enterprise (watsonx.data Intelligence & Integration)
+  Enterprise (watsonx.data Intelligence &amp; Integration)
 
         </a>
       </li>
@@ -398,7 +405,7 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -412,13 +419,13 @@
     <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     watsonx.data · dbt · Spark Medallion Demo
   </label>
   
-  <ul class="md-nav__list" data-md-scrollfix>
+  <ul class="md-nav__list" data-md-scrollfix="">
     
       
       
@@ -450,7 +457,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
         
           
           <div class="md-nav__link md-nav__container">
@@ -487,7 +494,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
             
@@ -591,7 +598,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -621,7 +628,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -644,7 +651,7 @@
   <span class="md-ellipsis">
     
   
-    Architecture & Data Flow
+    Architecture &amp; Data Flow
   
 
     
@@ -662,7 +669,7 @@
   <span class="md-ellipsis">
     
   
-    Architecture & Data Flow
+    Architecture &amp; Data Flow
   
 
     
@@ -683,7 +690,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
   <a href="#the-watsonxdata-building-blocks" class="md-nav__link">
@@ -1100,7 +1107,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -1130,7 +1137,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1305,7 +1312,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -1315,7 +1322,7 @@
   <span class="md-ellipsis">
     
   
-    Ingest & Compare
+    Ingest &amp; Compare
   
 
     
@@ -1331,11 +1338,11 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Ingest & Compare
+    Ingest &amp; Compare
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1426,7 +1433,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1456,7 +1463,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1553,7 +1560,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
         
           
           <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
@@ -1583,7 +1590,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1627,7 +1634,7 @@
   <span class="md-ellipsis">
     
   
-    Glossary & Classification (OpenMetadata)
+    Glossary &amp; Classification (OpenMetadata)
   
 
     
@@ -1683,7 +1690,7 @@
   <span class="md-ellipsis">
     
   
-    BI & Dashboards (Metabase)
+    BI &amp; Dashboards (Metabase)
   
 
     
@@ -1766,7 +1773,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
@@ -1776,7 +1783,7 @@
   <span class="md-ellipsis">
     
   
-    Enterprise (watsonx.data Intelligence & Integration)
+    Enterprise (watsonx.data Intelligence &amp; Integration)
   
 
     
@@ -1792,11 +1799,11 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Enterprise (watsonx.data Intelligence & Integration)
+    Enterprise (watsonx.data Intelligence &amp; Integration)
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1924,7 +1931,7 @@
   <span class="md-ellipsis">
     
   
-    Performance & Editions (Prestissimo · Gluten · GPU · RU)
+    Performance &amp; Editions (Prestissimo · Gluten · GPU · RU)
   
 
     
@@ -1952,7 +1959,7 @@
   <span class="md-ellipsis">
     
   
-    Summary — Strengths & Weaknesses
+    Summary — Strengths &amp; Weaknesses
   
 
     
@@ -2003,7 +2010,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8">
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -2033,7 +2040,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -2049,7 +2056,7 @@
   <span class="md-ellipsis">
     
   
-    Configuration & .env Reference
+    Configuration &amp; .env Reference
   
 
     
@@ -2162,7 +2169,7 @@
             
             
               
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -2176,7 +2183,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
   <a href="#the-watsonxdata-building-blocks" class="md-nav__link">
@@ -2463,11 +2470,25 @@
 
 <div class="brand-strip">
 <p><span class="brand-label">Built on</span>
-<img alt="IBM" src="../assets/images/ibm.svg" />
-<img alt="watsonx.data" src="../assets/images/watsonx.svg" />
-<img alt="dbt" src="../assets/images/dbt.svg" />
-<img alt="Apache Spark" src="../assets/images/spark.svg" />
-<img alt="Apache Iceberg" src="../assets/images/iceberg.svg" /></p>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/ibm.svg" data-desc-position="bottom"><img alt="IBM" src="../assets/images/ibm.svg"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/watsonx.svg" data-desc-position="bottom"><img alt="watsonx.data" src="../assets/images/watsonx.svg"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/dbt.svg" data-desc-position="bottom"><img alt="dbt" src="../assets/images/dbt.svg"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/spark.svg" data-desc-position="bottom"><img alt="Apache Spark" src="../assets/images/spark.svg"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/iceberg.svg" data-desc-position="bottom"><img alt="Apache Iceberg" src="../assets/images/iceberg.svg"></a></p>
+</div>
+<figure>
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/watsonxdata-medallion-infographic.png" data-desc-position="bottom"><img alt="The watsonx.data open lakehouse: medallion architecture and pipelines" loading="lazy" src="../assets/images/watsonxdata-medallion-infographic.png"></a>
+<br>
+<figcaption>The whole workshop on one page — the Raw → Bronze → Silver → Gold medallion, the lakehouse building blocks, and the interchangeable engines (dbt · Spark · Confluent) plus the cpdctl loader.</figcaption>
+</figure>
+<div class="admonition tip">
+<p class="admonition-title">Workshop media — slide deck &amp; podcast</p>
+<p>Prefer to present or listen? Grab the auto-generated companions:</p>
+<ul>
+<li>📊 <strong>Slide deck</strong> — <a href="../presentations/watsonxdata-medallion-workshop.pptx"><code>presentations/watsonxdata-medallion-workshop.pptx</code></a></li>
+<li>🎙️ <strong>Podcast (deep-dive audio overview)</strong> — <a href="../presentations/watsonxdata-medallion-podcast.m4a"><code>presentations/watsonxdata-medallion-podcast.m4a</code></a></li>
+</ul>
+<p>Generated with Google NotebookLM from this workshop's docs.</p>
 </div>
 <h2 id="the-watsonxdata-building-blocks">The watsonx.data building blocks</h2>
 <p>A lakehouse has four moving parts. Every tool in this workshop touches at least one of them.</p>
@@ -2531,11 +2552,11 @@
 <div class="admonition note">
 <p class="admonition-title">This workshop's connection endpoint</p>
 <p>The Presto engine for this workshop runs at:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
+</p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
 </code></pre></div>
-The catalog is named <code>iceberg_data</code>. Every schema and table you create lands under that catalog.</p>
+The catalog is named <code>iceberg_data</code>. Every schema and table you create lands under that catalog.<p></p>
 </div>
-<hr />
+<hr>
 <h2 id="why-the-medallion-pattern">Why the medallion pattern?</h2>
 <p>If you dump a raw CSV directly into a gold table, you have no way to fix bad data without
 reprocessing everything from scratch. The medallion pattern solves this by keeping each stage
@@ -2582,7 +2603,7 @@ directly, with no extra joins required.</p>
 <span class="obj view">VIEW</span> a logical query that runs on read.
 Raw → bronze → silver are <strong>tables</strong>; gold is a <strong>mix</strong> — <code>gold_daily_sales</code> is a table, and the other gold marts are views built on top of it.</p>
 </div>
-<hr />
+<hr>
 <h2 id="why-these-layers-and-why-not-just-stop-at-silver">Why these layers? (and why not just stop at silver)</h2>
 <p>Each layer has <strong>one job</strong>. Data only moves to the next layer once the current
 layer's job is done. Here is the job of each, with the exact tables from this demo.</p>
@@ -2702,7 +2723,7 @@ that should always be live — <code>gold_category_performance</code> and <code>
 two strategies, each chosen for its consumer. The full TABLE-vs-VIEW trade-off is detailed in
 <a href="#the-two-gold-output-types">The two gold output types</a> below.</p>
 </div>
-<hr />
+<hr>
 <h2 id="data-flow-in-this-demo">Data flow in this demo</h2>
 <p>dbt, Spark, and Confluent are three full medallion pipelines that read the same CSVs and produce
 the same Bronze/Silver/Gold shape in different schemas. dbt and Spark are <strong>batch</strong>; Confluent
@@ -2773,7 +2794,7 @@ with a dbt or Spark transform back-end (<strong>cpdctl + dbt/Spark = one full pi
 <a href="../sql-demo/">SQL comparison page</a> — and <code>scripts/reconcile_gold.py</code> — verify all three gold
 layers produce identical numbers.</p>
 </div>
-<hr />
+<hr>
 <h2 id="column-by-column-lineage">Column-by-column lineage</h2>
 <p>Every field is traced from the original CSV cell to the final gold column. Green marks a column
 that is <strong>created</strong> in that layer — it has no upstream source, it is computed or added by the
@@ -2940,7 +2961,7 @@ authoritative place.</p>
 <p><code>silver_order_items ⋈ silver_orders</code> on <code>order_id</code>, then <code>⋈ silver_products</code> on <code>product_id</code>,
 then <code>⋈ silver_customers</code> on <code>customer_id</code>. The result is one tidy fact at order-line grain.</p>
 </div>
-<hr />
+<hr>
 <h2 id="the-two-gold-output-types">The two gold output types</h2>
 <p>Gold is where data becomes an answer. The two output types — TABLE and VIEW — exist for different
 reasons and have different performance characteristics.</p>
@@ -3073,7 +3094,7 @@ automatically reflects any changes made to the silver tables without needing a r
 summed for <code>completed</code> orders on a given <code>order_date</code> and <code>category</code>.
 Every factor is visible at every layer — that is the point of medallion.</p>
 </div>
-<hr />
+<hr>
 <h2 id="iceberg-parquet-what-is-actually-stored">Iceberg + Parquet: what is actually stored</h2>
 <p>When dbt or Spark writes a table, data lands in MinIO as Parquet files. Iceberg is the metadata
 layer that tracks which files belong to which table and in which partition. Understanding both
@@ -3146,7 +3167,7 @@ table from a raw folder of Parquet files.</p>
 forces a full scan of every file. Always go through the <code>iceberg_data</code> catalog so Presto can
 use the Iceberg statistics to skip irrelevant files.</p>
 </div>
-<hr />
+<hr>
 <h2 id="three-engines-same-blueprint">Three engines, same blueprint</h2>
 <p>dbt (Presto SQL), Spark (PySpark), and Confluent (Flink streaming) produce the same medallion shape
 from the same CSVs, written to separate schemas so you can compare them side by side in the same
@@ -3218,9 +3239,9 @@ format underneath, see <a href="../table-formats/">Table Formats</a>.</p>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
-          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
   Back to top
 </button>
         
@@ -3230,13 +3251,13 @@ format underneath, see <a href="../table-formats/">Table Formats</a>.</p>
   
     
       
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
           <a href="../fast-track/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Fast Track — All Commands">
             <div class="md-footer__button md-icon">
               
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
             </div>
             <div class="md-footer__title">
               <span class="md-footer__direction">
@@ -3261,7 +3282,7 @@ format underneath, see <a href="../table-formats/">Table Formats</a>.</p>
             </div>
             <div class="md-footer__button md-icon">
               
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
             </div>
           </a>
         
@@ -3298,6 +3319,10 @@ format underneath, see <a href="../table-formats/">Table Formats</a>.</p>
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
+        <script src="../assets/javascripts/mermaid-zoom.js"></script>
+      
     
-  </body>
-</html>
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

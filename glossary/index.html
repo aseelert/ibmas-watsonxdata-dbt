@@ -1,7 +1,4 @@
-
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
+<!DOCTYPE html><html lang="en" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -45,8 +42,8 @@
       
         
         
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&display=fallback">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,300i,400,400i,700,700i%7CIBM+Plex+Mono:400,400i,700,700i&amp;display=fallback">
         <style>:root{--md-text-font:"IBM Plex Sans";--md-code-font:"IBM Plex Mono"}</style>
       
     
@@ -59,7 +56,17 @@
 
     
     
-  </head>
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
   
   
     
@@ -97,12 +104,12 @@
     <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -127,20 +134,20 @@
     
     
     
-    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
       </label>
     
   
     
     
     
-    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
       </label>
     
   
@@ -156,24 +163,24 @@
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
         </button>
       </nav>
       
@@ -181,7 +188,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -285,7 +292,7 @@
   
     
   
-  Ingest & Compare
+  Ingest &amp; Compare
 
         </a>
       </li>
@@ -351,7 +358,7 @@
   
     
   
-  Enterprise (watsonx.data Intelligence & Integration)
+  Enterprise (watsonx.data Intelligence &amp; Integration)
 
         </a>
       </li>
@@ -398,7 +405,7 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -412,13 +419,13 @@
     <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
 
     </a>
     watsonx.data · dbt · Spark Medallion Demo
   </label>
   
-  <ul class="md-nav__list" data-md-scrollfix>
+  <ul class="md-nav__list" data-md-scrollfix="">
     
       
       
@@ -450,7 +457,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
         
           
           <div class="md-nav__link md-nav__container">
@@ -487,7 +494,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
             
@@ -591,7 +598,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -621,7 +628,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -637,7 +644,7 @@
   <span class="md-ellipsis">
     
   
-    Architecture & Data Flow
+    Architecture &amp; Data Flow
   
 
     
@@ -799,7 +806,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
   <a href="#bronze-layer" class="md-nav__link">
@@ -1389,7 +1396,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -1419,7 +1426,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1594,7 +1601,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -1604,7 +1611,7 @@
   <span class="md-ellipsis">
     
   
-    Ingest & Compare
+    Ingest &amp; Compare
   
 
     
@@ -1620,11 +1627,11 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Ingest & Compare
+    Ingest &amp; Compare
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1715,7 +1722,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1745,7 +1752,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1842,7 +1849,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
         
           
           <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
@@ -1872,7 +1879,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -1916,7 +1923,7 @@
   <span class="md-ellipsis">
     
   
-    Glossary & Classification (OpenMetadata)
+    Glossary &amp; Classification (OpenMetadata)
   
 
     
@@ -1972,7 +1979,7 @@
   <span class="md-ellipsis">
     
   
-    BI & Dashboards (Metabase)
+    BI &amp; Dashboards (Metabase)
   
 
     
@@ -2055,7 +2062,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
@@ -2065,7 +2072,7 @@
   <span class="md-ellipsis">
     
   
-    Enterprise (watsonx.data Intelligence & Integration)
+    Enterprise (watsonx.data Intelligence &amp; Integration)
   
 
     
@@ -2081,11 +2088,11 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Enterprise (watsonx.data Intelligence & Integration)
+    Enterprise (watsonx.data Intelligence &amp; Integration)
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -2213,7 +2220,7 @@
   <span class="md-ellipsis">
     
   
-    Performance & Editions (Prestissimo · Gluten · GPU · RU)
+    Performance &amp; Editions (Prestissimo · Gluten · GPU · RU)
   
 
     
@@ -2241,7 +2248,7 @@
   <span class="md-ellipsis">
     
   
-    Summary — Strengths & Weaknesses
+    Summary — Strengths &amp; Weaknesses
   
 
     
@@ -2292,7 +2299,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8">
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -2322,7 +2329,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list" data-md-scrollfix="">
             
               
                 
@@ -2338,7 +2345,7 @@
   <span class="md-ellipsis">
     
   
-    Configuration & .env Reference
+    Configuration &amp; .env Reference
   
 
     
@@ -2451,7 +2458,7 @@
             
             
               
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -2467,7 +2474,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
   <a href="#bronze-layer" class="md-nav__link">
@@ -3028,7 +3035,7 @@
 
 <h1 id="glossary">Glossary</h1>
 <p>Short definitions for every term used in this workshop. Click any term in the nav to jump here.</p>
-<hr />
+<hr>
 <h3 id="bronze-layer">Bronze Layer</h3>
 <p>The first managed copy of raw data — ingested into the lakehouse with ingest metadata added, but not yet cleaned or joined.</p>
 <p>In this demo, bronze is the first managed/transformed copy: <code>iceberg_data.dbt_demo_bronze</code> (dbt) and <code>iceberg_data.spark_demo_bronze</code> (Spark). cpdctl's <code>iceberg_data.spark_demo_cpdctl_raw</code> is <strong>not</strong> bronze — it is a raw ingest landing layer (like <code>dbt seed</code>) that becomes bronze only after a dbt or Spark transform. See <a href="#raw-files-versus-raw-tables">Raw Files Versus Raw Tables</a>.</p>
@@ -3036,7 +3043,7 @@
 <p class="admonition-title">Plain English</p>
 <p>Bronze = "we have it stored safely, with ingest metadata added — but only dbt and Spark produce it. cpdctl stops one step earlier, at raw."</p>
 </div>
-<hr />
+<hr>
 <h3 id="catalog">Catalog</h3>
 <p>A catalog is the top-level namespace that holds schemas and tables. Think of it as the name of a database server.</p>
 <p>Every SQL query in this demo starts with <code>iceberg_data</code>, which is the Iceberg catalog registered in watsonx.data.</p>
@@ -3050,17 +3057,17 @@
 <p class="admonition-title">Note</p>
 <p>The catalog is registered once in watsonx.data. The two full pipelines (dbt, Spark) and the cpdctl ingest loader all write into the same <code>iceberg_data</code> catalog.</p>
 </div>
-<hr />
+<hr>
 <h3 id="cpdctl">cpdctl</h3>
 <p>cpdctl is IBM's command-line interface for Cloud Pak for Data (CP4D). It lets you run jobs and pipelines from a terminal instead of the browser UI.</p>
 <p>In this demo, cpdctl ingests CSV files directly into the <code>iceberg_data.spark_demo_cpdctl_raw</code> schema, bypassing dbt and Spark <strong>for the load step only</strong>. cpdctl is ingest-only (like <code>dbt seed</code>): it lands raw tables and stops. To build bronze/silver/gold on top, you run dbt or Spark over <code>spark_demo_cpdctl_raw</code> as a post-action (<strong>cpdctl + dbt/Spark = one full pipeline</strong>).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cpdctl<span class="w"> </span>dsjob<span class="w"> </span>run<span class="w"> </span>--job<span class="w"> </span><span class="s2">&quot;ingest_customers&quot;</span><span class="w"> </span>--project-id<span class="w"> </span>&lt;project-id&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cpdctl<span class="w"> </span>dsjob<span class="w"> </span>run<span class="w"> </span>--job<span class="w"> </span><span class="s2">"ingest_customers"</span><span class="w"> </span>--project-id<span class="w"> </span>&lt;project-id&gt;
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>cpdctl is useful when your organisation already has DataStage pipelines. You get UI-tracked lineage in CP4D without writing any extra SQL or Python.</p>
 </div>
-<hr />
+<hr>
 <h3 id="customer-360">Customer 360</h3>
 <p>A Customer 360 is a single row per customer that combines all available signals — orders, returns, revenue, last activity — into one flat table or view.</p>
 <p>In this demo, <code>gold_customer_360</code> is a VIEW in <code>iceberg_data.dbt_demo_gold</code> that aggregates completed, returned, pending, and cancelled orders together with lifetime value and last-activity timestamps.</p>
@@ -3068,7 +3075,7 @@
 <p class="admonition-title">Example</p>
 <p>One row in <code>gold_customer_360</code> looks like: customer 42, 12 completed orders, 1 return, LTV $1,240, last order 2026-03-15.</p>
 </div>
-<hr />
+<hr>
 <h3 id="dbt-data-build-tool">dbt (data build tool)</h3>
 <p>dbt is an open-source tool that turns SQL <code>SELECT</code> statements into a full transformation pipeline — with dependency resolution, testing, and documentation built in.</p>
 <p>In this demo, dbt connects to Presto through the <code>dbt-watsonx-presto</code> adapter and builds the <code>dbt_demo_raw</code>, <code>dbt_demo_bronze</code>, <code>dbt_demo_silver</code>, and <code>dbt_demo_gold</code> schemas from seed CSV files.</p>
@@ -3085,7 +3092,7 @@
 <p class="admonition-title">Why dbt?</p>
 <p>dbt is strong when your transformation logic is SQL. It gives you version-controlled, testable SQL that any analyst can read and modify.</p>
 </div>
-<hr />
+<hr>
 <h3 id="gold-layer">Gold Layer</h3>
 <p>The outermost, business-ready layer of the medallion architecture. Gold tables and views are optimised for reporting, dashboards, and downstream consumption — <strong>one mart per business question</strong>, aggregated and denormalised so a consumer can read the answer with no joins or filters at read time.</p>
 <p>In this demo, the gold layer lives in <code>iceberg_data.dbt_demo_gold</code>. <code>gold_daily_sales</code> is a physical TABLE (partitioned by <code>month(order_date)</code>; the partition metadata column is <code>order_date_month</code>); <code>gold_category_performance</code> and <code>gold_customer_360</code> are VIEWs. Each serves a different consumer: <code>gold_daily_sales</code> → a sales dashboard, <code>gold_category_performance</code> → merchandising, <code>gold_customer_360</code> → CRM / segmentation.</p>
@@ -3119,7 +3126,7 @@
 <p class="admonition-title">Tip</p>
 <p>Use a TABLE when readers query the same aggregation repeatedly. Use a VIEW when the aggregation is cheap and you want it to always reflect the latest silver data.</p>
 </div>
-<hr />
+<hr>
 <h3 id="iceberg-apache-iceberg">Iceberg (Apache Iceberg)</h3>
 <p>Apache Iceberg is an open table format that adds a metadata layer on top of files in object storage, making them behave like proper database tables.</p>
 <p>Without Iceberg, Presto and Spark would have to scan every file to answer a query. With Iceberg, they read a small metadata file first and skip irrelevant partitions. Iceberg also enables time travel, schema evolution, and safe concurrent writes.</p>
@@ -3136,7 +3143,7 @@
 <li>Shared access (dbt, Spark, and cpdctl all read/write the same Iceberg tables safely)</li>
 </ul>
 </div>
-<hr />
+<hr>
 <h3 id="ingestion">Ingestion</h3>
 <p>Ingestion is the act of moving raw source data into the lakehouse for the first time. After ingestion, data can be transformed by dbt or Spark.</p>
 <p>This demo has two full pipelines (dbt, Spark) that ingest <strong>and</strong> transform, plus one ingest-only loader (cpdctl). dbt and Spark are each self-contained; cpdctl is an ingest front-end you pair with dbt or Spark (<strong>cpdctl + dbt/Spark = full pipeline</strong>). All target the same <code>iceberg_data</code> catalog:</p>
@@ -3146,7 +3153,7 @@
     CSV --&gt; cpdctl[cpdctl ingest&lt;br/&gt;spark_demo_cpdctl_raw&lt;br/&gt;raw only]
     cpdctl -. transform with dbt or Spark .-&gt; dbtT
     cpdctl -. transform with dbt or Spark .-&gt; Spark</code></pre>
-<hr />
+<hr>
 <h3 id="lakehouse">Lakehouse</h3>
 <p>A lakehouse is a data platform that combines cheap file-based storage (like a data lake) with structured SQL access and ACID guarantees (like a data warehouse).</p>
 <p>In this demo, watsonx.data is the lakehouse. Files live in MinIO object storage, Apache Iceberg provides the table format, and Presto is the SQL engine that queries them.</p>
@@ -3195,7 +3202,7 @@
 </tbody>
 </table>
 </div>
-<hr />
+<hr>
 <h3 id="medallion-architecture">Medallion Architecture</h3>
 <p>Medallion architecture is a widely-used pattern for organising data quality layers in a lakehouse — raw files flow through bronze, silver, and gold, each layer adding more curation.</p>
 <pre class="mermaid"><code>flowchart LR
@@ -3242,7 +3249,7 @@
 <p class="admonition-title">Note</p>
 <p>In this demo, the Spark path skips a raw layer entirely — Spark reads CSV files directly from MinIO object storage and writes straight to <code>spark_demo_bronze</code>.</p>
 </div>
-<hr />
+<hr>
 <h3 id="minio">MinIO</h3>
 <p>MinIO is an S3-compatible object storage system. It stores files (CSV seeds, Parquet data files, Spark application JARs) using the same API as Amazon S3.</p>
 <p>In this demo, MinIO holds the raw CSV seed files and the Parquet data files that back every Iceberg table. The Spark engine also reads its PySpark application from a MinIO bucket.</p>
@@ -3253,7 +3260,7 @@
 <p class="admonition-title">Info</p>
 <p>Because MinIO is S3-compatible, the same Spark and Iceberg code that works in AWS also works here — just swap the endpoint URL.</p>
 </div>
-<hr />
+<hr>
 <h3 id="openmetadata">OpenMetadata</h3>
 <p>OpenMetadata is an open-source data catalogue and lineage platform. It collects metadata from data sources and shows you what data exists, where it came from, and how it flows through your pipelines.</p>
 <p>In this demo, OpenMetadata 1.13.0 runs locally in Docker at <code>http://localhost:8585</code>. After a <code>dbt run</code>, you push the dbt manifest to OpenMetadata to visualise column-level lineage from raw seeds through to gold models.</p>
@@ -3264,7 +3271,7 @@
 <p class="admonition-title">Tip</p>
 <p>Open <code>http://localhost:8585</code> in your browser after running the dbt demo to see the full lineage graph from <code>raw_customers</code> all the way to <code>gold_customer_360</code>.</p>
 </div>
-<hr />
+<hr>
 <h3 id="parquet">Parquet</h3>
 <p>Parquet is a columnar file format. Instead of storing rows left-to-right like a CSV, it stores each column together — which makes aggregation queries much faster and compresses well.</p>
 <p>Every table in this demo is stored as Parquet. The format is enforced in <code>dbt_project.yml</code> and in the Spark ETL scripts. ORC is not used.</p>
@@ -3277,14 +3284,14 @@
 <p class="admonition-title">Warning</p>
 <p>Do not mix Parquet and ORC within the same Iceberg table. This demo uses Parquet only. Attempting to write ORC into an existing Parquet Iceberg table will fail.</p>
 </div>
-<hr />
+<hr>
 <h3 id="partitioning">Partitioning</h3>
 <p>Partitioning splits a table's files into sub-folders by a column value, so a query that filters on that column only reads the relevant files.</p>
 <p>In this demo, <code>gold_daily_sales</code> is partitioned by <code>month(order_date)</code>. A query that filters on <code>order_date</code> lets Presto skip partition folders for months that don't match.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">-- Presto uses partition pruning automatically</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">dbt_demo_gold</span><span class="p">.</span><span class="n">gold_daily_sales</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">order_date</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="nb">DATE</span><span class="w"> </span><span class="s1">&#39;2026-03-01&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="nb">DATE</span><span class="w"> </span><span class="s1">&#39;2026-03-31&#39;</span><span class="p">;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">order_date</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="nb">DATE</span><span class="w"> </span><span class="s1">'2026-03-01'</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="nb">DATE</span><span class="w"> </span><span class="s1">'2026-03-31'</span><span class="p">;</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1">-- Only reads the March 2026 partition folder</span>
 </code></pre></div>
 <div class="admonition info">
@@ -3298,7 +3305,7 @@
 With 500 orders across 6 months (Jan–Jun 2026), there are 6 partition folders instead
 of 157 daily folders — keeping well within Presto's 100 simultaneous open-writer cap.</p>
 </div>
-<hr />
+<hr>
 <h3 id="presto">Presto</h3>
 <p>Presto is a distributed SQL query engine that can query data in object storage (MinIO, S3) without copying it to a separate database. It is the primary SQL engine in watsonx.data.</p>
 <p>In this demo, every dbt model runs as a Presto SQL statement. The watsonx.data SQL editor also uses Presto. The connection string is:</p>
@@ -3308,7 +3315,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Note</p>
 <p>Presto is a read-and-transform engine. It does not store data itself — all data lives in MinIO as Parquet files. Iceberg is the layer that makes those files look like tables to Presto.</p>
 </div>
-<hr />
+<hr>
 <h3 id="raw-layer-landing">Raw Layer (Landing)</h3>
 <p>The raw — or <em>landing</em> — layer is the very first place source data comes to rest inside the lakehouse, kept <strong>exactly as received</strong> so you can always replay everything from the original truth. No types are cast, no strings are cleaned, no rows are dropped.</p>
 <p>In this demo, the dbt path lands the four seed CSVs as Iceberg tables in <code>iceberg_data.dbt_demo_raw</code> (<code>raw_customers</code> = 50 rows, <code>raw_products</code> = 20, <code>raw_orders</code> = 500, <code>raw_order_items</code> = 1134) — strings only. cpdctl's <code>iceberg_data.spark_demo_cpdctl_raw</code> is also a raw landing layer. The Spark path has <strong>no</strong> raw schema: it reads the CSVs straight from MinIO and writes bronze directly.</p>
@@ -3316,7 +3323,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Plain English</p>
 <p>Raw = "the original, untouched copy — if a later layer gets it wrong, we rebuild from here." It is the safety net for the whole pipeline.</p>
 </div>
-<hr />
+<hr>
 <h3 id="raw-files-versus-raw-tables">Raw Files Versus Raw Tables</h3>
 <p>The raw files are the original CSV seed files (<code>seeds/raw_*.csv</code>). The raw tables are what dbt creates from those files in the <code>dbt_demo_raw</code> schema.</p>
 <p>Spark does not need a raw schema because it reads CSV files directly from MinIO object storage. dbt needs raw tables because it works entirely through SQL.</p>
@@ -3347,7 +3354,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 </tbody>
 </table>
 <p>cpdctl is a loader, not a transform engine: its output (<code>spark_demo_cpdctl_raw</code>) corresponds to dbt's <code>dbt_demo_raw</code> seed layer, <strong>not</strong> to bronze. Only dbt and Spark continue past raw to transformed bronze/silver/gold.</p>
-<hr />
+<hr>
 <h3 id="schema">Schema</h3>
 <p>A schema is a namespace inside a catalog that groups related tables together. Think of it as a folder inside the catalog.</p>
 <p>In this demo there are six schemas under <code>iceberg_data</code>:</p>
@@ -3360,7 +3367,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>iceberg_data.spark_demo_gold          ← Spark gold
 <a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>iceberg_data.spark_demo_cpdctl_raw    ← cpdctl ingestion
 </code></pre></div>
-<hr />
+<hr>
 <h3 id="semantic-model">Semantic Model</h3>
 <p>A semantic model is a business-friendly description of data — it maps raw column names to business concepts, defines metrics, and can be consumed by BI tools without the analyst needing to know the underlying table structure.</p>
 <p>In this demo, semantic models are defined in the single file <code>models/semantic_models.yml</code> and describe how the gold layer tables map to business metrics like <code>lifetime_value</code> and <code>daily_revenue</code>.</p>
@@ -3368,7 +3375,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Info</p>
 <p>Semantic models sit on top of the gold layer. They are the final abstraction before a dashboard or AI assistant queries your data.</p>
 </div>
-<hr />
+<hr>
 <h3 id="silver-layer">Silver Layer</h3>
 <p>The silver layer holds clean, typed, joined, and deduplicated data. It is the <strong>general-purpose source of truth</strong> you can query for almost anything — the shared foundation that every gold mart builds on.</p>
 <p>In this demo, silver lives in <code>iceberg_data.dbt_demo_silver</code> (dbt) and <code>iceberg_data.spark_demo_silver</code> (Spark). At this layer, strings are cast to real dates/integers/decimals, bad rows are filtered, business keys are aligned, and all four entities are joined into one order-line fact, <code>silver_sales_enriched</code>. Silver is clean but <strong>not shaped for one question</strong> — that shaping is gold's job.</p>
@@ -3376,13 +3383,13 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Silver is the most reused layer</p>
 <p>Multiple gold models can read from the same silver table. Fixing a data quality issue in silver automatically improves every downstream gold model.</p>
 </div>
-<hr />
+<hr>
 <h3 id="spark-apache-spark">Spark (Apache Spark)</h3>
 <p>Apache Spark is a distributed in-memory processing engine. It is strong for large-scale ETL, file-heavy transformations, and machine-learning workloads where pure SQL is not enough.</p>
 <p>In this demo, the watsonx.data Spark engine runs a PySpark application stored in MinIO that reads CSV seeds and writes Parquet Iceberg tables into the <code>spark_demo_bronze/silver/gold</code> schemas.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Spark reading CSV and writing Iceberg</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;header&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="s2">&quot;s3a://seeds-bucket/raw_orders.csv&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">df</span><span class="o">.</span><span class="n">writeTo</span><span class="p">(</span><span class="s2">&quot;iceberg_data.spark_demo_bronze.bronze_orders&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">createOrReplace</span><span class="p">()</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">"header"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="s2">"s3a://seeds-bucket/raw_orders.csv"</span><span class="p">)</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">df</span><span class="o">.</span><span class="n">writeTo</span><span class="p">(</span><span class="s2">"iceberg_data.spark_demo_bronze.bronze_orders"</span><span class="p">)</span><span class="o">.</span><span class="n">createOrReplace</span><span class="p">()</span>
 </code></pre></div>
 <div class="admonition abstract">
 <p class="admonition-title">dbt vs. Spark — when to use which</p>
@@ -3418,7 +3425,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 </tbody>
 </table>
 </div>
-<hr />
+<hr>
 <h3 id="table">Table</h3>
 <p>A table is the primary SQL object you query. In this demo, every physical table is an Apache Iceberg table stored as Parquet files in MinIO.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">-- Physical table — data is pre-computed and stored on disk</span>
@@ -3430,7 +3437,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Note</p>
 <p><code>gold_daily_sales</code> is a TABLE. <code>gold_category_performance</code> and <code>gold_customer_360</code> are VIEWs. Tables are faster for repeated queries; views always reflect the latest silver data.</p>
 </div>
-<hr />
+<hr>
 <h3 id="time-travel">Time Travel</h3>
 <p>Time travel is the ability to query an older snapshot of an Iceberg table — useful for auditing, debugging data pipelines, and recovering from bad writes.</p>
 <p>Every time a dbt model or Spark job writes to an Iceberg table, Iceberg records a new snapshot. You can query any past snapshot by its ID.</p>
@@ -3441,13 +3448,13 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
 <a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1">-- List all available snapshots</span>
 <a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">dbt_demo_silver</span><span class="p">.</span><span class="ss">&quot;silver_orders$snapshots&quot;</span><span class="p">;</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="k">FROM</span><span class="w"> </span><span class="n">iceberg_data</span><span class="p">.</span><span class="n">dbt_demo_silver</span><span class="p">.</span><span class="ss">"silver_orders$snapshots"</span><span class="p">;</span>
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Run <code>dbt run</code> twice with different seed data, then use time travel to compare the two versions of the table side by side.</p>
 </div>
-<hr />
+<hr>
 <h3 id="view">View</h3>
 <p>A view is a saved SQL query that looks like a table when you query it. It does not store its own copy of data — it re-runs the query every time you select from it.</p>
 <p>In this demo, two gold objects are views:</p>
@@ -3461,7 +3468,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Warning</p>
 <p>Views are convenient but can be slow on large datasets because they recompute on every query. For high-frequency dashboard queries, prefer a materialised TABLE like <code>gold_daily_sales</code>.</p>
 </div>
-<hr />
+<hr>
 <h3 id="watsonxdata">watsonx.data</h3>
 <p>watsonx.data is IBM's managed lakehouse platform. It combines Presto (SQL), Apache Spark (ETL), Apache Iceberg (table format), and MinIO-compatible object storage into one governed environment running on OpenShift.</p>
 <p>In this demo, the watsonx.data instance runs on IBM OpenShift at:</p>
@@ -3477,7 +3484,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p class="admonition-title">Why watsonx.data?</p>
 <p>It lets you run open-standard tools (Presto, Spark, Iceberg) with enterprise governance, unified metadata, and IBM support — all on your own OpenShift cluster, no AWS required.</p>
 </div>
-<hr />
+<hr>
 <h2 id="streaming-terms-confluent-path">Streaming terms (Confluent path)</h2>
 <h3 id="kafka-apache-kafka">Kafka (Apache Kafka)</h3>
 <p>A distributed, append-only <strong>log</strong> of messages organized into topics. Producers write events; consumers read them. In this demo Kafka carries the raw and silver streams of the <a href="../confluent-demo/">Confluent path</a>. Unlike a database table, a topic keeps events in order and lets you <strong>replay</strong> them from the beginning.</p>
@@ -3493,7 +3500,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <p>The commercial company and platform built around Apache Kafka (brokers, Schema Registry, connectors, Flink, Tableflow). This demo ships an open-source Docker stack; for production the enterprise option is <strong>Confluent Platform on-prem</strong> as a unified ingestion hub — see <a href="../enterprise/integration/">watsonx.data Integration</a>.</p>
 <h3 id="delta-lake">Delta Lake</h3>
 <p>An open table format (Linux Foundation, led by Databricks), the main alternative to Iceberg. Like Iceberg it adds ACID transactions, time travel, and schema evolution on top of Parquet. This demo uses <strong>Iceberg</strong> because watsonx.data is built around it; see the comparison in <a href="../table-formats/">Table Formats</a>.</p>
-<hr />
+<hr>
 <h2 id="enterprise-terms-watsonxdata-intelligence-integration">Enterprise terms (watsonx.data Intelligence &amp; Integration)</h2>
 <h3 id="ibm-software-hub">IBM Software Hub</h3>
 <p>The platform base that hosts watsonx.data and the watsonx services on-premises — the successor/rebrand of <strong>Cloud Pak for Data</strong>. On-prem watsonx.data versions track the Software Hub release (e.g. 5.3 ≈ Dec 2025; 5.4 exists).</p>
@@ -3543,9 +3550,9 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
-          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
   Back to top
 </button>
         
@@ -3555,13 +3562,13 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
   
     
       
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
           <a href="../choosing/" class="md-footer__link md-footer__link--prev" aria-label="Previous: When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)">
             <div class="md-footer__button md-icon">
               
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
             </div>
             <div class="md-footer__title">
               <span class="md-footer__direction">
@@ -3586,7 +3593,7 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
             </div>
             <div class="md-footer__button md-icon">
               
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
             </div>
           </a>
         
@@ -3623,6 +3630,10 @@ of 157 daily folders — keeping well within Presto's 100 simultaneous open-writ
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
+        <script src="../assets/javascripts/mermaid-zoom.js"></script>
+      
     
-  </body>
-</html>
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
