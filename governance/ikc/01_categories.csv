@@ -1,0 +1,7 @@
+Name,Artifact Type,Category,Description
+Retail Medallion Lakehouse,category,,"Top-level governance category for the Retail Medallion Lakehouse demo. Covers the Bronze→Silver→Gold medallion pipeline across dbt, Spark, and Confluent/Flink paths — all writing to the iceberg_data catalog on MinIO."
+Customer,category,Retail Medallion Lakehouse,"Customer identity and contact attributes: customer_id, name, email, signup_date, country. Flows unchanged through Bronze/Silver into the gold_customer_360 mart."
+Product,category,Retail Medallion Lakehouse,"Product catalogue attributes: product_id, product_name, category, unit_price. Flows unchanged through Bronze/Silver; category and unit_price roll into Gold KPIs."
+Order,category,Retail Medallion Lakehouse,"Order and line-item transactional data: order_id, customer_id, order_ts, status, payment_method, order_item_id, product_id, quantity, discount_pct, net_amount. Silver adds the computed net_amount column."
+Gold Sales,category,Retail Medallion Lakehouse,"Gold-layer aggregated KPI marts: daily sales by order_date and category (gold_daily_sales), category-level rollup (gold_category_performance), and full customer 360 view (gold_customer_360)."
+Data Governance,category,Retail Medallion Lakehouse,"Governance controls, classifications, data classes, and quality markers for the Retail Medallion Lakehouse. Mirrors the Data Quality sub-category used in the SecureLife reference project."

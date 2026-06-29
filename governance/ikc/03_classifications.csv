@@ -1,0 +1,3 @@
+Name,Artifact Type,Category,Description,Parent Classification
+Business Data,classification,Retail Medallion Lakehouse >> Data Governance,"Governed information used by Retail Medallion Lakehouse business processes, analytics, and reporting.",
+Personal Data,classification,Retail Medallion Lakehouse >> Data Governance,Information relating to an identified or identifiable customer. The email address is the only direct PII in the medallion seed data.,Retail Medallion Lakehouse >> Data Governance >> Business Data

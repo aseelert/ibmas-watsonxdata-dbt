@@ -1,0 +1,4 @@
+value,description
+card,"Credit or debit card payment."
+paypal,"PayPal wallet payment."
+bank_transfer,"Direct bank / wire transfer."

@@ -1,0 +1,5 @@
+value,description
+completed,"Order fulfilled and paid; the only status included in net revenue and lifetime value."
+returned,"Order returned by the customer; excluded from revenue."
+pending,"Order placed but not yet fulfilled; excluded from recognised revenue."
+cancelled,"Order cancelled before fulfilment; excluded from revenue."

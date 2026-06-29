@@ -1,0 +1,5 @@
+Name,Artifact Type,Category,Description
+Order Status,reference_data_set,Retail Medallion Lakehouse,"Controlled vocabulary of order lifecycle states. Values in 05_refvalues_order_status.csv."
+Payment Method,reference_data_set,Retail Medallion Lakehouse,"Controlled vocabulary of payment methods. Values in 05_refvalues_payment_method.csv."
+Product Category,reference_data_set,Retail Medallion Lakehouse,"Controlled vocabulary of product categories. Values in 05_refvalues_product_category.csv."
+Country,reference_data_set,Retail Medallion Lakehouse,"Controlled vocabulary of customer countries (ISO-3166 alpha-2). Values in 05_refvalues_country.csv."

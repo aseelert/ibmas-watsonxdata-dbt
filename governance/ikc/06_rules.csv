@@ -1,0 +1,2 @@
+Name,Artifact Type,Category,Description
+RML — Mask Customer Email (PII),rule,Retail Medallion Lakehouse,"Customer Email (email column) must be masked for all users. The email address is the only direct PII in the Retail Medallion Lakehouse seed data and is classified as Personal Data. Enforced via a data protection rule: trigger on column name 'email', action redact/obfuscate the column value."

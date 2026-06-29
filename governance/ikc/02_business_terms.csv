@@ -1,0 +1,45 @@
+Name,Artifact Type,Category,Description,Tags,Abbreviations
+Customer ID,glossary_term,Retail Medallion Lakehouse >> Customer,"[customer_id] Customer ID uniquely identifies a retail customer, preserved unchanged across Bronze, Silver and the Gold customer 360 mart. The join key from orders back to the customer. Source files: raw_customers.csv, raw_orders.csv. Governed constraint (numeric range): 4-digit integer, range 1001-1050.",customer,customer_id
+,,,,key,
+,,,,identifier,
+Customer Email,glossary_term,Retail Medallion Lakehouse >> Customer,[email] Customer Email is the primary contact channel and the only direct personal identifier in the medallion seed. Subject to masking and data-protection rules. Source file: raw_customers.csv. Governed constraint (format): RFC 5321 email address.,customer,email
+,,,,pii,
+,,,,contact,
+Customer Country,glossary_term,Retail Medallion Lakehouse >> Customer,"[country] Customer Country is an ISO 3166-1 alpha-2 code (US, GB, DE, FR, IT, ES, NL) for regional segmentation. Must conform to the Country reference data set. Source file: raw_customers.csv.",customer,country
+,,,,geography,
+,,,,iso,
+Customer 360,glossary_term,Retail Medallion Lakehouse >> Customer,"[lifetime_value in gold_customer_360] Customer 360 is the Gold mart with one row per customer: attributes plus lifetime metrics (order counts by status, lifetime_value, last activity timestamps). A LEFT join keeps customers with no orders, zero-filled. Grain = customer_id.",gold,lifetime_value
+,,,,customer,
+,,,,mart,
+Product ID,glossary_term,Retail Medallion Lakehouse >> Product,"[product_id] Product ID uniquely identifies a product. The join key from order line items to product attributes (name, category, unit_price). Source files: raw_products.csv, raw_order_items.csv. Governed constraint (numeric range): 4-digit integer, range 2001-2020.",product,product_id
+,,,,key,
+,,,,identifier,
+Product Category,glossary_term,Retail Medallion Lakehouse >> Product,"[category] Product Category classifies a product into one of five controlled domains: Electronics, Grocery, Home, Office, Outdoor. The grain of gold_category_performance. Must conform to the Product Category reference data set. Source file: raw_products.csv.",product,category
+,,,,category,
+,,,,code,
+Unit Price,glossary_term,Retail Medallion Lakehouse >> Product,[unit_price] Unit Price is the list price for one unit of a product before discount. Combined with quantity and discount_pct to compute the Silver net_amount column. Source file: raw_products.csv. Governed constraint (monetary): non-negative amount up to 5 integer and 2 decimal digits.,product,unit_price
+,,,,monetary,
+,,,,price,
+Order ID,glossary_term,Retail Medallion Lakehouse >> Order,"[order_id] Order ID uniquely identifies a purchase event placed by a customer. One order may contain many line items. Used to count distinct orders in the Gold marts. Source files: raw_orders.csv, raw_order_items.csv. Governed constraint (numeric range): 4-digit integer starting with 3.",order,order_id
+,,,,key,
+,,,,identifier,
+Order Status,glossary_term,Retail Medallion Lakehouse >> Order,"[status] Order Status is the lifecycle state code: completed, returned, pending or cancelled. Only completed orders count toward net_revenue and lifetime_value. Must conform to the Order Status reference data set. Source file: raw_orders.csv.",order,status
+,,,,status,
+,,,,code,
+Order Quantity,glossary_term,Retail Medallion Lakehouse >> Order,[quantity] Order Quantity is the number of product units on an order line item. Summed into units_sold in gold_daily_sales. Source file: raw_order_items.csv. Governed constraint (numeric range): positive integer 1-99.,order,quantity
+,,,,measure,
+,,,,quantity,
+Net Amount,glossary_term,Retail Medallion Lakehouse >> Order,[net_amount] Net Amount is the computed monetary value of an order line: unit_price × quantity × (1 − discount_pct). The atomic revenue measure in the Silver layer; rolls up into net_revenue and lifetime_value. Governed constraint (monetary): non-negative amount up to 10 integer and 2 decimal digits.,order,net_amount
+,,,,monetary,
+,,,,computed,
+Daily Sales,glossary_term,Retail Medallion Lakehouse >> Gold Sales,"[order_date in gold_daily_sales] Daily Sales is the Gold PARQUET table (partitioned by month of order_date) with one row per order_date and product category: order_count, units_sold, net_revenue for completed orders only.",gold,order_date
+,,,,mart,
+,,,,daily,
+Net Revenue,glossary_term,Retail Medallion Lakehouse >> Gold Sales,[net_revenue / total_revenue] Net Revenue is the primary Gold KPI: sum of net_amount for completed orders. Present as net_revenue in gold_daily_sales and total_revenue in gold_category_performance. Governed constraint (monetary): non-negative aggregate up to 10 integer and 2 decimal digits.,gold,net_revenue
+,,,,metric,
+,,,,monetary,
+,,,,kpi,
+Category Performance,glossary_term,Retail Medallion Lakehouse >> Gold Sales,"[gold_category_performance] Category Performance is the Gold mart with one row per product category: total_orders, total_units, total_revenue, avg_revenue_per_unit aggregated from daily sales data.",gold,total_orders
+,,,,mart,
+,,,,category,
+,,,,kpi,
