@@ -225,6 +225,71 @@ have a sensible default in the template). Variables shown commented-out are opti
 | `WXD_OBJECT_STORE_SECRET_NAME` / `_ACCESS_KEY_NAME` / `_SECRET_KEY_NAME` | manual | OpenShift secret + keys to read MinIO creds from. |
 | `WXD_OBJECT_STORE_REGION` / `_SSL_VERIFY` | manual | S3 region and TLS verification toggle. |
 
+### Confluent streaming path (`confluent/` folder)
+
+The Confluent path (Kafka → Flink → Iceberg) adds a small set of `CONFLUENT_*` and
+`WXD_DATASTAGE_*` variables. Every other value it needs (Presto, MinIO, auth) is **reused** from
+the `WXD_*` variables above — nothing new is hardcoded. See the
+[Confluent walkthrough](confluent-demo.md) and [DataStage page](datastage-demo.md) for how they
+are used.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `CONFLUENT_SILVER_SCHEMA` | `confluent_demo_silver` | Iceberg schema for the Flink-written Silver tables (`confluent_silver_*`). |
+| `CONFLUENT_GOLD_SCHEMA` | `confluent_demo_gold` | Iceberg schema holding the three Confluent Gold marts, sitting next to dbt's `gold_*` and Spark's `spark_gold_*`. |
+| `CONFLUENT_GOLD_ENGINE` | `spark` | Which engine builds Gold: `spark` (default, code-first watsonx.data Spark job) or `datastage` (no-code visual ETL flow). Both read `confluent_demo_silver` and write the same `confluent_demo_gold` marts. |
+| `SCHEMA_REGISTRY_URL` | `http://localhost:28081` | Schema Registry endpoint **from your workstation**. Inside a Docker service on the compose network, use `http://confluent-schema-registry:8081` instead. |
+| `WXD_DATASTAGE_PROJECT_ID` | `2d2415ea-71b5-4215-a7b6-b32a4889611e` | GUID of the CPD project that holds the DataStage Gold flow (only used when `CONFLUENT_GOLD_ENGINE=datastage`). |
+| `WXD_DATASTAGE_PROJECT_NAME` | `ibmas-ingest-demo` | Human-readable name of that project (kept for reference; the GUID is what is addressed). |
+| `ICEBERG_REST_URL` | `http://confluent-iceberg-rest:8181` | In-container Iceberg REST catalog URL used by `prep_iceberg_schemas.py` Phase B. Override only when running outside Docker. |
+
+DataStage auth reuses `WXD_API_KEY` + `WXD_CPD_USERNAME` (`cpadmin`) against `WXD_CPD_HOST` — the
+same credentials as every other path.
+
+!!! info "Two values that change with WHERE the caller runs"
+    `SCHEMA_REGISTRY_URL` and the Iceberg REST URL have a **host** form and an **in-container**
+    form. Scripts you run from your laptop use the published host port (`localhost:28081` /
+    `localhost:28181`); services running *inside* the Docker compose network use the container
+    names (`confluent-schema-registry:8081` / `confluent-iceberg-rest:8181`). Using the wrong one
+    is the most common "connection refused" cause on this path.
+
+---
+
+### The env / hosts model — external bastion vs in-cluster domain
+
+This demo talks to **one** OpenShift cluster across **two** different networks. Keeping them
+straight is the key to the streaming and Spark paths working. Nothing below is hardcoded — these
+are the **EXAMPLE** values for the cluster the demo was last run against, all documented in
+`.env.example` and overridable for your own cluster.
+
+| Network | What it is | Example value | Used by |
+|---|---|---|---|
+| **External (from your laptop)** | Bastion / jump-host IP that forwards `*.apps.*` ports 80/443 to the cluster ingress | `9.82.206.23` | `/etc/hosts` entries; all Route URLs resolve here |
+| **External — MinIO Route** | OpenShift Route exposing MinIO over HTTP/HTTPS so Docker (Flink, iceberg-rest) can reach the object store | `ibm-lh-minio-route-cpd-instance.apps.watson.ibmas-zocp-techcluster.org` | `WXD_OBJECT_STORE_ENDPOINT`, Flink |
+| **In-cluster app domain** | Wildcard DNS every Route/service hostname hangs off | `apps.watson.ibmas-zocp-techcluster.org` | `WXD_HOST`, `WXD_CPD_HOST`, console + API endpoints |
+| **In-cluster MinIO service** | ClusterIP service, only resolvable inside the cluster | `ibm-lh-lakehouse-minio-svc.cpd-instance.svc.cluster.local:9000` | `WXD_OBJECT_STORE_INTERNAL_ENDPOINT` |
+| **Login user** | IBM Software Hub / CPD admin and SSH user on the bastion | `cpadmin` | `WXD_CPD_USERNAME`; its `WXD_API_KEY` authenticates Presto, Spark, and DataStage |
+
+Which variables face which network:
+
+- **External-facing** (reached from your laptop): `WXD_HOST`, `WXD_CPD_HOST`, `WXD_CPD_AUTH_URL`,
+  `WXD_OPENSHIFT_CONSOLE`, `WXD_OPENSHIFT_API`, `WXD_OBJECT_STORE_ENDPOINT` (the MinIO Route),
+  `SCHEMA_REGISTRY_URL`, and the bastion IP.
+- **In-cluster only**: `WXD_OBJECT_STORE_INTERNAL_ENDPOINT`, the `*.svc.cluster.local` service
+  names, and the in-container `confluent-schema-registry:8081` / `confluent-iceberg-rest:8181`
+  names.
+
+!!! tip "Create the MinIO Route, then validate your hosts file"
+    The streaming path needs the MinIO Route to exist and the cluster hostnames to resolve to the
+    bastion. Run these two helpers once:
+
+    ```bash
+    bash confluent/scripts/expose_minio_route.sh   # creates ibm-lh-minio-route, writes WXD_OBJECT_STORE_ENDPOINT
+    python scripts/check_hosts.py                  # confirms every required hostname → 9.82.206.23 and is TCP-reachable
+    ```
+
+---
+
 ### Optional — REST auth and OpenMetadata
 
 | Variable | Source | Meaning |

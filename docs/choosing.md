@@ -1,32 +1,41 @@
 # When to Use Which — and How the Paths Combine
 
 !!! abstract "The one idea to take away"
-    **dbt and Spark are two interchangeable, self-contained pipelines** — each *ingests and
-    transforms* the CSVs all the way through Bronze → Silver → Gold. **cpdctl is an ingestion-only
-    loader** — like `dbt seed`, it lands the raw CSVs in `spark_demo_cpdctl_raw` and *stops at raw*.
-    To turn cpdctl data into a medallion, you run **dbt or Spark as a post-action** over the ingest
-    schema.
+    **dbt, Spark, and Confluent are three interchangeable, self-contained pipelines** — each
+    *ingests and transforms* the same four CSVs all the way through Bronze → Silver → Gold, and
+    all three must reach the **identical Gold** marts. dbt and Spark are **batch**; Confluent
+    (Kafka → Flink → Iceberg) is **streaming**. **cpdctl is an ingestion-only loader** — like
+    `dbt seed`, it lands the raw CSVs in `spark_demo_cpdctl_raw` and *stops at raw*. To turn
+    cpdctl data into a medallion, you run **dbt or Spark as a post-action** over the ingest schema.
 
     > **cpdctl (ingest) + dbt or Spark (transform) = one full pipeline.**
+    > **dbt, Spark, and Confluent each = one full pipeline on their own.**
 
 ---
 
-## Two engines, one loader
+## Three engines, one loader
 
-| | dbt | Spark | cpdctl |
-|---|---|---|---|
-| **Kind** | Full pipeline | Full pipeline | Ingest loader only |
-| **Does it transform?** | Yes — raw → bronze → silver → gold | Yes — bronze → silver → gold | **No** — lands raw and stops |
-| **Language** | SQL | Python (PySpark) | CLI (no code) |
-| **Builds a medallion alone?** | Yes | Yes | No — needs dbt or Spark afterward |
-| **Output schema** | `dbt_demo_raw/bronze/silver/gold` | `spark_demo_bronze/silver/gold` | `spark_demo_cpdctl_raw` (raw) |
-| **UI ingestion history?** | No | No | **Yes** |
-| **Analogous to** | — | — | `dbt seed` / Spark's raw CSV read |
+| | dbt | Spark | Confluent (Flink) | cpdctl |
+|---|---|---|---|---|
+| **Kind** | Full pipeline | Full pipeline | Full pipeline (streaming) | Ingest loader only |
+| **Batch or streaming?** | Batch | Batch | **Streaming** | Batch load |
+| **Does it transform?** | Yes — raw → bronze → silver → gold | Yes — bronze → silver → gold | Yes — Kafka raw → Flink silver → Spark/DataStage gold | **No** — lands raw and stops |
+| **Language** | SQL | Python (PySpark) | Flink SQL (+ Spark/DataStage for gold) | CLI (no code) |
+| **Builds a medallion alone?** | Yes | Yes | Yes | No — needs dbt or Spark afterward |
+| **Output schema** | `dbt_demo_raw/bronze/silver/gold` | `spark_demo_bronze/silver/gold` | topics → `confluent_demo_silver` → `confluent_demo_gold` | `spark_demo_cpdctl_raw` (raw) |
+| **UI ingestion history?** | No | No | No (runs as a stream) | **Yes** |
+| **Analogous to** | — | — | Confluent Tableflow (Flink-on-Iceberg) | `dbt seed` / Spark's raw CSV read |
 
-dbt and Spark are **peers** — pick whichever engine fits the team and workload; both produce the
-same medallion shape and the [SQL comparison](sql-demo.md) proves their gold layers match exactly.
-cpdctl is **not** a third peer engine: it is a fast, UI-tracked way to get raw data *in*, which you
-then hand to dbt or Spark.
+dbt, Spark, and Confluent are **peers** — pick whichever engine fits the team and workload; all
+three produce the same medallion shape, and the [SQL comparison](sql-demo.md) plus
+`scripts/reconcile_gold.py` prove their gold layers match exactly. cpdctl is **not** a fourth peer
+engine: it is a fast, UI-tracked way to get raw data *in*, which you then hand to dbt or Spark.
+
+!!! info "Confluent gold is built by a second engine — Spark or DataStage"
+    The Confluent path always writes **Silver** with Flink, then builds **Gold** with a second
+    engine chosen by `CONFLUENT_GOLD_ENGINE`: **Spark** (default, code-first) or **DataStage**
+    (no-code visual ETL). Both write the same `confluent_demo_gold` marts — see the
+    [DataStage page](datastage-demo.md).
 
 ---
 
@@ -72,8 +81,11 @@ Find the row that matches your situation, then pick the engine in the last colum
 |----------------|-----------|
 | "My logic is all `SELECT` statements and I want tests + lineage" | **dbt** |
 | "I'm a SQL-first analytics team on watsonx.data" | **dbt** |
-| "The data is huge, or I need Python / ML / streaming / messy parsing" | **Spark** |
+| "The data is huge, or I need Python / ML / messy parsing" | **Spark** |
 | "I want distributed compute across many workers" | **Spark** |
+| "Data arrives continuously and I want low-latency Silver/Gold" | **Confluent (Kafka → Flink → Iceberg)** |
+| "I want Bronze to be a replayable event log, not a static table" | **Confluent** |
+| "I want a no-code, visual, governed ETL canvas for the gold build" | **Confluent with `CONFLUENT_GOLD_ENGINE=datastage`** |
 | "I just need raw data loaded fast, with no code, tracked in the UI" | **cpdctl** (then transform with dbt or Spark) |
 | "Heavy raw→Silver lift, then governed Silver→Gold modeling" | **Spark for the lift, dbt for the modeling** |
 
@@ -89,6 +101,18 @@ Find the row that matches your situation, then pick the engine in the last colum
     - The data is **large** or the logic needs **Python** (ML feature prep, custom parsing,
       billions-of-rows joins).
     - You want distributed compute on the watsonx.data Spark engine.
+
+=== "Use Confluent (streaming)"
+
+    - Data **arrives continuously** and you want Silver/Gold updated seconds after each row,
+      not on the next batch schedule.
+    - You want **Bronze to be a replayable Kafka topic** — rewind and reprocess without
+      re-ingesting the source.
+    - You want **Schema Registry** as the streaming governance point (the contract that rejects
+      malformed messages), the streaming analogue of dbt tests.
+    - For Gold, choose the second engine: **Spark** (code-first, default) or **DataStage**
+      (no-code visual ETL) via `CONFLUENT_GOLD_ENGINE`. See [Confluent](confluent-demo.md) and
+      [DataStage](datastage-demo.md).
 
 === "Use cpdctl"
 
@@ -158,6 +182,9 @@ The worked post-action examples (a dbt model and a Spark read over `spark_demo_c
 ## Next step
 
 - New here? Start with [Architecture & Data Flow](lineage.md).
-- Ready to build? Run [Path A — dbt](dbt-demo.md) or [Path B — Spark](spark-demo.md).
+- Ready to build? Run [Path A — dbt](dbt-demo.md), [Path B — Spark](spark-demo.md), or
+  [Path C — Confluent streaming](confluent-demo.md).
+- Want the no-code gold engine for the streaming path? See [DataStage](datastage-demo.md).
 - Want UI-tracked ingestion? Run [cpdctl](ingestion.md), then transform with dbt or Spark.
-- Built both engines? [Compare the dbt and Spark gold layers](sql-demo.md).
+- Built multiple engines? [Compare the dbt and Spark gold layers](sql-demo.md), or run
+  `scripts/reconcile_gold.py` to compare all three.

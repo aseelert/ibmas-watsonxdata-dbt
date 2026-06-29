@@ -59,7 +59,18 @@ RUN curl -fsSL \
   -o /opt/flink/lib/iceberg-aws-bundle-${ICEBERG_VER}.jar
 
 # ---------------------------------------------------------------------------
-# 6. Classpath so Hadoop S3A picks up all JARs
+# 6. Avro + Confluent Schema Registry SQL format
+# ---------------------------------------------------------------------------
+# Provides the 'avro-confluent' format factory used by every Kafka table in
+# silver_jobs.sql. This SQL-uber JAR bundles flink-avro AND the Confluent
+# schema-registry client, so no extra dependency JARs are needed. Without it
+# Flink fails with: "Could not find any factory for identifier 'avro-confluent'".
+RUN curl -fsSL \
+  "${MAVEN}/org/apache/flink/flink-sql-avro-confluent-registry/${FLINK_VER}/flink-sql-avro-confluent-registry-${FLINK_VER}.jar" \
+  -o /opt/flink/lib/flink-sql-avro-confluent-registry-${FLINK_VER}.jar
+
+# ---------------------------------------------------------------------------
+# 7. Classpath so Hadoop S3A picks up all JARs
 # ---------------------------------------------------------------------------
 ENV HADOOP_CLASSPATH=/opt/flink/lib
 

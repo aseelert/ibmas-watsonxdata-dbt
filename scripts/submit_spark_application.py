@@ -5,8 +5,17 @@
 #  Location  : scripts/submit_spark_application.py
 #  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
-#  Author    : Alexander Seelert
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.0 — Initial version. Submits load_medallion_demo.py to the Spark engine.
+#    v1.1 (2026-06-26) — Gold materialisation parity with dbt. After the app
+#      FINISHES, creates spark_gold_category_performance + spark_gold_customer_360
+#      as Presto VIEWS via scripts/create_gold_views.py --path spark (the Spark
+#      job now writes only the daily_sales table; a Spark view is a Hive view
+#      Presto cannot read). View creation polls to a terminal state first; disable
+#      with WXD_SPARK_CREATE_VIEWS=false.
 # -----------------------------------------------------------------------------
 """Submit the Spark medallion demo to the watsonx.data Spark engine.
 
@@ -72,7 +81,9 @@ from __future__ import annotations
 import base64
 import json
 import os
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -310,6 +321,53 @@ def _ensure_spark_schemas_via_presto() -> None:
         print(f"  WARNING: could not pre-create Spark schemas ({exc}); Spark may add .db dirs.")
 
 
+def _poll_until_terminal(endpoint: str, instance_id: str, app_id: str,
+                         interval: int = 15, timeout: int = 1800) -> str | None:
+    """Poll the Spark application status until a terminal state; return last state."""
+    import requests
+
+    terminal = {"FINISHED", "FAILED", "STOPPED", "KILLED", "ERROR", "DEAD"}
+    status_url = f"{endpoint.rstrip('/')}/{app_id}"
+    waited: int = 0
+    last: str | None = None
+    print(f"\nPolling {status_url} every {interval}s (timeout {timeout}s)…")
+    while waited < timeout:
+        try:
+            resp = requests.get(
+                status_url,
+                headers={"Authorization": _authorization_header(), "LhInstanceId": instance_id},
+                verify=_ssl_verify(),
+                timeout=30,
+            )
+            body = resp.json() if resp.status_code < 400 else {}
+            last = body.get("state") or (body.get("application_details") or {}).get("state") or last
+        except Exception as exc:  # transient network/JSON — keep polling
+            print(f"  (poll error: {exc})")
+        print(f"  state: {last}")
+        if last and last.upper() in terminal:
+            return last
+        time.sleep(interval)
+        waited += interval
+    print(f"  timed out after {timeout}s (last={last})")
+    return last
+
+
+def _create_spark_gold_views() -> None:
+    """Create spark_gold category_performance + customer_360 as Presto VIEWS.
+
+    Runs scripts/create_gold_views.py --path spark as a subprocess (sharing this
+    process's env/.env). The views are made via Presto — NOT Spark — because a
+    Spark-created view is a Hive view watsonx Presto cannot read. Idempotent.
+    """
+    script = ROOT / "scripts" / "create_gold_views.py"
+    print(f"Creating gold VIEW marts via Presto: {script} --path spark")
+    subprocess.run(
+        [sys.executable, str(script), "--path", "spark"],
+        check=True,
+        env=os.environ.copy(),
+    )
+
+
 def main() -> int:
     if load_dotenv is not None:
         load_dotenv(ROOT / ".env")
@@ -387,6 +445,25 @@ def main() -> int:
         f"  Infrastructure manager -> Spark engine '{engine_id}' -> Applications tab"
     )
     print("=" * 74)
+
+    # Gold category_performance + customer_360 are VIEWS (parity with dbt). The
+    # Spark job writes only spark_gold_daily_sales (table); these two views read
+    # it / the silver tables and must be created THROUGH PRESTO after the app
+    # FINISHES (a Spark view is a Hive view Presto cannot read). So when view
+    # creation is enabled (default) we poll to a terminal state, then build them.
+    # Disable with WXD_SPARK_CREATE_VIEWS=false (table-only / no post-wait).
+    create_views = os.getenv("WXD_SPARK_CREATE_VIEWS", "true").lower() in {"1", "true", "yes"}
+    if app_id and create_views:
+        final_state = _poll_until_terminal(endpoint, instance_id, app_id)
+        if not (final_state and final_state.upper() == "FINISHED"):
+            print(f"[FAIL] Spark medallion app ended in non-success state: {final_state}")
+            return 1
+        print("[OK] Spark medallion app FINISHED.")
+        try:
+            _create_spark_gold_views()
+        except subprocess.CalledProcessError as exc:
+            print(f"[FAIL] Gold VIEW creation failed (exit {exc.returncode}).")
+            return 1
     return 0
 
 

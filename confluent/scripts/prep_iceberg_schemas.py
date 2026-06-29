@@ -3,14 +3,25 @@
 #  prep_iceberg_schemas.py — create watsonx.data schemas + register Flink tables
 # -----------------------------------------------------------------------------
 #  Location  : confluent/scripts/prep_iceberg_schemas.py
-#  Repository: ibmas-watsonxdata-dbt
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
 #
-#  TWO PHASES — controlled by --phase argument:
+#  Changelog :
+#    v1.0 (2026-06-26) — Initial version. Phase A creates BOTH Confluent Iceberg
+#      schemas (silver + gold) in watsonx.data via Presto; Phase B registers all
+#      five Flink-written silver tables. Env-driven, with a top-level try/except
+#      that exits non-zero on failure.
+# -----------------------------------------------------------------------------
+#
+#  TWO PHASES — controlled by the --phase argument:
 #
 #  Phase A (--phase schema):
-#    Run BEFORE Flink starts. Creates the two Iceberg schemas in watsonx.data
-#    via Presto so they exist when Flink writes the first checkpoint.
-#    Docker service: confluent-schema-prep
+#    Run BEFORE Flink starts. Creates the Confluent silver AND gold Iceberg
+#    schemas in watsonx.data via Presto so they exist when Flink writes its
+#    first checkpoint (silver) and when the gold engine — Spark or DataStage —
+#    later writes the gold marts. Docker service: confluent-schema-prep
 #
 #  Phase B (--phase register):
 #    Run AFTER Flink has committed at least one checkpoint. Queries the local
@@ -18,13 +29,13 @@
 #    metadata.json location for each silver table, then calls
 #    CALL iceberg_data.system.register_table(...) via Presto so each table
 #    becomes visible in watsonx.data alongside dbt_demo_silver.* and
-#    spark_demo_silver.*.
-#    Docker service: confluent-prep
+#    spark_demo_silver.*. Docker service: confluent-prep
 #
 #  ENV VARS (read from .env via python-dotenv):
 #    WXD_USER, WXD_API_KEY, WXD_HOST, WXD_PORT, WXD_INSTANCE_ID,
 #    WXD_SSL_VERIFY, WXD_CATALOG (default: iceberg_data)
 #    CONFLUENT_SILVER_SCHEMA    (default: confluent_demo_silver)
+#    CONFLUENT_GOLD_SCHEMA      (default: confluent_demo_gold)
 #    ICEBERG_REST_URL           (default: http://confluent-iceberg-rest:8181)
 #
 #  PREREQUISITES  (all in requirements.txt — installed into .venv)
@@ -60,7 +71,12 @@ except ImportError as exc:
         "Missing dependency 'requests'. Install with: pip install requests"
     ) from exc
 
-ROOT = Path(__file__).resolve().parents[2]
+# Repo root on the host is confluent/scripts/ -> parents[2]; but inside the
+# Flink/prep container this file is mounted flat at /app/, which has no
+# parents[2]. Fall back to the file's own dir so cert/.env resolution still works
+# (in the container those come from mounted paths + env vars anyway).
+_self = Path(__file__).resolve()
+ROOT = _self.parents[2] if len(_self.parents) > 2 else _self.parent
 
 # Silver tables Flink produces — must match silver_jobs.sql sink table names
 SILVER_TABLES = [
@@ -141,15 +157,20 @@ def _execute(cur, sql: str, swallow: bool = False) -> bool:
 # ---------------------------------------------------------------------------
 
 def phase_schema() -> int:
+    # Both Confluent schemas are created up front:
+    #   silver — where Flink writes the cleaned/typed tables (this script, Phase B)
+    #   gold   — where the gold engine (Spark or DataStage) later writes the marts
     silver_schema = os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_demo_silver")
+    gold_schema = os.getenv("CONFLUENT_GOLD_SCHEMA", "confluent_demo_gold")
 
     conn, catalog = _presto_connect()
     cur = conn.cursor()
 
-    _execute(cur, f"CREATE SCHEMA IF NOT EXISTS {catalog}.{silver_schema}")
-    print(f"ensured {catalog}.{silver_schema}")
+    for schema in (silver_schema, gold_schema):
+        _execute(cur, f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+        print(f"ensured {catalog}.{schema}")
 
-    print("[OK] Phase A complete — schemas ready.")
+    print("[OK] Phase A complete — silver + gold schemas ready.")
     return 0
 
 
@@ -281,4 +302,13 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print("interrupted by user", file=sys.stderr)
+        sys.exit(130)
+    except SystemExit:
+        raise  # argparse / _env() already printed a clear message
+    except Exception as exc:  # top-level safety net — never die without context
+        print(f"[ERROR] prep_iceberg_schemas failed: {exc}", file=sys.stderr)
+        sys.exit(1)

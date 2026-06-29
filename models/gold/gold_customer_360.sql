@@ -1,6 +1,31 @@
--- Gold customer mart (view by default). Metrics come from the enriched
--- silver fact; customer attributes are joined from the silver dimension so
--- that customers with no orders are still represented.
+-- -----------------------------------------------------------------------------
+--  gold_customer_360.sql — one row per customer: lifetime metrics + attributes
+--
+--  Location  : models/gold/gold_customer_360.sql
+--  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+--  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+--  Author    : Alexander Seelert — IBM Customer Success Engineer
+--  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+--
+--  Changelog :
+--    v1.0 (2026-06-26) — Initial version. Per-customer 360 view (LEFT join so
+--                        customers with no orders still appear, 0-filled).
+--    v1.1 (2026-06-26) — Parity/correctness fix: pinned an EXPLICIT view
+--                        materialization instead of relying on the implicit
+--                        project default (WXD_GOLD_MATERIALIZED), so this mart's
+--                        physical shape is stable and matches its sibling marts.
+--                        Logic unchanged.
+-- -----------------------------------------------------------------------------
+
+-- WHAT: customer 360 mart — grain is one row PER CUSTOMER. Metrics come from the
+-- enriched silver fact; customer attributes are joined from the silver dimension
+-- via a LEFT join so that customers with NO orders are still represented (their
+-- metric columns are coalesced to 0 / NULL timestamps).
+-- WHY view: like the other thin gold roll-ups this is computed on demand over
+-- already-materialized silver; we pin 'view' EXPLICITLY (not via the env default)
+-- so the decision is self-documenting and consistent with gold_category_performance.
+{{ config(materialized='view') }}
+
 with metrics as (
   select
     customer_id,

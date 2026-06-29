@@ -1,0 +1,269 @@
+{
+  "_header": [
+    "=============================================================================",
+    " confluent_gold_flow.json — parameterized IBM DataStage (PX) flow definition",
+    "   that builds the Confluent GOLD marts from the Flink-written silver layer.",
+    "",
+    " Location  : confluent/datastage/confluent_gold_flow.json",
+    " Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt",
+    " Project   : watsonx.data · dbt · Spark · Confluent medallion demo",
+    " Author    : Alexander Seelert — IBM Customer Success Engineer",
+    " Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.",
+    "",
+    " Changelog :",
+    "   v1.0 (2026-06-26) — Initial version. Parameterized pipeline-flow v3 graph",
+    "     for confluent_gold_daily_sales (fully wired) plus documented placeholder",
+    "     nodes for confluent_gold_category_performance and confluent_gold_customer_360.",
+    "",
+    " IMPORTANT — THIS IS A BEST-EFFORT TEMPLATE, NOT A LIVE-VALIDATED EXPORT.",
+    "   It follows the Common Pipeline 'pipeline-flow' v3 schema that the CP4D",
+    "   DataStage REST API (POST /data_intg/v3/data_intg_flows) accepts, but it",
+    "   has NOT been round-tripped against a running DataStage service. Stage IDs,",
+    "   the connector 'op' names and the exact connector property keys may need to",
+    "   be adjusted to match your CP4D version. Treat the SQL business logic (which",
+    "   mirrors the dbt gold models exactly) as the contract; treat the connector",
+    "   plumbing as a starting point to be opened and saved once in the DataStage",
+    "   canvas so the service can normalize it.",
+    "",
+    " PLACEHOLDERS (substituted by confluent/scripts/create_datastage_flow.py from .env):",
+    "   @@PROJECT_ID@@        — WXD_DATASTAGE_PROJECT_ID",
+    "   @@CATALOG@@           — WXD_CATALOG            (default iceberg_data)",
+    "   @@SILVER_SCHEMA@@     — CONFLUENT_SILVER_SCHEMA (default confluent_demo_silver)",
+    "   @@GOLD_SCHEMA@@       — CONFLUENT_GOLD_SCHEMA   (default confluent_demo_gold)",
+    "   @@CONNECTION_REF@@    — guid of the watsonx.data / Presto connection asset",
+    "                           that already exists in the project (see README.md)",
+    "   @@CONNECTION_NAME@@   — display name of that connection asset",
+    "============================================================================="
+  ],
+
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "confluent-gold-flow",
+  "primary_pipeline": "confluent_gold_pipeline",
+
+  "parameters": {
+    "project_id": "@@PROJECT_ID@@",
+    "catalog": "@@CATALOG@@",
+    "silver_schema": "@@SILVER_SCHEMA@@",
+    "gold_schema": "@@GOLD_SCHEMA@@"
+  },
+
+  "app_data": {
+    "ui_data": {
+      "comments": [
+        {
+          "id": "comment_parity_contract",
+          "content": "PARITY CONTRACT: this DataStage flow MUST produce byte-for-byte the same gold numbers as dbt's gold_daily_sales and Spark's spark_gold_daily_sales. The SQL pushed down below is copied verbatim from models/gold/gold_daily_sales.sql. Do not 'improve' it — the intentional count(distinct order_id) and decimal(14,2) casts are part of the contract.",
+          "associated_id_refs": [{ "node_ref": "node_src_sales_enriched" }]
+        }
+      ]
+    },
+    "datastage": {
+      "runtime_column_propagation": "false",
+      "description": "Confluent GOLD builder (DataStage engine). Reads Flink-written confluent_demo_silver from watsonx.data and writes confluent_demo_gold marts. Functional twin of the Spark gold job."
+    }
+  },
+
+  "runtimes": [
+    {
+      "id": "pxOsh",
+      "name": "pxOsh",
+      "version": "1.0"
+    }
+  ],
+
+  "external_paramsets": [],
+
+  "pipelines": [
+    {
+      "id": "confluent_gold_pipeline",
+      "runtime_ref": "pxOsh",
+      "app_data": {
+        "ui_data": {
+          "name": "confluent_gold_daily_sales",
+          "description": "Mart 1 of 3 — daily_sales. Grain: (order_date, category). Built and wired in this template; the other two marts are documented as placeholder nodes below."
+        }
+      },
+      "nodes": [
+
+        {
+          "id": "node_src_sales_enriched",
+          "type": "binding",
+          "op": "PxConnectorPX",
+          "outputs": [
+            {
+              "id": "port_src_out",
+              "schema_ref": "schema_silver_sales_enriched",
+              "app_data": {
+                "ui_data": { "label": "confluent_silver_sales_enriched" }
+              }
+            }
+          ],
+          "parameters": {
+            "connection": {
+              "ref": "@@CONNECTION_REF@@",
+              "name": "@@CONNECTION_NAME@@",
+              "properties": {
+                "comment": "watsonx.data (Presto/Iceberg) connection asset. Reuses WXD_HOST / WXD_PORT / WXD_API_KEY exactly like the dbt + Spark paths."
+              }
+            },
+            "usage": {
+              "read_mode": "select",
+              "select_statement": "SELECT order_date, category, order_id, quantity, net_amount, status FROM @@CATALOG@@.@@SILVER_SCHEMA@@.confluent_silver_sales_enriched"
+            }
+          },
+          "app_data": {
+            "ui_data": {
+              "label": "Silver: sales_enriched",
+              "x_pos": 80,
+              "y_pos": 120
+            }
+          }
+        },
+
+        {
+          "id": "node_filter_completed",
+          "type": "execution_node",
+          "op": "PxFilter",
+          "inputs": [
+            {
+              "id": "port_filter_in",
+              "schema_ref": "schema_silver_sales_enriched",
+              "links": [
+                { "id": "link_src_to_filter", "node_id_ref": "node_src_sales_enriched", "port_id_ref": "port_src_out" }
+              ]
+            }
+          ],
+          "outputs": [
+            { "id": "port_filter_out", "schema_ref": "schema_silver_sales_enriched" }
+          ],
+          "parameters": {
+            "where_clause": "status = 'completed'",
+            "comment": "Mirrors `where status = 'completed'` in gold_daily_sales.sql."
+          },
+          "app_data": {
+            "ui_data": { "label": "Filter: completed", "x_pos": 320, "y_pos": 120 }
+          }
+        },
+
+        {
+          "id": "node_agg_daily_sales",
+          "type": "execution_node",
+          "op": "PxAggregator",
+          "inputs": [
+            {
+              "id": "port_agg_in",
+              "schema_ref": "schema_silver_sales_enriched",
+              "links": [
+                { "id": "link_filter_to_agg", "node_id_ref": "node_filter_completed", "port_id_ref": "port_filter_out" }
+              ]
+            }
+          ],
+          "outputs": [
+            { "id": "port_agg_out", "schema_ref": "schema_gold_daily_sales" }
+          ],
+          "parameters": {
+            "group_by": ["order_date", "category"],
+            "aggregations": [
+              { "output_column": "order_count", "function": "count_distinct", "source_column": "order_id" },
+              { "output_column": "units_sold", "function": "sum", "source_column": "quantity" },
+              { "output_column": "net_revenue", "function": "sum", "source_column": "net_amount", "output_type": "decimal(14,2)" }
+            ],
+            "comment": "Equivalent to: select order_date, category, count(distinct order_id) order_count, sum(quantity) units_sold, cast(sum(net_amount) as decimal(14,2)) net_revenue ... group by order_date, category. Verbatim from models/gold/gold_daily_sales.sql."
+          },
+          "app_data": {
+            "ui_data": { "label": "Aggregate: daily_sales", "x_pos": 560, "y_pos": 120 }
+          }
+        },
+
+        {
+          "id": "node_tgt_daily_sales",
+          "type": "binding",
+          "op": "PxConnectorPX",
+          "inputs": [
+            {
+              "id": "port_tgt_in",
+              "schema_ref": "schema_gold_daily_sales",
+              "links": [
+                { "id": "link_agg_to_tgt", "node_id_ref": "node_agg_daily_sales", "port_id_ref": "port_agg_out" }
+              ]
+            }
+          ],
+          "parameters": {
+            "connection": {
+              "ref": "@@CONNECTION_REF@@",
+              "name": "@@CONNECTION_NAME@@"
+            },
+            "usage": {
+              "write_mode": "replace",
+              "table_action": "replace",
+              "table_name": "confluent_gold_daily_sales",
+              "schema_name": "@@GOLD_SCHEMA@@",
+              "catalog_name": "@@CATALOG@@",
+              "create_statement": "CREATE TABLE @@CATALOG@@.@@GOLD_SCHEMA@@.confluent_gold_daily_sales (order_date date, category varchar, order_count bigint, units_sold bigint, net_revenue decimal(14,2))"
+            }
+          },
+          "app_data": {
+            "ui_data": { "label": "Gold: confluent_gold_daily_sales", "x_pos": 800, "y_pos": 120 }
+          }
+        },
+
+        {
+          "id": "node_placeholder_category_performance",
+          "type": "model_node",
+          "op": "PxPlaceholder",
+          "parameters": {
+            "status": "TODO — wire same as daily_sales",
+            "target_table": "@@CATALOG@@.@@GOLD_SCHEMA@@.confluent_gold_category_performance",
+            "logic_source": "models/gold/gold_category_performance.sql",
+            "select_statement": "SELECT category, sum(order_count) AS total_orders, sum(units_sold) AS total_units, cast(sum(net_revenue) AS decimal(14,2)) AS total_revenue, cast(sum(net_revenue) / nullif(sum(units_sold),0) AS decimal(14,2)) AS avg_revenue_per_unit FROM @@CATALOG@@.@@GOLD_SCHEMA@@.confluent_gold_daily_sales GROUP BY category ORDER BY total_revenue DESC",
+            "comment": "Built ON TOP of confluent_gold_daily_sales (a roll-up), exactly like the dbt VIEW. Implement as a second Connector source (select above) -> target connector writing confluent_gold_category_performance."
+          },
+          "app_data": {
+            "ui_data": { "label": "[TODO] category_performance", "x_pos": 560, "y_pos": 300 }
+          }
+        },
+
+        {
+          "id": "node_placeholder_customer_360",
+          "type": "model_node",
+          "op": "PxPlaceholder",
+          "parameters": {
+            "status": "TODO — wire with a LEFT join (Join stage, link-sort + left outer)",
+            "target_table": "@@CATALOG@@.@@GOLD_SCHEMA@@.confluent_gold_customer_360",
+            "logic_source": "models/gold/gold_customer_360.sql",
+            "comment": "Grain: one row per customer. Build a 'metrics' aggregate from confluent_silver_sales_enriched (count(distinct case when status=... then order_id end) per status; lifetime_value = coalesce(sum(case when status='completed' then net_amount else 0 end),0)), then LEFT JOIN confluent_silver_customers ON customer_id so customers with zero orders survive, coalescing the metric columns to 0. Two-input Join stage (left outer) + a Transformer for the coalesce()."
+          },
+          "app_data": {
+            "ui_data": { "label": "[TODO] customer_360", "x_pos": 560, "y_pos": 420 }
+          }
+        }
+      ]
+    }
+  ],
+
+  "schemas": [
+    {
+      "id": "schema_silver_sales_enriched",
+      "fields": [
+        { "name": "order_date",  "type": "date",          "nullable": false },
+        { "name": "category",    "type": "string",        "nullable": true  },
+        { "name": "order_id",    "type": "integer",       "nullable": false },
+        { "name": "quantity",    "type": "integer",       "nullable": true  },
+        { "name": "net_amount",  "type": "decimal(14,2)", "nullable": true  },
+        { "name": "status",      "type": "string",        "nullable": true  }
+      ]
+    },
+    {
+      "id": "schema_gold_daily_sales",
+      "fields": [
+        { "name": "order_date",  "type": "date",          "nullable": false },
+        { "name": "category",    "type": "string",        "nullable": true  },
+        { "name": "order_count", "type": "bigint",        "nullable": true  },
+        { "name": "units_sold",  "type": "bigint",        "nullable": true  },
+        { "name": "net_revenue", "type": "decimal(14,2)", "nullable": true  }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,24 @@
+# -----------------------------------------------------------------------------
+#  semantic_models.yml — dbt Semantic Layer / MetricFlow definitions
+#
+#  Location  : models/semantic_models.yml
+#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.0 (2026-06-26) — Initial version. daily_sales + sales_orders semantic models.
+#    v1.1 (2026-06-26) — Documentation fix: the `total_orders` measure was
+#                        labelled only "completed orders per day/category", which
+#                        misled readers into "correcting" it toward a distinct
+#                        order count. Clarified that it is the SUM of an already
+#                        per-(day,category) distinct order_count, i.e. completed-
+#                        only AND intentionally NON-distinct across categories
+#                        (an order touching N categories counts N times). This
+#                        non-distinct behaviour is the agreed parity contract
+#                        across dbt/Spark/Confluent — DO NOT change it.
+# -----------------------------------------------------------------------------
 semantic_models:
   - name: daily_sales
     description: >
@@ -16,13 +37,24 @@ semantic_models:
       - name: total_orders
         agg: sum
         expr: order_count
-        description: "completed orders per day/category"
+        description: >
+          Completed orders, INTENTIONALLY NON-DISTINCT. Source column order_count
+          in gold_daily_sales is count(distinct order_id) WITHIN each
+          (order_date, category) group over completed orders only. Summing it here
+          re-counts any order that spans multiple categories once per category, so
+          this is NOT a unique order count. This non-distinct definition is the
+          canonical parity contract shared by Spark (spark_gold_*) and Confluent
+          (confluent_gold_*) — do NOT "fix" it to a distinct count or the three
+          engines will diverge. For unique-customer-level order counts use the
+          customer_360 mart instead.
       - name: total_units_sold
         agg: sum
         expr: units_sold
+        description: "Completed-only units sold (sum of quantity), additive across day & category."
       - name: total_net_revenue
         agg: sum
         expr: net_revenue
+        description: "Completed-only net revenue (sum of net_amount), additive across day & category."
 
   - name: sales_orders
     description: >
@@ -56,13 +88,19 @@ semantic_models:
     measures:
       - name: order_line_count
         agg: count
-        description: "individual order line items"
+        description: >
+          Count of individual order LINE ITEMS (grain of this fact), ALL statuses.
+          This is line-level, not order-level — do not confuse it with daily_sales'
+          total_orders (which is completed-only and aggregated to order grain).
       - name: gross_revenue
         agg: sum
         expr: gross_amount
+        description: "Gross amount (quantity * unit_price), ALL statuses, line-item grain."
       - name: net_revenue
         agg: sum
         expr: net_amount
+        description: "Net amount after discount, ALL statuses, line-item grain."
       - name: units_sold
         agg: sum
         expr: quantity
+        description: "Units (quantity), ALL statuses, line-item grain."

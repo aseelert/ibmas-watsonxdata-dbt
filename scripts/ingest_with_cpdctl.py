@@ -53,6 +53,7 @@ Prerequisites
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -91,6 +92,48 @@ TABLES = {
     "raw_products.csv": "products",
     "raw_orders.csv": "orders",
     "raw_order_items.csv": "order_items",
+}
+
+# Explicit DDL schemas passed via --source-file-schema to avoid Spark CSV type
+# inference. Without this the ingestion engine guesses types from a sample of the
+# file, which causes two problems for order_items specifically:
+#
+#  1. discount_pct (values like 0.00 / 0.05 / 0.10) is inferred as DOUBLE. The
+#     Iceberg writer accepts it, but the downstream Spark silver job expects
+#     DECIMAL(5,2) and the implicit cast under EXACTLY_ONCE checkpointing
+#     serialises slowly enough to hit the Spark task timeout on 1,134 rows —
+#     the job enters an infinite restart loop and never finishes.
+#
+#  2. order_item_id / order_id / product_id are inferred as BIGINT on some
+#     Spark versions. That makes the cpdctl Presto CREATE TABLE emit BIGINT
+#     columns, which then conflict with the INT primary-key definition in the
+#     Iceberg sink declared by Flink — breaking cross-engine parity queries.
+#
+# The schema string format is the cpdctl --source-file-schema JSON array:
+#   [{"column_name": "<col>", "column_type": "<presto/iceberg type>"}]
+# Types must match seeds/raw_*.csv column headers exactly (case-sensitive).
+# None means "let the engine infer" (safe for the three small tables).
+TABLE_SCHEMAS: dict[str, list[dict] | None] = {
+    "raw_customers.csv":   None,   # 50 rows, all STRING/INT — inference is fine
+    "raw_products.csv":    None,   # 20 rows, unit_price DOUBLE is acceptable here
+    "raw_orders.csv":      None,   # 500 rows, all STRING/INT — inference is fine
+    "raw_order_items.csv": [       # 1,134 rows — MUST pin types explicitly
+        {"column_name": "order_item_id", "column_type": "INTEGER"},
+        {"column_name": "order_id",      "column_type": "INTEGER"},
+        {"column_name": "product_id",    "column_type": "INTEGER"},
+        {"column_name": "quantity",      "column_type": "INTEGER"},
+        # Pin as DECIMAL(5,2) — matches the Flink silver cast and the dbt model.
+        # Without this Spark infers DOUBLE, which triggers the slow-serialisation
+        # restart loop described above.
+        {"column_name": "discount_pct",  "column_type": "DECIMAL(5,2)"},
+    ],
+}
+
+# order_items is 22× larger than the next biggest table (orders = 500 rows).
+# Give it its own generous timeout so the Spark task has time to commit the
+# Iceberg snapshot without triggering a TaskManager heartbeat timeout.
+TABLE_TIMEOUTS: dict[str, int] = {
+    "raw_order_items.csv": 600,   # 10 min — covers slow Spark cold-start + commit
 }
 
 
@@ -359,6 +402,7 @@ def main() -> int:
     for csv_name, table in TABLES.items():
         target = f"{catalog}.{ingest_schema}.{table}"
         job_id = f"ingest-{table}-{batch}"
+        timeout = TABLE_TIMEOUTS.get(csv_name, CPDCTL_CREATE_TIMEOUT)
         cmd = [
             "cpdctl", "wx-data", "ingestion", "create",
             "--instance-id", instance_id,
@@ -368,16 +412,22 @@ def main() -> int:
             "--engine-id", engine_id,
             "--job-id", job_id,
         ]
+        # Pin explicit column types when defined — avoids Spark CSV inference
+        # problems (DOUBLE vs DECIMAL, BIGINT vs INTEGER) that cause order_items
+        # to enter an infinite Spark restart loop and never finish.
+        schema = TABLE_SCHEMAS.get(csv_name)
+        if schema is not None:
+            cmd += ["--source-file-schema", json.dumps(schema)]
         cmd += ["--profile", cpdctl_profile]
         if storage := os.getenv("WXD_INGEST_STORAGE_NAME"):
             cmd += ["--storage-name", storage]
-        print(f"\nSubmitting ingestion for {csv_name} -> {target} (timeout {CPDCTL_CREATE_TIMEOUT}s)")
+        print(f"\nSubmitting ingestion for {csv_name} -> {target} (timeout {timeout}s)")
         print("$ " + " ".join(cmd))
         try:
-            result = subprocess.run(cmd, text=True, timeout=CPDCTL_CREATE_TIMEOUT)
+            result = subprocess.run(cmd, text=True, timeout=timeout)
         except subprocess.TimeoutExpired:
             failures += 1
-            print(f"!! ingestion submit for {csv_name} timed out after {CPDCTL_CREATE_TIMEOUT}s [FAIL]")
+            print(f"!! ingestion submit for {csv_name} timed out after {timeout}s [FAIL]")
             continue
         if result.returncode == 0:
             submitted.append(job_id)

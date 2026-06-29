@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "RawOrder",
+  "namespace": "com.ibmas.confluent.demo.raw",
+  "doc": "Raw order record produced from seeds/raw_orders.csv to the Kafka topic 'raw_orders'. Registered in Confluent Schema Registry as subject 'raw_orders-value'. Field order and names mirror the CSV header exactly; order_ts stays an ISO-8601 string and is cast to TIMESTAMP(6) (and derived order_date) in the Flink silver stage. Source of truth: confluent/NAMING.md.",
+  "fields": [
+    { "name": "order_id",       "type": "int",    "doc": "Unique order id (CSV column order_id)." },
+    { "name": "customer_id",    "type": "int",    "doc": "Foreign key to RawCustomer.customer_id." },
+    { "name": "order_ts",       "type": "string", "doc": "Order timestamp as 'YYYY-MM-DD HH:MM:SS'; cast to TIMESTAMP(6) in silver." },
+    { "name": "status",         "type": "string", "doc": "Order status (e.g. completed/pending); lower-cased later in silver." },
+    { "name": "payment_method", "type": "string", "doc": "Payment method (e.g. card); lower-cased later in silver." }
+  ]
+}

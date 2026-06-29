@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "RawOrderItem",
+  "namespace": "com.ibmas.confluent.demo.raw",
+  "doc": "Raw order-line record produced from seeds/raw_order_items.csv to the Kafka topic 'raw_order_items'. Registered in Confluent Schema Registry as subject 'raw_order_items-value'. Field order and names mirror the CSV header exactly. discount_pct is carried as a double here and tightened to DECIMAL(5,2) in the Flink silver stage so revenue ties to the cent. Source of truth: confluent/NAMING.md.",
+  "fields": [
+    { "name": "order_item_id", "type": "int",    "doc": "Unique order-line id (CSV column order_item_id) — primary key of the line-grain fact." },
+    { "name": "order_id",      "type": "int",    "doc": "Foreign key to RawOrder.order_id." },
+    { "name": "product_id",    "type": "int",    "doc": "Foreign key to RawProduct.product_id." },
+    { "name": "quantity",      "type": "int",    "doc": "Units ordered; silver keeps only quantity > 0." },
+    { "name": "discount_pct",  "type": "double", "doc": "Line discount as a fraction 0..1; cast to DECIMAL(5,2) in silver." }
+  ]
+}

@@ -603,6 +603,154 @@ cpdctl config profile get wxd-demo
 
 ---
 
+## Streaming (Confluent / Flink) Errors
+
+These errors occur while running the Confluent streaming path: `confluent/start.sh`,
+the Flink silver jobs, or the Iceberg REST catalog. See the
+[Confluent walkthrough](confluent-demo.md) for the full run order.
+
+---
+
+### Flink image build fails or is slow
+
+`confluent/start.sh` stalls at:
+
+```text
+▶  Step 2/5 — Build custom Flink image (wxd-flink:1.20)
+```
+
+The first run builds the custom `wxd-flink:1.20` image (Flink plus the Iceberg, Kafka, and S3
+connector jars). This downloads several hundred MB and can take a few minutes. If it **fails**
+part-way (network drop, Docker out of disk), the half-built image is cached and reused, which
+hides the real error.
+
+**Force a clean rebuild:**
+
+```bash
+docker rmi wxd-flink:1.20            # remove the cached (possibly broken) image
+docker build -t wxd-flink:1.20 -f confluent/flink/Dockerfile confluent/flink/
+```
+
+Then re-run `bash confluent/start.sh`. Check Docker Desktop has enough disk (Settings →
+Resources) if the build dies with `no space left on device`.
+
+---
+
+### JobManager / SQL Gateway / iceberg-rest not healthy
+
+`confluent/start.sh --watsonxdata` hangs at:
+
+```text
+JobManager not ready — sleeping 3s
+```
+
+or the Flink runner exits before submitting any SQL. The silver job submission
+(`submit-flink.sh`) waits for **two** Flink endpoints and the Iceberg REST catalog to come up:
+
+```text
+http://confluent-flink-jobmanager:8081/v1/overview   (JobManager)
+http://confluent-flink-sql-gateway:8083/v1/info       (SQL Gateway)
+http://confluent-iceberg-rest:8181                    (Iceberg REST)
+```
+
+**Check each service is up and read its logs:**
+
+```bash
+docker compose ps | grep confluent
+docker logs confluent-flink-jobmanager   | tail -30
+docker logs confluent-flink-sql-gateway  | tail -30
+docker logs confluent-iceberg-rest       | tail -30
+```
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| JobManager never healthy | TaskManager failed to register | `docker logs confluent-flink-taskmanager`; restart the stack |
+| SQL Gateway `UnresolvedAddressException` | container hostname not resolvable | the runner already uses `gateway` mode against `confluent-flink-sql-gateway`; ensure all containers share `confluent-network` |
+| iceberg-rest 5xx | MinIO endpoint unreachable from the container | fix the MinIO Route (next item) |
+
+From the host, the same endpoints are exposed on `28085` (Web UI), `28083` (SQL Gateway), and
+`28181` (Iceberg REST). Visit <http://localhost:28085> to confirm the JobManager is alive.
+
+---
+
+### http vs https MinIO Route mismatch
+
+Flink or `iceberg-rest` fails to write Silver with an S3 / connection error such as:
+
+```text
+software.amazon.awssdk... UnknownHostException
+```
+
+or a TLS handshake failure against the MinIO endpoint.
+
+The containers reach the **real** watsonx.data MinIO through an OpenShift **Route**. Two things
+must line up: the Route URL in `.env` and the `s3.endpoint` the Flink SQL uses. A common trap is
+a **scheme mismatch** — the Route terminates TLS at the edge (HTTPS from outside) but Flink/iceberg
+inside the Docker network may be configured for plain **HTTP** to the same hostname.
+
+**Re-create the Route and sync `.env`:**
+
+```bash
+bash confluent/scripts/expose_minio_route.sh
+```
+
+This (re)creates `ibm-lh-minio-route`, writes the correct
+`WXD_OBJECT_STORE_ENDPOINT=https://ibm-lh-minio-route-...` into `.env`, adds the hostname to
+`/etc/hosts`, and curls the health endpoint to confirm it returns `200`.
+
+**Verify the hostname resolves to the bastion** (the Route is only reachable via `9.82.206.23`):
+
+```bash
+python scripts/check_hosts.py
+```
+
+!!! warning "Match the scheme everywhere"
+    If you change the MinIO endpoint between `http://` and `https://`, change it **consistently**:
+    `WXD_OBJECT_STORE_ENDPOINT` in `.env`, the `s3.endpoint` in
+    `confluent/flink/sql/silver_jobs.sql`, and the iceberg-rest container config must all use the
+    same scheme and hostname, or one side will fail the handshake.
+
+---
+
+### Schema Registry / Avro subject errors
+
+Producing or consuming fails with a Schema Registry error such as:
+
+```text
+Subject 'raw_orders-value' not found
+```
+
+or:
+
+```text
+Schema being registered is incompatible with an earlier schema
+```
+
+The Schema Registry (host port `28081`, in-container `http://confluent-schema-registry:8081`)
+governs the schema for each topic. `Subject not found` means nothing has registered that topic's
+schema yet; the incompatibility error means a producer tried to publish a shape that violates the
+subject's compatibility rules.
+
+**Check the registry is up and list subjects:**
+
+```bash
+curl -s http://localhost:28081/subjects
+curl -s http://localhost:28081/subjects/raw_orders-value/versions/latest
+```
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Subject ... not found` | schema not registered yet | re-run the producer; for JSON seed payloads no subject is required — confirm you are using the Avro path |
+| `incompatible with an earlier schema` | column type/name changed | bump compatibility mode, or delete the stale subject in a dev environment: `curl -X DELETE http://localhost:28081/subjects/<subject>` |
+| connection refused on `28081` | registry container down | `docker logs confluent-schema-registry \| tail -30` and restart the stack |
+
+!!! note "The seed loader uses JSON today"
+    The demo's seed loader produces JSON with the CSV column names, so it does **not** require a
+    registered Avro subject. The Schema Registry is in the stack as the governance layer for when
+    you enforce Avro schemas — the errors above apply once you switch producers to Avro.
+
+---
+
 ## OpenMetadata Errors
 
 These errors occur during the OpenMetadata lineage demo at `localhost:8585`.

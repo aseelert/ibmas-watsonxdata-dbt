@@ -78,7 +78,14 @@ services:
       start_period: 30s
 
   # ---------------------------------------------------------------------------
-  # Schema Registry
+  # Schema Registry — the governance backbone of this stack.
+  #   * The Avro producer (ingest_csv_to_kafka.py) registers one subject
+  #     "<topic>-value" per raw_* topic from confluent/schemas/*.avsc.
+  #   * Flink (format=avro-confluent) reads those raw schemas back AND auto-
+  #     registers a subject for each silver_* topic it writes.
+  #   * Kafbat UI uses it to decode Avro messages in the browser.
+  # Reachable as http://confluent-schema-registry:8081 inside the network and
+  # http://localhost:28081 from the host (SCHEMA_REGISTRY_URL in .env).
   # ---------------------------------------------------------------------------
   confluent-schema-registry:
     image: confluentinc/cp-schema-registry:7.7.1
@@ -137,8 +144,13 @@ services:
     env_file:
       - ../.env
     environment:
-      # Warehouse on the real iceberg-bucket via the OpenShift Route
-      CATALOG_WAREHOUSE: "s3://iceberg-bucket/confluent_demo_silver/"
+      # Warehouse on the real iceberg-bucket via the OpenShift Route.
+      # Schema name comes from .env (CONFLUENT_SILVER_SCHEMA) — nothing hardcoded;
+      # must stay in sync with the warehouse path in silver_jobs.sql.
+      # NOTE: 's3a://' scheme (durable fix) so the metadata records s3a:// paths
+      # that the watsonx.data Spark gold job reads natively. S3FileIO normalises
+      # s3/s3a/s3n, so I/O is unchanged — only the recorded scheme prefix differs.
+      CATALOG_WAREHOUSE: "s3a://iceberg-bucket/${CONFLUENT_SILVER_SCHEMA:-confluent_demo_silver}/"
       # Route URL set by expose_minio_route.sh (WXD_OBJECT_STORE_ENDPOINT in .env)
       CATALOG_S3_ENDPOINT: "${WXD_OBJECT_STORE_ENDPOINT}"
       CATALOG_S3_PATH__STYLE__ACCESS: "true"
@@ -171,6 +183,7 @@ services:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
         rest.bind-address: 0.0.0.0
+        rest.address: confluent-flink-jobmanager
         execution.checkpointing.interval: 30000
         parallelism.default: 2
         s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
@@ -223,6 +236,8 @@ services:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
         rest.address: confluent-flink-jobmanager
+        rest.port: 8081
+        execution.target: remote
         sql-gateway.endpoint.rest.address: 0.0.0.0
         sql-gateway.endpoint.rest.port: 8083
         s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}
@@ -299,6 +314,9 @@ services:
     volumes:
       - ./flink/sql/silver_jobs.sql:/opt/sql/silver_jobs.sql:ro
       - ./scripts/submit-flink.sh:/opt/submit-flink.sh:ro
+      # Shared bash helper library so submit-flink.sh gets the standard
+      # info/success/warn/error logging + ERR trap inside the container.
+      - ../scripts/lib/log.sh:/opt/lib/log.sh:ro
     entrypoint: ["/bin/bash", "/opt/submit-flink.sh"]
     environment:
       FLINK_PROPERTIES: |
@@ -310,9 +328,15 @@ services:
       SQL_FILE: /opt/sql/silver_jobs.sql
       SQL_GATEWAY_HOST: confluent-flink-sql-gateway
       SQL_GATEWAY_PORT: "8083"
+      # IN-CONTAINER Schema Registry URL — overrides the HOST value in .env
+      # (localhost:28081), which is unreachable from inside the Docker network.
+      # submit-flink.sh substitutes this into silver_jobs.sql's avro-confluent.url.
+      SCHEMA_REGISTRY_URL: "http://confluent-schema-registry:8081"
     depends_on:
       confluent-schema-prep:
         condition: service_completed_successfully
+      confluent-schema-registry:
+        condition: service_healthy
       confluent-flink-jobmanager:
         condition: service_healthy
       confluent-flink-taskmanager:

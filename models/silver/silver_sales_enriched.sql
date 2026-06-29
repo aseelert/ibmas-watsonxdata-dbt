@@ -6,9 +6,44 @@
     }
 ) }}
 
+-- -----------------------------------------------------------------------------
+--  silver_sales_enriched.sql — joined order-line fact feeding every gold mart
+--
+--  Location  : models/silver/silver_sales_enriched.sql
+--  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+--  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+--  Author    : Alexander Seelert — IBM Customer Success Engineer
+--  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+--
+--  Changelog :
+--    v1.0 (2026-06-26) — Initial version. Conform + join the four silver entities
+--                        into one order-line-grain analytics fact.
+--    v1.1 (2026-06-26) — Documentation only: spelled out the INNER-join orphan
+--                        policy below (NO row-count change) so the parity contract
+--                        with Spark/Confluent stays explicit and intentional.
+-- -----------------------------------------------------------------------------
+
 -- Silver enrichment (the augmented/joined layer):
 -- conform + join the four clean silver entities into one analytics-ready
 -- fact at order-line grain. Gold marts read from this single table.
+--
+-- ORPHAN POLICY (READ BEFORE "FIXING" THE JOINS):
+-- All three joins below are INNER joins ON PURPOSE. A row survives only if its
+-- order_item has a matching order AND a matching product AND that order has a
+-- matching customer. Any order-item referencing a missing order/product, or any
+-- order referencing a missing customer, is intentionally DROPPED here. In this
+-- demo the seeds are referentially complete, so no rows are actually lost — but
+-- the policy is stated so nobody silently switches these to LEFT joins (which
+-- would inject NULL dimensions and quietly diverge from the Spark/Confluent
+-- builds, which use the same INNER-join shape).
+--
+-- WHY THIS KEEPS THE GOLD MARTS CONSISTENT:
+-- BOTH gold_daily_sales and gold_customer_360's metrics CTE read from THIS single
+-- enriched fact, so they share an identical universe of order rows — they cannot
+-- disagree on which orders "count". gold_customer_360 then LEFT joins the customer
+-- DIMENSION on top purely to re-introduce customers who have zero orders
+-- (0-filled); that LEFT join adds customers, never orders, so daily_sales and
+-- customer_360 remain reconcilable. No fix is warranted here — only this note.
 select
   oi.order_item_id,
   oi.order_id,

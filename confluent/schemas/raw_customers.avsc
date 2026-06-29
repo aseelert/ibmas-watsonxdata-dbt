@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "RawCustomer",
+  "namespace": "com.ibmas.confluent.demo.raw",
+  "doc": "Raw customer record produced from seeds/raw_customers.csv to the Kafka topic 'raw_customers'. Registered in Confluent Schema Registry as subject 'raw_customers-value'. Field order and names mirror the CSV header exactly; numeric ids are typed, temporal/text values stay as ISO-8601 strings and are cast in the Flink silver stage. Source of truth: confluent/NAMING.md.",
+  "fields": [
+    { "name": "customer_id",  "type": "int",    "doc": "Unique customer id (CSV column customer_id)." },
+    { "name": "first_name",   "type": "string", "doc": "Given name, untrimmed as it arrived." },
+    { "name": "last_name",    "type": "string", "doc": "Family name, untrimmed as it arrived." },
+    { "name": "email",        "type": "string", "doc": "Email address; lower-cased + trimmed later in silver." },
+    { "name": "signup_date",  "type": "string", "doc": "Signup date as an ISO-8601 string 'YYYY-MM-DD'; cast to DATE in silver." },
+    { "name": "country",      "type": "string", "doc": "ISO country code; upper-cased later in silver." }
+  ]
+}

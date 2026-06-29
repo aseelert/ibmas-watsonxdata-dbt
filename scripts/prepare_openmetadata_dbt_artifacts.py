@@ -4,9 +4,13 @@
 #
 #  Location  : scripts/prepare_openmetadata_dbt_artifacts.py
 #  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
-#  Project   : watsonx.data · dbt · Spark medallion demo
-#  Author    : Alexander Seelert
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.0 (2026-06-26) — Initial version. Builds and stages dbt artifacts
+#      locally for OpenMetadata ingestion.
 # -----------------------------------------------------------------------------
 """Generate and stage dbt artifacts for OpenMetadata ingestion.
 
@@ -232,4 +236,17 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # Top-level safety net: known errors raise SystemExit with a clear message and
+    # are passed through; anything unexpected is logged with context and exits 1.
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print("\n[ERROR] interrupted by user", file=sys.stderr)
+        sys.exit(130)
+    except SystemExit:
+        raise
+    except Exception as exc:  # noqa: BLE001 — log the unexpected failure, then exit non-zero
+        import traceback
+        print(f"[ERROR] unexpected failure: {exc}", file=sys.stderr)
+        traceback.print_exc()
+        sys.exit(1)

@@ -7,6 +7,12 @@ requests>=2.31,<3.0
 mkdocs>=1.6,<2.0
 mkdocs-material>=9.5,<10.0
 confluent-kafka>=2.3,<3.0
+# Avro governance for the Confluent path: confluent-kafka's AvroSerializer/
+# AvroDeserializer encode/decode Avro using fastavro, and the SchemaRegistryClient
+# talks to Schema Registry over HTTP via httpx. Both are required so the producer
+# can register one Avro subject (<topic>-value) per Kafka topic.
+fastavro>=1.9,<2.0
+httpx>=0.26,<1.0
 
 # MCP Server dependencies
 uv>=0.11,<1.0

@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "RawProduct",
+  "namespace": "com.ibmas.confluent.demo.raw",
+  "doc": "Raw product record produced from seeds/raw_products.csv to the Kafka topic 'raw_products'. Registered in Confluent Schema Registry as subject 'raw_products-value'. Field order and names mirror the CSV header exactly. unit_price is carried as a double here and tightened to DECIMAL(12,2) in the Flink silver stage so revenue ties to the cent. Source of truth: confluent/NAMING.md.",
+  "fields": [
+    { "name": "product_id",   "type": "int",    "doc": "Unique product id (CSV column product_id)." },
+    { "name": "product_name", "type": "string", "doc": "Product display name; trimmed later in silver." },
+    { "name": "category",     "type": "string", "doc": "Product category; the grain of the gold category_performance mart." },
+    { "name": "unit_price",   "type": "double", "doc": "List unit price; cast to DECIMAL(12,2) in silver for exact money math." }
+  ]
+}

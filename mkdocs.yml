@@ -70,11 +70,14 @@ nav:
     - "1 · Prepare Your Machine": setup.md
   - Understand:
     - "Architecture & Data Flow": lineage.md
-    - "When to Use Which (dbt · Spark · cpdctl)": choosing.md
+    - "When to Use Which (dbt · Spark · Confluent · cpdctl)": choosing.md
     - Glossary: glossary.md
-  - Build a Medallion (dbt or Spark):
+  - Build a Medallion (dbt · Spark · Confluent):
     - "A · dbt — SQL Governance (full pipeline)": dbt-demo.md
     - "B · Spark — Python ETL (full pipeline)": spark-demo.md
+    - "C · Confluent — Streaming (Kafka→Flink→Iceberg)": confluent-demo.md
+    - "C · Confluent — How It Works (deep dive)": confluent-internals.md
+    - "C-alt · DataStage — No-Code Gold (Confluent path)": datastage-demo.md
   - Ingest & Compare:
     - "Ingest Raw Data — cpdctl (loader)": ingestion.md
     - "SQL — Compare dbt vs Spark Gold": sql-demo.md

@@ -38,6 +38,21 @@ python scripts/spark_application_status.py   # repeat until finished
 python scripts/ingest_with_cpdctl.py --wait          # submit + poll to completion
 python scripts/ingest_with_cpdctl.py --status --batch <id>   # check a prior run
 
+# ── PATH D · Confluent streaming (Kafka→Flink→Iceberg) ───────────────────────
+python scripts/check_hosts.py                        # verify /etc/hosts → bastion
+bash confluent/scripts/expose_minio_route.sh         # ONCE: expose real MinIO to Docker (writes WXD_OBJECT_STORE_ENDPOINT)
+bash confluent/start.sh --all                        # local stack + 8 topics + produce 1,704 seed rows to Kafka
+bash confluent/start.sh --silver                     # submit 9 Flink jobs → confluent_demo_silver + register_table
+# (if you re-run --silver from the host, Phase B re-registers the tables in watsonx.data)
+python confluent/scripts/submit_confluent_gold.py --no-dry-run --wait   # build confluent_demo_gold (Spark TABLE) — auto-creates the 2 Presto VIEWS
+# or, with CONFLUENT_GOLD_ENGINE=datastage:
+bash confluent/start.sh --gold --engine datastage    # build the same gold via DataStage
+# (standalone: rebuild just the two Presto VIEW marts for either path)
+python scripts/create_gold_views.py --path confluent
+
+# ── VERIFY 3-way parity (dbt == Spark == Confluent) ──────────────────────────
+python scripts/reconcile_gold.py                     # gold = 494 / 5 / 50, identical across engines
+
 # ── QUERY gold layer ─────────────────────────────────────────────────────────
 python scripts/query_gold.py
 
@@ -303,6 +318,224 @@ Applies the OpenMetadata governance layer after table and dbt lineage ingestion:
 `MetadataIngestionMode`. The main ingestion script runs it automatically. Use this
 manual command only when you want to re-apply glossary terms, descriptions, or
 auto-classification tags without re-running the full ingestion.
+
+---
+
+## Confluent streaming scripts
+
+These scripts drive the streaming path (Path D in the docs) — Kafka → Flink → Schema Registry →
+Iceberg → watsonx.data — plus the gold build and the 3-way parity check. See the
+[Confluent walkthrough](confluent-demo.md) and the [DataStage page](datastage-demo.md) for the
+full story. All hosts, schemas, and engine choices come from `.env` — nothing is hardcoded.
+
+!!! info "Where each script lives"
+    The orchestrator and its helpers live under **`confluent/`**
+    (`confluent/start.sh`, `confluent/scripts/*`). Three scripts that are **shared** with the
+    Spark path live under **`scripts/`** (`scripts/create_gold_views.py`,
+    `scripts/reconcile_gold.py`, `scripts/check_hosts.py`). Paths below are exact — copy them
+    verbatim.
+
+!!! note "Env toggles for the gold build"
+    * `CONFLUENT_GOLD_ENGINE` — `spark` (default) or `datastage`; picks the gold engine.
+    * `CONFLUENT_GOLD_S3_BRIDGE` — **legacy, default off** (`0`). The durable `s3a://` fix is
+      live, so leave it off; set `1` only as a fallback for old `s3://`-pathed tables.
+    * `WXD_SPARK_CREATE_VIEWS` — **default on** (`true`). After a Spark gold app finishes, the
+      two Presto VIEW marts are created automatically; set `false` for table-only behaviour.
+      The Confluent submitter has its own `--no-views` flag for the same effect.
+
+### `check_hosts.py` — validate `/etc/hosts` for the cluster
+
+```bash
+python scripts/check_hosts.py
+```
+
+The cluster's wildcard DNS (`*.apps.watson.ibmas-zocp-techcluster.org`) is **not** on the public
+internet — every hostname must resolve to the bastion `9.82.206.23` via `/etc/hosts`. This script
+checks all required entries at once: that each hostname is present, resolves to the expected
+bastion IP, **and** is TCP-reachable on its port (`6443` for the API, `443` for the Routes). It
+prints the exact lines to add (with a copy-paste `sudo tee` block) for anything missing, and exits
+`0` only when every entry passes. Run it before the Spark and Confluent paths.
+
+### `confluent/start.sh` — the one entrypoint (subcommand-driven)
+
+```bash
+bash confluent/start.sh                       # default = --all
+bash confluent/start.sh --all                 # full local bring-up + seed Kafka
+bash confluent/start.sh --silver              # submit the 9 Flink jobs → silver + register
+bash confluent/start.sh --gold --engine spark # build confluent_demo_gold (or --engine datastage)
+bash confluent/start.sh --status              # health + per-topic counts + UI URLs (read-only)
+bash confluent/start.sh --stop                # stop the 7 containers, keep data/volumes
+bash confluent/start.sh --reset -y            # DESTRUCTIVE wipe of the Confluent surface
+```
+
+The single, idempotent orchestrator for the whole streaming stack, run from the repo root. It
+picks **one** action; the default is `--all`. Global options `-y/--yes` (no prompts),
+`--dry-run` (preview only), and `-h/--help` apply to every action.
+
+| Subcommand | What it does |
+|---|---|
+| `--all` *(default)* | Full local bring-up: ensure `.venv` + `requirements.txt`, build the `wxd-flink:1.20` image (skipped if cached), start the **7** long-running services (Kafka, Schema Registry, Kafbat UI, Iceberg REST, Flink JobManager + TaskManager + SQL Gateway), wait for Kafka health, create the **8** topics, produce all **1,704** seed rows, print a status summary. |
+| `--stack` | Start **only** the 7 long-running containers (venv + image + services). No topics, no seeding. |
+| `--silver` | Run the Flink silver pipeline via three `watsonxdata`-profile one-shots: `confluent-schema-prep` (Phase A — create the `confluent_demo_silver` + `confluent_demo_gold` schemas in watsonx.data), `confluent-flink-runner` (submit the 9 jobs in `silver_jobs.sql`), and `confluent-prep` (Phase B — `register_table` the 5 silver tables). **Requires a reachable MinIO Route + `WXD_OBJECT_STORE_ENDPOINT` in `.env`** — run `expose_minio_route.sh` first. |
+| `--gold` | Build the `confluent_demo_gold` marts from silver. Uses `--engine` (`spark` default, or `datastage`); default comes from `CONFLUENT_GOLD_ENGINE`. |
+| `--status` | Read-only: service health, per-topic message counts (via the Kafbat API), UI URLs. Safe anytime. |
+| `--reset` | **Destructive.** Delegates to `scripts/reset_demo.sh --confluent`. |
+| `--stop` | Stop the 7 containers, keep data/volumes. Restart with `--stack`. |
+
+UIs after start: Kafbat `:28080`, Flink Web `:28085`, SQL Gateway `:28083`, Schema Registry
+`:28081`, Iceberg REST `:28181`. Force a Flink rebuild with `docker rmi wxd-flink:1.20`.
+
+!!! note "Topic count — 8, not 4"
+    The stack creates **8 topics** (4 `raw_*` + 4 `silver_*`), driven by the subcommands above
+    (`--all` seeds them, `--silver`/`--gold` run the pipeline). `sales_enriched` is **not** a
+    topic — it is a Flink stream-stream join result written straight to Iceberg.
+
+### `confluent/scripts/ingest_csv_to_kafka.py` — CSV → Kafka as governed Avro
+
+```bash
+.venv/bin/python confluent/scripts/ingest_csv_to_kafka.py
+```
+
+* **Purpose:** read the 4 seed CSVs and produce each row as an **Avro** message; the first message
+  per topic auto-registers subject `<topic>-value` from `confluent/schemas/*.avsc`. The raw Kafka
+  topics ARE the replayable "bronze".
+* **When:** automatically, during `--all` (after the topics exist).
+* **Key flags/env:** `--bootstrap-servers` (def `localhost:29092`), `--schema-registry-url`
+  (def `http://localhost:28081`), `--csv-dir` (def `seeds/`), `--schemas-dir`
+  (def `confluent/schemas/`). Type coercion is driven by the `.avsc` types; a mandatory-but-empty
+  cell skips the row (data-quality).
+
+!!! note "The loader produces Avro, not JSON"
+    Each row is produced as **Avro** via `AvroSerializer` + Schema Registry (not JSON) — the
+    Schema Registry holds the contract for every topic.
+
+### `confluent/scripts/expose_minio_route.sh` — open a door to the real object store
+
+```bash
+bash confluent/scripts/expose_minio_route.sh
+```
+
+* **Purpose:** create an OpenShift edge-TLS **Route** to `ibm-lh-lakehouse-minio-svc` so the
+  Docker containers can read/write the real `iceberg-bucket` without a port-forward tunnel; writes
+  `WXD_OBJECT_STORE_ENDPOINT` into `.env`.
+* **When:** **ONCE**, before submitting silver.
+* **Key env:** `WXD_OPENSHIFT_API`, `WXD_OC_TOKEN` (or context / user+password),
+  `WXD_OPENSHIFT_NAMESPACE` (def `cpd-instance`), `WXD_BASTION_IP`. Also updates `/etc/hosts`
+  (sudo) and curls `/minio/health/live` to verify.
+
+### `confluent/scripts/create-topics.sh` — make the 8 topics
+
+```bash
+# runs automatically; manual:
+docker compose run --rm confluent-kafka-init
+```
+
+* **Purpose:** idempotently create 4 `raw_*` + 4 `silver_*` topics (partitions 1, replication 1).
+  Auto-create is OFF on purpose, so all lanes are made up front.
+* **When:** one-shot container `confluent-kafka-init`, after Kafka is healthy.
+
+### `confluent/scripts/submit-flink.sh` — render placeholders + submit the 9 jobs
+
+```bash
+# runs inside the confluent-flink-runner container during --silver
+```
+
+* **Purpose:** substitute `${WXD_OBJECT_STORE_ENDPOINT}`, `${SCHEMA_REGISTRY_URL}`, and
+  `${CONFLUENT_SILVER_SCHEMA}` into `silver_jobs.sql` at submit time, wait for the JobManager + SQL
+  Gateway, **cancel any existing `kafka-raw-to-silver`/`kafka-silver-to-iceberg` jobs** (idempotent
+  re-run guard, waits for terminal state), then submit via `sql-client.sh gateway`.
+* **When:** automatically, inside `confluent-flink-runner` (`--silver`).
+* **Notes:** fails loudly if any `${...}` placeholder survives or if `WXD_OBJECT_STORE_ENDPOINT` is
+  empty. Injects the **in-container** Schema Registry URL `http://confluent-schema-registry:8081`
+  (the host `localhost:28081` is unreachable from inside Docker).
+
+### `confluent/scripts/prep_iceberg_schemas.py` — schemas + register (two phases)
+
+```bash
+python confluent/scripts/prep_iceberg_schemas.py --phase all
+python confluent/scripts/prep_iceberg_schemas.py --phase schema     # Phase A only
+python confluent/scripts/prep_iceberg_schemas.py --phase register   # Phase B only
+```
+
+* **Phase A (`--phase schema`):** create both `confluent_demo_silver` and `confluent_demo_gold`
+  schemas in watsonx.data via Presto, **before** Flink writes. (Service `confluent-schema-prep`.)
+* **Phase B (`--phase register`):** after Flink checkpoints, query the local Iceberg REST catalog
+  for each silver table's current `metadata.json`, strip back to the table directory, and
+  `CALL iceberg_data.system.register_table(...)` via Presto. Retries up to ~60s per table;
+  idempotent (skips already-registered). (Service `confluent-prep`.)
+* **Tables registered (5):** the four `confluent_silver_*` plus `confluent_silver_sales_enriched`.
+
+### `confluent/scripts/submit_confluent_gold.py` — Confluent gold via Spark (+ Presto VIEWs)
+
+```bash
+python confluent/scripts/submit_confluent_gold.py                    # dry-run (default): prints redacted payload
+python confluent/scripts/submit_confluent_gold.py --no-dry-run --wait
+```
+
+* **Purpose:** POST `confluent/spark/confluent_gold.py` to the watsonx.data Spark engine. The Spark
+  app writes **only** `confluent_gold_daily_sales` (a TABLE). After the app **FINISHES**, this
+  submitter runs `scripts/create_gold_views.py --path confluent` to create the two VIEW marts via
+  Presto — the dbt-parity materialisation.
+* **When:** after silver is registered, with the Spark engine running (`CONFLUENT_GOLD_ENGINE=spark`).
+  Reuses the same Spark machinery/credentials as `submit_spark_application.py`.
+* **Key flags:** defaults to **dry-run**; `--no-dry-run` to actually submit; `--wait` to poll to a
+  terminal state; `--no-views` to skip the Presto VIEWs (restores old table-only/wait behaviour).
+  Default sizing 1 core / 2G driver + executor.
+* **Env:** the s3→s3a bridge is **disabled by default**; set `CONFLUENT_GOLD_S3_BRIDGE=1` only as a
+  legacy fallback for old `s3://`-pathed tables.
+
+!!! note "Why a second engine for gold?"
+    Flink excels at per-row streaming transforms, but gold is **aggregation** over the whole silver
+    set — a batch job. So Spark (or DataStage) reads the finished silver tables and builds the
+    marts. Streaming silver + batch gold is the deliberate split.
+
+### `confluent/scripts/create_datastage_flow.py` — no-code gold alternative
+
+```bash
+# requires CONFLUENT_GOLD_ENGINE=datastage in .env
+python confluent/scripts/create_datastage_flow.py                    # dry-run (default): prints the request only
+python confluent/scripts/create_datastage_flow.py --apply --run
+```
+
+* **Purpose:** when `CONFLUENT_GOLD_ENGINE=datastage`, author (and optionally run) a DataStage flow
+  in CP4D project `ibmas-ingest-demo` that builds the **same** `confluent_demo_gold` marts. Loads a
+  parameterized JSON template, substitutes env placeholders, and POSTs to the DataStage flows API.
+* **When:** instead of the Spark gold job. **Needs a live CP4D cluster with the DataStage cartridge.**
+* **Key flags:** default **dry-run** (prints the request); `--apply` to create the flow; `--run` to
+  also compile + create a job + start a run. Needs `WXD_DATASTAGE_PROJECT_ID`,
+  `WXD_DATASTAGE_CONNECTION_REF`. See the [DataStage page](datastage-demo.md) for prerequisites.
+
+### `scripts/create_gold_views.py` — the two VIEW marts, via Presto (NOT Spark)
+
+```bash
+python scripts/create_gold_views.py --path confluent
+python scripts/create_gold_views.py --path spark
+```
+
+* **Purpose:** create `*_gold_category_performance` and `*_gold_customer_360` as catalog **VIEWs**
+  using the exact dbt SQL, for either `--path spark` or `--path confluent`. Idempotent: drops any
+  pre-existing table OR view at each name first; never touches `gold_daily_sales`.
+* **When:** automatically, after a Spark gold app finishes (invoked by `submit_confluent_gold.py`
+  and by the Spark path's own submitter); run it standalone to rebuild just the two VIEWs.
+* **Why via Presto:** a Spark `CREATE VIEW` produces a **Hive view** that watsonx PrestoDB refuses
+  ("Hive views are not supported"). So Spark writes only the table; Presto owns the two views —
+  exactly like dbt. On the Spark path this auto-run is gated by `WXD_SPARK_CREATE_VIEWS` (default on).
+
+### `scripts/reconcile_gold.py` — prove 3-way gold parity
+
+```bash
+python scripts/reconcile_gold.py                       # all three paths
+python scripts/reconcile_gold.py --paths dbt,confluent # any subset (min 2)
+```
+
+* **Purpose:** the verification finale for the whole repository. Symmetric `EXCEPT` (both
+  directions) of the three canonical marts across **dbt / Spark / Confluent**; dbt is the reference
+  when present. Read-only; prints a PASS/FAIL table; exit `0` = identical, `1` = a discrepancy.
+* **When:** after all gold exists. The streaming-era successor to the
+  [dbt-vs-Spark SQL comparison](sql-demo.md).
+* **Expected parity:** gold = **494** `daily_sales` / **5** `category_performance` / **50**
+  `customer_360`, identical across all three engines (silver counts are **50 / 20 / 500 / 1134 /
+  1134**).
 
 ---
 

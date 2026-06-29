@@ -4,9 +4,15 @@
 #
 #  Location  : scripts/cleanup_minio.py
 #  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
-#  Project   : watsonx.data · dbt · Spark medallion demo
-#  Author    : Alexander Seelert
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.1 (2026-06-26) — Add the Confluent silver+gold object-store prefixes
+#      (CONFLUENT_SILVER_SCHEMA / CONFLUENT_GOLD_SCHEMA) to the deletion scope
+#      and a --confluent-only flag that clears ONLY those two prefixes.
+#    v1.0 (earlier) — Initial version. Scoped delete of the dbt + Spark prefixes.
 # -----------------------------------------------------------------------------
 """Delete the demo's files from MinIO/S3 so a rerun starts 100% clean.
 
@@ -18,7 +24,13 @@ WHAT / WHY
         (``dbt_demo_*``, ``spark_demo_*``, the cpdctl raw schema) — i.e. the actual
         table data + metadata files,
       * the ``spark_demo`` asset prefix (the uploaded PySpark app and raw CSVs),
+      * the Confluent silver/gold schema folders (``confluent_demo_silver``,
+        ``confluent_demo_gold``) — the Flink-written silver + Spark/DataStage-built
+        gold Iceberg table data,
       * the ``openmetadata/dbt-artifacts`` prefix (published dbt manifest/catalog).
+
+    Pass ``--confluent-only`` to clear ONLY the two Confluent prefixes (used by the
+    ``--confluent`` surface of ``scripts/reset_demo.sh`` for a scoped reset).
 
     It NEVER empties the whole bucket — only these known demo prefixes. After a real
     delete it VERIFIES each prefix is empty (no relics/orphans) and lists the
@@ -40,6 +52,10 @@ ENV VARS (read here)
     WXD_RAW_SCHEMA, WXD_BRONZE_SCHEMA, WXD_SILVER_SCHEMA, WXD_GOLD_SCHEMA,
     WXD_SPARK_BRONZE_SCHEMA, WXD_SPARK_SILVER_SCHEMA, WXD_SPARK_GOLD_SCHEMA,
     WXD_INGEST_SCHEMA               — per-layer schema-folder overrides.
+    CONFLUENT_SILVER_SCHEMA         — Confluent silver folder (default
+                                      ``confluent_demo_silver``).
+    CONFLUENT_GOLD_SCHEMA           — Confluent gold folder (default
+                                      ``confluent_demo_gold``).
     WXD_SPARK_ASSET_PREFIX          — uploaded-asset prefix (default ``spark_demo``).
     Plus all credential/port-forward vars consumed by the shared helpers imported
     from ``upload_spark_assets`` (WXD_OBJECT_STORE_ACCESS_KEY/_SECRET_KEY,
@@ -54,8 +70,9 @@ PREREQUISITES
     ``WXD_OBJECT_STORE_ACCESS_KEY``/``_SECRET_KEY`` are set). Requires ``boto3``.
 
 USAGE
-    python scripts/cleanup_minio.py --dry-run   # list what WOULD be deleted
-    python scripts/cleanup_minio.py             # actually delete
+    python scripts/cleanup_minio.py --dry-run        # list what WOULD be deleted
+    python scripts/cleanup_minio.py                  # actually delete
+    python scripts/cleanup_minio.py --confluent-only # clear ONLY confluent_* folders
 
 SIDE EFFECTS / EXIT
     With ``--dry-run`` nothing is deleted (objects are only counted). Without it,
@@ -95,8 +112,35 @@ def _env(name: str, default: str | None = None) -> str:
     return value
 
 
-def _demo_prefixes() -> list[str]:
-    """Return the exact S3 prefixes the demo owns (always trailing-slash scoped)."""
+def _confluent_prefixes() -> list[str]:
+    """Return the Confluent silver+gold S3 prefixes (trailing-slash scoped).
+
+    Iceberg writes one folder per schema at the bucket root, so the Flink-written
+    silver schema and the Spark/DataStage-built gold schema each get their own
+    top-level folder. Env-driven so nothing is hardcoded.
+    """
+    silver = os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_demo_silver").strip("/")
+    gold = os.getenv("CONFLUENT_GOLD_SCHEMA", "confluent_demo_gold").strip("/")
+    return [f"{silver}/", f"{gold}/"]
+
+
+def _demo_prefixes(confluent_only: bool = False) -> list[str]:
+    """Return the exact S3 prefixes the demo owns (always trailing-slash scoped).
+
+    With ``confluent_only=True`` only the Confluent silver+gold folders are
+    returned — used by the scoped ``--confluent`` reset.
+    """
+    # Scoped Confluent reset: just the two confluent_* folders.
+    if confluent_only:
+        prefixes = list(_confluent_prefixes())
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for p in prefixes:
+            if p not in seen:
+                seen.add(p)
+                ordered.append(p)
+        return ordered
+
     dbt_base = os.getenv("WXD_SCHEMA", "dbt_demo")
     spark_base = os.getenv("WXD_SPARK_SCHEMA", "spark_demo")
 
@@ -116,6 +160,9 @@ def _demo_prefixes() -> list[str]:
     # Uploaded Spark app + raw CSVs (e.g. spark_demo/app/..., spark_demo/raw/...).
     asset_prefix = os.getenv("WXD_SPARK_ASSET_PREFIX", "spark_demo").strip("/")
     prefixes.append(f"{asset_prefix}/")
+
+    # Confluent silver (Flink-written) + gold (Spark/DataStage-built) table data.
+    prefixes.extend(_confluent_prefixes())
 
     # Published dbt artifacts for OpenMetadata.
     prefixes.append("openmetadata/dbt-artifacts/")
@@ -160,6 +207,13 @@ def main() -> int:
         action="store_true",
         help="List what would be deleted without deleting anything.",
     )
+    parser.add_argument(
+        "--confluent-only",
+        action="store_true",
+        help="Delete ONLY the Confluent silver+gold prefixes "
+        "(CONFLUENT_SILVER_SCHEMA / CONFLUENT_GOLD_SCHEMA), leaving the dbt + "
+        "Spark prefixes in place. Used for a scoped Confluent reset.",
+    )
     args = parser.parse_args()
 
     if load_dotenv is not None:
@@ -177,7 +231,7 @@ def main() -> int:
     bucket = _env("WXD_SPARK_ASSET_BUCKET", "iceberg-bucket")
     region = os.getenv("WXD_OBJECT_STORE_REGION", "us-east-1")
     verify = os.getenv("WXD_OBJECT_STORE_SSL_VERIFY", "false").lower() not in {"0", "false", "no"}
-    prefixes = _demo_prefixes()
+    prefixes = _demo_prefixes(confluent_only=args.confluent_only)
 
     mode = "DRY-RUN (no deletes)" if args.dry_run else "DELETE"
     print(f"MinIO cleanup [{mode}]")

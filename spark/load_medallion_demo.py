@@ -4,9 +4,29 @@
 #
 #  Location  : spark/load_medallion_demo.py
 #  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
-#  Project   : watsonx.data · dbt · Spark medallion demo
-#  Author    : Alexander Seelert
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.0 (2026-06-26) — Initial version. Imperative PySpark counterpart to the
+#                        dbt path: builds the full bronze/silver/gold medallion as
+#                        Iceberg tables.
+#    v1.1 (2026-06-26) — Parity pass with the dbt gold marts. Confirmed the gold
+#                        daily-sales / category-performance / customer-360 SQL
+#                        logic is column-and-logic identical to dbt (non-distinct
+#                        order_count sum, nullif divide-by-zero guard, LEFT-join
+#                        0-filled customer 360, INNER-join enriched fact) and that
+#                        no non-binding ORDER BY is emitted (reconciliation is
+#                        order-insensitive).
+#    v1.2 (2026-06-26) — FULL materialisation parity with dbt: category_performance
+#                        and customer_360 are no longer physical tables. This job
+#                        now writes ONLY spark_gold_daily_sales (table) and drops
+#                        any stale objects at the other two names; those two marts
+#                        are created as Presto VIEWS by scripts/create_gold_views.py
+#                        (run by scripts/submit_spark_application.py after FINISH),
+#                        because a Spark CREATE VIEW makes a Hive view watsonx
+#                        Presto cannot read.
 # -----------------------------------------------------------------------------
 """PySpark job that writes the demo data as Iceberg tables in a medallion layout.
 
@@ -201,6 +221,10 @@ def main() -> None:
 
     # Silver enrichment: conform + join all four entities into one fact at
     # order-line grain (the augmented/joined silver layer).
+    # ORPHAN POLICY (mirrors dbt's silver_sales_enriched): these are INNER joins
+    # ON PURPOSE — an order-item survives only with a matching order, product and
+    # customer. Orphans are dropped, identically to the dbt path, so both engines
+    # share the same row universe. Do NOT switch to outer joins or the marts diverge.
     sales_enriched = (
         silver_items.alias("oi")
         .join(silver_orders.alias("o"), F.col("oi.order_id") == F.col("o.order_id"))
@@ -256,70 +280,29 @@ def main() -> None:
         .createOrReplace()
     )
 
-    # Gold category performance, layered on top of the gold daily-sales table.
-    gold_daily = spark.table(f"{catalog}.{gold_schema}.spark_gold_daily_sales")
-    category_performance = (
-        gold_daily.groupBy("category")
-        .agg(
-            F.sum("order_count").alias("total_orders"),
-            F.sum("units_sold").alias("total_units"),
-            F.sum("net_revenue").cast("decimal(14,2)").alias("total_revenue"),
-        )
-        .withColumn(
-            # Divide-by-zero guard to match the dbt model's nullif(sum(units_sold),0):
-            # a category with 0 total units yields NULL, not an error/inf.
-            "avg_revenue_per_unit",
-            F.when(F.col("total_units") == 0, None)
-            .otherwise(F.col("total_revenue") / F.col("total_units"))
-            .cast("decimal(14,2)"),
-        )
-    )
-    print(f"Writing gold category performance table {catalog}.{gold_schema}.spark_gold_category_performance")
-    (
-        category_performance.writeTo(f"{catalog}.{gold_schema}.spark_gold_category_performance")
-        .using("iceberg")
-        .tableProperty("write.format.default", "parquet")
-        .createOrReplace()
-    )
-
-    # Gold customer 360 from the enriched fact, joined back to the customer
-    # dimension so customers without orders are still represented.
-    metrics = enriched.groupBy("customer_id").agg(
-        F.countDistinct(F.when(F.col("status") == "completed", F.col("order_id"))).alias("completed_orders"),
-        F.countDistinct(F.when(F.col("status") == "returned", F.col("order_id"))).alias("returned_orders"),
-        F.countDistinct(F.when(F.col("status") == "pending", F.col("order_id"))).alias("pending_orders"),
-        F.countDistinct(F.when(F.col("status") == "cancelled", F.col("order_id"))).alias("cancelled_orders"),
-        F.coalesce(
-            F.sum(F.when(F.col("status") == "completed", F.col("net_amount")).otherwise(F.lit(0))),
-            F.lit(0),
-        ).cast("decimal(14,2)").alias("lifetime_value"),
-        F.max(F.when(F.col("status") == "completed", F.col("order_ts"))).alias("last_completed_order_ts"),
-        F.max(F.col("order_ts")).alias("last_activity_ts"),
-    )
-    customer_360 = (
-        silver_customers.alias("c")
-        .join(metrics.alias("m"), F.col("c.customer_id") == F.col("m.customer_id"), "left")
-        .select(
-            F.col("c.customer_id"),
-            F.col("c.first_name"),
-            F.col("c.last_name"),
-            F.col("c.email"),
-            F.col("c.country"),
-            F.col("c.signup_date"),
-            F.coalesce(F.col("m.completed_orders"), F.lit(0)).alias("completed_orders"),
-            F.coalesce(F.col("m.returned_orders"), F.lit(0)).alias("returned_orders"),
-            F.coalesce(F.col("m.pending_orders"), F.lit(0)).alias("pending_orders"),
-            F.coalesce(F.col("m.cancelled_orders"), F.lit(0)).alias("cancelled_orders"),
-            F.coalesce(F.col("m.lifetime_value"), F.lit(0)).cast("decimal(14,2)").alias("lifetime_value"),
-            F.col("m.last_completed_order_ts"),
-            F.col("m.last_activity_ts"),
-        )
-    )
-    print(f"Writing gold customer 360 table {catalog}.{gold_schema}.spark_gold_customer_360")
-    (
-        customer_360.writeTo(f"{catalog}.{gold_schema}.spark_gold_customer_360")
-        .using("iceberg")
-        .createOrReplace()
+    # Gold category_performance + customer_360 are VIEWS (parity with dbt), NOT
+    # physical tables. They are not created here: Spark's CREATE VIEW makes a Hive
+    # view that watsonx Presto refuses to read ("Hive views are not supported"),
+    # so the views are created THROUGH PRESTO (dbt's exact dialect) by
+    # scripts/create_gold_views.py --path spark, which the orchestrator
+    # (scripts/submit_spark_application.py) runs after this job FINISHES.
+    #
+    # Clean any object a prior run left at those two names (an old physical table,
+    # or a Hive view from a transitional run) so the Presto CREATE VIEW lands on a
+    # free name. Spark can drop BOTH kinds; each drop is guarded because DROP TABLE
+    # on a view (or DROP VIEW on a table) raises.
+    for _name in (
+        f"{catalog}.{gold_schema}.spark_gold_category_performance",
+        f"{catalog}.{gold_schema}.spark_gold_customer_360",
+    ):
+        for _ddl in (f"DROP VIEW IF EXISTS {_name}", f"DROP TABLE IF EXISTS {_name}"):
+            try:
+                spark.sql(_ddl)
+            except Exception as _exc:  # name holds the *other* object type — ignore
+                print(f"  (drop ignored) {_ddl}: {str(_exc)[:80]}")
+    print(
+        "Gold daily_sales TABLE written; category_performance + customer_360 are "
+        "created as Presto VIEWS by the orchestrator (scripts/create_gold_views.py)."
     )
 
     print(f"[OK] medallion build complete — bronze/silver/gold written to catalog {catalog}")

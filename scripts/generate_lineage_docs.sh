@@ -4,9 +4,13 @@
 #
 #  Location  : scripts/generate_lineage_docs.sh
 #  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
-#  Project   : watsonx.data · dbt · Spark medallion demo
-#  Author    : Alexander Seelert
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.0 (2026-06-26) — Initial version. Lineage-only wrapper that refreshes
+#      dbt artifacts (docs generate) for OpenMetadata.
 #
 #  WHAT / WHY
 #    A lineage-only convenience entry point. It is a thin wrapper that calls
@@ -47,6 +51,10 @@
 #    is missing after the run. No seed/run/test is performed.
 # -----------------------------------------------------------------------------
 set -euo pipefail
+
+# Print the failing line number + command on any error before exiting non-zero,
+# so a learner can see exactly where the wrapper stopped.
+trap 'echo "[ERROR] ${BASH_SOURCE[0]}:${LINENO}: command failed: ${BASH_COMMAND}" >&2' ERR
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

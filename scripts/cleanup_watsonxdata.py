@@ -4,9 +4,15 @@
 #
 #  Location  : scripts/cleanup_watsonxdata.py
 #  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
-#  Project   : watsonx.data · dbt · Spark medallion demo
-#  Author    : Alexander Seelert
+#  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
+#  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  Changelog :
+#    v1.1 (2026-06-26) — Add the Confluent silver+gold schemas to the drop list
+#      (CONFLUENT_SILVER_SCHEMA / CONFLUENT_GOLD_SCHEMA) and a --confluent-only
+#      flag that drops ONLY those two, for a scoped Confluent reset.
+#    v1.0 (earlier) — Initial version. Drops the dbt + Spark + cpdctl demo schemas.
 # -----------------------------------------------------------------------------
 """Drop all demo schemas (and their tables/views) from watsonx.data.
 
@@ -14,9 +20,15 @@ This is the catalog-side teardown counterpart to ``bootstrap_watsonxdata.py``.
 It connects to the watsonx.data Presto (Iceberg) engine and removes every schema
 the demo creates so the medallion pipeline can be rebuilt from a clean slate:
 the dbt schemas (``dbt_demo_raw``/``_bronze``/``_silver``/``_gold``), the Spark
-schemas (``spark_demo_bronze``/``_silver``/``_gold``), and the cpdctl native
-ingest raw schema (``WXD_INGEST_SCHEMA``, e.g. ``spark_demo_cpdctl_raw``). It
-exists so a presenter can reset the demo deterministically between runs.
+schemas (``spark_demo_bronze``/``_silver``/``_gold``), the cpdctl native
+ingest raw schema (``WXD_INGEST_SCHEMA``, e.g. ``spark_demo_cpdctl_raw``), and
+the Confluent schemas (``CONFLUENT_SILVER_SCHEMA``/``CONFLUENT_GOLD_SCHEMA``,
+defaults ``confluent_demo_silver``/``confluent_demo_gold``). It exists so a
+presenter can reset the demo deterministically between runs.
+
+Pass ``--confluent-only`` to drop ONLY the two Confluent schemas (silver + gold)
+and leave the dbt + Spark + cpdctl schemas untouched — used by the
+``--confluent`` surface of ``scripts/reset_demo.sh`` for a scoped Confluent reset.
 
 WHEN to run it
   Run this when you want to tear down the catalog state — typically as part of a
@@ -43,6 +55,10 @@ ENV VARS read
                              override the individual Spark layer schema names
   - WXD_INGEST_SCHEMA ....... cpdctl native-ingest raw schema
                              (default ``<spark base>_cpdctl_raw``)
+  - CONFLUENT_SILVER_SCHEMA . Flink-written Confluent silver schema
+                             (default ``confluent_demo_silver``)
+  - CONFLUENT_GOLD_SCHEMA ... Confluent gold-mart schema
+                             (default ``confluent_demo_gold``)
   - WXD_INSTANCE_ID ......... if set, sent as the ``LhInstanceId`` HTTP header
   - WXD_SSL_VERIFY .......... CA bundle path, or ``true``/``false`` to toggle
                              TLS verification (default ``certs/watsonxdata-ca.pem``)
@@ -53,7 +69,8 @@ Prerequisites
   - A valid WXD_API_KEY. No ``oc login`` / ``cpdctl`` is required for this step.
 
 USAGE
-    python scripts/cleanup_watsonxdata.py
+    python scripts/cleanup_watsonxdata.py                  # drop ALL demo schemas
+    python scripts/cleanup_watsonxdata.py --confluent-only # drop ONLY confluent_*
 
 Side effects + exit behavior
   DESTRUCTIVE: drops the listed schemas and all their tables/views from the
@@ -70,6 +87,7 @@ Side effects + exit behavior
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 import time
@@ -123,7 +141,24 @@ def _execute(cur, sql, prestodb):
         cur.fetchall()
 
 
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Drop the medallion demo schemas (and their tables/views) "
+        "from watsonx.data.",
+    )
+    parser.add_argument(
+        "--confluent-only",
+        action="store_true",
+        help="Drop ONLY the Confluent silver+gold schemas "
+        "(CONFLUENT_SILVER_SCHEMA / CONFLUENT_GOLD_SCHEMA), leaving the dbt + "
+        "Spark + cpdctl schemas in place. Used for a scoped Confluent reset.",
+    )
+    return parser.parse_args()
+
+
 def main() -> int:
+    args = _parse_args()
+
     if load_dotenv is not None:
         load_dotenv()
 
@@ -143,16 +178,30 @@ def main() -> int:
     dbt_base = _env("WXD_SCHEMA", "dbt_demo")
     spark_base = os.getenv("WXD_SPARK_SCHEMA", "spark_demo")
 
-    schemas = [
-        os.getenv("WXD_RAW_SCHEMA", f"{dbt_base}_raw"),
-        os.getenv("WXD_BRONZE_SCHEMA", f"{dbt_base}_bronze"),
-        os.getenv("WXD_SILVER_SCHEMA", f"{dbt_base}_silver"),
-        os.getenv("WXD_GOLD_SCHEMA", f"{dbt_base}_gold"),
-        os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{spark_base}_bronze"),
-        os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{spark_base}_silver"),
-        os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{spark_base}_gold"),
-        os.getenv("WXD_INGEST_SCHEMA", f"{spark_base}_cpdctl_raw"),
+    # The Confluent path's silver (Flink-written) + gold (Spark/DataStage-built)
+    # schemas. Env-driven so nothing is hardcoded; always part of the demo's own
+    # state, so they belong in every full reset.
+    confluent_schemas = [
+        os.getenv("CONFLUENT_SILVER_SCHEMA", "confluent_demo_silver"),
+        os.getenv("CONFLUENT_GOLD_SCHEMA", "confluent_demo_gold"),
     ]
+
+    if args.confluent_only:
+        # Scoped Confluent reset: touch ONLY the two confluent_* schemas.
+        schemas = list(confluent_schemas)
+    else:
+        # Full reset: the dbt + Spark + cpdctl schemas, plus the Confluent ones.
+        schemas = [
+            os.getenv("WXD_RAW_SCHEMA", f"{dbt_base}_raw"),
+            os.getenv("WXD_BRONZE_SCHEMA", f"{dbt_base}_bronze"),
+            os.getenv("WXD_SILVER_SCHEMA", f"{dbt_base}_silver"),
+            os.getenv("WXD_GOLD_SCHEMA", f"{dbt_base}_gold"),
+            os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{spark_base}_bronze"),
+            os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{spark_base}_silver"),
+            os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{spark_base}_gold"),
+            os.getenv("WXD_INGEST_SCHEMA", f"{spark_base}_cpdctl_raw"),
+            *confluent_schemas,
+        ]
 
     print(f"Connecting to {host}:{port}, catalog={catalog}")
     print("Target schemas:")
