@@ -447,14 +447,51 @@ table.lineage .new { color: var(--green); font-weight: 500; }
 .md-typeset .mermaid {
   margin: 1.3rem 0;
   text-align: center;
+  /* Let wide flows use the full content width and scroll instead of shrinking. */
+  overflow-x: auto;
 }
 .md-typeset .mermaid svg {
+  /* Render at the diagram's natural size up to the content width, so flows are
+     not squashed; the parent scrolls horizontally if a flow is wider. */
   max-width: 100%;
+  height: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   padding: 0.7rem;
   box-shadow: var(--shadow);
+  cursor: zoom-in;
+}
+
+/* Full-screen overlay shown when a Mermaid diagram is clicked (mermaid-zoom.js). */
+.mermaid-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5vmin;
+  background: rgba(0, 0, 0, 0.82);
+  cursor: zoom-out;
+  animation: mermaidZoomFade 0.12s ease-out;
+}
+.mermaid-zoom-overlay .mermaid-zoom-svg {
+  width: auto;
+  height: auto;
+  max-width: 95vw;
+  max-height: 92vh;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.4rem;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+@keyframes mermaidZoomFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mermaid-zoom-overlay { animation: none; }
 }
 
 /* ---- Section intro lede -------------------------------------------- */

@@ -6,6 +6,7 @@ python-dotenv>=1.0,<2.0
 requests>=2.31,<3.0
 mkdocs>=1.6,<2.0
 mkdocs-material>=9.5,<10.0
+mkdocs-glightbox>=0.4,<1.0
 confluent-kafka>=2.3,<3.0
 # Avro governance for the Confluent path: confluent-kafka's AvroSerializer/
 # AvroDeserializer encode/decode Avro using fastavro, and the SchemaRegistryClient

@@ -39,6 +39,21 @@ theme:
     - search.suggest
 extra_css:
   - assets/stylesheets/extra.css
+extra_javascript:
+  - assets/javascripts/mermaid-zoom.js
+plugins:
+  # Listing plugins disables the implicit default, so search must be named here.
+  - search
+  # Click-to-zoom lightbox for raster images (e.g. the medallion infographic).
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      zoomable: true
+      draggable: true
+      # Mermaid diagrams are SVG, not <img>; they use the custom zoom script instead.
+      skip_classes:
+        - mermaid
 markdown_extensions:
   - admonition
   - attr_list
