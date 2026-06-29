@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../lineage/">
+      
+      
+        <link rel="next" href="../streaming-medallion/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>Table Formats — Iceberg vs Parquet vs Delta - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#table-formats-iceberg-vs-parquet-vs-delta" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Table Formats — Iceberg vs Parquet vs Delta
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href=".." class="md-tabs__link">
           
   
   
@@ -220,11 +229,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../lineage/" class="md-tabs__link">
           
   
   
@@ -246,7 +257,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+        <a href="../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +279,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../ingestion/" class="md-tabs__link">
           
   
   
@@ -290,7 +301,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/orchestrate/" class="md-tabs__link">
+        <a href="../orchestrate/" class="md-tabs__link">
           
   
   
@@ -312,7 +323,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../openmetadata/" class="md-tabs__link">
           
   
   
@@ -334,7 +345,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/enterprise/overview/" class="md-tabs__link">
+        <a href="../enterprise/overview/" class="md-tabs__link">
           
   
   
@@ -356,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../configuration/" class="md-tabs__link">
           
   
   
@@ -398,7 +409,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href=".." class="md-nav__link ">
               
   
   
@@ -487,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../setup/" class="md-nav__link">
         
   
   
@@ -515,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/fast-track/" class="md-nav__link">
+      <a href="../fast-track/" class="md-nav__link">
         
   
   
@@ -547,8 +558,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -566,19 +579,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -596,7 +612,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -614,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../lineage/" class="md-nav__link">
         
   
   
@@ -639,10 +655,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/table-formats/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Table Formats — Iceberg vs Parquet vs Delta
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -658,6 +701,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#first-file-vs-table-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First: file vs table format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-parquet-and-not-csv-or-orc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Parquet (and not CSV or ORC)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-table-format-adds-on-top-of-parquet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a table format adds on top of Parquet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iceberg-vs-delta-vs-proprietary-the-honest-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iceberg vs Delta vs proprietary — the honest comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-a-folder-becomes-a-table-in-watsonxdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How "a folder becomes a table" in watsonx.data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -670,7 +799,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/streaming-medallion/" class="md-nav__link">
+      <a href="../streaming-medallion/" class="md-nav__link">
         
   
   
@@ -698,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../choosing/" class="md-nav__link">
         
   
   
@@ -726,7 +855,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../glossary/" class="md-nav__link">
         
   
   
@@ -825,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../dbt-demo/" class="md-nav__link">
         
   
   
@@ -853,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../spark-demo/" class="md-nav__link">
         
   
   
@@ -881,7 +1010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../confluent-demo/" class="md-nav__link">
         
   
   
@@ -909,7 +1038,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../confluent-internals/" class="md-nav__link">
         
   
   
@@ -937,7 +1066,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+      <a href="../datastage-demo/" class="md-nav__link">
         
   
   
@@ -1030,7 +1159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../ingestion/" class="md-nav__link">
         
   
   
@@ -1058,7 +1187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../sql-demo/" class="md-nav__link">
         
   
   
@@ -1151,7 +1280,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/orchestrate/" class="md-nav__link">
+      <a href="../orchestrate/" class="md-nav__link">
         
   
   
@@ -1179,7 +1308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../airflow/" class="md-nav__link">
         
   
   
@@ -1278,7 +1407,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../openmetadata/" class="md-nav__link">
         
   
   
@@ -1306,7 +1435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1334,7 +1463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../openlineage/" class="md-nav__link">
         
   
   
@@ -1362,7 +1491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../metabase/" class="md-nav__link">
         
   
   
@@ -1390,7 +1519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../semantic-models/" class="md-nav__link">
         
   
   
@@ -1491,7 +1620,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/overview/" class="md-nav__link">
+      <a href="../enterprise/overview/" class="md-nav__link">
         
   
   
@@ -1519,7 +1648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/intelligence/" class="md-nav__link">
+      <a href="../enterprise/intelligence/" class="md-nav__link">
         
   
   
@@ -1547,7 +1676,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/integration/" class="md-nav__link">
+      <a href="../enterprise/integration/" class="md-nav__link">
         
   
   
@@ -1575,7 +1704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/lineage-e2e/" class="md-nav__link">
+      <a href="../enterprise/lineage-e2e/" class="md-nav__link">
         
   
   
@@ -1603,7 +1732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/performance-editions/" class="md-nav__link">
+      <a href="../enterprise/performance-editions/" class="md-nav__link">
         
   
   
@@ -1631,7 +1760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/summary/" class="md-nav__link">
+      <a href="../enterprise/summary/" class="md-nav__link">
         
   
   
@@ -1728,7 +1857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -1756,7 +1885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../files/" class="md-nav__link">
         
   
   
@@ -1784,7 +1913,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../scripts/" class="md-nav__link">
         
   
   
@@ -1812,7 +1941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1857,6 +1986,82 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#first-file-vs-table-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First: file vs table format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-parquet-and-not-csv-or-orc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Parquet (and not CSV or ORC)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-table-format-adds-on-top-of-parquet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a table format adds on top of Parquet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#iceberg-vs-delta-vs-proprietary-the-honest-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iceberg vs Delta vs proprietary — the honest comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-a-folder-becomes-a-table-in-watsonxdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How "a folder becomes a table" in watsonx.data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1869,8 +2074,264 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="table-formats-iceberg-vs-parquet-vs-delta">Table Formats — Iceberg vs Parquet vs Delta</h1>
+<div class="admonition abstract">
+<p class="admonition-title">The one idea to take away</p>
+<p><strong>Parquet is a file format. Iceberg and Delta are <em>table</em> formats.</strong> A table format is a
+thin layer of metadata that sits on top of a folder full of Parquet files and turns it back
+into something that behaves like a database table — with safe updates, history, and schema
+evolution. This whole workshop writes <strong>Iceberg tables made of Parquet files</strong>, the open
+format watsonx.data is built on. Delta Lake (Databricks) and proprietary formats (Snowflake)
+solve the same problem a different way.</p>
+</div>
+<hr />
+<h2 id="first-file-vs-table-format">First: file vs table format</h2>
+<p>A single Parquet file is just a smart, compressed, columnar way to store rows on disk. It is
+excellent at <em>storing</em> data, but it knows nothing about the other files next to it. If you have a
+thousand Parquet files in a folder, "the table" is just a convention in your head — there is no
+safe way to add a file, delete rows, change a column type, or ask "what did this look like
+yesterday?"</p>
+<p>A <strong>table format</strong> fixes that. It keeps a small set of <strong>metadata files</strong> that list exactly which
+data files belong to the table <em>right now</em>, what the schema is, and how the table has changed over
+time. Query engines read that metadata first, then read only the data files they need.</p>
+<pre class="mermaid"><code>flowchart TB
+  subgraph storage["Object storage (MinIO / S3) — one folder"]
+    p1["part-0001.parquet"]
+    p2["part-0002.parquet"]
+    p3["part-0003.parquet"]
+    meta["Iceberg metadata\n(snapshots · manifests · schema)"]
+  end
+  engine["Query engine\n(Presto · Spark · Flink)"]
+  engine --&gt;|"1 · read metadata"| meta
+  meta --&gt;|"2 · which files to read"| engine
+  engine --&gt;|"3 · read only those files"| p1
+  engine --&gt; p2</code></pre>
+<blockquote>
+<p><strong>Parquet = the pages of the book. Iceberg = the table of contents and the index.</strong> Without the
+index you still have all the words, but you cannot look anything up safely.</p>
+</blockquote>
+<hr />
+<h2 id="why-parquet-and-not-csv-or-orc">Why Parquet (and not CSV or ORC)</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>CSV</th>
+<th><strong>Parquet</strong></th>
+<th>ORC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Layout</td>
+<td>Row-by-row text</td>
+<td><strong>Columnar, binary</strong></td>
+<td>Columnar, binary</td>
+</tr>
+<tr>
+<td>Compression</td>
+<td>None (huge)</td>
+<td><strong>Excellent</strong></td>
+<td>Excellent</td>
+</tr>
+<tr>
+<td>Reads one column cheaply?</td>
+<td>No — reads everything</td>
+<td><strong>Yes</strong></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Schema/types stored in file?</td>
+<td>No</td>
+<td><strong>Yes</strong></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Used by this demo</td>
+<td>Source files only</td>
+<td><strong>Every table</strong></td>
+<td>Never</td>
+</tr>
+</tbody>
+</table>
+<p>This project standardises on <strong>Parquet, never ORC</strong> — every Iceberg table is written with
+<code>format = 'PARQUET'</code>. Parquet is the most widely supported columnar format across Presto, Spark,
+Flink, pandas, and BI tools, so the same files are readable by every engine in the workshop.</p>
+<div class="admonition note">
+<p class="admonition-title">Where this is enforced</p>
+<p>The dbt models set <code>properties={"format": "'PARQUET'", ...}</code> and the Spark/Flink jobs write
+Parquet too. See <a href="../lineage/">Architecture &amp; Data Flow</a> for the column-by-column picture.</p>
+</div>
+<hr />
+<h2 id="what-a-table-format-adds-on-top-of-parquet">What a table format adds on top of Parquet</h2>
+<p>Both Iceberg and Delta give your folder-of-Parquet these database superpowers:</p>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Plain Parquet folder</th>
+<th>With a table format (Iceberg / Delta)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ACID transactions</strong></td>
+<td>No — a half-written file corrupts the table</td>
+<td>Yes — readers only ever see a complete snapshot</td>
+</tr>
+<tr>
+<td><strong>Safe <code>UPDATE</code> / <code>DELETE</code> / <code>MERGE</code></strong></td>
+<td>No — Parquet is write-once</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong>Time travel</strong> (query an old version)</td>
+<td>No</td>
+<td>Yes — every snapshot is kept</td>
+</tr>
+<tr>
+<td><strong>Schema evolution</strong> (add/rename/drop a column)</td>
+<td>Risky, manual</td>
+<td>Yes — tracked in metadata</td>
+</tr>
+<tr>
+<td><strong>Partition management</strong></td>
+<td>Folder-name convention only</td>
+<td>Declared and enforced; can change over time</td>
+</tr>
+<tr>
+<td><strong>Concurrent writers</strong></td>
+<td>Race conditions</td>
+<td>Coordinated via the metadata/commit</td>
+</tr>
+</tbody>
+</table>
+<p>You see this directly in the workshop: the <a href="../sql-demo/">SQL comparison</a> page queries Iceberg
+<strong>snapshots</strong> and <strong>history</strong> (<code>"silver_orders$snapshots"</code>), and the dbt path includes an
+<a href="../dbt-demo/">Iceberg time-travel demo</a>. None of that is possible on raw Parquet.</p>
+<hr />
+<h2 id="iceberg-vs-delta-vs-proprietary-the-honest-comparison">Iceberg vs Delta vs proprietary — the honest comparison</h2>
+<p>The three table formats below solve the same problem. The big practical difference is <strong>how open
+and how portable</strong> they are.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Apache Iceberg</strong></th>
+<th><strong>Delta Lake</strong></th>
+<th><strong>Proprietary</strong> (Snowflake native)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Governance</td>
+<td>Apache Software Foundation</td>
+<td>Linux Foundation (led by Databricks)</td>
+<td>Single vendor</td>
+</tr>
+<tr>
+<td>Underlying files</td>
+<td>Parquet</td>
+<td>Parquet</td>
+<td>Vendor-managed (opaque)</td>
+</tr>
+<tr>
+<td>Engine support</td>
+<td>Broad &amp; vendor-neutral — Presto, Spark, Flink, Trino, Dremio, Snowflake, BigQuery, watsonx.data</td>
+<td>Strongest on Databricks/Spark; other engines via connectors</td>
+<td>Mostly the vendor's own engine</td>
+</tr>
+<tr>
+<td>"Open" reads</td>
+<td>Any Iceberg-aware engine, no single owner</td>
+<td>Open spec; historically Spark-centric</td>
+<td>Limited / via export</td>
+</tr>
+<tr>
+<td>Time travel</td>
+<td>Yes (snapshots)</td>
+<td>Yes (transaction log)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Streaming sink</td>
+<td>Yes (e.g. Flink → Iceberg, the <a href="../confluent-demo/">Confluent path</a>)</td>
+<td>Yes (Structured Streaming)</td>
+<td>Vendor-specific</td>
+</tr>
+<tr>
+<td>Lock-in risk</td>
+<td><strong>Low</strong> — data stays as open Parquet + open metadata</td>
+<td>Low-to-moderate — open spec, but ecosystem gravity toward Databricks</td>
+<td><strong>High</strong> — data lives inside the platform</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart LR
+  subgraph open["Open table formats — your data, your storage"]
+    ice["Apache Iceberg\n(watsonx.data default)"]
+    delta["Delta Lake\n(Databricks)"]
+  end
+  subgraph closed["Proprietary"]
+    snow["Snowflake native tables"]
+  end
+  many["Many engines:\nPresto · Spark · Flink · Trino · Dremio"] --&gt; ice
+  many --&gt; delta
+  snow --&gt; one["Mostly one engine"]</code></pre>
+<div class="admonition tip">
+<p class="admonition-title">Why this demo uses Iceberg</p>
+<p>watsonx.data is built around <strong>open Iceberg on your own object storage (MinIO/S3)</strong>. The same
+<code>iceberg_data</code> tables are written by dbt, Spark, <em>and</em> Flink, and read back by Presto — three
+engines, one open format, no copies. That multi-engine interoperability is exactly the
+<a href="../sql-demo/">parity story</a> the whole workshop demonstrates, and it is the strongest argument
+for an open table format over a proprietary one.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Be fair: Delta is a fine format</p>
+<p>If your organisation lives in Databricks, Delta Lake is mature and excellent. The point here is
+not "Iceberg beats Delta" on features — they are close — but that <strong>open, engine-neutral</strong>
+storage keeps you free to choose engines later. watsonx.data, Snowflake, and others have all
+moved to support Iceberg for precisely that reason.</p>
+</div>
+<hr />
+<h2 id="how-a-folder-becomes-a-table-in-watsonxdata">How "a folder becomes a table" in watsonx.data</h2>
+<p>This is the bit that makes streaming click later. When Flink (or Spark, or dbt) writes data, two
+things happen: <strong>data files</strong> land in object storage, and the <strong>catalog</strong> records the table's
+metadata pointer. After that, <em>any</em> engine that asks the catalog "where is
+<code>iceberg_data.dbt_demo_gold.gold_daily_sales</code>?" gets the metadata, reads the Parquet, and returns
+rows — <strong>no copy, no re-load.</strong></p>
+<pre class="mermaid"><code>flowchart LR
+  writer["Writer\n(dbt · Spark · Flink)"] --&gt;|"Parquet data files"| obj["Object storage\n(MinIO bucket)"]
+  writer --&gt;|"register table /\nmetadata pointer"| cat["watsonx.data catalog\n(iceberg_data)"]
+  cat --&gt; presto["Presto reads it"]
+  cat --&gt; spark2["Spark reads it"]
+  cat --&gt; other["…any Iceberg engine"]</code></pre>
+<p>That "register the table in the catalog so any engine can read it" step is exactly what the
+<a href="../streaming-medallion/">Streaming Medallion</a> page shows for the Flink → Iceberg sink.</p>
+<hr />
+<h2 id="next-step">Next step</h2>
+<ul>
+<li>See the streaming version of this idea: <a href="../streaming-medallion/">Streaming Medallion Explained</a>.</li>
+<li>See the full column-by-column architecture: <a href="../lineage/">Architecture &amp; Data Flow</a>.</li>
+<li>Pick an engine to build with: <a href="../choosing/">When to Use Which</a>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1888,6 +2349,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../lineage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Architecture &amp; Data Flow">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Architecture & Data Flow
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../streaming-medallion/" class="md-footer__link md-footer__link--next" aria-label="Next: Streaming Medallion Explained">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Streaming Medallion Explained
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1915,10 +2414,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

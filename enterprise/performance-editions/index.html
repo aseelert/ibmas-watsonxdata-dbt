@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../lineage-e2e/">
+      
+      
+        <link rel="next" href="../summary/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>Performance & Editions (Prestissimo · Gluten · GPU · RU) - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#engine-performance-editions-ru-economics" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href="../.." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Performance & Editions (Prestissimo · Gluten · GPU · RU)
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
@@ -224,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+        <a href="../../lineage/" class="md-tabs__link">
           
   
   
@@ -246,7 +255,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+        <a href="../../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +277,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../../ingestion/" class="md-tabs__link">
           
   
   
@@ -290,7 +299,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/orchestrate/" class="md-tabs__link">
+        <a href="../../orchestrate/" class="md-tabs__link">
           
   
   
@@ -312,7 +321,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../../openmetadata/" class="md-tabs__link">
           
   
   
@@ -330,11 +339,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/enterprise/overview/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
           
   
   
@@ -356,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../../configuration/" class="md-tabs__link">
           
   
   
@@ -398,7 +409,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href="../.." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href="../.." class="md-nav__link ">
               
   
   
@@ -487,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../../setup/" class="md-nav__link">
         
   
   
@@ -515,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/fast-track/" class="md-nav__link">
+      <a href="../../fast-track/" class="md-nav__link">
         
   
   
@@ -614,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../../lineage/" class="md-nav__link">
         
   
   
@@ -642,7 +653,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/table-formats/" class="md-nav__link">
+      <a href="../../table-formats/" class="md-nav__link">
         
   
   
@@ -670,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/streaming-medallion/" class="md-nav__link">
+      <a href="../../streaming-medallion/" class="md-nav__link">
         
   
   
@@ -698,7 +709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../../choosing/" class="md-nav__link">
         
   
   
@@ -726,7 +737,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../../glossary/" class="md-nav__link">
         
   
   
@@ -825,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../../dbt-demo/" class="md-nav__link">
         
   
   
@@ -853,7 +864,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../../spark-demo/" class="md-nav__link">
         
   
   
@@ -881,7 +892,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../../confluent-demo/" class="md-nav__link">
         
   
   
@@ -909,7 +920,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../../confluent-internals/" class="md-nav__link">
         
   
   
@@ -937,7 +948,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+      <a href="../../datastage-demo/" class="md-nav__link">
         
   
   
@@ -1030,7 +1041,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../../ingestion/" class="md-nav__link">
         
   
   
@@ -1058,7 +1069,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../../sql-demo/" class="md-nav__link">
         
   
   
@@ -1151,7 +1162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/orchestrate/" class="md-nav__link">
+      <a href="../../orchestrate/" class="md-nav__link">
         
   
   
@@ -1179,7 +1190,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../../airflow/" class="md-nav__link">
         
   
   
@@ -1278,7 +1289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../../openmetadata/" class="md-nav__link">
         
   
   
@@ -1306,7 +1317,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1334,7 +1345,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../../openlineage/" class="md-nav__link">
         
   
   
@@ -1362,7 +1373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../../metabase/" class="md-nav__link">
         
   
   
@@ -1390,7 +1401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../../semantic-models/" class="md-nav__link">
         
   
   
@@ -1422,8 +1433,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1443,19 +1456,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
@@ -1473,7 +1489,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1491,7 +1507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   
@@ -1519,7 +1535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/intelligence/" class="md-nav__link">
+      <a href="../intelligence/" class="md-nav__link">
         
   
   
@@ -1547,7 +1563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/integration/" class="md-nav__link">
+      <a href="../integration/" class="md-nav__link">
         
   
   
@@ -1575,7 +1591,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/lineage-e2e/" class="md-nav__link">
+      <a href="../lineage-e2e/" class="md-nav__link">
         
   
   
@@ -1600,10 +1616,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/enterprise/performance-editions/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance & Editions (Prestissimo · Gluten · GPU · RU)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1619,6 +1662,87 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-velox-story-one-substrate-three-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Velox story: one substrate, three engines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-ga-vs-whats-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's GA vs what's preview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ru-economics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RU economics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RU economics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-qualitative-illustration-not-a-quote" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A qualitative illustration (not a quote)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1631,7 +1755,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/summary/" class="md-nav__link">
+      <a href="../summary/" class="md-nav__link">
         
   
   
@@ -1728,7 +1852,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../../configuration/" class="md-nav__link">
         
   
   
@@ -1756,7 +1880,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../../files/" class="md-nav__link">
         
   
   
@@ -1784,7 +1908,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../../scripts/" class="md-nav__link">
         
   
   
@@ -1812,7 +1936,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1857,6 +1981,77 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-velox-story-one-substrate-three-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Velox story: one substrate, three engines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-ga-vs-whats-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's GA vs what's preview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ru-economics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RU economics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RU economics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-qualitative-illustration-not-a-quote" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A qualitative illustration (not a quote)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1869,8 +2064,172 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="engine-performance-editions-ru-economics">Engine performance &amp; editions / RU economics</h1>
+<div class="admonition abstract">
+<p class="admonition-title">What this page covers</p>
+<p>watsonx.data exposes <strong>three query-engine performance tiers built on one common C++ substrate (Velox)</strong> — and a single consumption currency for the platform's add-on capabilities.</p>
+<ul>
+<li><strong>Presto C++ (Prestissimo)</strong> — the next-generation Presto engine. <strong>GA. ~2–3× over Presto Java.</strong> A safe upgrade path for the SQL you run today.</li>
+<li><strong>Apache Gluten-accelerated Spark</strong> — Spark SQL offloaded to native C++ via Velox. <strong>GA. This is the engine you already run.</strong></li>
+<li><strong>GPU acceleration for Presto C++</strong> — Velox + NVIDIA cuDF. <strong>PRIVATE TECHNICAL PREVIEW — not GA, not a "Premium" SKU.</strong> A roadmap conversation, not a deliverable.</li>
+</ul>
+<p>And <strong>how you pay</strong>: the <strong>Resource Unit (RU)</strong>, a per-second-metered currency shared across the platform's add-on capabilities.</p>
+<p>See also: <a href="../overview/">Enterprise overview</a> · <a href="../intelligence/">Intelligence</a> · <a href="../integration/">Integration</a> · <a href="../summary/">Summary</a> · <a href="../../spark-demo/">Spark demo</a> · <a href="../../choosing/">Choosing a path</a></p>
+</div>
+<hr />
+<h2 id="the-velox-story-one-substrate-three-engines">The Velox story: one substrate, three engines</h2>
+<p>The thread connecting every performance story below is <strong><a href="https://www.ibm.com/new/product-blog/veloxcon-2024-innovation-in-data-management">Velox</a></strong> — an open-source, vectorized C++ execution library (a Meta/Uber/Intel/IBM collaboration). Velox is <em>not</em> a query engine you run directly. It is the <strong>shared C++ execution core</strong> that several engines plug into in place of their slower Java workers.</p>
+<p>That shared core matters for one practical reason: an optimization made in Velox — vectorized operators, better memory handling, and eventually GPU offload — benefits <strong>Presto and Spark at the same time</strong>, rather than each engine reinventing it. It also means the performance characteristics you learn on one engine carry over to the other.</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph legacy["Yesterday: Java execution"]
+        PJ["Presto Java workers"]
+        SJ["Spark JVM execution"]
+    end
+
+    V["Velox&lt;br/&gt;(shared C++ execution core)"]
+
+    subgraph ga["GA today"]
+        PC["Presto C++ / Prestissimo&lt;br/&gt;~2–3× vs Presto Java"]
+        GL["Gluten-accelerated Spark&lt;br/&gt;(native C++ Spark SQL)"]
+    end
+
+    subgraph preview["Private technical PREVIEW"]
+        GPU["GPU acceleration for Presto C++&lt;br/&gt;Velox → NVIDIA cuDF pipelines"]
+    end
+
+    PJ -.replaced by.-&gt; PC
+    SJ -.accelerated by.-&gt; GL
+    PC --&gt; V
+    GL --&gt; V
+    V -.preview offload.-&gt; GPU
+
+    classDef previewClass fill:#fff3cd,stroke:#e0a800,color:#664d03;
+    class GPU,preview previewClass;</code></pre>
+<p>The GPU work (covered below) is the <strong>same idea taken one step further</strong>: Velox translates a query plan into GPU pipelines executed by NVIDIA's cuDF library. Because it sits <em>inside</em> the existing Velox/Presto C++ stack, it preserves open-source Presto compatibility and the platform's governance model — but, critically, <strong>it is not yet generally available</strong>.</p>
+<hr />
+<h2 id="whats-ga-vs-whats-preview">What's GA vs what's preview</h2>
+<table>
+<thead>
+<tr>
+<th>Engine</th>
+<th>Status</th>
+<th>Typical speedup</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Presto C++ (Prestissimo)</strong></td>
+<td><strong>GA</strong></td>
+<td><strong>~2–3× vs Presto Java</strong> (<a href="https://prestodb.io/blog/2024/06/24/diving-into-the-presto-native-c-query-engine-presto-2-0/">source</a>)</td>
+<td>Drop-in next-gen Presto; C++ workers replace Java workers. Best safe upgrade for existing SQL.</td>
+</tr>
+<tr>
+<td><strong>Gluten-accelerated Spark</strong></td>
+<td><strong>GA</strong></td>
+<td>Workload-dependent; offloads Spark SQL to native C++ (<a href="https://www.ibm.com/docs/en/watsonxdata/aws?topic=engine-introduction-apache-gluten-accelerated-spark">source</a>)</td>
+<td><strong>The engine you already run.</strong> Accelerates Spark SQL and reduces cost without changing your Spark code.</td>
+</tr>
+<tr>
+<td><strong>GPU acceleration for Presto C++</strong></td>
+<td><strong>PREVIEW (private technical preview)</strong></td>
+<td><em>Vendor-reported, unverified externally:</em> up to <strong>25× / ~80% cost cut</strong> (IBM internal); GTC 2026 Nestlé demo up to <strong>5× / ~83%</strong> (<a href="https://www.ibm.com/new/announcements/technical-preview-of-gpu-acceleration-for-presto-c-in-watsonx-data">IBM</a>, <a href="https://developer.nvidia.com/blog/accelerating-large-scale-data-analytics-with-gpu-native-velox-and-nvidia-cudf/">NVIDIA</a>)</td>
+<td><strong>Not GA. Not a named SKU.</strong> Requires NVIDIA GPUs. Treat numbers as illustrative, not contractual.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">How to read the GPU numbers</p>
+<p>A widely cited preview data point: a <strong>~1.159-billion-row query ran in 1.77 minutes on 4 GPUs vs ~45 minutes on CPU</strong> (<a href="https://newsroom.ibm.com/2026-03-16-ibm-and-nvidia-announce-expanded-collaboration-at-gtc-2026-to-advance-ai-for-the-enterprise">IBM/NVIDIA, GTC 2026</a>). These are <strong>vendor-reported benchmarks on specific workloads and hardware</strong>. They are useful for sizing the <em>opportunity</em>, not for setting an SLA. Your mileage will depend on query shape, data layout, and GPU count.</p>
+</div>
+<hr />
+<div class="admonition warning">
+<p class="admonition-title">GPU acceleration is a preview, not GA</p>
+<p><strong>Do not promise GPU-accelerated Presto in a contract, statement of work, or sizing commitment.</strong> As of this writing it is a <strong>private technical preview</strong> of GPU offload <em>for Presto C++</em> — not a generally available feature and <strong>not a "Premium" SKU</strong>.</p>
+<p>A common — and incorrect — customer assumption is <strong>"Premium edition gives me GPU to speed up Presto."</strong> That is <strong>not confirmed</strong>. GPU acceleration is delivered through the Presto C++ / Velox engine roadmap, independent of edition packaging. If GPU performance is on the table, treat it as a <strong>roadmap and early-access conversation</strong> and confirm with IBM:</p>
+<ul>
+<li><strong>Availability</strong> — is the customer eligible for the private preview, and on which deployment (cloud / on-prem)?</li>
+<li><strong>Hardware prerequisites</strong> — supported NVIDIA GPUs and capacity.</li>
+<li><strong>On-prem timing</strong> — whether and when it lands on the Software Hub <strong>5.4</strong> on-prem line.</li>
+</ul>
+<p>Correct the assumption gently and honestly: <em>Prestissimo (GA) already gives a solid 2–3× today; GPU is a promising preview that we'd plan toward, not deliver now.</em></p>
+</div>
+<hr />
+<h2 id="editions">Editions</h2>
+<p>On-premises watsonx.data versions track <strong><a href="https://www.ibm.com/new/announcements/introducing-ibm-software-hub-and-software-hub-premium">IBM Software Hub</a></strong> — the rebrand and superset of Cloud Pak for Data (CPD). Software Hub / CPD <strong>5.3 lands around Dec 2025</strong>, and <strong>5.4 exists</strong> (the license bulletin maps Software Hub 5.4 ↔ CPD 5.4 ↔ watsonx.ai 2.4 — <a href="https://www.ibm.com/support/pages/node/7275162">node 7275162</a>). watsonx.data on-prem is actively patched on the <strong>5.3.1</strong> line through mid-2026.</p>
+<p>At a high level the editions step up in capability:</p>
+<table>
+<thead>
+<tr>
+<th>Edition</th>
+<th>Rough framing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Standard</strong></td>
+<td>Core open lakehouse: Presto/Spark engines, Iceberg on object storage, the medallion pattern this workshop teaches.</td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td>Adds enterprise-grade scale, security, and governance integration.</td>
+</tr>
+<tr>
+<td><strong>Premium</strong></td>
+<td>Adds <strong>watsonx.data Intelligence</strong> and <strong>unstructured data (UDI)</strong>; <strong>watsonx BI</strong> integration is confirmed but <strong>bundling is unclear</strong>; <strong>Data Observability</strong> lives mainly under watsonx.data Integration and it is <strong>ambiguous whether it is bundled in Premium</strong>. (<a href="https://www.ibm.com/docs/en/watsonxdata/premium/2.2.x?topic=overview">Premium overview</a>, <a href="https://cloud.ibm.com/docs/watsonx-bi?topic=watsonx-bi-wxdpremium">watsonx BI / Premium</a>)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Verify edition entitlements with IBM</p>
+<p>The table above is a <strong>directional</strong> framing, not a quote. Exact entitlements — <strong>especially whether watsonx BI and Data Observability are included in Premium</strong> — and the precise deltas between Standard / Enterprise / Premium <strong>must be confirmed</strong> against the <strong>Software Hub 5.4 license bulletin</strong> (<a href="https://www.ibm.com/support/pages/node/7275162">node 7275162</a>) and the <strong><a href="https://www.ibm.com/docs/en/watsonxdata/premium/2.2.x?topic=overview">Premium overview</a></strong>. Bundling shifts between releases; do not size or position on this page alone.</p>
+</div>
+<hr />
+<h2 id="ru-economics">RU economics</h2>
+<p>The platform's add-on capabilities are metered in <strong>Resource Units (RUs)</strong> — a single consumption currency that acts as the common pool across capabilities.</p>
+<ul>
+<li><strong>What an RU is</strong> — list price <strong>USD $1.00 per RU</strong>, metered <strong>per second with a 1-minute minimum</strong> and tracked per minute (<a href="https://www.ibm.com/products/watsonx-data/pricing">pricing</a>).</li>
+<li><strong>Common currency</strong> — <strong>watsonx.data Intelligence</strong> and <strong>watsonx.data Integration</strong> (DataStage / StreamSets / observability) are RU-metered, for both self-managed and SaaS (<a href="https://www.ibm.com/docs/en/software-hub/5.3.x?topic=services-watsonxdata-integration">Integration metering</a>, <a href="https://cloud.ibm.com/docs/watsonxdata?topic=watsonxdata-manage_bill">billing</a>). The RU pool is the shared unit you draw from across these capabilities.</li>
+<li><strong>On-prem metering</strong> — measured by the <strong>IBM License Service</strong> (tracks VPC / RU, produces a monthly report, and trues-up against licensed capacity) (<a href="https://redresscompliance.com/ibm-watsonx-licensing-guide.html">licensing guide</a>).</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Confirm RU rates and pooling terms with IBM</p>
+<p>The <strong>per-capability RU consumption rates</strong> and the <strong>pooling / sharing terms</strong> (whether one pool spans Intelligence and Integration, and how true-up works) <strong>must be confirmed with IBM</strong> for the specific edition and deployment. The $1/RU list price is a public anchor; effective rates depend on contract.</p>
+</div>
+<h3 id="a-qualitative-illustration-not-a-quote">A qualitative illustration (not a quote)</h3>
+<p>RU consumption tracks <em>how long work runs</em>, so the <strong>batch-vs-realtime</strong> distinction dominates cost — the same point made in <a href="../integration/">Integration</a>:</p>
+<pre class="mermaid"><code>flowchart LR
+    B["Batch DataStage job&lt;br/&gt;runs 1 hour, then stops"] --&gt; RB["RUs only while running&lt;br/&gt;→ bounded, predictable"]
+    S["Always-on streaming pipeline&lt;br/&gt;runs 24×7"] --&gt; RS["RUs continuously&lt;br/&gt;→ far higher monthly draw"]</code></pre>
+<p>A one-hour batch transformation consumes RUs <strong>only for that hour</strong> (subject to the 1-minute minimum). An always-on streaming pipeline consumes RUs <strong>continuously</strong>, so even a "small" pipeline can outspend a much larger batch job over a month. When you choose between <a href="../../choosing/">paths</a>, remember that <strong>engine speed reduces RU draw</strong> (faster queries finish sooner) — another reason Prestissimo's 2–3× matters economically, not just for latency.</p>
+<hr />
+<div class="admonition tip">
+<p class="admonition-title">Bottom line for this customer</p>
+<ul>
+<li><strong>You already win today.</strong> Gluten-accelerated Spark is GA and is the engine you run — native C++ Spark SQL, lower cost, no code change.</li>
+<li><strong>Prestissimo is a safe GA upgrade.</strong> Presto C++ gives ~2–3× over Presto Java for your existing SQL, with full open-source Presto compatibility.</li>
+<li><strong>GPU is a roadmap conversation, not a deliverable.</strong> It is a private technical preview, not GA and not a Premium SKU; do not commit it. Plan toward it with IBM, confirm hardware and on-prem (5.4) timing, and correct the "Premium = GPU for Presto" assumption.</li>
+<li><strong>Price on RUs you can confirm.</strong> Use $1/RU and per-second metering as the model, but validate per-capability rates, pooling, and edition entitlements with IBM before sizing.</li>
+</ul>
+<p>Continue: <a href="../intelligence/">Intelligence</a> · <a href="../integration/">Integration</a> · <a href="../summary/">Summary</a></p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1888,6 +2247,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../lineage-e2e/" class="md-footer__link md-footer__link--prev" aria-label="Previous: End-to-End Lineage (source → DataStage → Cognos)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                End-to-End Lineage (source → DataStage → Cognos)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../summary/" class="md-footer__link md-footer__link--next" aria-label="Next: Summary — Strengths &amp; Weaknesses">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Summary — Strengths & Weaknesses
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1915,10 +2312,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

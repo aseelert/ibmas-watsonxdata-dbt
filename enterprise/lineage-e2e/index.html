@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../integration/">
+      
+      
+        <link rel="next" href="../performance-editions/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>End-to-End Lineage (source → DataStage → Cognos) - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#end-to-end-lineage-source-datastage-cognos" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href="../.." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              End-to-End Lineage (source → DataStage → Cognos)
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
@@ -224,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+        <a href="../../lineage/" class="md-tabs__link">
           
   
   
@@ -246,7 +255,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+        <a href="../../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +277,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../../ingestion/" class="md-tabs__link">
           
   
   
@@ -290,7 +299,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/orchestrate/" class="md-tabs__link">
+        <a href="../../orchestrate/" class="md-tabs__link">
           
   
   
@@ -312,7 +321,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../../openmetadata/" class="md-tabs__link">
           
   
   
@@ -330,11 +339,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/enterprise/overview/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
           
   
   
@@ -356,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../../configuration/" class="md-tabs__link">
           
   
   
@@ -398,7 +409,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href="../.." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href="../.." class="md-nav__link ">
               
   
   
@@ -487,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../../setup/" class="md-nav__link">
         
   
   
@@ -515,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/fast-track/" class="md-nav__link">
+      <a href="../../fast-track/" class="md-nav__link">
         
   
   
@@ -614,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../../lineage/" class="md-nav__link">
         
   
   
@@ -642,7 +653,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/table-formats/" class="md-nav__link">
+      <a href="../../table-formats/" class="md-nav__link">
         
   
   
@@ -670,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/streaming-medallion/" class="md-nav__link">
+      <a href="../../streaming-medallion/" class="md-nav__link">
         
   
   
@@ -698,7 +709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../../choosing/" class="md-nav__link">
         
   
   
@@ -726,7 +737,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../../glossary/" class="md-nav__link">
         
   
   
@@ -825,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../../dbt-demo/" class="md-nav__link">
         
   
   
@@ -853,7 +864,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../../spark-demo/" class="md-nav__link">
         
   
   
@@ -881,7 +892,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../../confluent-demo/" class="md-nav__link">
         
   
   
@@ -909,7 +920,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../../confluent-internals/" class="md-nav__link">
         
   
   
@@ -937,7 +948,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+      <a href="../../datastage-demo/" class="md-nav__link">
         
   
   
@@ -1030,7 +1041,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../../ingestion/" class="md-nav__link">
         
   
   
@@ -1058,7 +1069,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../../sql-demo/" class="md-nav__link">
         
   
   
@@ -1151,7 +1162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/orchestrate/" class="md-nav__link">
+      <a href="../../orchestrate/" class="md-nav__link">
         
   
   
@@ -1179,7 +1190,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../../airflow/" class="md-nav__link">
         
   
   
@@ -1278,7 +1289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../../openmetadata/" class="md-nav__link">
         
   
   
@@ -1306,7 +1317,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1334,7 +1345,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../../openlineage/" class="md-nav__link">
         
   
   
@@ -1362,7 +1373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../../metabase/" class="md-nav__link">
         
   
   
@@ -1390,7 +1401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../../semantic-models/" class="md-nav__link">
         
   
   
@@ -1422,8 +1433,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1443,19 +1456,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
@@ -1473,7 +1489,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1491,7 +1507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   
@@ -1519,7 +1535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/intelligence/" class="md-nav__link">
+      <a href="../intelligence/" class="md-nav__link">
         
   
   
@@ -1547,7 +1563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/integration/" class="md-nav__link">
+      <a href="../integration/" class="md-nav__link">
         
   
   
@@ -1572,10 +1588,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/enterprise/lineage-e2e/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    End-to-End Lineage (source → DataStage → Cognos)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1591,6 +1634,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-unified-graph-for-this-demos-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The unified graph for this demo's world
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-manta-scans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Manta scans
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-questions-enterprise-lineage-answers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two questions enterprise lineage answers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versus-the-open-source-lineage-in-this-workshop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versus the open-source lineage in this workshop
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1603,7 +1710,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/performance-editions/" class="md-nav__link">
+      <a href="../performance-editions/" class="md-nav__link">
         
   
   
@@ -1631,7 +1738,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/summary/" class="md-nav__link">
+      <a href="../summary/" class="md-nav__link">
         
   
   
@@ -1728,7 +1835,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../../configuration/" class="md-nav__link">
         
   
   
@@ -1756,7 +1863,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../../files/" class="md-nav__link">
         
   
   
@@ -1784,7 +1891,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../../scripts/" class="md-nav__link">
         
   
   
@@ -1812,7 +1919,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1857,6 +1964,60 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-unified-graph-for-this-demos-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The unified graph for this demo's world
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-manta-scans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Manta scans
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-questions-enterprise-lineage-answers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two questions enterprise lineage answers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versus-the-open-source-lineage-in-this-workshop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versus the open-source lineage in this workshop
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1869,8 +2030,208 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="end-to-end-lineage-source-datastage-cognos">End-to-End Lineage: Source → DataStage → Cognos</h1>
+<div class="admonition abstract">
+<p class="admonition-title">The payoff</p>
+<p>Imagine clicking a single number on a board-level Cognos report and seeing the
+complete story behind it: the exact source column it came from, every DataStage
+transformation and custom-SQL step it passed through, and the watsonx.data Iceberg
+mart that served it — all in one interactive, color-coded graph. That is what IBM
+Manta Data Lineage (delivered inside <a href="../intelligence/">watsonx.data Intelligence</a>)
+provides. Manta "can create complete end-to-end data lineage from database data
+sources through analytical models to reports in Cognos Analytics"
+(<a href="https://getmanta.com/blog/manta-3-26-ibm-datastage-erwin-and-detailed-lineage-in-edc">getmanta.com</a>).
+It answers the two questions every data leader eventually asks: <em>"Where did this
+number come from?"</em> and <em>"If I change this column, which reports break?"</em></p>
+</div>
+<h2 id="the-unified-graph-for-this-demos-world">The unified graph for this demo's world</h2>
+<p>Manta auto-scans code, custom SQL, ETL jobs, and BI reports and stitches them into one
+end-to-end map; the resulting graph is backed by Neo4j
+(<a href="https://www.ibm.com/products/manta-data-lineage">ibm.com</a>,
+<a href="https://neo4j.com/customer-stories/ibm-manta-data-lineage/">neo4j.com</a>). The diagram
+below shows how the medallion world in this workshop would appear — column-aware in
+spirit, with the DataStage flow and Cognos report as first-class, traceable nodes.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph SRC["Sources"]
+        CSV["orders.csv&lt;br/&gt;(customer_id, order_date, amount)"]
+        KAFKA["Kafka topic: orders&lt;br/&gt;(via Confluent Schema Registry)"]
+    end
+
+    subgraph TRANSFORM["Transformations (scanned)"]
+        DS["DataStage flow&lt;br/&gt;silver → gold&lt;br/&gt;(column-level)"]
+        OTHER["dbt / Spark / Flink&lt;br/&gt;also feed the same gold"]
+    end
+
+    subgraph WXD["watsonx.data"]
+        GOLD["Iceberg gold mart&lt;br/&gt;gold_daily_sales&lt;br/&gt;(order_date, revenue)"]
+    end
+
+    subgraph BI["Reporting"]
+        COG["Cognos Analytics&lt;br/&gt;report field:&lt;br/&gt;'Daily Revenue'"]
+    end
+
+    CSV --&gt; DS
+    KAFKA --&gt; DS
+    DS --&gt; GOLD
+    OTHER --&gt; GOLD
+    GOLD --&gt; COG
+
+    classDef src fill:#e3f2fd,stroke:#1565c0;
+    classDef xf fill:#fff3e0,stroke:#e65100;
+    classDef wxd fill:#e8f5e9,stroke:#2e7d32;
+    classDef bi fill:#f3e5f5,stroke:#6a1b9a;
+    class CSV,KAFKA src;
+    class DS,OTHER xf;
+    class GOLD wxd;
+    class COG bi;</code></pre>
+<p>The point is not that <em>one</em> tool produces gold — in this workshop the
+<a href="../../openmetadata/">dbt</a>, Spark, Flink, and DataStage paths all converge on the same
+Iceberg gold tables. The point is that Manta can render whichever of those paths it can
+scan, plus the DataStage and Cognos legs that open-source tooling does not reach, in a
+single graph.</p>
+<h2 id="what-manta-scans">What Manta scans</h2>
+<p>Manta ships with 50+ out-of-the-box scanners spanning databases, ETL tools, BI/reporting
+platforms, modeling tools, and programming languages
+(<a href="https://www.ibm.com/products/manta-data-lineage">ibm.com</a>). The granularity differs by
+category — and it is worth being precise about it, because "lineage" means very different
+things from one connector to the next.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Examples</th>
+<th>Granularity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Databases</td>
+<td>Oracle, SQL Server, Teradata, Snowflake, Db2, PostgreSQL</td>
+<td>Table / column</td>
+</tr>
+<tr>
+<td>ETL tools</td>
+<td><strong>IBM DataStage</strong> (InfoSphere + Next-Gen/Cloud Pak), incl. custom SQL (<a href="https://www.ibm.com/docs/en/manta-data-lineage?topic=datastage-infosphere-scanner-guide">scanner guide</a>)</td>
+<td><strong>Column-level</strong></td>
+</tr>
+<tr>
+<td>BI / reporting</td>
+<td><strong>IBM Cognos Analytics</strong> (Framework Manager models, reports incl. custom SQL, data modules), Power BI, Tableau</td>
+<td>Report-field</td>
+</tr>
+<tr>
+<td>Streaming</td>
+<td><strong>Kafka via Confluent Schema Registry</strong> (cluster → topics → schemas → columns) (<a href="https://www.ibm.com/docs/en/manta-data-lineage?topic=kafka-integration-requirements">reqs</a>)</td>
+<td>Topic / schema / column</td>
+</tr>
+<tr>
+<td>Stream processing</td>
+<td>Apache <strong>Flink</strong> transformation logic</td>
+<td><strong>Not scanned</strong> — see caveat below</td>
+</tr>
+<tr>
+<td>Modeling &amp; code</td>
+<td>erwin and other modeling tools; programming languages</td>
+<td>Varies</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">The Flink gap — be honest about it</p>
+<p>Manta scans the Confluent Schema Registry, so this workshop's Kafka <strong>topics,
+schemas, and columns</strong> will appear in the graph. But Manta does <strong>not</strong> natively
+trace Apache Flink job logic. The <code>raw → silver</code> transformations performed by the
+Flink SQL jobs in <code>confluent/</code> will therefore <strong>not</strong> show up as transformation
+steps — you will see topic-to-topic / schema lineage, but the column-level "this
+field was computed from those fields" logic inside Flink is invisible to Manta. If
+streaming transformation lineage is a hard requirement, plan to supplement Manta
+with <a href="../../openlineage/">OpenLineage</a> instrumentation on the Flink jobs.</p>
+</div>
+<h2 id="two-questions-enterprise-lineage-answers">Two questions enterprise lineage answers</h2>
+<p><strong>Impact analysis — "if I change this, what breaks?"</strong> Before altering a source column
+(say, renaming <code>amount</code> or changing its type), an architect can select that column in the
+Manta map and trace forward through the DataStage flow, the Iceberg gold mart, and into
+every Cognos report field that depends on it. The change-review meeting stops being
+guesswork: you have a concrete, column-level list of downstream reports to test and
+stakeholders to notify. This is the single biggest reason enterprises buy lineage that
+spans heterogeneous tools rather than a single framework.</p>
+<p><strong>Root-cause / audit — "where did this number come from?"</strong> When a figure on an executive
+dashboard looks wrong, an analyst starts at the Cognos report field and walks <em>backward</em>
+through the gold mart, the DataStage transformation (including any custom SQL that
+reshaped it), to the originating source column. Instead of interviewing three teams, the
+trace is one path on the graph. For regulated reporting this doubles as audit evidence:
+the lineage map <em>is</em> the documented data provenance.</p>
+<h2 id="versus-the-open-source-lineage-in-this-workshop">Versus the open-source lineage in this workshop</h2>
+<p>This workshop already produces lineage without Manta. The <a href="../../openmetadata/">OpenMetadata</a>
+stack builds its graph from dbt artifacts (<code>manifest.json</code>, <code>catalog.json</code>,
+<code>run_results.json</code>) — which gives genuine <strong>column-level lineage within the dbt path</strong>,
+for free, and is an excellent fit if dbt is your transformation layer. But that lineage
+stops at the edges of dbt: it does <strong>not</strong> cover DataStage flows, and it does <strong>not</strong>
+cover Cognos reports. Spark and Flink lineage are not captured from dbt artifacts at all
+and would need separate <a href="../../openlineage/">OpenLineage</a> wiring to appear.</p>
+<p>Manta's differentiator is <strong>breadth across heterogeneous enterprise tooling</strong> — legacy
+ETL (DataStage) and BI (Cognos) stitched into the <em>same</em> graph as databases and
+warehouses — at a granularity (column-level DataStage, report-field Cognos) that
+artifact-based open-source lineage does not reach in those tools.</p>
+<div class="admonition tip">
+<p class="admonition-title">Be fair about it</p>
+<p>If your entire transformation stack is dbt on watsonx.data, OpenMetadata's
+dbt-artifact lineage may be all you need — and it is already running in this
+workshop at no extra license cost. Manta earns its keep when the estate is
+<em>heterogeneous</em>: legacy DataStage jobs, custom SQL nobody fully remembers, and
+Cognos reports whose field definitions live outside any dbt project. See also the
+<a href="../performance-editions/">editions and performance</a> trade-offs and the
+<a href="../integration/">integration overview</a>.</p>
+</div>
+<div class="admonition success">
+<p class="admonition-title">When end-to-end Manta lineage is worth it</p>
+<ul>
+<li><strong>Regulated industries with audit mandates</strong> — BCBS 239 (risk data aggregation),
+  GDPR / data-privacy traceability, SOX. The lineage map becomes defensible audit
+  evidence of where reported figures originate.</li>
+<li><strong>Large, heterogeneous estates</strong> — many source systems plus <strong>legacy DataStage</strong>
+  and <strong>Cognos</strong> that artifact-based open-source lineage cannot see.</li>
+<li><strong>High change velocity</strong> — frequent schema changes where column-level impact
+  analysis prevents broken executive reports.</li>
+</ul>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Verify supported versions with IBM</p>
+<p>Exact supported versions of Confluent/Kafka, DataStage Next-Gen, and Cognos depend
+on your installed Manta release, and IBM's documentation blocked automated retrieval
+while this page was written. Confirm the scanner matrix for your release before
+committing to an architecture:
+<a href="https://www.ibm.com/docs/en/manta-data-lineage?topic=scanners">Manta scanners documentation</a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Delivery model</p>
+<p>Manta Data Lineage is delivered <strong>within watsonx.data Intelligence</strong> (on-premises,
+Resource-Unit–metered). See <a href="../intelligence/">Intelligence</a> for what else is bundled
+and <a href="../performance-editions/">Editions &amp; performance</a> for sizing and cost.</p>
+</div>
+<hr />
+<p><strong>See also:</strong> <a href="../overview/">Enterprise overview</a> ·
+<a href="../intelligence/">watsonx.data Intelligence</a> · <a href="../integration/">Integration</a> ·
+<a href="../performance-editions/">Editions &amp; performance</a> · <a href="../summary/">Summary</a> ·
+<a href="../../openmetadata/">OpenMetadata (open source)</a> ·
+<a href="../../openlineage/">OpenLineage (open source)</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1888,6 +2249,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../integration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: watsonx.data Integration (DataStage · StreamSets · UDI · Databand)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                watsonx.data Integration (DataStage · StreamSets · UDI · Databand)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../performance-editions/" class="md-footer__link md-footer__link--next" aria-label="Next: Performance &amp; Editions (Prestissimo · Gluten · GPU · RU)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Performance & Editions (Prestissimo · Gluten · GPU · RU)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1915,10 +2314,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

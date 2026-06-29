@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../sql-demo/">
+      
+      
+        <link rel="next" href="../airflow/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>dbt vs DAG — What Orchestrates What - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#dbt-vs-dag-what-orchestrates-what" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              dbt vs DAG — What Orchestrates What
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href=".." class="md-tabs__link">
           
   
   
@@ -224,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+        <a href="../lineage/" class="md-tabs__link">
           
   
   
@@ -246,7 +255,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+        <a href="../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +277,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../ingestion/" class="md-tabs__link">
           
   
   
@@ -286,11 +295,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/orchestrate/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -312,7 +323,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../openmetadata/" class="md-tabs__link">
           
   
   
@@ -334,7 +345,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/enterprise/overview/" class="md-tabs__link">
+        <a href="../enterprise/overview/" class="md-tabs__link">
           
   
   
@@ -356,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../configuration/" class="md-tabs__link">
           
   
   
@@ -398,7 +409,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href=".." class="md-nav__link ">
               
   
   
@@ -487,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../setup/" class="md-nav__link">
         
   
   
@@ -515,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/fast-track/" class="md-nav__link">
+      <a href="../fast-track/" class="md-nav__link">
         
   
   
@@ -614,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../lineage/" class="md-nav__link">
         
   
   
@@ -642,7 +653,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/table-formats/" class="md-nav__link">
+      <a href="../table-formats/" class="md-nav__link">
         
   
   
@@ -670,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/streaming-medallion/" class="md-nav__link">
+      <a href="../streaming-medallion/" class="md-nav__link">
         
   
   
@@ -698,7 +709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../choosing/" class="md-nav__link">
         
   
   
@@ -726,7 +737,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../glossary/" class="md-nav__link">
         
   
   
@@ -825,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../dbt-demo/" class="md-nav__link">
         
   
   
@@ -853,7 +864,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../spark-demo/" class="md-nav__link">
         
   
   
@@ -881,7 +892,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../confluent-demo/" class="md-nav__link">
         
   
   
@@ -909,7 +920,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../confluent-internals/" class="md-nav__link">
         
   
   
@@ -937,7 +948,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+      <a href="../datastage-demo/" class="md-nav__link">
         
   
   
@@ -1030,7 +1041,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../ingestion/" class="md-nav__link">
         
   
   
@@ -1058,7 +1069,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../sql-demo/" class="md-nav__link">
         
   
   
@@ -1090,8 +1101,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1103,19 +1116,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -1133,7 +1149,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1148,10 +1164,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/orchestrate/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dbt vs DAG — What Orchestrates What
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1167,6 +1210,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-different-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two different jobs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-reuse-my-existing-dbt-project-in-a-dag-yes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I reuse my existing dbt project in a DAG? (Yes)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-airflow-orchestrate-other-things-like-confluents-silver-gold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can Airflow orchestrate other things — like Confluent's Silver → Gold?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-else-is-airflow-good-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What else is Airflow good for?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-enterprise-tools-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the enterprise tools fit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1179,7 +1308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../airflow/" class="md-nav__link">
         
   
   
@@ -1278,7 +1407,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../openmetadata/" class="md-nav__link">
         
   
   
@@ -1306,7 +1435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1334,7 +1463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../openlineage/" class="md-nav__link">
         
   
   
@@ -1362,7 +1491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../metabase/" class="md-nav__link">
         
   
   
@@ -1390,7 +1519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../semantic-models/" class="md-nav__link">
         
   
   
@@ -1491,7 +1620,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/overview/" class="md-nav__link">
+      <a href="../enterprise/overview/" class="md-nav__link">
         
   
   
@@ -1519,7 +1648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/intelligence/" class="md-nav__link">
+      <a href="../enterprise/intelligence/" class="md-nav__link">
         
   
   
@@ -1547,7 +1676,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/integration/" class="md-nav__link">
+      <a href="../enterprise/integration/" class="md-nav__link">
         
   
   
@@ -1575,7 +1704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/lineage-e2e/" class="md-nav__link">
+      <a href="../enterprise/lineage-e2e/" class="md-nav__link">
         
   
   
@@ -1603,7 +1732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/performance-editions/" class="md-nav__link">
+      <a href="../enterprise/performance-editions/" class="md-nav__link">
         
   
   
@@ -1631,7 +1760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/summary/" class="md-nav__link">
+      <a href="../enterprise/summary/" class="md-nav__link">
         
   
   
@@ -1728,7 +1857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -1756,7 +1885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../files/" class="md-nav__link">
         
   
   
@@ -1784,7 +1913,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../scripts/" class="md-nav__link">
         
   
   
@@ -1812,7 +1941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1857,6 +1986,82 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#two-different-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two different jobs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-reuse-my-existing-dbt-project-in-a-dag-yes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I reuse my existing dbt project in a DAG? (Yes)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-airflow-orchestrate-other-things-like-confluents-silver-gold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can Airflow orchestrate other things — like Confluent's Silver → Gold?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-else-is-airflow-good-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What else is Airflow good for?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-enterprise-tools-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the enterprise tools fit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1869,8 +2074,179 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="dbt-vs-dag-what-orchestrates-what">dbt vs DAG — What Orchestrates What</h1>
+<div class="admonition abstract">
+<p class="admonition-title">The one idea to take away</p>
+<p><strong>dbt (and Spark, and Flink) define <em>what</em> the transformation is. Airflow defines <em>when</em> it
+runs and <em>in what order</em>.</strong> They are not competitors and you do not choose between them — an
+Airflow <strong>DAG</strong> <em>wraps and schedules</em> your existing dbt/Spark/Confluent work. Think:
+<strong>dbt = the recipe, Airflow = the kitchen timer and the chef who presses "go."</strong></p>
+</div>
+<p>This page clears up the most common confusion before you open the hands-on
+<a href="../airflow/">Airflow page</a>.</p>
+<hr />
+<h2 id="two-different-jobs">Two different jobs</h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Answered by</th>
+<th>In this repo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>What</em> transformation happens? (the SQL/Python logic)</td>
+<td><strong>dbt / Spark / Flink</strong></td>
+<td><code>models/*.sql</code>, <code>spark/load_medallion_demo.py</code>, <code>confluent/flink/sql/*</code></td>
+</tr>
+<tr>
+<td><em>When</em> does it run, in what order, what if it fails?</td>
+<td><strong>Airflow (a DAG)</strong></td>
+<td><code>airflow/dags/dag_dbt_medallion.py</code>, <code>dag_spark_medallion.py</code></td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>DAG</strong> (Directed Acyclic Graph) is just "a list of tasks plus their dependencies" — do A, then
+B and C in parallel, then D. Airflow is the engine that runs DAGs on a schedule, retries failures,
+and shows you a picture of what ran.</p>
+<pre class="mermaid"><code>flowchart LR
+  subgraph what["WHAT — the transformation logic"]
+    dbt["dbt models\n(SQL)"]
+    spark["Spark job\n(PySpark)"]
+    flink["Flink SQL\n(streaming)"]
+  end
+  subgraph when["WHEN / ORDER — orchestration"]
+    dag["Airflow DAG\nschedule · order · retry · alert"]
+  end
+  dag --&gt;|"calls"| dbt
+  dag --&gt;|"calls"| spark
+  dag -. "can also trigger" .-&gt; flink</code></pre>
+<div class="admonition info">
+<p class="admonition-title">Are they parallel or separate?</p>
+<p><strong>Separate roles, working together.</strong> You can run dbt entirely on its own (that is exactly the
+<a href="../dbt-demo/">dbt page</a> — you type the commands by hand). Airflow does not replace any of that;
+it just runs <strong>the same commands</strong> for you on a schedule. Remove Airflow and your pipelines
+still work; you just lose automatic scheduling, ordering, retries, and the visual run history.</p>
+</div>
+<hr />
+<h2 id="can-i-reuse-my-existing-dbt-project-in-a-dag-yes">Can I reuse my existing dbt project in a DAG? (Yes)</h2>
+<p>You do <strong>not</strong> rebuild your pipeline for Airflow. The DAG in this repo runs your <strong>existing</strong> dbt
+project verbatim — it shells out to the very same commands you run manually:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dag_dbt_medallion.py  (DAG: dbt_medallion_hourly)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  bootstrap_schemas        → scripts/bootstrap_watsonxdata.py
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  RAW    : dbt seed  --select raw_&lt;x&gt;     → dbt_demo_raw
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  BRONZE : dbt run   --select bronze_&lt;x&gt;  → dbt_demo_bronze
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  SILVER : dbt run   --select silver_&lt;x&gt;  → dbt_demo_silver
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  GOLD   : dbt run   --select gold_&lt;x&gt;    → dbt_demo_gold
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  dbt_test                                 (schema + data tests)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  query_gold                               → scripts/query_gold.py
+</code></pre></div>
+<p>The task dependencies are a <strong>1:1 copy of the dbt <code>ref()</code> graph</strong>, so Airflow runs models in true
+lineage order and parallelises independent branches — but the SQL, the profile, and the
+credentials all come from your existing project (<code>models/</code>, <code>profiles/profiles.yml</code>, <code>.env</code>).
+Nothing is duplicated.</p>
+<div class="admonition tip">
+<p class="admonition-title">Production pattern: astronomer-cosmos</p>
+<p>This demo uses one explicit <code>BashOperator</code> per table so the medallion is obvious in the Airflow
+graph (a teaching choice). In production, <strong>astronomer-cosmos</strong> reads your dbt <code>manifest.json</code>
+and generates the Airflow tasks automatically — same idea, zero hand-maintenance. See
+<code>airflow/README.md</code>.</p>
+</div>
+<hr />
+<h2 id="can-airflow-orchestrate-other-things-like-confluents-silver-gold">Can Airflow orchestrate other things — like Confluent's Silver → Gold?</h2>
+<p><strong>Yes.</strong> Airflow is general-purpose: a task is just "run this command / call this API." Anything you
+can run from a shell or a Python function, a DAG can schedule. The two DAGs shipped here are dbt and
+Spark, but the same pattern extends cleanly to the Confluent path:</p>
+<pre class="mermaid"><code>flowchart TB
+  trigger["Airflow DAG\n(scheduled or event-driven)"]
+  trigger --&gt;|"Flink streams Silver continuously\n(usually NOT scheduled — it's always-on)"| silver["confluent_demo_silver\n(Flink → Iceberg)"]
+  trigger --&gt;|"task: build Gold on a schedule"| gold["submit_confluent_gold.py\nor create_datastage_flow.py"]
+  silver --&gt; gold
+  gold --&gt; reconcile["task: scripts/reconcile_gold.py\n(prove parity)"]</code></pre>
+<p>A practical Confluent orchestration looks like this:</p>
+<ul>
+<li><strong>Silver</strong> is the <strong>streaming</strong> layer — Flink runs <em>continuously</em>, so you typically do <strong>not</strong>
+  schedule it; you start it once and it keeps consuming. (Airflow could start/stop it, but that is
+  the exception.)</li>
+<li><strong>Gold</strong> is a periodic roll-up — a perfect Airflow task. A DAG can run, on a schedule, the same
+  command the <a href="../confluent-demo/">Confluent page</a> uses:
+  <code>python confluent/scripts/submit_confluent_gold.py</code> (Spark engine) <strong>or</strong>
+  <code>python confluent/scripts/create_datastage_flow.py</code> (DataStage engine), followed by
+  <code>python scripts/reconcile_gold.py</code> to confirm all three paths still match.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">So which engine schedules the gold build?</p>
+<p>Open source: <strong>Airflow</strong> triggers the Spark or DataStage gold job. Enterprise: <strong>DataStage has
+its own scheduler</strong> too (in IBM Software Hub), and it remains Airflow-compatible — you can drive
+DataStage flows from Airflow or schedule them natively. Pick one place to own the schedule so
+two systems don't both fire the same job.</p>
+</div>
+<hr />
+<h2 id="what-else-is-airflow-good-for">What else is Airflow good for?</h2>
+<p>Once you have a scheduler, you use it for everything operational, not just the medallion:</p>
+<ul>
+<li><strong>Refreshes</strong> — rebuild gold marts hourly/nightly; run <code>dbt source freshness</code>.</li>
+<li><strong>Data quality gates</strong> — run <code>dbt test</code> and stop the pipeline (and alert) if a test fails.</li>
+<li><strong>Cross-system glue</strong> — ingest with cpdctl, then transform with dbt, then publish to BI, in one
+  ordered DAG.</li>
+<li><strong>Backfills</strong> — re-run a date range after fixing logic.</li>
+<li><strong>Housekeeping</strong> — Iceberg snapshot expiry, compaction, cleanup jobs.</li>
+</ul>
+<hr />
+<h2 id="where-the-enterprise-tools-fit">Where the enterprise tools fit</h2>
+<p>Airflow schedules and retries, but it tells you little about <em>data health</em> across many pipelines.
+That gap is what <strong>IBM Databand (Data Observability)</strong> fills — it <strong>monitors Apache Airflow</strong>
+(dedicated integration) plus DataStage and StreamSets from one place, adding learned-baseline
+<strong>anomaly detection</strong> and <strong>SLA/quality alerting</strong> on top of the scheduling Airflow already does.</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Open source</th>
+<th>Enterprise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schedule + order + retry</td>
+<td><strong>Airflow</strong></td>
+<td>Airflow and/or DataStage scheduler</td>
+</tr>
+<tr>
+<td>"Did my DAG finish, and is the data <em>right</em>?"</td>
+<td>Airflow logs + dbt tests</td>
+<td><strong>Databand</strong> observability over Airflow/DataStage/StreamSets</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../enterprise/integration/">watsonx.data Integration</a> for the Databand details, and the honest
+open-source-vs-enterprise verdict in the <a href="../enterprise/summary/">summary</a>.</p>
+<hr />
+<h2 id="next-step">Next step</h2>
+<ul>
+<li>Run the scheduler hands-on: <a href="../airflow/">Airflow — Schedule the Pipeline</a>.</li>
+<li>See the engines it orchestrates: <a href="../dbt-demo/">dbt</a>, <a href="../spark-demo/">Spark</a>,
+  <a href="../confluent-demo/">Confluent</a>.</li>
+<li>Compare open-source vs enterprise observability: <a href="../enterprise/integration/">watsonx.data Integration</a>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1888,6 +2264,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../sql-demo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: SQL — Compare dbt vs Spark vs Confluent Gold">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                SQL — Compare dbt vs Spark vs Confluent Gold
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../airflow/" class="md-footer__link md-footer__link--next" aria-label="Next: Airflow — Schedule the Pipeline">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Airflow — Schedule the Pipeline
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1915,10 +2329,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

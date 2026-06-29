@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../table-formats/">
+      
+      
+        <link rel="next" href="../choosing/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>Streaming Medallion Explained - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#streaming-medallion-explained" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Streaming Medallion Explained
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href=".." class="md-tabs__link">
           
   
   
@@ -220,11 +229,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../lineage/" class="md-tabs__link">
           
   
   
@@ -246,7 +257,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+        <a href="../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +279,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../ingestion/" class="md-tabs__link">
           
   
   
@@ -290,7 +301,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/orchestrate/" class="md-tabs__link">
+        <a href="../orchestrate/" class="md-tabs__link">
           
   
   
@@ -312,7 +323,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../openmetadata/" class="md-tabs__link">
           
   
   
@@ -334,7 +345,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/enterprise/overview/" class="md-tabs__link">
+        <a href="../enterprise/overview/" class="md-tabs__link">
           
   
   
@@ -356,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../configuration/" class="md-tabs__link">
           
   
   
@@ -398,7 +409,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href=".." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href=".." class="md-nav__link ">
               
   
   
@@ -487,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../setup/" class="md-nav__link">
         
   
   
@@ -515,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/fast-track/" class="md-nav__link">
+      <a href="../fast-track/" class="md-nav__link">
         
   
   
@@ -547,8 +558,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -566,19 +579,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -596,7 +612,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -614,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../lineage/" class="md-nav__link">
         
   
   
@@ -642,7 +658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/table-formats/" class="md-nav__link">
+      <a href="../table-formats/" class="md-nav__link">
         
   
   
@@ -667,10 +683,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/streaming-medallion/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming Medallion Explained
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -686,6 +729,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-flow-one-message-at-a-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The flow, one message at a time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-clean-and-enrich-step-real-flink-sql-from-this-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "clean and enrich" step — real Flink SQL from this demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-iceberg-sink-where-streaming-meets-the-lakehouse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Iceberg sink — where streaming meets the lakehouse
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-gold-comes-from-and-who-builds-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Gold comes from (and who builds it)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-vs-streaming-the-same-medallion-two-clocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch vs streaming — the same medallion, two clocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -698,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../choosing/" class="md-nav__link">
         
   
   
@@ -726,7 +855,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../glossary/" class="md-nav__link">
         
   
   
@@ -825,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../dbt-demo/" class="md-nav__link">
         
   
   
@@ -853,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../spark-demo/" class="md-nav__link">
         
   
   
@@ -881,7 +1010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../confluent-demo/" class="md-nav__link">
         
   
   
@@ -909,7 +1038,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../confluent-internals/" class="md-nav__link">
         
   
   
@@ -937,7 +1066,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+      <a href="../datastage-demo/" class="md-nav__link">
         
   
   
@@ -1030,7 +1159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../ingestion/" class="md-nav__link">
         
   
   
@@ -1058,7 +1187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../sql-demo/" class="md-nav__link">
         
   
   
@@ -1151,7 +1280,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/orchestrate/" class="md-nav__link">
+      <a href="../orchestrate/" class="md-nav__link">
         
   
   
@@ -1179,7 +1308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../airflow/" class="md-nav__link">
         
   
   
@@ -1278,7 +1407,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../openmetadata/" class="md-nav__link">
         
   
   
@@ -1306,7 +1435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1334,7 +1463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../openlineage/" class="md-nav__link">
         
   
   
@@ -1362,7 +1491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../metabase/" class="md-nav__link">
         
   
   
@@ -1390,7 +1519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../semantic-models/" class="md-nav__link">
         
   
   
@@ -1491,7 +1620,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/overview/" class="md-nav__link">
+      <a href="../enterprise/overview/" class="md-nav__link">
         
   
   
@@ -1519,7 +1648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/intelligence/" class="md-nav__link">
+      <a href="../enterprise/intelligence/" class="md-nav__link">
         
   
   
@@ -1547,7 +1676,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/integration/" class="md-nav__link">
+      <a href="../enterprise/integration/" class="md-nav__link">
         
   
   
@@ -1575,7 +1704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/lineage-e2e/" class="md-nav__link">
+      <a href="../enterprise/lineage-e2e/" class="md-nav__link">
         
   
   
@@ -1603,7 +1732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/performance-editions/" class="md-nav__link">
+      <a href="../enterprise/performance-editions/" class="md-nav__link">
         
   
   
@@ -1631,7 +1760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/summary/" class="md-nav__link">
+      <a href="../enterprise/summary/" class="md-nav__link">
         
   
   
@@ -1728,7 +1857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -1756,7 +1885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../files/" class="md-nav__link">
         
   
   
@@ -1784,7 +1913,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../scripts/" class="md-nav__link">
         
   
   
@@ -1812,7 +1941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1857,6 +1986,82 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-flow-one-message-at-a-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The flow, one message at a time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-clean-and-enrich-step-real-flink-sql-from-this-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "clean and enrich" step — real Flink SQL from this demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-iceberg-sink-where-streaming-meets-the-lakehouse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Iceberg sink — where streaming meets the lakehouse
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-gold-comes-from-and-who-builds-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Gold comes from (and who builds it)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-vs-streaming-the-same-medallion-two-clocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch vs streaming — the same medallion, two clocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1869,8 +2074,226 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="streaming-medallion-explained">Streaming Medallion Explained</h1>
+<div class="admonition abstract">
+<p class="admonition-title">The one idea to take away</p>
+<p>A streaming medallion is the <strong>same Bronze → Silver → Gold idea, but the data never stops
+moving.</strong> Instead of running a batch job on a schedule, a <strong>producer</strong> pushes each row onto a
+Kafka <strong>topic</strong> the moment it happens; <strong>Flink</strong> reads that topic, cleans and enriches each
+message with SQL, and writes the result to a <em>new</em> topic; a <strong>sink</strong> then lands those rows as
+an <strong>Iceberg table</strong> in the lakehouse — where Presto, Spark, or any engine can query it. No
+nightly wait, no copies.</p>
+</div>
+<p>This page is the <em>simple</em> mental model. For the deep, component-by-component version see
+<a href="../confluent-internals/">Confluent — How It Works</a>, and to actually run it see
+<a href="../confluent-demo/">Confluent — Streaming</a>.</p>
+<hr />
+<h2 id="the-flow-one-message-at-a-time">The flow, one message at a time</h2>
+<pre class="mermaid"><code>flowchart LR
+  prod["Producer\n(app / connector / CSV loader)"]
+  raw["Raw / Bronze topic\nraw_orders (Kafka)"]
+  flink["Flink SQL\nclean · cast · filter · enrich"]
+  silver["Silver topic\nsilver_orders (Kafka)"]
+  sink["Iceberg sink\n(Tableflow-style)"]
+  lake["Lakehouse table\nconfluent_demo_silver.confluent_silver_orders\n(Parquet in MinIO/S3)"]
+  cat["watsonx.data catalog"]
+  engines["Presto · Spark · any engine"]
+
+  prod --&gt;|"1 · publish event"| raw
+  raw --&gt;|"2 · read stream"| flink
+  flink --&gt;|"3 · write cleaned event"| silver
+  silver --&gt;|"4 · sink to Iceberg"| sink
+  sink --&gt;|"5 · Parquet data files"| lake
+  sink --&gt;|"6 · register table"| cat
+  cat --&gt;|"7 · query, no copy"| engines</code></pre>
+<p>Read it left to right:</p>
+<ol>
+<li><strong>Producer → raw topic.</strong> Something that creates data — an application, a Kafka Connect source,
+   or in this demo a <a href="../confluent-demo/">CSV-to-Kafka loader</a> — publishes each record onto a
+   <strong>raw</strong> (Bronze) topic. The topic is an append-only, replayable log: the events sit there in
+   order and can be re-read at any time.</li>
+<li><strong>Flink reads the raw topic</strong> and applies streaming <strong>SQL</strong> to clean and shape each message
+   (see the example below).</li>
+<li><strong>Flink → silver topic.</strong> The cleaned result is written to a <strong>new</strong> topic — this is your
+   <strong>Silver</strong> stream. At this point Silver is still <em>in Kafka</em>, flowing.</li>
+<li><strong>Sink to Iceberg.</strong> A sink job (the same idea as <strong>Confluent Tableflow</strong>) continuously takes
+   the silver topic and writes it as an <strong>Iceberg table</strong>.</li>
+<li><strong>Data files land in object storage</strong> (Parquet in the MinIO/S3 bucket).</li>
+<li><strong>The table is registered in the catalog</strong> — this is the step that turns "a folder of Parquet"
+   into "a table any engine can find." (See <a href="../table-formats/">Table Formats</a> for why that
+   registration matters.)</li>
+<li><strong>Anyone queries it.</strong> Presto, Spark, or a BI tool reads the Iceberg table directly from the
+   lakehouse — <strong>no compute had to run at the lakehouse to <em>store</em> the data</strong>; the streaming layer
+   already did that. The lakehouse just holds it and serves reads.</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Why 'Bronze is a topic' is powerful</p>
+<p>In the batch world, Bronze is a static table you overwrite. Here Bronze is a <strong>replayable Kafka
+topic</strong>: if you find a bug in your Silver logic, you fix the Flink SQL and <em>replay the raw
+topic from the beginning</em> — no need to re-ingest from the source system.</p>
+</div>
+<hr />
+<h2 id="the-clean-and-enrich-step-real-flink-sql-from-this-demo">The "clean and enrich" step — real Flink SQL from this demo</h2>
+<p>Stage 1 of the pipeline turns a messy <code>raw_orders</code> topic into a tidy <code>silver_orders</code> topic. This is
+the actual SQL from <a href="../confluent-internals/"><code>confluent/flink/sql/silver_jobs.sql</code></a> (it mirrors the
+dbt model <code>models/silver/silver_orders.sql</code> exactly, so all paths agree):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- raw_orders (Kafka)  →  silver_orders (Kafka)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">kafka_silver_orders</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">SELECT</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">order_id</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">customer_id</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="k">CAST</span><span class="p">(</span><span class="k">CAST</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">STRING</span><span class="p">),</span><span class="w">                 </span><span class="c1">-- typed timestamp</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="k">CAST</span><span class="p">(</span><span class="k">CAST</span><span class="p">(</span><span class="k">CAST</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">DATE</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">STRING</span><span class="p">),</span><span class="w">   </span><span class="c1">-- derived order_date</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="k">LOWER</span><span class="p">(</span><span class="k">TRIM</span><span class="p">(</span><span class="n">status</span><span class="p">)),</span><span class="w">                                            </span><span class="c1">-- normalise &quot;Completed &quot; → &quot;completed&quot;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="k">LOWER</span><span class="p">(</span><span class="k">TRIM</span><span class="p">(</span><span class="n">payment_method</span><span class="p">)),</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="k">CAST</span><span class="p">(</span><span class="k">CURRENT_TIMESTAMP</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">STRING</span><span class="p">)</span><span class="w">                               </span><span class="c1">-- transformed_at stamp</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">FROM</span><span class="w"> </span><span class="n">src_orders</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">order_id</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span><span class="w">                                       </span><span class="c1">-- drop junk rows</span>
+</code></pre></div>
+<p>That single streaming <code>INSERT … SELECT</code> runs <strong>forever</strong>: every new order that lands on
+<code>raw_orders</code> is cleaned and pushed to <code>silver_orders</code> within seconds. The same file then has a
+<strong>join</strong> job that combines the silver streams (orders + items + customers + products) into a
+<code>confluent_silver_sales_enriched</code> stream — the streaming equivalent of a dbt silver join model.</p>
+<div class="admonition info">
+<p class="admonition-title">Schema Registry = the streaming version of dbt tests</p>
+<p>The raw and silver topics use <strong>Avro governed by the Confluent Schema Registry</strong>. The registry
+is the <em>contract</em>: a producer that tries to send a message that does not match the agreed schema
+is rejected at the door. That is the streaming analogue of a <code>not_null</code> / type test in dbt —
+bad data is stopped before it ever reaches Silver.</p>
+</div>
+<hr />
+<h2 id="the-iceberg-sink-where-streaming-meets-the-lakehouse">The Iceberg sink — where streaming meets the lakehouse</h2>
+<p>The silver topic is still just Kafka. The <strong>sink</strong> is what makes it a queryable table:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">-- silver_orders (Kafka)  →  Iceberg table in watsonx.data</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">local_iceberg</span><span class="p">.</span><span class="n">confluent_demo_silver</span><span class="p">.</span><span class="n">confluent_silver_orders</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">kafka_silver_orders</span><span class="p">;</span>
+</code></pre></div>
+<p>Behind that one statement, the sink:</p>
+<ul>
+<li>writes <strong>Parquet data files</strong> into the <code>iceberg-bucket</code> object store,</li>
+<li>keeps the table <strong>idempotent</strong> with <code>PRIMARY KEY</code> + <code>write.upsert.enabled</code> (a re-run upserts by
+  key instead of appending duplicates), and</li>
+<li>updates the <strong>Iceberg metadata / catalog</strong> so the table is discoverable.</li>
+</ul>
+<pre class="mermaid"><code>flowchart TB
+  topic["silver_orders topic\n(Kafka)"] --&gt; sink["Flink Iceberg sink\nUPSERT by key"]
+  sink --&gt; files["Parquet files\ns3a://iceberg-bucket/…"]
+  sink --&gt; meta["Iceberg metadata\n(snapshots · manifests)"]
+  meta --&gt; catalog["watsonx.data catalog\niceberg_data.confluent_demo_silver"]
+  catalog --&gt; presto["Presto query"]
+  catalog --&gt; spark["Spark / dbt gold build"]</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Decoupled storage and compute — the lakehouse payoff</p>
+<p>Notice that <strong>the streaming engine wrote the data</strong>, not the lakehouse. watsonx.data does not
+need to run a job to <em>store</em> these rows — Flink already produced the Parquet and registered the
+table. The lakehouse's compute (Presto/Spark) is only spent when someone <strong>queries</strong> or
+<strong>builds Gold</strong> on top. Storage and compute are independent: that is the core lakehouse idea,
+and streaming makes it especially visible.</p>
+</div>
+<hr />
+<h2 id="where-gold-comes-from-and-who-builds-it">Where Gold comes from (and who builds it)</h2>
+<p>In this demo, <strong>Flink writes Silver</strong>, and a <strong>second engine builds Gold</strong> on top of the silver
+Iceberg tables — chosen by one environment variable:</p>
+<table>
+<thead>
+<tr>
+<th><code>CONFLUENT_GOLD_ENGINE</code></th>
+<th>Builds Gold with…</th>
+<th>Story</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spark</code> (default)</td>
+<td>a watsonx.data <strong>Spark</strong> job</td>
+<td>code-first, reuses the Spark engine</td>
+</tr>
+<tr>
+<td><code>datastage</code></td>
+<td>an IBM <strong>DataStage</strong> flow</td>
+<td>enterprise no-code visual ETL — see <a href="../datastage-demo/">DataStage</a></td>
+</tr>
+</tbody>
+</table>
+<p>Either way the result is the <strong>same</strong> <code>confluent_demo_gold</code> marts, with the <strong>same numbers</strong> as the
+dbt and Spark paths — proven by <code>scripts/reconcile_gold.py</code>. Gold can be built by a streaming job
+too, but a periodic Spark/DataStage roll-up is the common, cost-efficient pattern: not every
+aggregate needs to update every second.</p>
+<hr />
+<h2 id="batch-vs-streaming-the-same-medallion-two-clocks">Batch vs streaming — the same medallion, two clocks</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Batch medallion (dbt / Spark)</th>
+<th>Streaming medallion (Kafka + Flink)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>When it runs</td>
+<td>On a schedule (hourly/nightly)</td>
+<td>Continuously, per event</td>
+</tr>
+<tr>
+<td>Bronze is…</td>
+<td>A table you overwrite</td>
+<td>A <strong>replayable topic</strong></td>
+</tr>
+<tr>
+<td>Latency</td>
+<td>Minutes to hours</td>
+<td><strong>Seconds</strong></td>
+</tr>
+<tr>
+<td>Reprocess a bug</td>
+<td>Re-run the batch</td>
+<td><strong>Replay</strong> the raw topic</td>
+</tr>
+<tr>
+<td>Cost shape</td>
+<td>Spiky (job runs, then idle)</td>
+<td>Always-on (the stream never sleeps)</td>
+</tr>
+<tr>
+<td>Best when</td>
+<td>Most data; not latency-sensitive</td>
+<td>Data must be fresh <em>now</em></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Streaming is not free</p>
+<p>An always-on streaming pipeline consumes resources around the clock, where a nightly batch job
+is idle most of the day. <strong>Use streaming where freshness genuinely matters</strong>, and batch for the
+rest — see the cost/latency discussion in <a href="../choosing/">When to Use Which</a> and, for the
+enterprise tools, <a href="../enterprise/integration/">watsonx.data Integration</a>.</p>
+</div>
+<hr />
+<h2 id="next-step">Next step</h2>
+<ul>
+<li>Run it end to end: <a href="../confluent-demo/">Confluent — Streaming (Kafka → Flink → Iceberg)</a>.</li>
+<li>Go deep on the components: <a href="../confluent-internals/">Confluent — How It Works</a>.</li>
+<li>See why Iceberg makes the sink possible: <a href="../table-formats/">Table Formats</a>.</li>
+<li>Choose the Gold engine: <a href="../datastage-demo/">DataStage no-code gold</a>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1888,6 +2311,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../table-formats/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Table Formats — Iceberg vs Parquet vs Delta">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Table Formats — Iceberg vs Parquet vs Delta
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../choosing/" class="md-footer__link md-footer__link--next" aria-label="Next: When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1915,10 +2376,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

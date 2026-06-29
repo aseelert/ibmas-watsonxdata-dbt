@@ -11,24 +11,28 @@
       
       
       
+        <link rel="prev" href="../intelligence/">
+      
+      
+        <link rel="next" href="../lineage-e2e/">
       
       
         
       
       
-      <link rel="icon" href="/assets/images/logo.svg">
+      <link rel="icon" href="../../assets/images/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>watsonx.data Integration (DataStage · StreamSets · UDI · Databand) - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/extra.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#watsonxdata-integration" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +94,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href="../.." title="watsonx.data · dbt · Spark Medallion Demo" class="md-header__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -105,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              watsonx.data Integration (DataStage · StreamSets · UDI · Databand)
             
           </span>
         </div>
@@ -202,7 +211,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
@@ -224,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/lineage/" class="md-tabs__link">
+        <a href="../../lineage/" class="md-tabs__link">
           
   
   
@@ -246,7 +255,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/dbt-demo/" class="md-tabs__link">
+        <a href="../../dbt-demo/" class="md-tabs__link">
           
   
   
@@ -268,7 +277,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/ingestion/" class="md-tabs__link">
+        <a href="../../ingestion/" class="md-tabs__link">
           
   
   
@@ -290,7 +299,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/orchestrate/" class="md-tabs__link">
+        <a href="../../orchestrate/" class="md-tabs__link">
           
   
   
@@ -312,7 +321,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/openmetadata/" class="md-tabs__link">
+        <a href="../../openmetadata/" class="md-tabs__link">
           
   
   
@@ -330,11 +339,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/enterprise/overview/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
           
   
   
@@ -356,7 +367,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/configuration/" class="md-tabs__link">
+        <a href="../../configuration/" class="md-tabs__link">
           
   
   
@@ -398,7 +409,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
+    <a href="../.." title="watsonx.data · dbt · Spark Medallion Demo" class="md-nav__button md-logo" aria-label="watsonx.data · dbt · Spark Medallion Demo" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="/." class="md-nav__link ">
+            <a href="../.." class="md-nav__link ">
               
   
   
@@ -487,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/setup/" class="md-nav__link">
+      <a href="../../setup/" class="md-nav__link">
         
   
   
@@ -515,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/fast-track/" class="md-nav__link">
+      <a href="../../fast-track/" class="md-nav__link">
         
   
   
@@ -614,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/lineage/" class="md-nav__link">
+      <a href="../../lineage/" class="md-nav__link">
         
   
   
@@ -642,7 +653,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/table-formats/" class="md-nav__link">
+      <a href="../../table-formats/" class="md-nav__link">
         
   
   
@@ -670,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/streaming-medallion/" class="md-nav__link">
+      <a href="../../streaming-medallion/" class="md-nav__link">
         
   
   
@@ -698,7 +709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/choosing/" class="md-nav__link">
+      <a href="../../choosing/" class="md-nav__link">
         
   
   
@@ -726,7 +737,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/glossary/" class="md-nav__link">
+      <a href="../../glossary/" class="md-nav__link">
         
   
   
@@ -825,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/dbt-demo/" class="md-nav__link">
+      <a href="../../dbt-demo/" class="md-nav__link">
         
   
   
@@ -853,7 +864,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/spark-demo/" class="md-nav__link">
+      <a href="../../spark-demo/" class="md-nav__link">
         
   
   
@@ -881,7 +892,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-demo/" class="md-nav__link">
+      <a href="../../confluent-demo/" class="md-nav__link">
         
   
   
@@ -909,7 +920,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/confluent-internals/" class="md-nav__link">
+      <a href="../../confluent-internals/" class="md-nav__link">
         
   
   
@@ -937,7 +948,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/datastage-demo/" class="md-nav__link">
+      <a href="../../datastage-demo/" class="md-nav__link">
         
   
   
@@ -1030,7 +1041,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/ingestion/" class="md-nav__link">
+      <a href="../../ingestion/" class="md-nav__link">
         
   
   
@@ -1058,7 +1069,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/sql-demo/" class="md-nav__link">
+      <a href="../../sql-demo/" class="md-nav__link">
         
   
   
@@ -1151,7 +1162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/orchestrate/" class="md-nav__link">
+      <a href="../../orchestrate/" class="md-nav__link">
         
   
   
@@ -1179,7 +1190,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/airflow/" class="md-nav__link">
+      <a href="../../airflow/" class="md-nav__link">
         
   
   
@@ -1278,7 +1289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata/" class="md-nav__link">
+      <a href="../../openmetadata/" class="md-nav__link">
         
   
   
@@ -1306,7 +1317,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openmetadata-governance/" class="md-nav__link">
+      <a href="../../openmetadata-governance/" class="md-nav__link">
         
   
   
@@ -1334,7 +1345,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/openlineage/" class="md-nav__link">
+      <a href="../../openlineage/" class="md-nav__link">
         
   
   
@@ -1362,7 +1373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metabase/" class="md-nav__link">
+      <a href="../../metabase/" class="md-nav__link">
         
   
   
@@ -1390,7 +1401,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/semantic-models/" class="md-nav__link">
+      <a href="../../semantic-models/" class="md-nav__link">
         
   
   
@@ -1422,8 +1433,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1443,19 +1456,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
@@ -1473,7 +1489,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1491,7 +1507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   
@@ -1519,7 +1535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/intelligence/" class="md-nav__link">
+      <a href="../intelligence/" class="md-nav__link">
         
   
   
@@ -1544,10 +1560,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/enterprise/integration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    watsonx.data Integration (DataStage · StreamSets · UDI · Databand)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1563,6 +1606,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#datastage-the-no-code-medallion-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataStage — the no-code medallion builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-the-ingestion-engine-realtime-vs-batch-cost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the ingestion engine — realtime vs batch (cost)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#streamsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StreamSets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unstructured-data-udi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unstructured data (UDI)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-observability-databand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Observability (Databand)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watsonxdata-integration-vs-the-open-source-etl-in-this-workshop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watsonx.data Integration vs the open-source ETL in this workshop
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1575,7 +1704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/lineage-e2e/" class="md-nav__link">
+      <a href="../lineage-e2e/" class="md-nav__link">
         
   
   
@@ -1603,7 +1732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/performance-editions/" class="md-nav__link">
+      <a href="../performance-editions/" class="md-nav__link">
         
   
   
@@ -1631,7 +1760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/enterprise/summary/" class="md-nav__link">
+      <a href="../summary/" class="md-nav__link">
         
   
   
@@ -1728,7 +1857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/configuration/" class="md-nav__link">
+      <a href="../../configuration/" class="md-nav__link">
         
   
   
@@ -1756,7 +1885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/files/" class="md-nav__link">
+      <a href="../../files/" class="md-nav__link">
         
   
   
@@ -1784,7 +1913,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/scripts/" class="md-nav__link">
+      <a href="../../scripts/" class="md-nav__link">
         
   
   
@@ -1812,7 +1941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/troubleshooting/" class="md-nav__link">
+      <a href="../../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1857,6 +1986,82 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#datastage-the-no-code-medallion-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataStage — the no-code medallion builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-the-ingestion-engine-realtime-vs-batch-cost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the ingestion engine — realtime vs batch (cost)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#streamsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StreamSets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unstructured-data-udi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unstructured data (UDI)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-observability-databand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Observability (Databand)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watsonxdata-integration-vs-the-open-source-etl-in-this-workshop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watsonx.data Integration vs the open-source ETL in this workshop
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1869,8 +2074,185 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+
+<h1 id="watsonxdata-integration">watsonx.data Integration</h1>
+<div class="admonition abstract">
+<p class="admonition-title">What this page covers</p>
+<p><strong><a href="https://www.ibm.com/products/watsonx-data-integration">IBM watsonx.data Integration</a></strong> is the data-movement product in the watsonx.data family — a <em>separate</em> offering from the lakehouse engine and from <a href="../intelligence/">watsonx.data Intelligence</a> (governance). It puts one control plane over <strong>IBM DataStage</strong> (batch ETL/ELT), <strong>StreamSets</strong> (real-time streaming), <strong>IBM Data Replication</strong> (CDC), <strong>unstructured data processing (UDI)</strong>, and <strong>IBM Data Observability powered by Databand</strong>, with built-in pipeline observability and consumption-based (RU) metering. (<a href="https://www.ibm.com/docs/en/software-hub/5.3.x?topic=services-watsonxdata-integration">service overview</a>, <a href="https://www.ibm.com/new/announcements/new-innovations-from-ibm-data-integration-real-time-quality-data-and-analytics-with-next-gen-deployment-flexibility">announcement</a>)</p>
+<p>For decision-makers, the headline is simple: this is the <strong>enterprise, supported, no-code</strong> answer to everything the open-source paths in this workshop do by hand — dbt, Spark, Flink, Airflow, Kafka. It is not the <em>only</em> way to build a medallion; it is the governed, GUI-first way. See the <a href="../overview/">Enterprise overview</a> for how the tabs fit together.</p>
+</div>
+<hr />
+<h2 id="datastage-the-no-code-medallion-builder">DataStage — the no-code medallion builder</h2>
+<p>This is the centerpiece for most enterprise teams. In this workshop the four CSVs are shaped into Bronze → Silver → Gold by <strong>dbt SQL</strong> (<a href="../../ingestion/">models</a>), <strong>PySpark</strong>, or <strong>Flink</strong>. DataStage does the same job with a <strong>visual canvas</strong>: an ETL developer drags source connectors, joins, aggregations, and target stages onto a flow, and DataStage compiles and runs it on its own parallel engine. The recommended enterprise pattern is to let your <em>landing/ingestion</em> tool drop raw data into the Iceberg lakehouse, then have <strong>DataStage build Silver → Gold on top of it</strong> — no-code, governed, and supportable by a team that does not write SQL or Scala.</p>
+<p>We ship a runnable proof of this. The <strong><a href="../../datastage-demo/">DataStage gold demo</a></strong> (driven by <code>confluent/scripts/create_datastage_flow.py</code>) builds the Gold layer for the Confluent/Kafka path and reconciles it against the dbt and Spark Gold outputs — <strong>same grain, same numbers</strong>. That is the load-bearing claim for a customer: <em>DataStage Gold == dbt Gold == Spark Gold</em>, so you can adopt DataStage as the authoring tool without changing the semantics your business already trusts.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Land["Land raw (any path)"]
+        K[Kafka / Confluent]
+        I[cpdctl / batch ingest]
+    end
+    K --&gt; B[(Bronze\nIceberg)]
+    I --&gt; B
+    B --&gt; DS{{DataStage\nvisual flow}}
+    DS --&gt; S[(Silver)]
+    S --&gt; DS2{{DataStage\nvisual flow}}
+    DS2 --&gt; G[(Gold)]
+    G --&gt; P[Presto / BI / AI]</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Recommended position</p>
+<p>DataStage is the <strong>recommended enterprise medallion builder</strong>; dbt, Spark, and Flink (the rest of this workshop) are the open-source alternatives. Pick DataStage when you need a no-code authoring surface, vendor support, and a skill set that is broadly available in ETL teams. Pick code-first when your team lives in git and prefers SQL/Python.</p>
+</div>
+<p><strong>Honest cons.</strong> DataStage is <strong>another runtime to license, install, and operate</strong> on IBM Software Hub — more moving parts and cost than <code>dbt run</code>. And GUI flows are genuinely <strong>harder to code-review and diff</strong> than dbt SQL in git: a pull-request reviewer can read a <code>.sql</code> change in seconds, but comparing two versions of a visual flow is awkward, and merge conflicts in flow definitions are unpleasant. Teams with strong CI/CD and SQL fluency often find dbt cheaper to govern; teams with a dedicated ETL practice find DataStage faster to author and easier to staff. See <a href="../../choosing/">Choosing a path</a>.</p>
+<hr />
+<h2 id="choosing-the-ingestion-engine-realtime-vs-batch-cost">Choosing the ingestion engine — realtime vs batch (cost)</h2>
+<p>Before DataStage builds Silver → Gold, <em>something</em> has to land the raw data. The most common architecture mistake is making <strong>everything realtime</strong>. Streaming is the right tool for data that is genuinely event-driven, but it carries always-on infrastructure and operational cost. A large amount of enterprise data — finance closes, daily product catalogs, weekly reference data — does <strong>not</strong> need sub-second latency, and a scheduled <strong>batch</strong> extract is far cheaper to run and reason about.</p>
+<pre class="mermaid"><code>flowchart TD
+    Q{Does this data\nneed to be realtime?} --&gt;|Yes, event-driven| RT[Kafka / Confluent\nor StreamSets]
+    Q --&gt;|No, daily/weekly is fine| B[DataStage\nscheduled batch]
+    Q --&gt;|Keep a replica in sync| CDC[Data Replication\nCDC]
+    RT --&gt; L[(Lakehouse / Bronze)]
+    B --&gt; L
+    CDC --&gt; L</code></pre>
+<table>
+<thead>
+<tr>
+<th>Engine</th>
+<th>Pattern</th>
+<th>Latency</th>
+<th>Pick this when</th>
+<th>Cost note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka / Confluent</strong> (<a href="../../confluent-demo/">demo</a>)</td>
+<td>Realtime streaming, many sources unified</td>
+<td>Seconds</td>
+<td>Genuine event streams; many producers; replay/buffering needed</td>
+<td>Highest — always-on brokers; expensive if <em>everything</em> is forced realtime</td>
+</tr>
+<tr>
+<td><strong>DataStage</strong> (<a href="../../datastage-demo/">demo</a>)</td>
+<td>Scheduled batch ETL/ELT</td>
+<td>Minutes–hours (daily/weekly)</td>
+<td>Data that does <strong>not</strong> need realtime; complex transforms; no-code team</td>
+<td><strong>Most cost-efficient</strong> for non-realtime; runs on a schedule, not 24/7</td>
+</tr>
+<tr>
+<td><strong>StreamSets</strong></td>
+<td>Smart streaming + drift handling</td>
+<td>Seconds–minutes</td>
+<td>Streaming with messy/evolving sources; client-managed control plane</td>
+<td>Mid — streaming runtime, but more resilient to schema change</td>
+</tr>
+<tr>
+<td><strong>Data Replication (CDC)</strong></td>
+<td>Change Data Capture</td>
+<td>Near-realtime deltas</td>
+<td>Keep a lakehouse replica in sync with an OLTP source, low source impact</td>
+<td>Mid — efficient (only changes move) but a continuous process</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">A real platform uses both</p>
+<p>Use <strong>Kafka/Confluent for the realtime streams</strong> that justify it, and <strong>DataStage for scheduled batch/CDC</strong> for everything that doesn't. The cost win comes from <em>not</em> paying streaming prices for data a nightly job would serve perfectly well.</p>
+</div>
+<hr />
+<h2 id="streamsets">StreamSets</h2>
+<p><strong>StreamSets</strong> is the streaming/real-time member of the bundle: smart data pipelines that handle <strong>schema drift</strong> automatically (so an added or renamed source column doesn't break the flow), with monitoring built in. It supports a <strong>client-managed control-plane option</strong> for customers who need the orchestration plane inside their own boundary. (<a href="https://www.ibm.com/new/announcements/new-innovations-from-ibm-data-integration-real-time-quality-data-and-analytics-with-next-gen-deployment-flexibility">announcement</a>) Think of it as the resilient choice when streaming sources are messy or evolving, where a rigid pipeline would constantly break.</p>
+<hr />
+<h2 id="unstructured-data-udi">Unstructured data (UDI)</h2>
+<p><strong>Unstructured Data Insights (UDI)</strong> ingests and transforms documents — PDFs, PowerPoint, scanned files — into <strong>AI-ready data</strong>. It is built on IBM Research's <strong>Data Prep Kit (DPK)</strong>, <strong>Watson Document Understanding</strong>, and <strong>Docling</strong>, and runs the pipeline that AI actually needs: <strong>PII/HAP removal, de-duplication, chunking, and embedding</strong> to populate a <strong>vector database</strong> such as Milvus for RAG and other AI workloads. (<a href="https://www.ibm.com/new/announcements/ibm-announces-unstructured-data-capabilities-for-integration-and-governance">announcement</a>) This matters because most enterprise knowledge lives in documents, not tables — UDI is how that content becomes searchable, governed embeddings instead of an untracked file share.</p>
+<div class="admonition warning">
+<p class="admonition-title">Verify with IBM</p>
+<p>IBM markets this capability as <strong>"unstructured data processing / integration"</strong>; "UDI / Unstructured Data Insights" is the working name used here. Confirm the exact product name and the precise feature deltas for your release against the official <a href="https://www.ibm.com/docs/en/software-hub/5.3.x?topic=services-watsonxdata-integration">watsonx.data Integration service docs</a> before quoting them to a customer.</p>
+</div>
+<hr />
+<h2 id="data-observability-databand">Data Observability (Databand)</h2>
+<p><strong>IBM Data Observability powered by Databand</strong> is the single dashboard that watches your pipelines run. It does <strong>ML-powered anomaly detection</strong> (learned baselines for row counts, durations, schema, freshness), <strong>data-quality and SLA monitoring</strong>, and <strong>centralized, prioritized alerting</strong> across tools — DataStage and StreamSets, <em>and</em> <strong>Apache Airflow</strong> via a dedicated integration. (<a href="https://www.ibm.com/products/watsonx-data-integration/data-observability">data observability</a>, <a href="https://www.ibm.com/products/databand/integrations/apache-airflow">Airflow integration</a>, <a href="https://www.ibm.com/docs/en/watsonx/wdi/saas?topic=integration-observing-your-data">docs</a>)</p>
+<p>This directly answers a question this workshop's <a href="../../airflow/">Airflow</a> path raises: <em>"Can we observe our Airflow DAGs?"</em> — <strong>yes.</strong> The contrast is worth being honest about: open-source Airflow already gives you <strong>scheduling and basic alerting</strong> (a task failed, an email fired). Databand adds <strong>learned-baseline anomaly detection</strong> (this run is <em>unusually</em> slow / this table is <em>unusually</em> empty — even when nothing technically "failed") and <strong>cross-tool observability</strong> so DataStage, StreamSets, and Airflow report into one place. If your only orchestrator is Airflow and a failed-task email is enough, you may not need it; if you run several engines and want proactive, learned alerting, that is exactly the gap Databand fills.</p>
+<hr />
+<h2 id="watsonxdata-integration-vs-the-open-source-etl-in-this-workshop">watsonx.data Integration vs the open-source ETL in this workshop</h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Open source in this workshop</th>
+<th>watsonx.data Integration</th>
+<th>Honest verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Batch ETL/ELT authoring</td>
+<td>dbt SQL, PySpark</td>
+<td><strong>DataStage</strong> (no-code visual)</td>
+<td>OSS is git-native and cheap; DataStage is no-code, supported, easier to staff</td>
+</tr>
+<tr>
+<td>Realtime streaming</td>
+<td>Kafka/Confluent → Flink (<a href="../../confluent-demo/">demo</a>)</td>
+<td><strong>StreamSets</strong> + Kafka connectors</td>
+<td>Both work; StreamSets adds drift handling + a managed control plane</td>
+</tr>
+<tr>
+<td>Change Data Capture</td>
+<td>Not built here</td>
+<td><strong>IBM Data Replication</strong></td>
+<td>Net-new capability; OSS path has no first-class CDC</td>
+</tr>
+<tr>
+<td>Unstructured → vector</td>
+<td>Not built here</td>
+<td><strong>UDI</strong> (DPK, Docling, embeddings)</td>
+<td>Net-new; the AI-ready-document story OSS doesn't cover here</td>
+</tr>
+<tr>
+<td>Orchestration</td>
+<td><strong>Apache Airflow</strong> (<a href="../../airflow/">path</a>)</td>
+<td>Pipeline scheduling + Databand</td>
+<td>Airflow stays valid; Databand <em>observes</em> it rather than replacing it</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>Airflow alerts, dbt test results</td>
+<td><strong>Databand</strong> anomaly + SLA + DQ</td>
+<td>OSS = basic failure alerts; Databand = learned baselines, cross-tool</td>
+</tr>
+<tr>
+<td>Lineage</td>
+<td>dbt artifacts → OpenMetadata (<a href="../lineage-e2e/">E2E</a>)</td>
+<td>Integrated lineage + <a href="../intelligence/">Intelligence</a></td>
+<td>Both deliver lineage; the IBM stack ties it into one governance plane</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">On-prem and RU-metered</p>
+<p>watsonx.data Integration installs on <strong>IBM Software Hub 5.3.x (self-managed)</strong> and is billed <strong>consumption-based via RUs</strong>. (<a href="https://www.ibm.com/docs/en/software-hub/5.3.x?topic=integration-installing">install docs</a>) Budget for the on-prem footprint and the metering model — see <a href="../performance-editions/">Performance &amp; editions</a> for how RU consumption compares across the family.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Be fair to the open-source path</p>
+<p>The open-source stack in this workshop — <strong>dbt + Spark + Flink + Airflow</strong> — <em>already builds a working, tested medallion end to end.</em> watsonx.data Integration is not about being the only way to move data; it is about <strong>no-code authoring, enterprise support, CDC/unstructured coverage, and cross-tool observability</strong>. Choose it for those reasons, not because the OSS path can't do the job. See <a href="../../choosing/">Choosing a path</a>.</p>
+</div>
+<hr />
+<p><strong>Next:</strong> <a href="../intelligence/">Intelligence (governance)</a> · <a href="../lineage-e2e/">End-to-end lineage</a> · <a href="../performance-editions/">Performance &amp; editions</a> · <a href="../summary/">Enterprise summary</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1888,6 +2270,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../intelligence/" class="md-footer__link md-footer__link--prev" aria-label="Previous: watsonx.data Intelligence (IKC · Manta · DPH)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                watsonx.data Intelligence (IKC · Manta · DPH)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../lineage-e2e/" class="md-footer__link md-footer__link--next" aria-label="Next: End-to-End Lineage (source → DataStage → Cognos)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                End-to-End Lineage (source → DataStage → Cognos)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1915,10 +2335,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "navigation.tabs", "navigation.tabs.sticky", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.code.select", "content.tooltips", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
