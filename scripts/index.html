@@ -821,6 +821,8 @@
       
         
       
+        
+      
     
     
     
@@ -993,6 +995,34 @@
     
   
     D · DataStage — No-Code Gold (Confluent path)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datastage-medallion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E · DataStage — Full Medallion (bronze→silver→gold)
   
 
     
@@ -1487,6 +1517,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1659,6 +1693,62 @@
     
   
     Performance &amp; Editions (Prestissimo · Gluten · GPU · RU)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ikc-reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IKC Reporting — Optional CPD Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance-ikc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IKC Governance — Glossary, Data Classes &amp; Rules
   
 
     
@@ -2268,10 +2358,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10-reset_demosh-full-reset-for-a-100-clean-rerun" class="md-nav__link">
+  <a href="#10-configure_ikc_reportingsh-ikc-reporting-settings-optional-cpd-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10 · reset_demo.sh — full reset for a 100% clean rerun
+        10 · configure_ikc_reporting.sh — IKC reporting settings (optional, CPD only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-reset_demosh-full-reset-for-a-100-clean-rerun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11 · reset_demo.sh — full reset for a 100% clean rerun
       
     </span>
   </a>
@@ -2725,10 +2826,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#10-reset_demosh-full-reset-for-a-100-clean-rerun" class="md-nav__link">
+  <a href="#10-configure_ikc_reportingsh-ikc-reporting-settings-optional-cpd-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10 · reset_demo.sh — full reset for a 100% clean rerun
+        10 · configure_ikc_reporting.sh — IKC reporting settings (optional, CPD only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-reset_demosh-full-reset-for-a-100-clean-rerun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11 · reset_demo.sh — full reset for a 100% clean rerun
       
     </span>
   </a>
@@ -3329,12 +3441,67 @@ use <code>cleanup_minio.py</code> (or the all-in-one <code>reset_demo.sh</code> 
 schema folders (Iceberg table data at the bucket root), the <code>spark_demo/</code> asset prefix
 (uploaded Spark app + raw CSVs), and <code>openmetadata/dbt-artifacts/</code>. It never empties the
 whole bucket. Needs an <code>oc</code> session (MinIO has no external Route on this cluster).</p>
-<h3 id="10-reset_demosh-full-reset-for-a-100-clean-rerun">10 · <code>reset_demo.sh</code> — full reset for a 100% clean rerun</h3>
+<h3 id="10-configure_ikc_reportingsh-ikc-reporting-settings-optional-cpd-only">10 · <code>configure_ikc_reporting.sh</code> — IKC reporting settings (optional, CPD only)</h3>
+<div class="admonition info">
+<p class="admonition-title">Optional — requires CPD Enterprise + <code>oc</code> login</p>
+<p>This script is only relevant when running against <strong>IBM Software Hub (CPD)</strong> with a
+<code>wkc-cr</code> Enterprise license.  It is <strong>not</strong> needed for the open-source paths (dbt / Spark /
+Confluent).  See <a href="../ikc-reporting/">IKC Reporting — Optional Setup</a> for the full procedure.</p>
+</div>
+<p>Configure the <code>enforceAuthorizeReporting</code> / <code>defaultAuthorizeReporting</code> flags, patch the three
+<code>wkc-cr</code> spec fields, restart the 7 required pods, and verify env-var propagation — all
+in one idempotent command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Recommended for demos: default=true, enforce=false</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># Lock all reporting on (enforce=true, default=true)</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="c1"># Preview without changing anything</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--dry-run
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a><span class="c1"># Patch only — skip pod restarts (pods already running)</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--skip-restart
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>
+<a id="__codelineno-31-13" name="__codelineno-31-13" href="#__codelineno-31-13"></a><span class="c1"># Revert to IBM defaults (both false)</span>
+<a id="__codelineno-31-14" name="__codelineno-31-14" href="#__codelineno-31-14"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--disable
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--enforce</code></td>
+<td><code>enforceAuthorizeReporting=true</code> + <code>defaultAuthorizeReporting=true</code> (locked on)</td>
+</tr>
+<tr>
+<td><code>--disable</code></td>
+<td>Both flags → <code>false</code> (IBM factory default)</td>
+</tr>
+<tr>
+<td><code>--skip-restart</code></td>
+<td>Patch configmap + wkc-cr only; skip pod restarts and deletions</td>
+</tr>
+<tr>
+<td><code>--namespace NS</code></td>
+<td>CPD operands namespace (default: <code>cpd-instance</code>)</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>Preview only — nothing is changed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="11-reset_demosh-full-reset-for-a-100-clean-rerun">11 · <code>reset_demo.sh</code> — full reset for a 100% clean rerun</h3>
 <p>One command that resets any combination of the three demo "surfaces":</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w"> </span>--dry-run<span class="w">     </span><span class="c1"># preview a full wipe (changes nothing)</span>
-<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w">               </span><span class="c1"># Docker + schemas + MinIO</span>
-<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>scripts/reset_demo.sh<span class="w"> </span>--docker<span class="w">            </span><span class="c1"># just the local containers/volumes/images</span>
-<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>scripts/reset_demo.sh<span class="w"> </span>--warehouse<span class="w"> </span>-y<span class="w">      </span><span class="c1"># drop schemas + MinIO files, skip the prompt</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w"> </span>--dry-run<span class="w">     </span><span class="c1"># preview a full wipe (changes nothing)</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>scripts/reset_demo.sh<span class="w"> </span>--all<span class="w">               </span><span class="c1"># Docker + schemas + MinIO</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>scripts/reset_demo.sh<span class="w"> </span>--docker<span class="w">            </span><span class="c1"># just the local containers/volumes/images</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>scripts/reset_demo.sh<span class="w"> </span>--warehouse<span class="w"> </span>-y<span class="w">      </span><span class="c1"># drop schemas + MinIO files, skip the prompt</span>
 </code></pre></div>
 <table>
 <thead>

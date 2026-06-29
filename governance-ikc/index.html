@@ -8,10 +8,10 @@
       
       
       
-        <link rel="prev" href="../streaming-medallion/">
+        <link rel="prev" href="../ikc-reporting/">
       
       
-        <link rel="next" href="../glossary/">
+        <link rel="next" href="../enterprise/summary/">
       
       
         
@@ -22,7 +22,7 @@
     
     
       
-        <title>When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl) - watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>IKC Governance — Glossary, Data Classes &amp; Rules - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
@@ -85,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#when-to-use-which-and-how-the-paths-combine" class="md-skip">
+        <a href="#ibm-knowledge-catalog-governance-layer" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)
+              IKC Governance — Glossary, Data Classes &amp; Rules
             
           </span>
         </div>
@@ -236,12 +236,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../lineage/" class="md-tabs__link">
           
   
@@ -348,10 +346,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../enterprise/overview/" class="md-tabs__link">
           
   
@@ -595,10 +595,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -616,22 +614,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -649,7 +644,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -748,37 +743,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../choosing/" class="md-nav__link">
         
   
   
@@ -794,103 +762,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#three-engines-one-loader" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Three engines, one loader
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dbt-vs-spark-at-a-glance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        dbt vs Spark — at a glance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#choose-by-the-job" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Choose by the job
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#seeds-vs-sources-seed-the-lookups-source-the-raw" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Seeds vs Sources — seed the lookups, source the raw
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#separate-vs-together" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Separate vs together
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#open-source-vs-enterprise" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Open source vs enterprise
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-step" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next step
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1629,8 +1500,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1654,19 +1527,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked="">
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
@@ -1684,7 +1560,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1867,10 +1743,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../governance-ikc/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IKC Governance — Glossary, Data Classes &amp; Rules
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1886,6 +1789,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#governance-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Governance hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#classifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#business-terms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business terms
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-classes-custom-regex-prefix-rml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data classes (custom regex, prefix RML)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-protection-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data protection rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impact-on-your-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impact on your data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#staged-import-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Staged import order
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2134,10 +2134,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#three-engines-one-loader" class="md-nav__link">
+  <a href="#governance-hierarchy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three engines, one loader
+        Governance hierarchy
       
     </span>
   </a>
@@ -2145,10 +2145,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dbt-vs-spark-at-a-glance" class="md-nav__link">
+  <a href="#classifications" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dbt vs Spark — at a glance
+        Classifications
       
     </span>
   </a>
@@ -2156,10 +2156,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#choose-by-the-job" class="md-nav__link">
+  <a href="#business-terms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Choose by the job
+        Business terms
       
     </span>
   </a>
@@ -2167,10 +2167,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#seeds-vs-sources-seed-the-lookups-source-the-raw" class="md-nav__link">
+  <a href="#data-classes-custom-regex-prefix-rml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Seeds vs Sources — seed the lookups, source the raw
+        Data classes (custom regex, prefix RML)
       
     </span>
   </a>
@@ -2178,10 +2178,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#separate-vs-together" class="md-nav__link">
+  <a href="#data-protection-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Separate vs together
+        Data protection rule
       
     </span>
   </a>
@@ -2189,10 +2189,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#open-source-vs-enterprise" class="md-nav__link">
+  <a href="#impact-on-your-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Open source vs enterprise
+        Impact on your data
       
     </span>
   </a>
@@ -2200,10 +2200,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-step" class="md-nav__link">
+  <a href="#staged-import-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next step
+        Staged import order
       
     </span>
   </a>
@@ -2227,354 +2227,495 @@
 
 
 
-<h1 id="when-to-use-which-and-how-the-paths-combine">When to Use Which — and How the Paths Combine</h1>
-<div class="admonition abstract">
-<p class="admonition-title">The one idea to take away</p>
-<p><strong>dbt, Spark, and Confluent are three interchangeable, self-contained pipelines</strong> — each
-<em>ingests and transforms</em> the same four CSVs all the way through Bronze → Silver → Gold, and
-all three must reach the <strong>identical Gold</strong> marts. dbt and Spark are <strong>batch</strong>; Confluent
-(Kafka → Flink → Iceberg) is <strong>streaming</strong>. <strong>cpdctl is an ingestion-only loader</strong> — like
-<code>dbt seed</code>, it lands the raw CSVs in <code>spark_demo_cpdctl_raw</code> and <em>stops at raw</em>. To turn
-cpdctl data into a medallion, you run <strong>dbt or Spark as a post-action</strong> over the ingest schema.</p>
-<blockquote>
-<p><strong>cpdctl (ingest) + dbt or Spark (transform) = one full pipeline.</strong>
-<strong>dbt, Spark, and Confluent each = one full pipeline on their own.</strong></p>
-</blockquote>
-</div>
+<h1 id="ibm-knowledge-catalog-governance-layer">IBM Knowledge Catalog — Governance Layer</h1>
+<p>The Retail Medallion Lakehouse ships a complete governance layer in <strong>IBM Knowledge Catalog
+(watsonx.data Intelligence)</strong>. Every column that flows through Bronze → Silver → Gold is
+described by a business term, classified, matched by a custom regex data class, and —
+where PII applies — masked by a data protection rule.</p>
+<p>All source files live in <code>governance/ikc/</code> in this repository and are imported in four sequential steps described below.</p>
 <hr>
-<figure>
-  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/wxd-decision-matrix.png" data-desc-position="bottom"><img alt="Decision matrix — dbt vs Spark vs Confluent vs cpdctl vs DataStage" loading="lazy" src="../assets/images/wxd-decision-matrix.png"></a>
-<br>
-<figcaption>At a glance: which path to reach for. dbt, Spark, and Confluent are interchangeable full pipelines producing identical Gold; cpdctl is ingest-only; DataStage is the no-code enterprise option.</figcaption>
-</figure>
-<h2 id="three-engines-one-loader">Three engines, one loader</h2>
+<h2 id="governance-hierarchy">Governance hierarchy</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Retail Medallion Lakehouse          ← top-level category
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Customer                        ← 4 business terms + data classes
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── Product                         ← 3 business terms + data classes
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── Order                           ← 4 business terms + data classes
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── Gold Sales                      ← 3 business terms + data classes
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── Data Governance
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    ├── Business Data  (classification — applied to all 14 terms)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    └── Personal Data  (classification — Customer ID + Customer Email only)
+</code></pre></div>
+<p>Source file: see <code>governance/ikc/</code> in the repository root</p>
+<hr>
+<h2 id="classifications">Classifications</h2>
+<p>Two custom classifications live under the <code>Data Governance</code> sub-category.</p>
 <table>
 <thead>
 <tr>
-<th></th>
-<th>dbt</th>
-<th>Spark</th>
-<th>Confluent (Flink)</th>
-<th>cpdctl</th>
+<th>Classification</th>
+<th>Parent</th>
+<th>Applied to</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Kind</strong></td>
-<td>Full pipeline</td>
-<td>Full pipeline</td>
-<td>Full pipeline (streaming)</td>
-<td>Ingest loader only</td>
+<td>Business Data</td>
+<td>—</td>
+<td>All 14 data classes</td>
 </tr>
 <tr>
-<td><strong>Batch or streaming?</strong></td>
-<td>Batch</td>
-<td>Batch</td>
-<td><strong>Streaming</strong></td>
-<td>Batch load</td>
+<td>Personal Data</td>
+<td>Business Data</td>
+<td>RML Customer ID, RML Customer Email</td>
+</tr>
+</tbody>
+</table>
+<p>Source file: see <code>governance/ikc/</code> in the repository root</p>
+<hr>
+<h2 id="business-terms">Business terms</h2>
+<p>Fourteen terms describe every governed concept in the medallion pipeline.
+All terms are published under the <code>Retail Medallion Lakehouse</code> category hierarchy.</p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Category</th>
+<th>Source column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Customer ID</td>
+<td>Customer</td>
+<td><code>customer_id</code></td>
+<td>4-digit integer PK (1001–1050). Join key from orders back to customer.</td>
 </tr>
 <tr>
-<td><strong>Does it transform?</strong></td>
-<td>Yes — raw → bronze → silver → gold</td>
-<td>Yes — bronze → silver → gold</td>
-<td>Yes — Kafka raw → Flink silver → Spark/DataStage gold</td>
-<td><strong>No</strong> — lands raw and stops</td>
+<td>Customer Email</td>
+<td>Customer</td>
+<td><code>email</code></td>
+<td>RFC 5321 email. Only direct PII in the seed — masked by data protection rule.</td>
 </tr>
 <tr>
-<td><strong>Language</strong></td>
-<td>SQL</td>
-<td>Python (PySpark)</td>
-<td>Flink SQL (+ Spark/DataStage for gold)</td>
-<td>CLI (no code)</td>
+<td>Customer Country</td>
+<td>Customer</td>
+<td><code>country</code></td>
+<td>ISO 3166-1 alpha-2 code (US, GB, DE, FR, IT, ES, NL).</td>
 </tr>
 <tr>
-<td><strong>Builds a medallion alone?</strong></td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>No — needs dbt or Spark afterward</td>
+<td>Customer 360</td>
+<td>Customer</td>
+<td><code>lifetime_value</code></td>
+<td>Gold mart: cumulative spend + order counts per customer.</td>
 </tr>
 <tr>
-<td><strong>Output schema</strong></td>
-<td><code>dbt_demo_raw/bronze/silver/gold</code></td>
-<td><code>spark_demo_bronze/silver/gold</code></td>
-<td>topics → <code>confluent_demo_silver</code> → <code>confluent_demo_gold</code></td>
-<td><code>spark_demo_cpdctl_raw</code> (raw)</td>
+<td>Product ID</td>
+<td>Product</td>
+<td><code>product_id</code></td>
+<td>4-digit integer PK (2001–2020). Join key from order items to products.</td>
 </tr>
 <tr>
-<td><strong>UI ingestion history?</strong></td>
-<td>No</td>
-<td>No</td>
-<td>No (runs as a stream)</td>
-<td><strong>Yes</strong></td>
+<td>Product Category</td>
+<td>Product</td>
+<td><code>category</code></td>
+<td>Controlled domain: Electronics / Grocery / Home / Office / Outdoor.</td>
 </tr>
 <tr>
-<td><strong>Analogous to</strong></td>
+<td>Unit Price</td>
+<td>Product</td>
+<td><code>unit_price</code></td>
+<td>List price before discount; drives <code>net_amount</code> in Silver.</td>
+</tr>
+<tr>
+<td>Order ID</td>
+<td>Order</td>
+<td><code>order_id</code></td>
+<td>4-digit integer PK (3001–3500). One order → many line items.</td>
+</tr>
+<tr>
+<td>Order Status</td>
+<td>Order</td>
+<td><code>status</code></td>
+<td>Lifecycle code: completed / returned / pending / cancelled.</td>
+</tr>
+<tr>
+<td>Order Quantity</td>
+<td>Order</td>
+<td><code>quantity</code></td>
+<td>Units per line item (1–99); rolls into <code>units_sold</code> in Gold.</td>
+</tr>
+<tr>
+<td>Net Amount</td>
+<td>Order</td>
+<td><code>net_amount</code></td>
+<td><code>unit_price × quantity × (1 − discount_pct)</code> — atomic revenue measure.</td>
+</tr>
+<tr>
+<td>Daily Sales</td>
+<td>Gold Sales</td>
+<td><code>order_date</code></td>
+<td>Gold PARQUET table grain: one row per order_date × category.</td>
+</tr>
+<tr>
+<td>Net Revenue</td>
+<td>Gold Sales</td>
+<td><code>net_revenue</code></td>
+<td>Sum of <code>net_amount</code> for completed orders; primary Gold KPI.</td>
+</tr>
+<tr>
+<td>Category Performance</td>
+<td>Gold Sales</td>
+<td><code>total_orders</code></td>
+<td>Gold mart: total_orders / units / revenue per product category.</td>
+</tr>
+</tbody>
+</table>
+<p>Source file: see <code>governance/ikc/</code> in the repository root</p>
+<hr>
+<h2 id="data-classes-custom-regex-prefix-rml">Data classes (custom regex, prefix <code>RML</code>)</h2>
+<p>Each data class contains a <code>RegularExpressionClassifier</code> (value-level pattern) and a
+<code>ColumnNameFilter</code> (column-name regex). Running <strong>metadata enrichment</strong> on a Gold table
+auto-assigns the matching data class to each column without manual annotation.</p>
+<p>All names carry the <code>RML</code> prefix to avoid conflicts with the hundreds of built-in IBM
+data classes already published in the catalog (e.g. <code>Customer ID</code> and <code>Customer Country</code>
+exist as system data classes — our custom versions are <code>RML Customer ID</code> / <code>RML Customer Country</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Data class</th>
+<th>Column matched</th>
+<th>Value regex</th>
+<th>Classification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RML Customer ID</td>
+<td><code>customer_id</code></td>
+<td><code>^[0-9]{4}$</code></td>
+<td>Business Data, Personal Data</td>
+</tr>
+<tr>
+<td>RML Customer Email</td>
+<td><code>email</code></td>
+<td>RFC 5321 email</td>
+<td>Business Data, Personal Data</td>
+</tr>
+<tr>
+<td>RML Customer Country</td>
+<td><code>country</code></td>
+<td><code>^(US\|GB\|DE\|FR\|IT\|ES\|NL)$</code></td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Customer 360</td>
+<td><code>lifetime_value</code></td>
+<td>Non-negative decimal</td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Product ID</td>
+<td><code>product_id</code></td>
+<td><code>^2[0-9]{3}$</code></td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Product Category</td>
+<td><code>category</code></td>
+<td><code>^(Electronics\|Grocery\|Home\|Office\|Outdoor)$</code></td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Unit Price</td>
+<td><code>unit_price</code></td>
+<td>Non-negative decimal ≤ 99999.99</td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Order ID</td>
+<td><code>order_id</code></td>
+<td><code>^3[0-9]{3}$</code></td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Order Status</td>
+<td><code>status</code></td>
+<td><code>^(completed\|returned\|pending\|cancelled)$</code></td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Order Quantity</td>
+<td><code>quantity</code></td>
+<td><code>^[1-9][0-9]?$</code></td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Net Amount</td>
+<td><code>net_amount</code></td>
+<td>Non-negative decimal</td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Daily Sales</td>
+<td><code>order_date</code></td>
+<td><code>YYYY-MM-DD</code> ISO 8601</td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Net Revenue</td>
+<td><code>net_revenue</code> / <code>total_revenue</code></td>
+<td>Non-negative decimal</td>
+<td>Business Data</td>
+</tr>
+<tr>
+<td>RML Category Performance</td>
+<td><code>total_orders</code> / <code>order_count</code></td>
+<td>Non-negative integer</td>
+<td>Business Data</td>
+</tr>
+</tbody>
+</table>
+<p>Source file: see <code>governance/ikc/</code> in the repository root</p>
+<hr>
+<h2 id="data-protection-rule">Data protection rule</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name</td>
+<td><code>RML — Mask Customer Email (PII)</code></td>
+</tr>
+<tr>
+<td>Trigger</td>
+<td>Column name <code>LIKE email</code></td>
+</tr>
+<tr>
+<td>Action</td>
+<td>Redact — replace value with masked output</td>
+</tr>
+<tr>
+<td>State</td>
+<td>Active</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>All assets in <code>ibmas-catalog</code> that contain an <code>email</code> column</td>
+</tr>
+</tbody>
+</table>
+<p>Source file: see <code>governance/ikc/</code> in the repository root</p>
+<div class="admonition note">
+<p class="admonition-title">Policy service on CPD 5.3.4</p>
+<p>The data protection rule must be created via the <strong>IKC UI</strong> (Governance → Data protection
+rules → Add rule). The policy service REST endpoint returns HTTP 405 on this CPD version
+when called via MCP or REST directly.</p>
+</div>
+<hr>
+<h2 id="impact-on-your-data">Impact on your data</h2>
+<p>The table below maps every governed column across all medallion layers.
+🔒 marks columns masked by the active data protection rule.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Table</th>
+<th>Column</th>
+<th>Business Term</th>
+<th>Data Class</th>
+<th>PII?</th>
+<th>Masked?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_customers</code></td>
+<td><code>customer_id</code></td>
+<td>Customer ID</td>
+<td>RML Customer ID</td>
+<td>✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_customers</code></td>
+<td><code>email</code></td>
+<td>Customer Email</td>
+<td>RML Customer Email</td>
+<td>✅</td>
+<td>🔒 Yes</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_customers</code></td>
+<td><code>country</code></td>
+<td>Customer Country</td>
+<td>RML Customer Country</td>
 <td>—</td>
 <td>—</td>
-<td>Confluent Tableflow (Flink-on-Iceberg)</td>
-<td><code>dbt seed</code> / Spark's raw CSV read</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_products</code></td>
+<td><code>product_id</code></td>
+<td>Product ID</td>
+<td>RML Product ID</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_products</code></td>
+<td><code>category</code></td>
+<td>Product Category</td>
+<td>RML Product Category</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_products</code></td>
+<td><code>unit_price</code></td>
+<td>Unit Price</td>
+<td>RML Unit Price</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_orders</code></td>
+<td><code>order_id</code></td>
+<td>Order ID</td>
+<td>RML Order ID</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Bronze / Silver</td>
+<td><code>*_orders</code></td>
+<td><code>status</code></td>
+<td>Order Status</td>
+<td>RML Order Status</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Silver</td>
+<td><code>silver_order_items</code></td>
+<td><code>quantity</code></td>
+<td>Order Quantity</td>
+<td>RML Order Quantity</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Silver</td>
+<td><code>silver_order_items</code></td>
+<td><code>net_amount</code></td>
+<td>Net Amount</td>
+<td>RML Net Amount</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Gold</td>
+<td><code>gold_customer_360</code></td>
+<td><code>customer_id</code></td>
+<td>Customer ID</td>
+<td>RML Customer ID</td>
+<td>✅</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Gold</td>
+<td><code>gold_customer_360</code></td>
+<td><code>email</code></td>
+<td>Customer Email</td>
+<td>RML Customer Email</td>
+<td>✅</td>
+<td>🔒 Yes</td>
+</tr>
+<tr>
+<td>Gold</td>
+<td><code>gold_customer_360</code></td>
+<td><code>lifetime_value</code></td>
+<td>Customer 360</td>
+<td>RML Customer 360</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Gold</td>
+<td><code>gold_daily_sales</code></td>
+<td><code>order_date</code></td>
+<td>Daily Sales</td>
+<td>RML Daily Sales</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Gold</td>
+<td><code>gold_daily_sales</code></td>
+<td><code>net_revenue</code></td>
+<td>Net Revenue</td>
+<td>RML Net Revenue</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Gold</td>
+<td><code>gold_category_performance</code></td>
+<td><code>total_orders</code></td>
+<td>Category Performance</td>
+<td>RML Category Performance</td>
+<td>—</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<p>dbt, Spark, and Confluent are <strong>peers</strong> — pick whichever engine fits the team and workload; all
-three produce the same medallion shape, and the <a href="../sql-demo/">SQL comparison</a> plus
-<code>scripts/reconcile_gold.py</code> prove their gold layers match exactly. cpdctl is <strong>not</strong> a fourth peer
-engine: it is a fast, UI-tracked way to get raw data <em>in</em>, which you then hand to dbt or Spark.</p>
-<div class="admonition info">
-<p class="admonition-title">Confluent gold is built by a second engine — Spark or DataStage</p>
-<p>The Confluent path always writes <strong>Silver</strong> with Flink, then builds <strong>Gold</strong> with a second
-engine chosen by <code>CONFLUENT_GOLD_ENGINE</code>: <strong>Spark</strong> (default, code-first) or <strong>DataStage</strong>
-(no-code visual ETL). Both write the same <code>confluent_demo_gold</code> marts — see the
-<a href="../datastage-demo/">DataStage page</a>.</p>
-</div>
-<hr>
-<h2 id="dbt-vs-spark-at-a-glance">dbt vs Spark — at a glance</h2>
-<p>dbt and Spark are interchangeable peers in this demo, but they make different trade-offs. The
-table below lays them side by side so you can match the engine to the team and the workload.</p>
-<table>
-<thead>
-<tr>
-<th>Dimension</th>
-<th>dbt (<code>models/*.sql</code>)</th>
-<th>Spark (<code>spark/load_medallion_demo.py</code>)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Language</td>
-<td>SQL + Jinja</td>
-<td>Python / PySpark (Scala/Java possible)</td>
-</tr>
-<tr>
-<td>Where compute runs</td>
-<td>Pushed down to the Presto engine in watsonx.data — dbt only compiles + orchestrates, no data on your laptop</td>
-<td>Distributed on the watsonx.data Spark engine — executors process partitions in parallel</td>
-</tr>
-<tr>
-<td>Transformation style</td>
-<td>Set-based, declarative — one <code>SELECT</code> per model</td>
-<td>Imperative dataframe ETL — read → withColumn → join → groupBy → writeTo</td>
-</tr>
-<tr>
-<td>Materialization</td>
-<td>table / view / incremental via <code>{{ config }}</code></td>
-<td>Explicit <code>createOrReplace()</code>, <code>partitionedBy(...)</code></td>
-</tr>
-<tr>
-<td>Best for</td>
-<td>Analytics modeling, governed SQL marts, dimensional models</td>
-<td>Heavy ETL, complex logic, huge joins, semi-structured parsing, ML feature prep</td>
-</tr>
-<tr>
-<td>Testing</td>
-<td>First-class built-in (<code>not_null</code>/<code>unique</code>/<code>relationships</code>/custom in YAML), <code>dbt test</code></td>
-<td>DIY (PySpark asserts, Great Expectations, pytest) — no native runner</td>
-</tr>
-<tr>
-<td>Docs</td>
-<td>Auto-generated searchable site (<code>dbt docs</code>)</td>
-<td>Manual docstrings / READMEs</td>
-</tr>
-<tr>
-<td>Lineage</td>
-<td>Automatic column-level from <code>ref()</code>/<code>source()</code>; flows into OpenMetadata</td>
-<td>Inferred from code or a runtime OpenLineage listener; more setup</td>
-</tr>
-<tr>
-<td>Governance</td>
-<td>Strong: SQL code review + declared tests + lineage + docs-as-code</td>
-<td>Lives in the surrounding platform/CI; general-purpose Python is harder to police</td>
-</tr>
-<tr>
-<td>Learning curve</td>
-<td>Low for SQL/analytics people</td>
-<td>Higher — Spark APIs, lazy evaluation, partitioning, shuffles, tuning</td>
-</tr>
-<tr>
-<td>Performance — small data</td>
-<td>Excellent; no cluster spin-up</td>
-<td>Overkill — JVM/executor startup dominates</td>
-</tr>
-<tr>
-<td>Performance — big data</td>
-<td>Scales with Presto</td>
-<td>Built for very large multi-TB workloads</td>
-</tr>
-<tr>
-<td>Streaming</td>
-<td>Batch only</td>
-<td>Structured Streaming / micro-batch</td>
-</tr>
-<tr>
-<td>ML feature engineering</td>
-<td>SQL-expressible only</td>
-<td>Full Python ecosystem (pandas UDFs, MLlib)</td>
-</tr>
-<tr>
-<td>When to pick</td>
-<td>SQL-first team; logic fits a <code>SELECT</code>; want tests+docs+lineage for free</td>
-<td>Large data, or Python/ML/streaming/custom parsing</td>
-</tr>
-</tbody>
-</table>
-<p><strong>When to use which.</strong> Start with <strong>dbt</strong> for SQL analytics engineering on watsonx.data: the compute
-runs on the same Presto engine you already query, and you get tests, docs, and column-level lineage
-almost for free. Reach for <strong>Spark</strong> when you outgrow SQL and Presto — very large data,
-billions-of-rows joins, streaming, ML feature engineering, or messy semi-structured parsing that SQL
-cannot express cleanly. They are interchangeable peers here, and a common real-world pattern uses
-<strong>both</strong>: Spark for the heavy raw → Silver lift, dbt for the governed Silver → Gold modeling. And
-remember <strong>cpdctl is ingestion-only</strong> — it lands the raw files and stops; you still run dbt or Spark
-on top to build the medallion.</p>
-<hr>
-<h2 id="choose-by-the-job">Choose by the job</h2>
-<p>Find the row that matches your situation, then pick the engine in the last column.</p>
-<table>
-<thead>
-<tr>
-<th>Your situation</th>
-<th>Pick this</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>"My logic is all <code>SELECT</code> statements and I want tests + lineage"</td>
-<td><strong>dbt</strong></td>
-</tr>
-<tr>
-<td>"I'm a SQL-first analytics team on watsonx.data"</td>
-<td><strong>dbt</strong></td>
-</tr>
-<tr>
-<td>"The data is huge, or I need Python / ML / messy parsing"</td>
-<td><strong>Spark</strong></td>
-</tr>
-<tr>
-<td>"I want distributed compute across many workers"</td>
-<td><strong>Spark</strong></td>
-</tr>
-<tr>
-<td>"Data arrives continuously and I want low-latency Silver/Gold"</td>
-<td><strong>Confluent (Kafka → Flink → Iceberg)</strong></td>
-</tr>
-<tr>
-<td>"I want Bronze to be a replayable event log, not a static table"</td>
-<td><strong>Confluent</strong></td>
-</tr>
-<tr>
-<td>"I want a no-code, visual, governed ETL canvas for the gold build"</td>
-<td><strong>Confluent with <code>CONFLUENT_GOLD_ENGINE=datastage</code></strong></td>
-</tr>
-<tr>
-<td>"I just need raw data loaded fast, with no code, tracked in the UI"</td>
-<td><strong>cpdctl</strong> (then transform with dbt or Spark)</td>
-</tr>
-<tr>
-<td>"Heavy raw→Silver lift, then governed Silver→Gold modeling"</td>
-<td><strong>Spark for the lift, dbt for the modeling</strong></td>
-</tr>
-</tbody>
-</table>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><input id="__tabbed_1_3" name="__tabbed_1" type="radio"><input id="__tabbed_1_4" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">Use dbt</label><label for="__tabbed_1_2">Use Spark</label><label for="__tabbed_1_3">Use Confluent (streaming)</label><label for="__tabbed_1_4">Use cpdctl</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<ul>
-<li>Your team treats transformations as <strong>governed SQL</strong> — code review, tests, lineage,
-  documentation-as-code.</li>
-<li>You want column-level lineage in OpenMetadata.</li>
-<li>The logic fits in SQL <code>SELECT</code> statements.</li>
-</ul>
-</div>
-<div class="tabbed-block">
-<ul>
-<li>The data is <strong>large</strong> or the logic needs <strong>Python</strong> (ML feature prep, custom parsing,
-  billions-of-rows joins).</li>
-<li>You want distributed compute on the watsonx.data Spark engine.</li>
-</ul>
-</div>
-<div class="tabbed-block">
-<ul>
-<li>Data <strong>arrives continuously</strong> and you want Silver/Gold updated seconds after each row,
-  not on the next batch schedule.</li>
-<li>You want <strong>Bronze to be a replayable Kafka topic</strong> — rewind and reprocess without
-  re-ingesting the source.</li>
-<li>You want <strong>Schema Registry</strong> as the streaming governance point (the contract that rejects
-  malformed messages), the streaming analogue of dbt tests.</li>
-<li>For Gold, choose the second engine: <strong>Spark</strong> (code-first, default) or <strong>DataStage</strong>
-  (no-code visual ETL) via <code>CONFLUENT_GOLD_ENGINE</code>. See <a href="../confluent-demo/">Confluent</a> and
-  <a href="../datastage-demo/">DataStage</a>.</li>
-</ul>
-</div>
-<div class="tabbed-block">
-<ul>
-<li>You need the load to appear in the <strong>watsonx.data console → Data manager → Ingestion</strong> audit
-  history.</li>
-<li>You want a fast, <strong>no-code</strong> raw load from a terminal or the console GUI.</li>
-<li>Then you still run <strong>dbt or Spark</strong> over <code>spark_demo_cpdctl_raw</code> to build bronze/silver/gold.</li>
-</ul>
-</div>
-</div>
-</div>
-<hr>
-<h2 id="seeds-vs-sources-seed-the-lookups-source-the-raw">Seeds vs Sources — seed the lookups, source the raw</h2>
 <div class="admonition tip">
-<p class="admonition-title">Seed the lookups, source the raw</p>
-<p>dbt <strong>seeds</strong> are for small (low-thousands), static, version-controlled lookup/reference data —
-status → label maps, country/region codes, currency tables. They are <strong>not</strong> meant for real
-raw or production data. Real raw data should <strong>land</strong> in a raw zone by an ingestion process and
-be read by dbt as a <code>{{ source() }}</code> declared in a <code>sources.yml</code> (so you can also run
-<code>dbt source freshness</code> against it).</p>
-<p>Here is how <strong>this repo</strong> currently works (a teaching point, not a criticism): today the dbt
-path loads <code>seeds/raw_*.csv</code> via <code>dbt seed</code> and the bronze models read them with
-<code>{{ ref('raw_*') }}</code> — i.e. seeds used as a stand-in raw zone. The Spark path already reads the
-same CSVs from the object-storage raw zone (<code>s3a://.../spark_demo/raw</code>), and the cpdctl path
-lands them in <code>spark_demo_cpdctl_raw</code>.</p>
-<p>One rule of thumb:</p>
-<blockquote>
-<p><em>If a human curates it in git → seed it. If a pipeline lands it in the raw zone → source it.</em></p>
-</blockquote>
+<p class="admonition-title">Masking propagates through all layers</p>
+<p>The rule triggers on the column name <code>email</code> — it fires uniformly across the Bronze raw
+table, Silver cleaned table, and Gold <code>gold_customer_360</code> view. A user querying any layer
+sees the masked value, not the raw address.</p>
 </div>
 <hr>
-<h2 id="separate-vs-together">Separate vs together</h2>
-<p><strong>Separate</strong> — dbt and Spark each run end to end on their own:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dbt:   seeds/ CSV → dbt_demo_raw → bronze → silver → gold
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Spark: object-store CSV → spark_demo_bronze → silver → gold
+<h2 id="staged-import-order">Staged import order</h2>
+<p>IKC import has strict dependency rules. The four CSV files must be imported in this order,
+with a <strong>publish step after each one</strong> (UI workflow inbox) before moving to the next.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Step 1  governance/ikc/01_categories.csv      → Governance → Categories → Import
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        ↳ Publish workflow tasks
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Step 2  governance/ikc/03_classifications.csv  → Governance → Classifications → Import
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        ↳ Publish workflow tasks
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        (Business Data + Personal Data are now live — can be referenced)
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>Step 3  governance/ikc/02_business_terms.csv   → Governance → Business terms → Import (merge: all)
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        ↳ Publish workflow tasks
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        (14 terms are now live — data classes can reference them)
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>Step 4  governance/ikc/04_data_classes.csv     → Governance → Data classes → Import (merge: all)
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        ↳ Publish workflow tasks
 </code></pre></div>
-<p><strong>Together</strong> — cpdctl ingests, then dbt or Spark transforms:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cpdctl: CSV → spark_demo_cpdctl_raw (raw)
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>            → [post-action] dbt or Spark transform → bronze → silver → gold
-</code></pre></div>
-<pre class="mermaid"><code>flowchart LR
-    CSV["CSV files"]
-    CSV --&gt; dbt["dbt (full pipeline)"]
-    CSV --&gt; spark["Spark (full pipeline)"]
-    CSV --&gt; cpdctl["cpdctl ingest\nspark_demo_cpdctl_raw (raw)"]
-    cpdctl -. "transform with dbt or Spark\n(post-action)" .-&gt; dbt
-    cpdctl -. "transform with dbt or Spark\n(post-action)" .-&gt; spark
-    dbt --&gt; gold["dbt gold"]
-    spark --&gt; sgold["Spark gold"]
-    gold --&gt; compare["compare gold-to-gold"]
-    sgold --&gt; compare</code></pre>
-<p>The worked post-action examples (a dbt model and a Spark read over <code>spark_demo_cpdctl_raw</code>) are in
-<a href="../ingestion/#what-cpdctl-does-not-do-and-how-to-finish-the-job">What cpdctl does NOT do — and how to finish the job</a>.</p>
-<hr>
-<h2 id="open-source-vs-enterprise">Open source vs enterprise</h2>
-<p>Everything on this page is the <strong>open-source</strong> toolkit. When governance, scale, no-code authoring,
-or enforced policies matter, each tool has an IBM enterprise counterpart — dbt/Spark → <strong>DataStage</strong>,
-Kafka → <strong>Confluent Platform on-prem</strong>, OpenMetadata → <strong>watsonx.data Intelligence</strong>, Airflow →
-<strong>+ Databand observability</strong>. For an honest, side-by-side verdict (with weaknesses), see the
-<a href="../enterprise/summary/">Enterprise summary</a> and <a href="../enterprise/overview/">Why Upgrade</a>.</p>
-<hr>
-<h2 id="next-step">Next step</h2>
+<div class="admonition warning">
+<p class="admonition-title">Known pitfalls</p>
 <ul>
-<li>New here? Start with <a href="../lineage/">Architecture &amp; Data Flow</a>.</li>
-<li>Ready to build? Run <a href="../dbt-demo/">Path A — dbt</a>, <a href="../spark-demo/">Path B — Spark</a>, or
-  <a href="../confluent-demo/">Path C — Confluent streaming</a>.</li>
-<li>Want the no-code gold engine for the streaming path? See <a href="../datastage-demo/">DataStage</a>.</li>
-<li>Want UI-tracked ingestion? Run <a href="../ingestion/">cpdctl</a>, then transform with dbt or Spark.</li>
-<li>Built multiple engines? <a href="../sql-demo/">Compare the dbt and Spark gold layers</a>, or run
-  <code>scripts/reconcile_gold.py</code> to compare all three.</li>
+<li><strong><code>GIM00015E</code></strong> — A referenced artifact (classification, term) is in DRAFT or not yet imported.
+  Publish the dependency first.</li>
+<li><strong><code>WKCBG5003E: entity attributes are not unique</code></strong> — A data class name conflicts with a
+  published system data class. Prefix all custom DC names with <code>RML</code> to avoid collisions.</li>
+<li><strong><code>GIM00006E: artifact type cannot be imported</code></strong> — Wrong <code>Artifact Type</code> in the CSV.
+  Rules use <code>rule</code>, not <code>governance_rule</code>.</li>
+<li><strong>Related Terms need full <code>&gt;&gt;</code> paths</strong> in data class CSVs — <code>Retail Medallion Lakehouse &gt;&gt; Customer &gt;&gt; Customer ID</code>,
+  not just <code>Customer ID</code>.</li>
+<li><strong><code>&gt;&gt;</code> is the only valid category separator</strong> — not <code>/</code> (the MCP schema is wrong on this).</li>
 </ul>
+</div>
 
 
 
@@ -2610,7 +2751,7 @@ Kafka → <strong>Confluent Platform on-prem</strong>, OpenMetadata → <strong>
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../streaming-medallion/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Streaming Medallion Explained">
+          <a href="../ikc-reporting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: IKC Reporting — Optional CPD Setup">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -2620,20 +2761,20 @@ Kafka → <strong>Confluent Platform on-prem</strong>, OpenMetadata → <strong>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Streaming Medallion Explained
+                IKC Reporting — Optional CPD Setup
               </div>
             </div>
           </a>
         
         
           
-          <a href="../glossary/" class="md-footer__link md-footer__link--next" aria-label="Next: Glossary">
+          <a href="../enterprise/summary/" class="md-footer__link md-footer__link--next" aria-label="Next: Summary — Strengths &amp; Weaknesses">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Glossary
+                Summary — Strengths &amp; Weaknesses
               </div>
             </div>
             <div class="md-footer__button md-icon">

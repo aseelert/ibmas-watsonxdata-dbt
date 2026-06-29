@@ -8,10 +8,10 @@
       
       
       
-        <link rel="prev" href="../streaming-medallion/">
+        <link rel="prev" href="../datastage-demo/">
       
       
-        <link rel="next" href="../glossary/">
+        <link rel="next" href="../ingestion/">
       
       
         
@@ -22,7 +22,7 @@
     
     
       
-        <title>When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl) - watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>E · DataStage — Full Medallion (bronze→silver→gold) - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
@@ -85,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#when-to-use-which-and-how-the-paths-combine" class="md-skip">
+        <a href="#e-datastage-full-medallion-bronze-silver-gold" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)
+              E · DataStage — Full Medallion (bronze→silver→gold)
             
           </span>
         </div>
@@ -236,12 +236,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../lineage/" class="md-tabs__link">
           
   
@@ -260,10 +258,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../dbt-demo/" class="md-tabs__link">
           
   
@@ -595,10 +595,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -616,22 +614,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -649,7 +644,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -748,37 +743,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../choosing/" class="md-nav__link">
         
   
   
@@ -794,103 +762,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#three-engines-one-loader" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Three engines, one loader
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dbt-vs-spark-at-a-glance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        dbt vs Spark — at a glance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#choose-by-the-job" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Choose by the job
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#seeds-vs-sources-seed-the-lookups-source-the-raw" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Seeds vs Sources — seed the lookups, source the raw
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#separate-vs-together" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Separate vs together
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#open-source-vs-enterprise" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Open source vs enterprise
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-step" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next step
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -935,8 +806,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -956,19 +829,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked="">
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -986,7 +862,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1141,10 +1017,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../datastage-medallion/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E · DataStage — Full Medallion (bronze→silver→gold)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1160,6 +1063,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#the-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The shape
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-only-the-presto-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why "only the Presto connection"?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parity-verified-against-dbt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parity — verified against dbt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#do-i-need-a-datastage-sdk-can-the-mcp-build-the-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Do I need a DataStage SDK? Can the MCP build the flow?"
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2134,10 +2112,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#three-engines-one-loader" class="md-nav__link">
+  <a href="#the-shape" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three engines, one loader
+        The shape
       
     </span>
   </a>
@@ -2145,10 +2123,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dbt-vs-spark-at-a-glance" class="md-nav__link">
+  <a href="#why-only-the-presto-connection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dbt vs Spark — at a glance
+        Why "only the Presto connection"?
       
     </span>
   </a>
@@ -2156,10 +2134,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#choose-by-the-job" class="md-nav__link">
+  <a href="#build-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Choose by the job
+        Build it
       
     </span>
   </a>
@@ -2167,10 +2145,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#seeds-vs-sources-seed-the-lookups-source-the-raw" class="md-nav__link">
+  <a href="#parity-verified-against-dbt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Seeds vs Sources — seed the lookups, source the raw
+        Parity — verified against dbt
       
     </span>
   </a>
@@ -2178,32 +2156,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#separate-vs-together" class="md-nav__link">
+  <a href="#do-i-need-a-datastage-sdk-can-the-mcp-build-the-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Separate vs together
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#open-source-vs-enterprise" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Open source vs enterprise
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-step" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next step
+        "Do I need a DataStage SDK? Can the MCP build the flow?"
       
     </span>
   </a>
@@ -2227,354 +2183,129 @@
 
 
 
-<h1 id="when-to-use-which-and-how-the-paths-combine">When to Use Which — and How the Paths Combine</h1>
+<h1 id="e-datastage-full-medallion-bronze-silver-gold">E — DataStage: Full Medallion (bronze → silver → gold)</h1>
 <div class="admonition abstract">
-<p class="admonition-title">The one idea to take away</p>
-<p><strong>dbt, Spark, and Confluent are three interchangeable, self-contained pipelines</strong> — each
-<em>ingests and transforms</em> the same four CSVs all the way through Bronze → Silver → Gold, and
-all three must reach the <strong>identical Gold</strong> marts. dbt and Spark are <strong>batch</strong>; Confluent
-(Kafka → Flink → Iceberg) is <strong>streaming</strong>. <strong>cpdctl is an ingestion-only loader</strong> — like
-<code>dbt seed</code>, it lands the raw CSVs in <code>spark_demo_cpdctl_raw</code> and <em>stops at raw</em>. To turn
-cpdctl data into a medallion, you run <strong>dbt or Spark as a post-action</strong> over the ingest schema.</p>
+<p class="admonition-title">What this page is</p>
+<p>A <strong>fourth, interchangeable way</strong> to build the whole medallion — after dbt (SQL),
+Spark (Python), and cpdctl (raw load). Here <strong>IBM DataStage</strong> builds <strong>bronze,
+silver, and gold</strong> as three visual ETL flows, but every transformation is the <em>exact</em>
+dbt SQL <strong>pushed down to the watsonx.data Presto engine</strong> through <strong>one connection</strong>.
+DataStage orchestrates; Presto does the work; the numbers match dbt to the penny.</p>
 <blockquote>
-<p><strong>cpdctl (ingest) + dbt or Spark (transform) = one full pipeline.</strong>
-<strong>dbt, Spark, and Confluent each = one full pipeline on their own.</strong></p>
+<p><strong>Same medallion, a fourth engine — pick DataStage, get identical Gold.</strong></p>
 </blockquote>
 </div>
+<p>This is different from the <a href="../datastage-demo/">DataStage <em>gold-only</em> page</a> (which swaps
+the Confluent path's gold engine). This page builds the <strong>complete</strong> bronze→silver→gold
+medallion as a standalone path, into its own <code>datastage_demo_*</code> schemas.</p>
 <hr>
-<figure>
-  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/wxd-decision-matrix.png" data-desc-position="bottom"><img alt="Decision matrix — dbt vs Spark vs Confluent vs cpdctl vs DataStage" loading="lazy" src="../assets/images/wxd-decision-matrix.png"></a>
-<br>
-<figcaption>At a glance: which path to reach for. dbt, Spark, and Confluent are interchangeable full pipelines producing identical Gold; cpdctl is ingest-only; DataStage is the no-code enterprise option.</figcaption>
-</figure>
-<h2 id="three-engines-one-loader">Three engines, one loader</h2>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>dbt</th>
-<th>Spark</th>
-<th>Confluent (Flink)</th>
-<th>cpdctl</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Kind</strong></td>
-<td>Full pipeline</td>
-<td>Full pipeline</td>
-<td>Full pipeline (streaming)</td>
-<td>Ingest loader only</td>
-</tr>
-<tr>
-<td><strong>Batch or streaming?</strong></td>
-<td>Batch</td>
-<td>Batch</td>
-<td><strong>Streaming</strong></td>
-<td>Batch load</td>
-</tr>
-<tr>
-<td><strong>Does it transform?</strong></td>
-<td>Yes — raw → bronze → silver → gold</td>
-<td>Yes — bronze → silver → gold</td>
-<td>Yes — Kafka raw → Flink silver → Spark/DataStage gold</td>
-<td><strong>No</strong> — lands raw and stops</td>
-</tr>
-<tr>
-<td><strong>Language</strong></td>
-<td>SQL</td>
-<td>Python (PySpark)</td>
-<td>Flink SQL (+ Spark/DataStage for gold)</td>
-<td>CLI (no code)</td>
-</tr>
-<tr>
-<td><strong>Builds a medallion alone?</strong></td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>No — needs dbt or Spark afterward</td>
-</tr>
-<tr>
-<td><strong>Output schema</strong></td>
-<td><code>dbt_demo_raw/bronze/silver/gold</code></td>
-<td><code>spark_demo_bronze/silver/gold</code></td>
-<td>topics → <code>confluent_demo_silver</code> → <code>confluent_demo_gold</code></td>
-<td><code>spark_demo_cpdctl_raw</code> (raw)</td>
-</tr>
-<tr>
-<td><strong>UI ingestion history?</strong></td>
-<td>No</td>
-<td>No</td>
-<td>No (runs as a stream)</td>
-<td><strong>Yes</strong></td>
-</tr>
-<tr>
-<td><strong>Analogous to</strong></td>
-<td>—</td>
-<td>—</td>
-<td>Confluent Tableflow (Flink-on-Iceberg)</td>
-<td><code>dbt seed</code> / Spark's raw CSV read</td>
-</tr>
-</tbody>
-</table>
-<p>dbt, Spark, and Confluent are <strong>peers</strong> — pick whichever engine fits the team and workload; all
-three produce the same medallion shape, and the <a href="../sql-demo/">SQL comparison</a> plus
-<code>scripts/reconcile_gold.py</code> prove their gold layers match exactly. cpdctl is <strong>not</strong> a fourth peer
-engine: it is a fast, UI-tracked way to get raw data <em>in</em>, which you then hand to dbt or Spark.</p>
-<div class="admonition info">
-<p class="admonition-title">Confluent gold is built by a second engine — Spark or DataStage</p>
-<p>The Confluent path always writes <strong>Silver</strong> with Flink, then builds <strong>Gold</strong> with a second
-engine chosen by <code>CONFLUENT_GOLD_ENGINE</code>: <strong>Spark</strong> (default, code-first) or <strong>DataStage</strong>
-(no-code visual ETL). Both write the same <code>confluent_demo_gold</code> marts — see the
-<a href="../datastage-demo/">DataStage page</a>.</p>
-</div>
-<hr>
-<h2 id="dbt-vs-spark-at-a-glance">dbt vs Spark — at a glance</h2>
-<p>dbt and Spark are interchangeable peers in this demo, but they make different trade-offs. The
-table below lays them side by side so you can match the engine to the team and the workload.</p>
-<table>
-<thead>
-<tr>
-<th>Dimension</th>
-<th>dbt (<code>models/*.sql</code>)</th>
-<th>Spark (<code>spark/load_medallion_demo.py</code>)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Language</td>
-<td>SQL + Jinja</td>
-<td>Python / PySpark (Scala/Java possible)</td>
-</tr>
-<tr>
-<td>Where compute runs</td>
-<td>Pushed down to the Presto engine in watsonx.data — dbt only compiles + orchestrates, no data on your laptop</td>
-<td>Distributed on the watsonx.data Spark engine — executors process partitions in parallel</td>
-</tr>
-<tr>
-<td>Transformation style</td>
-<td>Set-based, declarative — one <code>SELECT</code> per model</td>
-<td>Imperative dataframe ETL — read → withColumn → join → groupBy → writeTo</td>
-</tr>
-<tr>
-<td>Materialization</td>
-<td>table / view / incremental via <code>{{ config }}</code></td>
-<td>Explicit <code>createOrReplace()</code>, <code>partitionedBy(...)</code></td>
-</tr>
-<tr>
-<td>Best for</td>
-<td>Analytics modeling, governed SQL marts, dimensional models</td>
-<td>Heavy ETL, complex logic, huge joins, semi-structured parsing, ML feature prep</td>
-</tr>
-<tr>
-<td>Testing</td>
-<td>First-class built-in (<code>not_null</code>/<code>unique</code>/<code>relationships</code>/custom in YAML), <code>dbt test</code></td>
-<td>DIY (PySpark asserts, Great Expectations, pytest) — no native runner</td>
-</tr>
-<tr>
-<td>Docs</td>
-<td>Auto-generated searchable site (<code>dbt docs</code>)</td>
-<td>Manual docstrings / READMEs</td>
-</tr>
-<tr>
-<td>Lineage</td>
-<td>Automatic column-level from <code>ref()</code>/<code>source()</code>; flows into OpenMetadata</td>
-<td>Inferred from code or a runtime OpenLineage listener; more setup</td>
-</tr>
-<tr>
-<td>Governance</td>
-<td>Strong: SQL code review + declared tests + lineage + docs-as-code</td>
-<td>Lives in the surrounding platform/CI; general-purpose Python is harder to police</td>
-</tr>
-<tr>
-<td>Learning curve</td>
-<td>Low for SQL/analytics people</td>
-<td>Higher — Spark APIs, lazy evaluation, partitioning, shuffles, tuning</td>
-</tr>
-<tr>
-<td>Performance — small data</td>
-<td>Excellent; no cluster spin-up</td>
-<td>Overkill — JVM/executor startup dominates</td>
-</tr>
-<tr>
-<td>Performance — big data</td>
-<td>Scales with Presto</td>
-<td>Built for very large multi-TB workloads</td>
-</tr>
-<tr>
-<td>Streaming</td>
-<td>Batch only</td>
-<td>Structured Streaming / micro-batch</td>
-</tr>
-<tr>
-<td>ML feature engineering</td>
-<td>SQL-expressible only</td>
-<td>Full Python ecosystem (pandas UDFs, MLlib)</td>
-</tr>
-<tr>
-<td>When to pick</td>
-<td>SQL-first team; logic fits a <code>SELECT</code>; want tests+docs+lineage for free</td>
-<td>Large data, or Python/ML/streaming/custom parsing</td>
-</tr>
-</tbody>
-</table>
-<p><strong>When to use which.</strong> Start with <strong>dbt</strong> for SQL analytics engineering on watsonx.data: the compute
-runs on the same Presto engine you already query, and you get tests, docs, and column-level lineage
-almost for free. Reach for <strong>Spark</strong> when you outgrow SQL and Presto — very large data,
-billions-of-rows joins, streaming, ML feature engineering, or messy semi-structured parsing that SQL
-cannot express cleanly. They are interchangeable peers here, and a common real-world pattern uses
-<strong>both</strong>: Spark for the heavy raw → Silver lift, dbt for the governed Silver → Gold modeling. And
-remember <strong>cpdctl is ingestion-only</strong> — it lands the raw files and stops; you still run dbt or Spark
-on top to build the medallion.</p>
-<hr>
-<h2 id="choose-by-the-job">Choose by the job</h2>
-<p>Find the row that matches your situation, then pick the engine in the last column.</p>
-<table>
-<thead>
-<tr>
-<th>Your situation</th>
-<th>Pick this</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>"My logic is all <code>SELECT</code> statements and I want tests + lineage"</td>
-<td><strong>dbt</strong></td>
-</tr>
-<tr>
-<td>"I'm a SQL-first analytics team on watsonx.data"</td>
-<td><strong>dbt</strong></td>
-</tr>
-<tr>
-<td>"The data is huge, or I need Python / ML / messy parsing"</td>
-<td><strong>Spark</strong></td>
-</tr>
-<tr>
-<td>"I want distributed compute across many workers"</td>
-<td><strong>Spark</strong></td>
-</tr>
-<tr>
-<td>"Data arrives continuously and I want low-latency Silver/Gold"</td>
-<td><strong>Confluent (Kafka → Flink → Iceberg)</strong></td>
-</tr>
-<tr>
-<td>"I want Bronze to be a replayable event log, not a static table"</td>
-<td><strong>Confluent</strong></td>
-</tr>
-<tr>
-<td>"I want a no-code, visual, governed ETL canvas for the gold build"</td>
-<td><strong>Confluent with <code>CONFLUENT_GOLD_ENGINE=datastage</code></strong></td>
-</tr>
-<tr>
-<td>"I just need raw data loaded fast, with no code, tracked in the UI"</td>
-<td><strong>cpdctl</strong> (then transform with dbt or Spark)</td>
-</tr>
-<tr>
-<td>"Heavy raw→Silver lift, then governed Silver→Gold modeling"</td>
-<td><strong>Spark for the lift, dbt for the modeling</strong></td>
-</tr>
-</tbody>
-</table>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><input id="__tabbed_1_3" name="__tabbed_1" type="radio"><input id="__tabbed_1_4" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">Use dbt</label><label for="__tabbed_1_2">Use Spark</label><label for="__tabbed_1_3">Use Confluent (streaming)</label><label for="__tabbed_1_4">Use cpdctl</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<ul>
-<li>Your team treats transformations as <strong>governed SQL</strong> — code review, tests, lineage,
-  documentation-as-code.</li>
-<li>You want column-level lineage in OpenMetadata.</li>
-<li>The logic fits in SQL <code>SELECT</code> statements.</li>
-</ul>
-</div>
-<div class="tabbed-block">
-<ul>
-<li>The data is <strong>large</strong> or the logic needs <strong>Python</strong> (ML feature prep, custom parsing,
-  billions-of-rows joins).</li>
-<li>You want distributed compute on the watsonx.data Spark engine.</li>
-</ul>
-</div>
-<div class="tabbed-block">
-<ul>
-<li>Data <strong>arrives continuously</strong> and you want Silver/Gold updated seconds after each row,
-  not on the next batch schedule.</li>
-<li>You want <strong>Bronze to be a replayable Kafka topic</strong> — rewind and reprocess without
-  re-ingesting the source.</li>
-<li>You want <strong>Schema Registry</strong> as the streaming governance point (the contract that rejects
-  malformed messages), the streaming analogue of dbt tests.</li>
-<li>For Gold, choose the second engine: <strong>Spark</strong> (code-first, default) or <strong>DataStage</strong>
-  (no-code visual ETL) via <code>CONFLUENT_GOLD_ENGINE</code>. See <a href="../confluent-demo/">Confluent</a> and
-  <a href="../datastage-demo/">DataStage</a>.</li>
-</ul>
-</div>
-<div class="tabbed-block">
-<ul>
-<li>You need the load to appear in the <strong>watsonx.data console → Data manager → Ingestion</strong> audit
-  history.</li>
-<li>You want a fast, <strong>no-code</strong> raw load from a terminal or the console GUI.</li>
-<li>Then you still run <strong>dbt or Spark</strong> over <code>spark_demo_cpdctl_raw</code> to build bronze/silver/gold.</li>
-</ul>
-</div>
-</div>
-</div>
-<hr>
-<h2 id="seeds-vs-sources-seed-the-lookups-source-the-raw">Seeds vs Sources — seed the lookups, source the raw</h2>
-<div class="admonition tip">
-<p class="admonition-title">Seed the lookups, source the raw</p>
-<p>dbt <strong>seeds</strong> are for small (low-thousands), static, version-controlled lookup/reference data —
-status → label maps, country/region codes, currency tables. They are <strong>not</strong> meant for real
-raw or production data. Real raw data should <strong>land</strong> in a raw zone by an ingestion process and
-be read by dbt as a <code>{{ source() }}</code> declared in a <code>sources.yml</code> (so you can also run
-<code>dbt source freshness</code> against it).</p>
-<p>Here is how <strong>this repo</strong> currently works (a teaching point, not a criticism): today the dbt
-path loads <code>seeds/raw_*.csv</code> via <code>dbt seed</code> and the bronze models read them with
-<code>{{ ref('raw_*') }}</code> — i.e. seeds used as a stand-in raw zone. The Spark path already reads the
-same CSVs from the object-storage raw zone (<code>s3a://.../spark_demo/raw</code>), and the cpdctl path
-lands them in <code>spark_demo_cpdctl_raw</code>.</p>
-<p>One rule of thumb:</p>
-<blockquote>
-<p><em>If a human curates it in git → seed it. If a pipeline lands it in the raw zone → source it.</em></p>
-</blockquote>
-</div>
-<hr>
-<h2 id="separate-vs-together">Separate vs together</h2>
-<p><strong>Separate</strong> — dbt and Spark each run end to end on their own:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dbt:   seeds/ CSV → dbt_demo_raw → bronze → silver → gold
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Spark: object-store CSV → spark_demo_bronze → silver → gold
-</code></pre></div>
-<p><strong>Together</strong> — cpdctl ingests, then dbt or Spark transforms:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cpdctl: CSV → spark_demo_cpdctl_raw (raw)
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>            → [post-action] dbt or Spark transform → bronze → silver → gold
-</code></pre></div>
+<h2 id="the-shape">The shape</h2>
 <pre class="mermaid"><code>flowchart LR
-    CSV["CSV files"]
-    CSV --&gt; dbt["dbt (full pipeline)"]
-    CSV --&gt; spark["Spark (full pipeline)"]
-    CSV --&gt; cpdctl["cpdctl ingest\nspark_demo_cpdctl_raw (raw)"]
-    cpdctl -. "transform with dbt or Spark\n(post-action)" .-&gt; dbt
-    cpdctl -. "transform with dbt or Spark\n(post-action)" .-&gt; spark
-    dbt --&gt; gold["dbt gold"]
-    spark --&gt; sgold["Spark gold"]
-    gold --&gt; compare["compare gold-to-gold"]
-    sgold --&gt; compare</code></pre>
-<p>The worked post-action examples (a dbt model and a Spark read over <code>spark_demo_cpdctl_raw</code>) are in
-<a href="../ingestion/#what-cpdctl-does-not-do-and-how-to-finish-the-job">What cpdctl does NOT do — and how to finish the job</a>.</p>
-<hr>
-<h2 id="open-source-vs-enterprise">Open source vs enterprise</h2>
-<p>Everything on this page is the <strong>open-source</strong> toolkit. When governance, scale, no-code authoring,
-or enforced policies matter, each tool has an IBM enterprise counterpart — dbt/Spark → <strong>DataStage</strong>,
-Kafka → <strong>Confluent Platform on-prem</strong>, OpenMetadata → <strong>watsonx.data Intelligence</strong>, Airflow →
-<strong>+ Databand observability</strong>. For an honest, side-by-side verdict (with weaknesses), see the
-<a href="../enterprise/summary/">Enterprise summary</a> and <a href="../enterprise/overview/">Why Upgrade</a>.</p>
-<hr>
-<h2 id="next-step">Next step</h2>
+    RAW["iceberg_data.dbt_demo_raw\n(CSV already landed as Iceberg on MinIO)"]
+    B["ds_medallion_bronze\n→ datastage_demo_bronze"]
+    S["ds_medallion_silver\n→ datastage_demo_silver"]
+    G["ds_medallion_gold\n→ datastage_demo_gold"]
+    RAW --&gt; B --&gt; S --&gt; G</code></pre>
+<p>Each dbt model becomes <strong>one source → target connector pair</strong>, both using the
+<strong>IBM watsonx.data Presto</strong> connection (<code>ibmas-presto</code>):</p>
+<pre class="mermaid"><code>flowchart LR
+    SRC["watsonx.data Presto\nread_mode = select\nselect_statement = the dbt SQL"]
+    TGT["watsonx.data Presto\ntable_action = replace\nwrites the Iceberg table"]
+    SRC --&gt;|link| TGT</code></pre>
 <ul>
-<li>New here? Start with <a href="../lineage/">Architecture &amp; Data Flow</a>.</li>
-<li>Ready to build? Run <a href="../dbt-demo/">Path A — dbt</a>, <a href="../spark-demo/">Path B — Spark</a>, or
-  <a href="../confluent-demo/">Path C — Confluent streaming</a>.</li>
-<li>Want the no-code gold engine for the streaming path? See <a href="../datastage-demo/">DataStage</a>.</li>
-<li>Want UI-tracked ingestion? Run <a href="../ingestion/">cpdctl</a>, then transform with dbt or Spark.</li>
-<li>Built multiple engines? <a href="../sql-demo/">Compare the dbt and Spark gold layers</a>, or run
-  <code>scripts/reconcile_gold.py</code> to compare all three.</li>
+<li><strong>Bronze</strong> (4 pairs) — raw passthrough + the 4 ingest-metadata columns.</li>
+<li><strong>Silver</strong> (5 pairs) — <code>cast</code> / <code>trim</code> / <code>lower</code> / <code>upper</code> / filter, plus
+  <code>silver_sales_enriched</code> (the three INNER joins).</li>
+<li><strong>Gold</strong> (3 pairs) — <code>gold_daily_sales</code>, <code>gold_category_performance</code>, <code>gold_customer_360</code>.</li>
 </ul>
+<hr>
+<h2 id="why-only-the-presto-connection">Why "only the Presto connection"?</h2>
+<p>The CSVs already live in the MinIO Iceberg bucket as the <code>dbt_demo_raw</code> tables. Presto
+reads those Iceberg tables and writes new Iceberg tables — so a <strong>single watsonx.data
+Presto connection</strong> covers both source and target. There is no second connector and no
+file staging: it is an ELT pattern where the transformation <em>is</em> SQL the Presto engine
+runs. That is also why parity with dbt is exact — it is literally the same SQL on the
+same engine.</p>
+<div class="admonition note">
+<p class="admonition-title">Two equivalence rewrites (so each flow runs in parallel)</p>
+<p>DataStage runs all stages in a flow at once, so a stage must not read a table another
+stage in the <em>same</em> flow is still writing. Two models are rewritten to read only the
+<strong>previous</strong> layer, with provably identical results:</p>
+<ul>
+<li><code>silver_sales_enriched</code> inlines the four cleaning CTEs over <strong>bronze</strong> instead of
+  reading the sibling silver tables.</li>
+<li><code>gold_category_performance</code> reads <code>silver_sales_enriched</code> directly instead of
+  <code>gold_daily_sales</code> (each order has one <code>order_date</code>, so the per-day distinct-order
+  counts sum to the per-category count).</li>
+</ul>
+</div>
+<hr>
+<h2 id="build-it">Build it</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># 1) generate the version-controllable flow JSON</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows.py<span class="w"> </span>--build
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2) prove the SQL equals dbt (no DataStage runtime needed — runs on live Presto)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows.py<span class="w"> </span>--verify
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># 3) create the target schemas + the 3 flows in the ibmas-ingest-demo project</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows.py<span class="w"> </span>--create
+</code></pre></div>
+<p>Then open <strong>Projects → ibmas-ingest-demo → Assets → DataStage flows</strong> and you will see
+<code>ds_medallion_bronze</code>, <code>ds_medallion_silver</code>, <code>ds_medallion_gold</code>. Run them in order
+(or wrap each in a DataStage job and chain them).</p>
+<div class="admonition warning">
+<p class="admonition-title">Design-time vs runtime</p>
+<p>Creating the flows works today. <strong>Compiling/running</strong> them needs the DataStage
+<strong>px-runtime</strong> instance to be started — on this cluster the compile API currently
+returns <code>500</code> for <em>every</em> flow (including the pre-existing ones), meaning the runtime
+is scaled down, not that the flow is wrong. Start the DataStage instance in CPD, then
+compile and run bronze → silver → gold. Until then, <code>--verify</code> is the proof of
+correctness.</p>
+</div>
+<hr>
+<h2 id="parity-verified-against-dbt">Parity — verified against dbt</h2>
+<p><code>--verify</code> re-points each model's SQL at the populated <code>dbt_demo_*</code> tables and compares
+to the dbt-built tables:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All 13 models, row counts</td>
+<td>match dbt exactly (50 / 500 / 1134 / 20 …)</td>
+</tr>
+<tr>
+<td><code>gold_daily_sales</code> Σ net_revenue</td>
+<td><code>$87,509.85</code> = dbt</td>
+</tr>
+<tr>
+<td><code>gold_category_performance</code> Σ total_revenue</td>
+<td><code>$87,509.85</code> = dbt</td>
+</tr>
+<tr>
+<td><code>gold_customer_360</code> Σ lifetime_value</td>
+<td><code>$87,509.85</code> = dbt</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="do-i-need-a-datastage-sdk-can-the-mcp-build-the-flow">"Do I need a DataStage SDK? Can the MCP build the flow?"</h2>
+<p><strong>No SDK, and the MCP does not author ETL flows.</strong> The
+<code>ibm-watsonx-data-intelligence</code> MCP governs connections, metadata, glossary,
+data-quality rules, lineage, and data products — it has no "create ETL flow" verb (it
+<em>does</em> create DataStage flows as a by-product of data-quality rules, which is where the
+project's 57 <code>DataStage flow of data rule …</code> assets came from). A DataStage flow is just
+<strong>pipeline-flow v3 JSON</strong> stored as a <code>data_intg_flow</code> asset, created with the ordinary
+Watson Data REST API:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>POST /data_intg/v3/data_intg_flows?project_id=…&amp;data_intg_flow_name=…
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>body: { "pipeline_flows": &lt;pipeline-flow v3 doc&gt; }
+</code></pre></div>
+<p>So the only "SDK" needed is an HTTP client. See
+<a href="https://github.com/"><code>scripts/datastage/README.md</code></a> for the connector-property contract
+and the generator.</p>
 
 
 
@@ -2610,7 +2341,7 @@ Kafka → <strong>Confluent Platform on-prem</strong>, OpenMetadata → <strong>
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../streaming-medallion/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Streaming Medallion Explained">
+          <a href="../datastage-demo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: D · DataStage — No-Code Gold (Confluent path)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -2620,20 +2351,20 @@ Kafka → <strong>Confluent Platform on-prem</strong>, OpenMetadata → <strong>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Streaming Medallion Explained
+                D · DataStage — No-Code Gold (Confluent path)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../glossary/" class="md-footer__link md-footer__link--next" aria-label="Next: Glossary">
+          <a href="../ingestion/" class="md-footer__link md-footer__link--next" aria-label="Next: Ingestion Paths (cpdctl · Kafka · DataStage)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Glossary
+                Ingestion Paths (cpdctl · Kafka · DataStage)
               </div>
             </div>
             <div class="md-footer__button md-icon">
