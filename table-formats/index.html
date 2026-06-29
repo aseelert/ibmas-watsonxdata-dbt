@@ -444,6 +444,8 @@
       
         
       
+        
+      
     
     
     
@@ -496,6 +498,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Presentation (visual deck)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -2096,6 +2126,11 @@ format watsonx.data is built on. Delta Lake (Databricks) and proprietary formats
 solve the same problem a different way.</p>
 </div>
 <hr>
+<figure>
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/images/wxd-table-formats.png" data-desc-position="bottom"><img alt="Parquet vs Iceberg vs Delta — file format versus table format" loading="lazy" src="../assets/images/wxd-table-formats.png"></a>
+<br>
+<figcaption>Parquet is a <em>file</em> format; Iceberg and Delta are <em>table</em> formats that add metadata for schema evolution, time travel, and ACID. This workshop uses Iceberg (spec v3) on MinIO, storing Parquet files.</figcaption>
+</figure>
 <h2 id="first-file-vs-table-format">First: file vs table format</h2>
 <p>A single Parquet file is just a smart, compressed, columnar way to store rows on disk. It is
 excellent at <em>storing</em> data, but it knows nothing about the other files next to it. If you have a

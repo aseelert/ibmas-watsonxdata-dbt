@@ -444,6 +444,8 @@
       
         
       
+        
+      
     
     
     
@@ -496,6 +498,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Presentation (visual deck)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -2088,6 +2118,11 @@
 <p>See also: <a href="../overview/">Enterprise overview</a> · <a href="../intelligence/">Intelligence</a> · <a href="../integration/">Integration</a> · <a href="../summary/">Summary</a> · <a href="../../spark-demo/">Spark demo</a> · <a href="../../choosing/">Choosing a path</a></p>
 </div>
 <hr>
+<figure>
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/images/wxd-native-accel.png" data-desc-position="bottom"><img alt="Velox-based native acceleration: Prestissimo, Gluten Spark, and the GPU Presto preview" loading="lazy" src="../../assets/images/wxd-native-accel.png"></a>
+<br>
+<figcaption>One C++ substrate (Velox), three engines: Presto C++ (Prestissimo, <strong>GA</strong>), Gluten-accelerated Spark (<strong>GA</strong>), and GPU-accelerated Presto C++ (<strong>private tech preview — not GA</strong>). Plus the watsonx.data editions and what Premium adds.</figcaption>
+</figure>
 <h2 id="the-velox-story-one-substrate-three-engines">The Velox story: one substrate, three engines</h2>
 <p>The thread connecting every performance story below is <strong><a href="https://www.ibm.com/new/product-blog/veloxcon-2024-innovation-in-data-management">Velox</a></strong> — an open-source, vectorized C++ execution library (a Meta/Uber/Intel/IBM collaboration). Velox is <em>not</em> a query engine you run directly. It is the <strong>shared C++ execution core</strong> that several engines plug into in place of their slower Java workers.</p>
 <p>That shared core matters for one practical reason: an optimization made in Velox — vectorized operators, better memory handling, and eventually GPU offload — benefits <strong>Presto and Spark at the same time</strong>, rather than each engine reinventing it. It also means the performance characteristics you learn on one engine carry over to the other.</p>

@@ -1,0 +1,205 @@
+{
+  "name": "IBM watsonx.data Lakehouse Workshop",
+  "children": [
+    {
+      "name": "Core Architecture",
+      "children": [
+        {
+          "name": "Lakehouse Building Blocks",
+          "children": [
+            {
+              "name": "MinIO: Object Storage"
+            },
+            {
+              "name": "Apache Iceberg: Table Format"
+            },
+            {
+              "name": "Presto: SQL Query Engine"
+            },
+            {
+              "name": "Spark: Python ETL Runner"
+            }
+          ]
+        },
+        {
+          "name": "Medallion Pattern",
+          "children": [
+            {
+              "name": "Raw: Landing tables"
+            },
+            {
+              "name": "Bronze: Ingestion metadata"
+            },
+            {
+              "name": "Silver: Cleaned & Typed"
+            },
+            {
+              "name": "Gold: Analytics marts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Interchangeable Pipelines",
+      "children": [
+        {
+          "name": "Path A: dbt",
+          "children": [
+            {
+              "name": "SQL Governance"
+            },
+            {
+              "name": "Presto Compute Pushdown"
+            },
+            {
+              "name": "Lineage & Testing"
+            }
+          ]
+        },
+        {
+          "name": "Path B: Spark",
+          "children": [
+            {
+              "name": "Python ETL"
+            },
+            {
+              "name": "Imperative Dataframes"
+            },
+            {
+              "name": "Large Data Scaling"
+            }
+          ]
+        },
+        {
+          "name": "Path C: Confluent",
+          "children": [
+            {
+              "name": "Streaming Pipeline"
+            },
+            {
+              "name": "Kafka & Flink SQL"
+            },
+            {
+              "name": "Iceberg Sink"
+            }
+          ]
+        },
+        {
+          "name": "Loader: cpdctl",
+          "children": [
+            {
+              "name": "Native Ingestion"
+            },
+            {
+              "name": "No Transformation"
+            },
+            {
+              "name": "UI History Tracking"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tool Ecosystem",
+      "children": [
+        {
+          "name": "Orchestration",
+          "children": [
+            {
+              "name": "Apache Airflow"
+            },
+            {
+              "name": "DAG Management"
+            },
+            {
+              "name": "Scheduling & Retries"
+            }
+          ]
+        },
+        {
+          "name": "Governance & Catalog",
+          "children": [
+            {
+              "name": "OpenMetadata"
+            },
+            {
+              "name": "dbt Artifact Ingestion"
+            },
+            {
+              "name": "Lineage Visualization"
+            }
+          ]
+        },
+        {
+          "name": "Visualization",
+          "children": [
+            {
+              "name": "Metabase BI"
+            },
+            {
+              "name": "Live Presto Queries"
+            },
+            {
+              "name": "Gold Mart Dashboards"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Enterprise Integration",
+      "children": [
+        {
+          "name": "watsonx.data Integration",
+          "children": [
+            {
+              "name": "DataStage: No-code ETL"
+            },
+            {
+              "name": "StreamSets: Schema Drift"
+            },
+            {
+              "name": "Data Replication: CDC"
+            },
+            {
+              "name": "Databand: Observability"
+            }
+          ]
+        },
+        {
+          "name": "watsonx.data Intelligence",
+          "children": [
+            {
+              "name": "Business Glossary"
+            },
+            {
+              "name": "Manta Lineage"
+            },
+            {
+              "name": "Policy Enforcement"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Key Concepts",
+      "children": [
+        {
+          "name": "Decoupled Storage & Compute"
+        },
+        {
+          "name": "Parquet File Format"
+        },
+        {
+          "name": "Schema-on-Read"
+        },
+        {
+          "name": "Time Travel Snapshots"
+        }
+      ]
+    }
+  ]
+}

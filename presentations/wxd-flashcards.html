@@ -1,0 +1,265 @@
+{
+  "title": "Watsonx.data Flashcards",
+  "cards": [
+    {
+      "front": "In the medallion pattern, which layer is responsible for preserving the original source data exactly as received without any cleaning or casting?",
+      "back": "The Raw Layer (or Landing Layer)."
+    },
+    {
+      "front": "What specific metadata is typically added to data when it moves from the Raw layer to the Bronze layer?",
+      "back": "Ingestion metadata, such as ingest timestamps, source file names, and batch IDs."
+    },
+    {
+      "front": "The _____ layer of the medallion architecture contains cleaned, typed, and joined data that serves as the general-purpose source of truth.",
+      "back": "Silver"
+    },
+    {
+      "front": "What is the primary purpose of the Gold layer in a data lakehouse?",
+      "back": "To provide purpose-built, pre-aggregated analytics marts designed to answer specific business questions quickly."
+    },
+    {
+      "front": "Concept: Apache Iceberg",
+      "back": "Definition: An open table format that adds a metadata layer on top of files in object storage to enable ACID transactions and time travel."
+    },
+    {
+      "front": "How does Parquet's columnar storage differ from row-based formats like CSV when performing aggregation queries?",
+      "back": "It stores each column together, allowing the engine to physically skip bytes of columns not required by the query."
+    },
+    {
+      "front": "_____ is a Confluent Cloud feature that automatically materializes Kafka topics as Iceberg or Delta Lake tables without requiring pipeline code.",
+      "back": "Tableflow"
+    },
+    {
+      "front": "What is the relationship between Parquet and Apache Iceberg in the watsonx.data ecosystem?",
+      "back": "Parquet is the underlying file format for data storage, while Iceberg is the table format providing the metadata index."
+    },
+    {
+      "front": "Which engine in the watsonx.data workshop is best suited for SQL-first teams who want built-in tests and automatic column-level lineage?",
+      "back": "dbt (data build tool)."
+    },
+    {
+      "front": "Under what condition should a developer choose Spark over dbt for transformations in watsonx.data?",
+      "back": "When handling very large data (multi-TB), complex Python-based logic, or machine learning feature engineering."
+    },
+    {
+      "front": "The _____ tool is an ingestion-only CLI loader that lands raw data and tracks history in the watsonx.data UI but does not perform transformations.",
+      "back": "cpdctl"
+    },
+    {
+      "front": "In the streaming medallion path, which engine is used to clean and enrich Kafka topics in real-time before sinking them to Iceberg?",
+      "back": "Apache Flink."
+    },
+    {
+      "front": "IBM DataStage is positioned as the recommended enterprise alternative to dbt or Spark for teams requiring a _____ authoring surface.",
+      "back": "no-code (or visual GUI)"
+    },
+    {
+      "front": "What is the core difference between dbt Core and the dbt Fusion engine?",
+      "back": "dbt Core is the open-source foundation, while the Fusion engine is a proprietary, Rust-based runtime offering native SQL comprehension."
+    },
+    {
+      "front": "Concept: Apache Gluten",
+      "back": "Definition: A middle layer that offloads JVM-based Spark SQL execution to native engines like Velox for performance acceleration."
+    },
+    {
+      "front": "What is 'Prestissimo' in the context of Presto performance tiers?",
+      "back": "The native C++ version of the Presto engine built on the Velox library."
+    },
+    {
+      "front": "As of mid-2026, what is the General Availability (GA) status of GPU-accelerated Presto C++?",
+      "back": "It is in Private Technical Preview (not yet GA)."
+    },
+    {
+      "front": "Which library serves as the shared C++ execution core for both Prestissimo and Gluten-accelerated Spark?",
+      "back": "Velox."
+    },
+    {
+      "front": "The watsonx.data _____ Edition is described as a 'Gen AI data lakehouse' bundle including entitlements for Intelligence and Integration.",
+      "back": "Premium"
+    },
+    {
+      "front": "What specific capability does 'watsonx.data Intelligence' provide that the open-source stack lacks regarding data security?",
+      "back": "Dynamic column masking and row-level access policies enforced at query time."
+    },
+    {
+      "front": "Which IBM tool provides ML-powered anomaly detection and observability across Airflow, DataStage, and StreamSets pipelines?",
+      "back": "IBM Databand."
+    },
+    {
+      "front": "Manta Data Lineage, part of watsonx.data Intelligence, is unable to trace the internal logic of which specific processing engine?",
+      "back": "Apache Flink."
+    },
+    {
+      "front": "In watsonx.data, the _____ is a Hive Metastore-compatible registry that tells engines where schemas and tables are located.",
+      "back": "Catalog (iceberg_data)"
+    },
+    {
+      "front": "What is the primary benefit of Iceberg's 'partition pruning' during a Presto query?",
+      "back": "It allows the engine to skip reading files in partition sub-folders that do not match the query's filter criteria."
+    },
+    {
+      "front": "The dbt Fusion engine manages parallelism for Snowflake and Databricks by ignoring user-set threads and _____.",
+      "back": "automatically optimizing parallelism for maximum performance."
+    },
+    {
+      "front": "Why is the use of 'CREATE MATERIALIZED VIEW' not recommended on Presto Iceberg in the current workshop setup?",
+      "back": "It is currently not supported and returns a 'NOT_SUPPORTED' error; regular views should be used instead."
+    },
+    {
+      "front": "In the Confluent streaming path, what is the role of the 'Iceberg REST catalog'?",
+      "back": "It acts as a librarian service that maintains the index of which files make up each table and their locations."
+    },
+    {
+      "front": "How is 'register_table' used in the Confluent/Flink pipeline?",
+      "back": "It informs the watsonx.data catalog about tables physically written by Flink so they can be queried by Presto or Spark."
+    },
+    {
+      "front": "Which watsonx.data component is specifically designed to handle document parsing and table extraction from PDFs using 'Docling'?",
+      "back": "Unstructured Data Integration (UDI), part of the Premium edition."
+    },
+    {
+      "front": "Term: Resource Unit (RU)",
+      "back": "Definition: The consumption-based metering currency used for IBM's enterprise add-on capabilities like Intelligence and Integration."
+    },
+    {
+      "front": "IBM Software Hub version 5.4 corresponds to watsonx.data version _____.",
+      "back": "2.4"
+    },
+    {
+      "front": "What is the primary risk of using 'dbt seed' for large datasets instead of a dedicated loader like cpdctl?",
+      "back": "dbt seed is intended for small, static reference files and may have performance issues with large data volumes."
+    },
+    {
+      "front": "The _____ tool allows users to publish governed Gold marts as discoverable self-service 'data products' with defined SLAs.",
+      "back": "Data Product Hub (DPH)"
+    },
+    {
+      "front": "Why is the use of ORC format discouraged in an Iceberg table that already contains Parquet files?",
+      "back": "Mixing Parquet and ORC within the same Iceberg table will cause write operations to fail."
+    },
+    {
+      "front": "What is the 'one big idea' behind why a lakehouse separates storage from compute?",
+      "back": "It allows data to be stored once in cheap object storage while multiple specialized engines (SQL, Spark, Flink) access it simultaneously."
+    },
+    {
+      "front": "In dbt, the _____ command is a modern equivalent that performs seed, run, and test operations in a single dependency-aware step.",
+      "back": "dbt build"
+    },
+    {
+      "front": "Which engine tier provides a reported $\\sim 2-3\\times$ speedup over Presto Java while maintaining full open-source compatibility?",
+      "back": "Presto C++ (Prestissimo)."
+    },
+    {
+      "front": "What open standard provides a 'common language' for recording data lineage across different tools like dbt, Spark, and Airflow?",
+      "back": "OpenLineage."
+    },
+    {
+      "front": "In the medallion pattern, 'Silver' is considered a general-purpose foundation, whereas 'Gold' is _____.",
+      "back": "purpose-built (or shaped) to answer a specific business question."
+    },
+    {
+      "front": "Which tool would a 'platform operator' use to perform an IBM-native, UI-tracked load of raw data without writing code?",
+      "back": "cpdctl."
+    },
+    {
+      "front": "The watsonx.data _____ Edition is a free version intended for prototyping and single-VM use.",
+      "back": "Developer"
+    },
+    {
+      "front": "What is the role of 'Metabase' in the optional open-source stack of the workshop?",
+      "back": "It serves as the BI front-end for charting and visualizing the Gold marts in a browser UI."
+    },
+    {
+      "front": "How does dbt Fusion's 'static analysis' help a developer during the coding process?",
+      "back": "It immediately catches incorrect SQL in dbt models and previews inline CTEs for faster debugging."
+    },
+    {
+      "front": "In the context of Iceberg, 'Time Travel' allows a user to _____.",
+      "back": "query a previous snapshot or version of a table to see what the data looked like at a specific point in time."
+    },
+    {
+      "front": "Which processing engine is analogous to Confluent Tableflow for materializing Kafka topics into Iceberg tables in the workshop's 'DIY' path?",
+      "back": "Apache Flink (specifically the Flink Iceberg sink)."
+    },
+    {
+      "front": "Term: StreamSets",
+      "back": "Definition: A streaming data integration tool that handles 'schema drift' automatically to prevent pipeline breaks when source columns change."
+    },
+    {
+      "front": "Why is 'DataStage' recommended for enterprise teams despite being proprietary?",
+      "back": "It offers a no-code visual ETL canvas, vendor support, and is easily staffed by traditional ETL developers."
+    },
+    {
+      "front": "In Apache Spark 4.x, which SQL mode is now enabled by default, representing a potential migration 'gotcha'?",
+      "back": "ANSI SQL mode."
+    },
+    {
+      "front": "The dbt Fusion engine is a _____ layer built on top of the open-source dbt Core v2 foundation.",
+      "back": "proprietary"
+    },
+    {
+      "front": "Which performance tier utilizes NVIDIA's 'cuDF' library to execute query plans?",
+      "back": "GPU-accelerated Presto C++."
+    },
+    {
+      "front": "What is the primary architectural role of MinIO in the watsonx.data lakehouse?",
+      "back": "It acts as the S3-compatible object storage ('filing cabinet') for holding data files."
+    },
+    {
+      "front": "In the medallion architecture, which layer 'preserves the truth' while 'Bronze' records how that truth arrived?",
+      "back": "The Raw Layer."
+    },
+    {
+      "front": "The _____ tool allows for 'Agentic Data Intelligence,' enabling the creation of data products through natural language.",
+      "back": "watsonx.data intelligence"
+    },
+    {
+      "front": "What is the function of the 'Schema Registry' in the Confluent streaming path?",
+      "back": "It stores Avro schemas for topics and rejects any incoming messages that do not match the agreed-upon contract."
+    },
+    {
+      "front": "In the watsonx.data workshop, the three full pipelines (dbt, Spark, Confluent) are considered _____ because they all reach the same Gold marts.",
+      "back": "interchangeable (or peers)"
+    },
+    {
+      "front": "Why is 'Kafka' considered the streaming equivalent of the Bronze layer?",
+      "back": "It serves as a replayable, append-only event log of raw data."
+    },
+    {
+      "front": "Which IBM offering unifies structured and unstructured data integration across hybrid environments from a single control plane?",
+      "back": "watsonx.data integration."
+    },
+    {
+      "front": "What is the minimum metering increment for IBM Resource Units (RUs) on the Software Hub?",
+      "back": "One minute."
+    },
+    {
+      "front": "In the medallion architecture, which layer is responsible for aligning business keys and handling nulls?",
+      "back": "The Silver Layer."
+    },
+    {
+      "front": "What is the primary advantage of using a 'TABLE' materialization for Gold marts instead of a 'VIEW'?",
+      "back": "It is faster for repeated queries because the results are pre-calculated and stored as physical files."
+    },
+    {
+      "front": "The _____ substrate is a shared execution core that benefits both Presto and Spark when vectorized operator optimizations are added.",
+      "back": "Velox"
+    },
+    {
+      "front": "Which engine would you use if your data is arriving continuously and you need Silver/Gold marts available in seconds?",
+      "back": "Confluent (Kafka $\\rightarrow$ Flink $\\rightarrow$ Iceberg)."
+    },
+    {
+      "front": "Under what condition is 'open source genuinely enough' for a customer according to the workshop summary?",
+      "back": "When the team is SQL-first, has modest governance needs, few stable sources, and is not heavily regulated."
+    },
+    {
+      "front": "The dbt-watsonx-presto adapter allows dbt to push compute down to the _____ engine.",
+      "back": "Presto"
+    },
+    {
+      "front": "What distinguishes 'watsonx.data Intelligence' as the rebrand and superset of IBM Knowledge Catalog (IKC)?",
+      "back": "It combines IKC's governance with Manta lineage and the Data Product Hub into a single product."
+    }
+  ]
+}

@@ -9,7 +9,7 @@
       
       
       
-        <link rel="next" href="setup/">
+        <link rel="next" href="presentation/">
       
       
         
@@ -444,6 +444,8 @@
       
         
       
+        
+      
     
     
     
@@ -499,6 +501,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="presentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Presentation (visual deck)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1991,6 +2021,7 @@
   </p>
   <div class="hero-actions">
     <a class="primary" href="setup/">Start Preparation</a>
+    <a href="presentation/">View the Deck</a>
     <a href="lineage/">See Architecture</a>
     <a href="dbt-demo/">Run dbt</a>
     <a href="spark-demo/">Run Spark</a>
@@ -2007,6 +2038,11 @@
 <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="assets/images/spark.svg" data-desc-position="bottom"><img alt="Apache Spark" src="assets/images/spark.svg"></a>
 <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="assets/images/iceberg.svg" data-desc-position="bottom"><img alt="Apache Iceberg" src="assets/images/iceberg.svg"></a></p>
 </div>
+<figure>
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="assets/images/wxd-overview.png" data-desc-position="bottom"><img alt="IBM watsonx.data: one platform, many engines — the medallion flow and interchangeable pipelines" loading="lazy" src="assets/images/wxd-overview.png"></a>
+<br>
+<figcaption>One platform, many engines. The same CSVs flow Raw → Bronze → Silver → Gold, built by dbt, Spark, or Confluent streaming (and loaded by cpdctl or transformed no-code by DataStage) — all on the open lakehouse (MinIO · Iceberg/Parquet · Presto · Spark · <code>iceberg_data</code> catalog).</figcaption>
+</figure>
 <h2 id="the-tools-at-a-glance">The tools at a glance</h2>
 <p>New to this stack? Here is each tool in one line — what it is, and when you reach for it.</p>
 <table>
@@ -2343,13 +2379,13 @@ the setup page is the most common reason commands fail.</p>
         
         
           
-          <a href="setup/" class="md-footer__link md-footer__link--next" aria-label="Next: 1 · Prepare Your Machine">
+          <a href="presentation/" class="md-footer__link md-footer__link--next" aria-label="Next: Customer Presentation (visual deck)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                1 · Prepare Your Machine
+                Customer Presentation (visual deck)
               </div>
             </div>
             <div class="md-footer__button md-icon">
