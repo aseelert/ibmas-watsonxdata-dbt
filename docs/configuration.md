@@ -241,10 +241,18 @@ are used.
 | `SCHEMA_REGISTRY_URL` | `http://localhost:28081` | Schema Registry endpoint **from your workstation**. Inside a Docker service on the compose network, use `http://confluent-schema-registry:8081` instead. |
 | `WXD_DATASTAGE_PROJECT_ID` | `2d2415ea-71b5-4215-a7b6-b32a4889611e` | GUID of the CPD project that holds the DataStage Gold flow (only used when `CONFLUENT_GOLD_ENGINE=datastage`). |
 | `WXD_DATASTAGE_PROJECT_NAME` | `ibmas-ingest-demo` | Human-readable name of that project (kept for reference; the GUID is what is addressed). |
+| `WXD_DATASTAGE_CONNECTION_REF` | *(required for datastage)* | Asset GUID of the watsonx.data **connection asset** inside the DataStage project — how the flow reaches Iceberg (not raw credentials). Create it in CP4D → project → New asset → Connection → "IBM watsonx.data". |
+| `WXD_DATASTAGE_CONNECTION_NAME` | `watsonx.data Presto connection` | Display name of that connection asset. |
 | `ICEBERG_REST_URL` | `http://confluent-iceberg-rest:8181` | In-container Iceberg REST catalog URL used by `prep_iceberg_schemas.py` Phase B. Override only when running outside Docker. |
 
 DataStage auth reuses `WXD_API_KEY` + `WXD_CPD_USERNAME` (`cpadmin`) against `WXD_CPD_HOST` — the
 same credentials as every other path.
+
+!!! note "OpenShift login for `expose_minio_route.sh` (Confluent prerequisite)"
+    The one-time `bash confluent/scripts/expose_minio_route.sh` step needs to talk to OpenShift.
+    Pick **one** auth method in `.env`: `WXD_OPENSHIFT_CONTEXT` (pin an existing kubeconfig context),
+    `WXD_OC_TOKEN` (a bearer token from `oc whoami -t`), or `WXD_OC_USER` + `WXD_OC_PASSWORD`
+    (kubeadmin/LDAP). The script prints the Route URL — paste it into `WXD_OBJECT_STORE_ENDPOINT`.
 
 !!! info "Two values that change with WHERE the caller runs"
     `SCHEMA_REGISTRY_URL` and the Iceberg REST URL have a **host** form and an **in-container**

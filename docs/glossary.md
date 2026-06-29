@@ -444,3 +444,95 @@ flowchart TB
 
 !!! info "Why watsonx.data?"
     It lets you run open-standard tools (Presto, Spark, Iceberg) with enterprise governance, unified metadata, and IBM support — all on your own OpenShift cluster, no AWS required.
+
+---
+
+## Streaming terms (Confluent path)
+
+### Kafka (Apache Kafka)
+
+A distributed, append-only **log** of messages organized into topics. Producers write events; consumers read them. In this demo Kafka carries the raw and silver streams of the [Confluent path](confluent-demo.md). Unlike a database table, a topic keeps events in order and lets you **replay** them from the beginning.
+
+### Topic
+
+A named stream in Kafka. This demo uses **raw** topics (`raw_orders`, …) and **silver** topics (`silver_orders`, …). A raw topic is the streaming equivalent of the Bronze layer — a replayable event log.
+
+### Flink (Apache Flink)
+
+A stream-processing engine. Here it runs **Flink SQL** that reads a raw topic, cleans/casts/filters each message, and writes the result to a silver topic — then sinks the silver stream into an Iceberg table. See [Streaming Medallion Explained](streaming-medallion.md).
+
+### Schema Registry
+
+A service that stores the agreed **Avro schema** for each topic and rejects messages that don't match. It is the streaming analogue of a dbt `not_null`/type test — the contract that keeps bad data out of Silver. This demo uses the Confluent Schema Registry.
+
+### Tableflow / Iceberg sink
+
+The step that continuously turns a Kafka topic into an **Iceberg table** in object storage (Parquet data files + catalog registration). "Tableflow" is Confluent's name for the managed version; this demo does the same with a Flink Iceberg sink. After it runs, Presto/Spark can query the streamed data with no copy.
+
+### Confluent
+
+The commercial company and platform built around Apache Kafka (brokers, Schema Registry, connectors, Flink, Tableflow). This demo ships an open-source Docker stack; for production the enterprise option is **Confluent Platform on-prem** as a unified ingestion hub — see [watsonx.data Integration](enterprise/integration.md).
+
+### Delta Lake
+
+An open table format (Linux Foundation, led by Databricks), the main alternative to Iceberg. Like Iceberg it adds ACID transactions, time travel, and schema evolution on top of Parquet. This demo uses **Iceberg** because watsonx.data is built around it; see the comparison in [Table Formats](table-formats.md).
+
+---
+
+## Enterprise terms (watsonx.data Intelligence & Integration)
+
+### IBM Software Hub
+
+The platform base that hosts watsonx.data and the watsonx services on-premises — the successor/rebrand of **Cloud Pak for Data**. On-prem watsonx.data versions track the Software Hub release (e.g. 5.3 ≈ Dec 2025; 5.4 exists).
+
+### RU (Resource Unit)
+
+IBM's compute **consumption unit** (list price ~$1/RU, metered per-second). The enterprise bundles (Intelligence, Integration) are RU-metered, so cost scales with use. See [Performance & Editions](enterprise/performance-editions.md).
+
+### watsonx.data Intelligence
+
+IBM's governance/catalog product — the rebrand/superset of **IBM Knowledge Catalog (IKC)**. Bundles the catalog, business glossary, data classification, data quality, profiling, **Manta** lineage, and **Data Product Hub**. See [watsonx.data Intelligence](enterprise/intelligence.md).
+
+### IBM Knowledge Catalog (IKC)
+
+The governance engine inside watsonx.data Intelligence: business glossary, data quality rules, classification, and **data protection rules** (access control + dynamic masking) that are enforced down into the watsonx.data lakehouse at query time.
+
+### Manta (IBM Manta Data Lineage)
+
+Automated, cross-tool **lineage** with 50+ scanners. Parses SQL, ETL (DataStage, column-level), and BI (Cognos) into one end-to-end graph. Scans the Confluent **Schema Registry** for Kafka topic lineage — but does **not** trace Flink job logic. See [End-to-End Lineage](enterprise/lineage-e2e.md).
+
+### Data Product Hub (DPH)
+
+A marketplace for publishing governed **data products** (e.g. the gold marts) with contracts and SLAs for self-service consumption. Part of watsonx.data Intelligence; also sold standalone.
+
+### watsonx.data Integration
+
+IBM's data-movement product — one control plane for **DataStage** (batch ETL), **StreamSets** (streaming), **Data Replication** (CDC), **Unstructured Data (UDI)**, and **Databand** (observability). See [watsonx.data Integration](enterprise/integration.md).
+
+### DataStage
+
+IBM's no-code, visual ETL tool. In this demo it can build the Confluent **gold** marts (Path D); more broadly it is the enterprise way to build the whole Silver → Gold medallion after data lands. See [DataStage](datastage-demo.md).
+
+### StreamSets
+
+Smart streaming/ingestion pipelines with schema-drift handling, part of watsonx.data Integration.
+
+### UDI (Unstructured Data)
+
+watsonx.data Integration's capability to ingest documents/PDFs and chunk + embed them into a vector store for RAG/AI — making unstructured data AI-ready.
+
+### Databand (Data Observability)
+
+IBM's pipeline **observability** tool: monitors Apache **Airflow**, DataStage, and StreamSets with learned-baseline anomaly detection and SLA/quality alerting. Adds the "is my data *right*?" layer on top of scheduling. See [orchestration](orchestrate.md).
+
+### Prestissimo (Presto C++)
+
+The native **C++** version of the Presto engine, built on **Velox**. Reported ~2–3× faster than Presto Java. GA. See [Performance & Editions](enterprise/performance-editions.md).
+
+### Gluten
+
+An accelerator that offloads **Spark SQL** to the **Velox** C++ engine — the native-accelerated Spark the customer already runs. GA.
+
+### GPU acceleration (Presto)
+
+NVIDIA **cuDF + Velox** running Presto C++ query plans on GPUs. **Private technical preview — not GA**, and not a named edition feature. Treat as roadmap.

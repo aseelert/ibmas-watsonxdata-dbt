@@ -16,6 +16,12 @@
 
     Estimated time: ~20 minutes (the first run is longer — the Flink image builds once).
 
+!!! tip "New to streaming? Read the concept first"
+    For the plain-English version — producer → raw topic → Flink SQL → silver topic → Iceberg sink →
+    catalog → any engine — see [Streaming Medallion Explained](streaming-medallion.md), and
+    [Table Formats](table-formats.md) for why the Iceberg sink works. This page is the hands-on run;
+    [Confluent — How It Works](confluent-internals.md) is the component-by-component deep dive.
+
 !!! info "This is the third independent path to the same Gold"
     dbt (Path A) and Spark (Path B) are **batch** pipelines: they run, finish, and stop. Confluent
     is the **streaming** path — data flows continuously, row by row, never "finishing." All three

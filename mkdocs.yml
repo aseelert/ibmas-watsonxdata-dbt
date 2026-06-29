@@ -68,29 +68,40 @@ nav:
   - Workshop:
     - Welcome: index.md
     - "1 · Prepare Your Machine": setup.md
+    - "Fast Track — All Commands": fast-track.md
   - Understand:
     - "Architecture & Data Flow": lineage.md
-    - "When to Use Which (dbt · Spark · Confluent · cpdctl)": choosing.md
+    - "Table Formats — Iceberg vs Parquet vs Delta": table-formats.md
+    - "Streaming Medallion Explained": streaming-medallion.md
+    - "When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)": choosing.md
     - Glossary: glossary.md
   - Build a Medallion (dbt · Spark · Confluent):
     - "A · dbt — SQL Governance (full pipeline)": dbt-demo.md
     - "B · Spark — Python ETL (full pipeline)": spark-demo.md
     - "C · Confluent — Streaming (Kafka→Flink→Iceberg)": confluent-demo.md
     - "C · Confluent — How It Works (deep dive)": confluent-internals.md
-    - "C-alt · DataStage — No-Code Gold (Confluent path)": datastage-demo.md
+    - "D · DataStage — No-Code Gold (Confluent path)": datastage-demo.md
   - Ingest & Compare:
-    - "Ingest Raw Data — cpdctl (loader)": ingestion.md
-    - "SQL — Compare dbt vs Spark Gold": sql-demo.md
-  - Orchestrate (optional):
+    - "Ingestion Paths (cpdctl · Kafka · DataStage)": ingestion.md
+    - "SQL — Compare dbt vs Spark vs Confluent Gold": sql-demo.md
+  - Orchestrate:
+    - "dbt vs DAG — What Orchestrates What": orchestrate.md
     - "Airflow — Schedule the Pipeline": airflow.md
-  - Governance (optional):
+  - Governance (open source):
     - "Lineage UI (OpenMetadata)": openmetadata.md
     - "Glossary & Classification (OpenMetadata)": openmetadata-governance.md
     - "Lineage Standard (OpenLineage)": openlineage.md
     - "BI & Dashboards (Metabase)": metabase.md
     - "Semantic Models": semantic-models.md
+  - Enterprise (watsonx.data Intelligence & Integration):
+    - "Why Upgrade — Open Source vs Enterprise": enterprise/overview.md
+    - "watsonx.data Intelligence (IKC · Manta · DPH)": enterprise/intelligence.md
+    - "watsonx.data Integration (DataStage · StreamSets · UDI · Databand)": enterprise/integration.md
+    - "End-to-End Lineage (source → DataStage → Cognos)": enterprise/lineage-e2e.md
+    - "Performance & Editions (Prestissimo · Gluten · GPU · RU)": enterprise/performance-editions.md
+    - "Summary — Strengths & Weaknesses": enterprise/summary.md
   - Reference:
-    - "Configuration & Files": configuration.md
+    - "Configuration & .env Reference": configuration.md
     - "File Guide": files.md
     - "Scripts": scripts.md
     - Troubleshooting: troubleshooting.md

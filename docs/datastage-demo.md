@@ -1,4 +1,4 @@
-# C-alt — DataStage: No-Code Gold for the Confluent Path
+# D — DataStage: No-Code Gold for the Confluent Path
 
 !!! abstract "What this page is"
     The Confluent streaming path builds its **Silver** layer with Flink, then builds **Gold**
@@ -8,6 +8,13 @@
     `confluent_demo_gold` marts, so the parity contract is unchanged.
 
     > **One Silver, two ways to build Gold — pick the engine, get identical numbers.**
+
+!!! tip "DataStage as your medallion builder (the enterprise angle)"
+    This page runs DataStage as the *gold engine* for the streaming path, but the bigger picture is
+    that **DataStage is IBM's no-code way to build the whole Silver → Gold medallion** after data
+    lands — the enterprise alternative to hand-written dbt/Spark. See
+    [watsonx.data Integration](enterprise/integration.md) for where it fits, and the honest
+    [open-source-vs-enterprise summary](enterprise/summary.md).
 
 ---
 
@@ -64,11 +71,20 @@ follows them automatically.
 ## Run it — `create_datastage_flow.py`
 
 ```bash
+# 0. (once) sanity-check auth the same way every other script does
+python scripts/get_token.py
+
 # 1. point the gold engine at DataStage
 #    in .env:  CONFLUENT_GOLD_ENGINE=datastage
 
-# 2. create (and run) the DataStage flow in the ibmas-ingest-demo project
-python scripts/create_datastage_flow.py
+# 2. DRY RUN (default) — render and PRINT the exact request, no network call
+python confluent/scripts/create_datastage_flow.py
+
+# 3. create the flow on the live cluster
+python confluent/scripts/create_datastage_flow.py --apply
+
+# 4. create it, compile it, and trigger a job run
+python confluent/scripts/create_datastage_flow.py --apply --run
 ```
 
 The script authenticates to Cloud Pak for Data with your API key, targets the
@@ -76,9 +92,13 @@ The script authenticates to Cloud Pak for Data with your API key, targets the
 `confluent_demo_silver` and writes the three `confluent_demo_gold` marts. Because the auth and
 project come entirely from `.env`, the same command works on any cluster once those values are set.
 
-!!! tip "Preview before you build"
-    Like the other scripts in this repo, prefer to inspect what will run first. Pass `--help`
-    to see the available flags (project override, dry-run/preview, and confirmation options).
+!!! warning "Dry-run by default — needs a live DataStage service"
+    The script lives at **`confluent/scripts/create_datastage_flow.py`** and runs in **dry-run mode
+    unless you pass `--apply`** — it only prints the request it *would* send, so it is safe to run
+    anywhere. Creating the flow for real requires a CP4D / IBM Software Hub cluster with the
+    **DataStage cartridge** installed (the flows API does not exist without it). Open the created
+    flow once in the DataStage canvas so the service can normalize the connector bindings before the
+    first successful run. Pass `--help` to see all flags.
 
 ---
 

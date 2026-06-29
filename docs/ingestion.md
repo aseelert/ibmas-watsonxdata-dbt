@@ -1,12 +1,20 @@
-# Loading Data: Two Transform Engines (dbt, Spark) + One Native Loader (cpdctl)
+# Ingestion Paths — cpdctl · Kafka · DataStage
 
 !!! abstract "The central question"
-    You have four CSV files. **dbt** and **Spark** are two full pipelines that load **and**
-    clean/transform the CSVs into a medallion (Bronze → Silver → Gold). **cpdctl** is a native
-    loader that lands the raw CSVs as-is in `spark_demo_cpdctl_raw` (clean them afterward with dbt
-    or Spark). This page compares all three at a glance, then walks through **cpdctl native
-    ingestion** in step-by-step detail — including how to finish the job with a dbt or Spark
-    post-action.
+    *How does data get **in**?* This workshop has several answers. **dbt** and **Spark** load **and**
+    transform the CSVs into a full medallion. **cpdctl** is a native loader that lands raw CSVs in
+    `spark_demo_cpdctl_raw` (clean them afterward with dbt or Spark). **Kafka/Confluent** streams
+    data in continuously (the [streaming path](confluent-demo.md)). And in an enterprise setup,
+    **DataStage / StreamSets / Data Replication** ingest from many sources on a schedule or via CDC.
+    This page compares the loaders, then walks through **cpdctl** in step-by-step detail.
+
+!!! tip "How to think about ingestion vs transformation"
+    *Ingestion* gets raw bytes into the lakehouse; *transformation* (the medallion) turns them into
+    clean, governed marts. cpdctl, Kafka ingest, and DataStage/StreamSets are mostly about the
+    **first** step; dbt, Spark, Flink, and DataStage build the medallion on top. A real platform
+    often uses a **unified Kafka path** for many realtime sources *and* scheduled batch (DataStage)
+    for sources that do not need to be realtime — see [When to Use Which](choosing.md) and the
+    cost discussion in [watsonx.data Integration](enterprise/integration.md).
 
 ---
 
@@ -63,6 +71,53 @@ flowchart LR
     C2 -. "transform with dbt or Spark\n(post-action)" .-> A1
     C2 -. "transform with dbt or Spark\n(post-action)" .-> B1
 ```
+
+---
+
+## Beyond CSV — streaming and enterprise ingestion
+
+The three loaders above all start from static CSV files. Two other ingestion styles matter for a
+real platform, and the rest of the workshop covers them:
+
+### Streaming ingestion — the unified Kafka path
+
+When data arrives **continuously** (clickstreams, IoT, transactions, change events), you do not
+batch-load it — you stream it. A **producer** publishes each record onto a Kafka **topic**, and the
+[Confluent path](confluent-demo.md) turns that into a medallion: Flink cleans the raw topic into a
+silver topic, then sinks it to an Iceberg table in the lakehouse. A single Kafka cluster can act as
+the **central ingestion hub** for many sources at once — one path in, many consumers out.
+
+```mermaid
+flowchart LR
+  s1["Source: app DB"] --> k["Kafka (central ingest hub)"]
+  s2["Source: events"] --> k
+  s3["Source: files/CDC"] --> k
+  k --> flink["Flink SQL\nclean → silver"]
+  flink --> ice["Iceberg in watsonx.data"]
+  ice --> q["Presto · Spark · dbt gold"]
+```
+
+See [Streaming Medallion Explained](streaming-medallion.md) for the concept and
+[Confluent — Streaming](confluent-demo.md) to run it.
+
+### Enterprise ingestion — DataStage, StreamSets, CDC
+
+Not everything needs to be realtime, and not every team writes code. In an IBM **watsonx.data
+Integration** setup, **DataStage** (no-code batch ETL), **StreamSets** (streaming), and **Data
+Replication** (log-based CDC) ingest from hundreds of source types on a schedule — the cost-efficient
+option for data that updates daily or weekly. The trade-off (realtime Kafka vs scheduled batch) is a
+**cost** decision as much as a latency one.
+
+| Style | Open source here | Enterprise option | Pick it when… |
+|---|---|---|---|
+| Batch file load | cpdctl (below) | DataStage / StreamSets | UI-tracked or no-code bulk loads |
+| Continuous stream | Kafka + Flink | Confluent Platform on-prem + StreamSets | Freshness matters; many realtime sources |
+| Change data capture | (not shown) | IBM Data Replication (CDC) | Keep the lakehouse in sync with a source DB |
+
+!!! info "Enterprise detail"
+    See [watsonx.data Integration](enterprise/integration.md) for DataStage/StreamSets/UDI/Databand
+    and the honest [open-source-vs-enterprise summary](enterprise/summary.md). The rest of *this*
+    page is the hands-on **cpdctl** walkthrough.
 
 ---
 

@@ -179,6 +179,16 @@ The worked post-action examples (a dbt model and a Spark read over `spark_demo_c
 
 ---
 
+## Open source vs enterprise
+
+Everything on this page is the **open-source** toolkit. When governance, scale, no-code authoring,
+or enforced policies matter, each tool has an IBM enterprise counterpart — dbt/Spark → **DataStage**,
+Kafka → **Confluent Platform on-prem**, OpenMetadata → **watsonx.data Intelligence**, Airflow →
+**+ Databand observability**. For an honest, side-by-side verdict (with weaknesses), see the
+[Enterprise summary](enterprise/summary.md) and [Why Upgrade](enterprise/overview.md).
+
+---
+
 ## Next step
 
 - New here? Start with [Architecture & Data Flow](lineage.md).

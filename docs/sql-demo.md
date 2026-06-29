@@ -1,11 +1,16 @@
-# SQL — Compare dbt vs Spark Gold (+ inspect cpdctl raw)
+# SQL — Compare dbt vs Spark vs Confluent Gold
 
 !!! abstract "What this page does"
-    dbt and Spark are two full pipelines that build gold layers (`dbt_demo_gold`,
-    `spark_demo_gold`); cpdctl is an ingest-only loader that lands raw tables in
-    `spark_demo_cpdctl_raw`. This page compares the **dbt and Spark gold outputs side by side** and
-    shows how to **inspect the cpdctl raw tables**. Use the watsonx.data SQL editor or any Presto
-    client.
+    dbt, Spark, and Confluent are three full pipelines that build gold layers (`dbt_demo_gold`,
+    `spark_demo_gold`, `confluent_demo_gold`); cpdctl is an ingest-only loader that lands raw tables
+    in `spark_demo_cpdctl_raw`. This page compares the **gold outputs side by side** and shows how to
+    **inspect the cpdctl raw tables**. Use the watsonx.data SQL editor or any Presto client.
+
+!!! tip "The one-command proof"
+    To prove the three gold layers are byte-for-byte identical without writing SQL, run
+    `python scripts/reconcile_gold.py` — it runs a symmetric `EXCEPT` across the dbt, Spark, and
+    Confluent marts and reports a PASS/FAIL parity table. The SQL on this page is the manual,
+    inspect-it-yourself version of that proof.
 
 ---
 
@@ -38,9 +43,9 @@ python scripts/query_gold.py
 
 ---
 
-## Schema map — all three paths at a glance
+## Schema map — all paths at a glance
 
-dbt and Spark build multi-layer schema hierarchies (raw/bronze/silver/gold and bronze/silver/gold). cpdctl lands a single raw schema (`spark_demo_cpdctl_raw`) with no hierarchy until a dbt or Spark transform is applied.
+dbt and Spark build multi-layer schema hierarchies (raw/bronze/silver/gold and bronze/silver/gold). The Confluent path streams silver into `confluent_demo_silver` (Flink) and builds gold in `confluent_demo_gold` (Spark or DataStage). cpdctl lands a single raw schema (`spark_demo_cpdctl_raw`) with no hierarchy until a dbt or Spark transform is applied.
 
 | Source CSV | Row count | dbt schema | Spark schema | cpdctl schema |
 |---|---|---|---|---|
@@ -48,6 +53,10 @@ dbt and Spark build multi-layer schema hierarchies (raw/bronze/silver/gold and b
 | `raw_products.csv` | 20 | `dbt_demo_raw.raw_products` | `spark_demo_bronze.bronze_products` | `spark_demo_cpdctl_raw.products` |
 | `raw_orders.csv` | 500 | `dbt_demo_raw.raw_orders` | `spark_demo_bronze.bronze_orders` | `spark_demo_cpdctl_raw.orders` |
 | `raw_order_items.csv` | 1,134 | `dbt_demo_raw.raw_order_items` | `spark_demo_bronze.bronze_order_items` | `spark_demo_cpdctl_raw.order_items` |
+
+The three **gold** layers to compare are `dbt_demo_gold.gold_*`, `spark_demo_gold.spark_gold_*`, and
+`confluent_demo_gold.confluent_gold_*` — same three marts (`daily_sales`, `category_performance`,
+`customer_360`), same numbers.
 
 ```mermaid
 flowchart LR

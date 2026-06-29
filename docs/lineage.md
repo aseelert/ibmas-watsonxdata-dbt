@@ -18,6 +18,19 @@
 ![Apache Iceberg](assets/images/iceberg.svg)
 </div>
 
+<figure markdown="span">
+  ![The watsonx.data open lakehouse: medallion architecture and pipelines](assets/images/watsonxdata-medallion-infographic.png){ loading=lazy }
+  <figcaption>The whole workshop on one page — the Raw → Bronze → Silver → Gold medallion, the lakehouse building blocks, and the interchangeable engines (dbt · Spark · Confluent) plus the cpdctl loader.</figcaption>
+</figure>
+
+!!! tip "Workshop media — slide deck & podcast"
+    Prefer to present or listen? Grab the auto-generated companions:
+
+    - 📊 **Slide deck** — [`presentations/watsonxdata-medallion-workshop.pptx`](presentations/watsonxdata-medallion-workshop.pptx)
+    - 🎙️ **Podcast (deep-dive audio overview)** — [`presentations/watsonxdata-medallion-podcast.m4a`](presentations/watsonxdata-medallion-podcast.m4a)
+
+    Generated with Google NotebookLM from this workshop's docs.
+
 ## The watsonx.data building blocks
 
 A lakehouse has four moving parts. Every tool in this workshop touches at least one of them.
@@ -191,10 +204,12 @@ The shape of each mart matches its use case — and that shape decides TABLE vs 
 
 ## Data flow in this demo
 
-dbt and Spark are two full ingest+transform medallion pipelines that read the same CSVs and produce
-the same Bronze/Silver/Gold shape in different schemas. cpdctl is an ingestion-only loader (like
-`dbt seed`) that lands the raw CSVs in `spark_demo_cpdctl_raw`; it needs a dbt or Spark transform on
-that data to become a medallion.
+dbt, Spark, and Confluent are three full medallion pipelines that read the same CSVs and produce
+the same Bronze/Silver/Gold shape in different schemas. dbt and Spark are **batch**; Confluent
+(Kafka → Flink → Iceberg) is **streaming** — see [Streaming Medallion Explained](streaming-medallion.md).
+cpdctl is an ingestion-only loader (like `dbt seed`) that lands the raw CSVs in
+`spark_demo_cpdctl_raw`; it needs a dbt or Spark transform to become a medallion. For *what is
+physically stored* underneath all of them, see [Table Formats](table-formats.md).
 
 ```mermaid
 flowchart TB
@@ -232,6 +247,13 @@ flowchart TB
     sb --> ss --> sg
   end
 
+  subgraph CONF["Confluent path · Kafka→Flink (streaming) · confluent_demo_*"]
+    direction TB
+    cs["confluent_silver_*\nconfluent_silver_sales_enriched\nconfluent_demo_silver (Flink)"]:::silver
+    cg["confluent_gold_daily_sales\nconfluent_gold_category_performance\nconfluent_gold_customer_360\nconfluent_demo_gold (Spark/DataStage)"]:::gold
+    cs --> cg
+  end
+
   subgraph CPDCTL["cpdctl ingest (raw landing) · IBM CLI · spark_demo_cpdctl_raw"]
     direction TB
     ci["spark_demo_cpdctl_raw.*\n(raw, UI-tracked native ingestion)"]:::ingest
@@ -239,20 +261,20 @@ flowchart TB
 
   SRC -->|dbt seed + SQL models| DBT
   SRC -->|PySpark DataFrame API| SPARK
+  SRC -->|Kafka topics + Flink SQL| CONF
   SRC -->|cpdctl ingest command| CPDCTL
   ci -. "transform with dbt or Spark\n(post-action)" .-> DBT
   ci -. "transform with dbt or Spark\n(post-action)" .-> SPARK
 ```
 
-!!! tip "Two full pipelines plus one native loader"
-    After running the dbt and Spark paths you will have **two full medallion stacks** (dbt:
-    `dbt_demo_bronze/silver/gold`; Spark: `spark_demo_bronze/silver/gold`) plus **one raw
-    ingest landing** (cpdctl: `spark_demo_cpdctl_raw`). The raw ingest landing becomes a medallion
-    only if you run dbt or Spark transforms over it. dbt and Spark are self-contained — each ingests
-    and transforms on its own; cpdctl is the ingest front-end you pair with a dbt or Spark transform
-    back-end (**cpdctl + dbt/Spark = one full pipeline**). The [SQL comparison page](sql-demo.md)
-    runs queries across the dbt and Spark gold layers to verify they produce identical numbers, and
-    shows how to inspect the cpdctl raw ingest tables.
+!!! tip "Three full pipelines plus one native loader"
+    After running dbt, Spark, and Confluent you will have **three full medallion stacks** (dbt:
+    `dbt_demo_bronze/silver/gold`; Spark: `spark_demo_bronze/silver/gold`; Confluent:
+    `confluent_demo_silver/gold`) plus **one raw ingest landing** (cpdctl: `spark_demo_cpdctl_raw`).
+    Each full pipeline ingests and transforms on its own; cpdctl is the ingest front-end you pair
+    with a dbt or Spark transform back-end (**cpdctl + dbt/Spark = one full pipeline**). The
+    [SQL comparison page](sql-demo.md) — and `scripts/reconcile_gold.py` — verify all three gold
+    layers produce identical numbers.
 
 ---
 
@@ -623,24 +645,26 @@ table from a raw folder of Parquet files.
 
 ---
 
-## Two engines, same blueprint
+## Three engines, same blueprint
 
-dbt (Presto SQL) and Spark (PySpark) produce the same medallion shape from the same CSVs, written
-to separate schemas so you can compare them side by side in the same catalog.
+dbt (Presto SQL), Spark (PySpark), and Confluent (Flink streaming) produce the same medallion shape
+from the same CSVs, written to separate schemas so you can compare them side by side in the same
+catalog.
 
-| Layer | dbt path (Presto) | Spark path (PySpark) |
-|---|---|---|
-| Raw | `dbt seed` → `dbt_demo_raw.*` <span class="obj table">TABLE</span> | CSVs read from `s3a://iceberg-bucket/spark_demo/raw` <span class="obj csv">CSV</span> |
-| Bronze | `dbt_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | `spark_demo_bronze.*` <span class="obj table">TABLE</span> |
-| Silver | `dbt_demo_silver.silver_*` <span class="obj table">TABLE</span>, incl. `silver_sales_enriched` | `spark_demo_silver.*` <span class="obj table">TABLE</span>, incl. `spark_silver_sales_enriched` |
-| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> in `dbt_demo_gold` | `spark_gold_daily_sales`, `spark_gold_category_performance`, `spark_gold_customer_360` in `spark_demo_gold` — all physical Iceberg <span class="obj table">TABLE</span>s |
+| Layer | dbt path (Presto) | Spark path (PySpark) | Confluent path (Flink + Spark/DataStage) |
+|---|---|---|---|
+| Raw / Bronze | `dbt seed` → `dbt_demo_raw.*`; `dbt_demo_bronze.bronze_*` <span class="obj table">TABLE</span> | CSVs from `s3a://…/spark_demo/raw`; `spark_demo_bronze.*` <span class="obj table">TABLE</span> | Kafka **raw topics** (replayable log) |
+| Silver | `dbt_demo_silver.silver_*`, incl. `silver_sales_enriched` <span class="obj table">TABLE</span> | `spark_demo_silver.*`, incl. `spark_silver_sales_enriched` <span class="obj table">TABLE</span> | `confluent_demo_silver.confluent_silver_*` (Flink → Iceberg) <span class="obj table">TABLE</span> |
+| Gold | `gold_daily_sales` <span class="obj table">TABLE</span>, `gold_category_performance` <span class="obj view">VIEW</span>, `gold_customer_360` <span class="obj view">VIEW</span> | `spark_gold_*` — physical Iceberg <span class="obj table">TABLE</span>s | `confluent_gold_*` (Spark *or* DataStage) |
 {: .comparison-table }
 
-!!! info "Why Spark gold uses tables, not views"
-    dbt has first-class VIEW materialization built in. PySpark's DataFrame API writes physical
-    tables natively, so the Spark gold layer materializes all three objects as Iceberg tables
-    rather than SQL views. The query results are identical; only the materialization strategy
-    differs.
+!!! info "Why materialization differs by engine"
+    dbt has first-class VIEW materialization; PySpark writes physical tables natively; the Confluent
+    gold build matches dbt by creating the two roll-up marts as Presto VIEWs (see
+    `scripts/create_gold_views.py`). The query **results** are identical across all three — only the
+    materialization strategy differs. That parity is the whole point, and
+    `scripts/reconcile_gold.py` proves it.
 
-Next: see the [dbt Demo Path](dbt-demo.md) or [Spark Demo Path](spark-demo.md) to build these
-layers yourself, then [compare them in SQL](sql-demo.md).
+Next: build the layers yourself with [dbt](dbt-demo.md), [Spark](spark-demo.md), or
+[Confluent streaming](confluent-demo.md), then [compare them in SQL](sql-demo.md). For the storage
+format underneath, see [Table Formats](table-formats.md).
