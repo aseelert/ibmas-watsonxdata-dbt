@@ -565,7 +565,43 @@ schema folders (Iceberg table data at the bucket root), the `spark_demo/` asset 
 (uploaded Spark app + raw CSVs), and `openmetadata/dbt-artifacts/`. It never empties the
 whole bucket. Needs an `oc` session (MinIO has no external Route on this cluster).
 
-### 10 · `reset_demo.sh` — full reset for a 100% clean rerun
+### 10 · `configure_ikc_reporting.sh` — IKC reporting settings (optional, CPD only)
+
+!!! info "Optional — requires CPD Enterprise + `oc` login"
+    This script is only relevant when running against **IBM Software Hub (CPD)** with a
+    `wkc-cr` Enterprise license.  It is **not** needed for the open-source paths (dbt / Spark /
+    Confluent).  See [IKC Reporting — Optional Setup](ikc-reporting.md) for the full procedure.
+
+Configure the `enforceAuthorizeReporting` / `defaultAuthorizeReporting` flags, patch the three
+`wkc-cr` spec fields, restart the 7 required pods, and verify env-var propagation — all
+in one idempotent command:
+
+```bash
+# Recommended for demos: default=true, enforce=false
+bash scripts/configure_ikc_reporting.sh
+
+# Lock all reporting on (enforce=true, default=true)
+bash scripts/configure_ikc_reporting.sh --enforce
+
+# Preview without changing anything
+bash scripts/configure_ikc_reporting.sh --enforce --dry-run
+
+# Patch only — skip pod restarts (pods already running)
+bash scripts/configure_ikc_reporting.sh --enforce --skip-restart
+
+# Revert to IBM defaults (both false)
+bash scripts/configure_ikc_reporting.sh --disable
+```
+
+| Flag | Effect |
+|---|---|
+| `--enforce` | `enforceAuthorizeReporting=true` + `defaultAuthorizeReporting=true` (locked on) |
+| `--disable` | Both flags → `false` (IBM factory default) |
+| `--skip-restart` | Patch configmap + wkc-cr only; skip pod restarts and deletions |
+| `--namespace NS` | CPD operands namespace (default: `cpd-instance`) |
+| `--dry-run` | Preview only — nothing is changed |
+
+### 11 · `reset_demo.sh` — full reset for a 100% clean rerun
 
 One command that resets any combination of the three demo "surfaces":
 

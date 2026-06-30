@@ -317,7 +317,7 @@ target exactly what the demo created:
 | `scripts/reset_demo.sh` | the above, and the three `docker-compose*.yml` files | adds Docker teardown (containers + volumes + demo images) |
 
 Because every target is derived from your `.env`, changing a schema name or bucket here makes
-the reset scripts follow it automatically. See the [Scripts page](scripts.md#10-reset_demosh-full-reset-for-a-100-clean-rerun)
+the reset scripts follow it automatically. See the [Scripts page](scripts.md#11-reset_demosh-full-reset-for-a-100-clean-rerun)
 for the full flag reference. Always preview with `--dry-run` first.
 
 ---

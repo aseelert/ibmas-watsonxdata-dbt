@@ -11,6 +11,11 @@ This page is written for **enterprise architects and decision-makers**. The hand
 rest of this workshop stay beginner-friendly; here we compare what you already have against what
 IBM sells on top of it, and we try to be honest about when the upgrade is — and isn't — worth it.
 
+<figure markdown="span">
+  ![Open-source baseline vs enterprise elevation on IBM watsonx.data](../assets/images/wxd-oss-vs-enterprise.png){ loading=lazy }
+  <figcaption>The open-source baseline (dbt Core, Spark + Gluten, Airflow, Iceberg) versus the enterprise elevation (dbt Cloud/Fusion, watsonx.data Spark C++, managed Airflow + Databand, DataStage). Versions are mid-2026; verify exact bundled versions with IBM.</figcaption>
+</figure>
+
 !!! info "Everything here is on-premises"
     This entire tab assumes a **self-managed deployment on IBM Software Hub** (formerly Cloud Pak
     for Data). On-prem watsonx.data releases track the Software Hub version line — **5.3 ≈ December

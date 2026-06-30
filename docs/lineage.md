@@ -23,13 +23,16 @@
   <figcaption>The whole workshop on one page — the Raw → Bronze → Silver → Gold medallion, the lakehouse building blocks, and the interchangeable engines (dbt · Spark · Confluent) plus the cpdctl loader.</figcaption>
 </figure>
 
-!!! tip "Workshop media — slide deck & podcast"
-    Prefer to present or listen? Grab the auto-generated companions:
+!!! tip "Workshop media — deck, podcast, mind map & flashcards"
+    Prefer to present, listen, or study? Grab the auto-generated companions:
 
-    - 📊 **Slide deck** — [`presentations/watsonxdata-medallion-workshop.pptx`](presentations/watsonxdata-medallion-workshop.pptx)
+    - 📊 **Customer deck (enterprise)** — [`presentations/wxd-customer-deck.pptx`](presentations/wxd-customer-deck.pptx) — full story incl. editions, Premium, native acceleration, Intelligence & Integration
+    - 📊 **Intro deck** — [`presentations/watsonxdata-medallion-workshop.pptx`](presentations/watsonxdata-medallion-workshop.pptx)
     - 🎙️ **Podcast (deep-dive audio overview)** — [`presentations/watsonxdata-medallion-podcast.m4a`](presentations/watsonxdata-medallion-podcast.m4a)
+    - 🧠 **Mind map** — [`presentations/wxd-mindmap.json`](presentations/wxd-mindmap.json)
+    - 🃏 **Flashcards** — [`presentations/wxd-flashcards.html`](presentations/wxd-flashcards.html)
 
-    Generated with Google NotebookLM from this workshop's docs.
+    Generated with Google NotebookLM, grounded on this workshop's docs and verified 2026 product research.
 
 ## The watsonx.data building blocks
 

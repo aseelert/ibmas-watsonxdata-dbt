@@ -10,6 +10,7 @@
   </p>
   <div class="hero-actions">
     <a class="primary" href="setup/">Start Preparation</a>
+    <a href="presentation/">View the Deck</a>
     <a href="lineage/">See Architecture</a>
     <a href="dbt-demo/">Run dbt</a>
     <a href="spark-demo/">Run Spark</a>
@@ -26,6 +27,11 @@
 ![Apache Spark](assets/images/spark.svg)
 ![Apache Iceberg](assets/images/iceberg.svg)
 </div>
+
+<figure markdown="span">
+  ![IBM watsonx.data: one platform, many engines — the medallion flow and interchangeable pipelines](assets/images/wxd-overview.png){ loading=lazy }
+  <figcaption>One platform, many engines. The same CSVs flow Raw → Bronze → Silver → Gold, built by dbt, Spark, or Confluent streaming (and loaded by cpdctl or transformed no-code by DataStage) — all on the open lakehouse (MinIO · Iceberg/Parquet · Presto · Spark · <code>iceberg_data</code> catalog).</figcaption>
+</figure>
 
 ## The tools at a glance
 

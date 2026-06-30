@@ -13,6 +13,11 @@
 
 ---
 
+<figure markdown="span">
+  ![Velox-based native acceleration: Prestissimo, Gluten Spark, and the GPU Presto preview](../assets/images/wxd-native-accel.png){ loading=lazy }
+  <figcaption>One C++ substrate (Velox), three engines: Presto C++ (Prestissimo, <strong>GA</strong>), Gluten-accelerated Spark (<strong>GA</strong>), and GPU-accelerated Presto C++ (<strong>private tech preview — not GA</strong>). Plus the watsonx.data editions and what Premium adds.</figcaption>
+</figure>
+
 ## The Velox story: one substrate, three engines
 
 The thread connecting every performance story below is **[Velox](https://www.ibm.com/new/product-blog/veloxcon-2024-innovation-in-data-management)** — an open-source, vectorized C++ execution library (a Meta/Uber/Intel/IBM collaboration). Velox is *not* a query engine you run directly. It is the **shared C++ execution core** that several engines plug into in place of their slower Java workers.

@@ -14,6 +14,7 @@ confluent-kafka>=2.3,<3.0
 # can register one Avro subject (<topic>-value) per Kafka topic.
 fastavro>=1.9,<2.0
 httpx>=0.26,<1.0
+psycopg2-binary>=2.9,<3.0
 
 # MCP Server dependencies
 uv>=0.11,<1.0

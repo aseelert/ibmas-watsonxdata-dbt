@@ -1,0 +1,1740 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "primary_pipeline": "6bc4697b-2306-4c60-a710-a78ffe113e8d",
+  "pipelines": [
+    {
+      "id": "6bc4697b-2306-4c60-a710-a78ffe113e8d",
+      "runtime_ref": "pxOsh",
+      "nodes": [
+        {
+          "id": "bfb95f65-ed57-4e14-8b82-8b9686f6fee8",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_bronze_customers",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 100
+            }
+          },
+          "outputs": [
+            {
+              "id": "192998dc-a8ab-4312-9e78-ef4491be3723",
+              "schema_ref": "7d1f3227-af29-4779-9c87-d26b869cdaff",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "f1440a64-4d0f-4f3f-95e8-3495a6a784d4"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "customer_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "first_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "email",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "signup_date",
+                "DataType": "DATE",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "country",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "SELECT customer_id, first_name, last_name, email, signup_date, country, cast(current_timestamp as timestamp) AS _ingested_at, 'datastage flow' AS _ingested_by, 'raw_customers.csv' AS _source_file, 'datastage_seed_batch' AS _ingest_batch_id FROM iceberg_data.dbt_demo_raw.raw_customers"
+            }
+          }
+        },
+        {
+          "id": "b5e288d5-754e-41cd-845e-94ef41d009d6",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_bronze_customers",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 100
+            }
+          },
+          "inputs": [
+            {
+              "id": "5171f044-0523-4fe7-954b-fde2247582d0",
+              "schema_ref": "7d1f3227-af29-4779-9c87-d26b869cdaff",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "f1440a64-4d0f-4f3f-95e8-3495a6a784d4",
+                  "node_id_ref": "bfb95f65-ed57-4e14-8b82-8b9686f6fee8",
+                  "port_id_ref": "192998dc-a8ab-4312-9e78-ef4491be3723",
+                  "link_name": "lnk_bronze_customers",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_bronze_customers",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_bronze_customers",
+            "inputcolProperties": [
+              {
+                "ColumnName": "customer_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "first_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "email",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "signup_date",
+                "DataType": "DATE",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "country",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_bronze",
+              "table_name": "bronze_customers"
+            }
+          }
+        },
+        {
+          "id": "7e5d95e0-91f8-447c-9ad6-729d009808fd",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_bronze_orders",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 240
+            }
+          },
+          "outputs": [
+            {
+              "id": "f6901120-1b08-44b5-9da0-03c9396c8cba",
+              "schema_ref": "257fca64-18dc-4a37-b3a5-a2845245b88b",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "558051ed-f5d9-49af-8087-68ccfc9a0040"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "order_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "customer_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "order_ts",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "status",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "payment_method",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "SELECT order_id, customer_id, order_ts, status, payment_method, cast(current_timestamp as timestamp) AS _ingested_at, 'datastage flow' AS _ingested_by, 'raw_orders.csv' AS _source_file, 'datastage_seed_batch' AS _ingest_batch_id FROM iceberg_data.dbt_demo_raw.raw_orders"
+            }
+          }
+        },
+        {
+          "id": "473af51c-a417-47d7-84b1-f3dd70bd311f",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_bronze_orders",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 240
+            }
+          },
+          "inputs": [
+            {
+              "id": "7db42715-a55d-40b8-a5c7-0c717a6e644d",
+              "schema_ref": "257fca64-18dc-4a37-b3a5-a2845245b88b",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "558051ed-f5d9-49af-8087-68ccfc9a0040",
+                  "node_id_ref": "7e5d95e0-91f8-447c-9ad6-729d009808fd",
+                  "port_id_ref": "f6901120-1b08-44b5-9da0-03c9396c8cba",
+                  "link_name": "lnk_bronze_orders",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_bronze_orders",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_bronze_orders",
+            "inputcolProperties": [
+              {
+                "ColumnName": "order_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "customer_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "order_ts",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "status",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "payment_method",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_bronze",
+              "table_name": "bronze_orders"
+            }
+          }
+        },
+        {
+          "id": "a26c2fd2-c0fc-4f89-8cf4-2f9d0660301e",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_bronze_order_items",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 380
+            }
+          },
+          "outputs": [
+            {
+              "id": "8e7554b0-2295-440b-8668-f3adae80e7aa",
+              "schema_ref": "a5774873-9cef-42fc-861a-fb86601768ac",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "8b7c795d-a7d8-4781-bd95-e0f8be6c62fc"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "order_item_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "order_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "product_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "quantity",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "discount_pct",
+                "DataType": "DOUBLE",
+                "Length": -1,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "SELECT order_item_id, order_id, product_id, quantity, discount_pct, cast(current_timestamp as timestamp) AS _ingested_at, 'datastage flow' AS _ingested_by, 'raw_order_items.csv' AS _source_file, 'datastage_seed_batch' AS _ingest_batch_id FROM iceberg_data.dbt_demo_raw.raw_order_items"
+            }
+          }
+        },
+        {
+          "id": "f60a1a1c-29c4-45d0-9f25-83fbb055a9d7",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_bronze_order_items",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 380
+            }
+          },
+          "inputs": [
+            {
+              "id": "3a14af0f-15a2-4eb6-b16f-250ad3ebedce",
+              "schema_ref": "a5774873-9cef-42fc-861a-fb86601768ac",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "8b7c795d-a7d8-4781-bd95-e0f8be6c62fc",
+                  "node_id_ref": "a26c2fd2-c0fc-4f89-8cf4-2f9d0660301e",
+                  "port_id_ref": "8e7554b0-2295-440b-8668-f3adae80e7aa",
+                  "link_name": "lnk_bronze_order_items",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_bronze_order_items",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_bronze_order_items",
+            "inputcolProperties": [
+              {
+                "ColumnName": "order_item_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "order_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "product_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "quantity",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "discount_pct",
+                "DataType": "DOUBLE",
+                "Length": -1,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_bronze",
+              "table_name": "bronze_order_items"
+            }
+          }
+        },
+        {
+          "id": "8061c4fd-8964-4fa7-88de-19e3b3d11f7b",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_bronze_products",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 520
+            }
+          },
+          "outputs": [
+            {
+              "id": "d644518e-fc60-43bb-bee7-46d0fca4d03b",
+              "schema_ref": "4b0f22b9-23b3-4b38-b8e7-eff635fed26e",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "b297a6a0-b26d-4a2f-8670-d48e671ed460"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "product_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "product_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "category",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "unit_price",
+                "DataType": "DOUBLE",
+                "Length": -1,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "SELECT product_id, product_name, category, unit_price, cast(current_timestamp as timestamp) AS _ingested_at, 'datastage flow' AS _ingested_by, 'raw_products.csv' AS _source_file, 'datastage_seed_batch' AS _ingest_batch_id FROM iceberg_data.dbt_demo_raw.raw_products"
+            }
+          }
+        },
+        {
+          "id": "bea2ce31-89cc-4f72-b18a-044938b7709b",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_bronze_products",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 520
+            }
+          },
+          "inputs": [
+            {
+              "id": "90ccbd4f-cbe2-43db-a096-080ab24e8ccb",
+              "schema_ref": "4b0f22b9-23b3-4b38-b8e7-eff635fed26e",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "b297a6a0-b26d-4a2f-8670-d48e671ed460",
+                  "node_id_ref": "8061c4fd-8964-4fa7-88de-19e3b3d11f7b",
+                  "port_id_ref": "d644518e-fc60-43bb-bee7-46d0fca4d03b",
+                  "link_name": "lnk_bronze_products",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_bronze_products",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_bronze_products",
+            "inputcolProperties": [
+              {
+                "ColumnName": "product_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "product_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "category",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "unit_price",
+                "DataType": "DOUBLE",
+                "Length": -1,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_at",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingested_by",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_source_file",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "_ingest_batch_id",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_bronze",
+              "table_name": "bronze_products"
+            }
+          }
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        }
+      }
+    }
+  ],
+  "schemas": [
+    {
+      "id": "7d1f3227-af29-4779-9c87-d26b869cdaff",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "customer_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "first_name",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "last_name",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "email",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "signup_date",
+          "type": "date",
+          "app_data": {
+            "odbc_type": "DATE",
+            "is_unicode_string": false,
+            "type_code": "DATE"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "country",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "_ingested_at",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingested_by",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_source_file",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingest_batch_id",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        }
+      ]
+    },
+    {
+      "id": "257fca64-18dc-4a37-b3a5-a2845245b88b",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "order_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "customer_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "order_ts",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "status",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "payment_method",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "_ingested_at",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingested_by",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_source_file",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingest_batch_id",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        }
+      ]
+    },
+    {
+      "id": "a5774873-9cef-42fc-861a-fb86601768ac",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "order_item_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "order_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "product_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "quantity",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 0
+          },
+          "nullable": true,
+          "name": "discount_pct",
+          "type": "double",
+          "app_data": {
+            "odbc_type": "DOUBLE",
+            "is_unicode_string": false,
+            "type_code": "DFLOAT"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "_ingested_at",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingested_by",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_source_file",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingest_batch_id",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        }
+      ]
+    },
+    {
+      "id": "4b0f22b9-23b3-4b38-b8e7-eff635fed26e",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "product_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "product_name",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "category",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 0
+          },
+          "nullable": true,
+          "name": "unit_price",
+          "type": "double",
+          "app_data": {
+            "odbc_type": "DOUBLE",
+            "is_unicode_string": false,
+            "type_code": "DFLOAT"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "_ingested_at",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingested_by",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_source_file",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "_ingest_batch_id",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        }
+      ]
+    }
+  ],
+  "runtimes": [
+    {
+      "id": "pxOsh",
+      "name": "pxOsh"
+    }
+  ],
+  "app_data": {}
+}

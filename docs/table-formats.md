@@ -10,6 +10,11 @@
 
 ---
 
+<figure markdown="span">
+  ![Parquet vs Iceberg vs Delta — file format versus table format](assets/images/wxd-table-formats.png){ loading=lazy }
+  <figcaption>Parquet is a <em>file</em> format; Iceberg and Delta are <em>table</em> formats that add metadata for schema evolution, time travel, and ACID. This workshop uses Iceberg (spec v3) on MinIO, storing Parquet files.</figcaption>
+</figure>
+
 ## First: file vs table format
 
 A single Parquet file is just a smart, compressed, columnar way to store rows on disk. It is

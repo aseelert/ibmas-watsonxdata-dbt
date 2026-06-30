@@ -1,0 +1,1176 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "primary_pipeline": "9b06bc56-e9a1-4949-a2a7-f72007c23b73",
+  "pipelines": [
+    {
+      "id": "9b06bc56-e9a1-4949-a2a7-f72007c23b73",
+      "runtime_ref": "pxOsh",
+      "nodes": [
+        {
+          "id": "93faf474-af02-4f6a-8efb-a2ca42b57752",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_gold_daily_sales",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 100
+            }
+          },
+          "outputs": [
+            {
+              "id": "deed26e9-7c26-4805-8a3e-9881de4364df",
+              "schema_ref": "58bd794c-efe6-461b-ba16-f0d1dffc9474",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "153de19c-a9af-422a-b2a6-1dbe56b48f68"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "order_date",
+                "DataType": "DATE",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "category",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "order_count",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "units_sold",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "net_revenue",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "SELECT order_date, category, count(distinct order_id) order_count, sum(quantity) units_sold, cast(sum(net_amount) as decimal(14,2)) net_revenue FROM iceberg_data.datastage_demo_silver.silver_sales_enriched WHERE status = 'completed' GROUP BY 1, 2"
+            }
+          }
+        },
+        {
+          "id": "fbbe1ce5-801a-4f59-bff2-e9bbb5d9654e",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_gold_daily_sales",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 100
+            }
+          },
+          "inputs": [
+            {
+              "id": "ec24ad39-1da5-4567-86b5-03cae4cf7a3e",
+              "schema_ref": "58bd794c-efe6-461b-ba16-f0d1dffc9474",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "153de19c-a9af-422a-b2a6-1dbe56b48f68",
+                  "node_id_ref": "93faf474-af02-4f6a-8efb-a2ca42b57752",
+                  "port_id_ref": "deed26e9-7c26-4805-8a3e-9881de4364df",
+                  "link_name": "lnk_gold_daily_sales",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_gold_daily_sales",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_gold_daily_sales",
+            "inputcolProperties": [
+              {
+                "ColumnName": "order_date",
+                "DataType": "DATE",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "category",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "order_count",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "units_sold",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "net_revenue",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_gold",
+              "table_name": "gold_daily_sales"
+            }
+          }
+        },
+        {
+          "id": "7aeeee3f-c78c-405d-b82d-be92c1530ae2",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_gold_category_performance",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 240
+            }
+          },
+          "outputs": [
+            {
+              "id": "59939b5b-970b-4425-a24d-35dc0bbf0f7f",
+              "schema_ref": "8c0bdd13-3b51-4645-a064-68d7d8d567aa",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "3a1163df-74eb-4080-98e4-5092e67415a9"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "category",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "total_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "total_units",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "total_revenue",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "avg_revenue_per_unit",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "SELECT category, count(distinct order_id) total_orders, sum(quantity) total_units, cast(sum(net_amount) as decimal(14,2)) total_revenue, cast(sum(net_amount) / nullif(sum(quantity), 0) as decimal(14,2)) avg_revenue_per_unit FROM iceberg_data.datastage_demo_silver.silver_sales_enriched WHERE status = 'completed' GROUP BY category"
+            }
+          }
+        },
+        {
+          "id": "b634ee89-2467-4a32-93c6-b95be0362f55",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_gold_category_performance",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 240
+            }
+          },
+          "inputs": [
+            {
+              "id": "e8563e79-b78c-446e-a9a6-b87de0e55642",
+              "schema_ref": "8c0bdd13-3b51-4645-a064-68d7d8d567aa",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "3a1163df-74eb-4080-98e4-5092e67415a9",
+                  "node_id_ref": "7aeeee3f-c78c-405d-b82d-be92c1530ae2",
+                  "port_id_ref": "59939b5b-970b-4425-a24d-35dc0bbf0f7f",
+                  "link_name": "lnk_gold_category_performance",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_gold_category_performance",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_gold_category_performance",
+            "inputcolProperties": [
+              {
+                "ColumnName": "category",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "total_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "total_units",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "total_revenue",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "avg_revenue_per_unit",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_gold",
+              "table_name": "gold_category_performance"
+            }
+          }
+        },
+        {
+          "id": "8e5791b6-a07e-4218-9601-d712cc2e2fe3",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "src_gold_customer_360",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 120,
+              "y_pos": 380
+            }
+          },
+          "outputs": [
+            {
+              "id": "14aeda7c-49f9-4ec3-b6a8-cb0d0cf5d328",
+              "schema_ref": "d72a8d62-49c3-441e-9a75-81cb6c329c06",
+              "app_data": {
+                "datastage": {
+                  "is_source_of_link": "f433f10d-86d0-4e39-acd2-115ca859ddd5"
+                },
+                "ui_data": {
+                  "label": "outPort"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "output_count": 1,
+            "input_count": 0,
+            "execmode": "default_par",
+            "outputcolProperties": [
+              {
+                "ColumnName": "customer_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "first_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "email",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "country",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "signup_date",
+                "DataType": "DATE",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "completed_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "returned_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "pending_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "cancelled_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "lifetime_value",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_completed_order_ts",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_activity_ts",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "read_mode": "select",
+              "select_statement": "WITH metrics AS (SELECT customer_id, count(distinct case when status = 'completed' then order_id end) completed_orders, count(distinct case when status = 'returned' then order_id end) returned_orders, count(distinct case when status = 'pending' then order_id end) pending_orders, count(distinct case when status = 'cancelled' then order_id end) cancelled_orders, cast(coalesce(sum(case when status = 'completed' then net_amount else 0 end), 0) as decimal(14,2)) lifetime_value, max(case when status = 'completed' then order_ts end) last_completed_order_ts, max(order_ts) last_activity_ts FROM iceberg_data.datastage_demo_silver.silver_sales_enriched GROUP BY customer_id) SELECT c.customer_id, c.first_name, c.last_name, c.email, c.country, c.signup_date, coalesce(m.completed_orders, 0) completed_orders, coalesce(m.returned_orders, 0) returned_orders, coalesce(m.pending_orders, 0) pending_orders, coalesce(m.cancelled_orders, 0) cancelled_orders, coalesce(m.lifetime_value, 0) lifetime_value, m.last_completed_order_ts, m.last_activity_ts FROM iceberg_data.datastage_demo_silver.silver_customers c LEFT JOIN metrics m ON c.customer_id = m.customer_id"
+            }
+          }
+        },
+        {
+          "id": "8ee660ee-09d2-45ab-95dd-3ca5e88a0120",
+          "type": "binding",
+          "op": "lakehouse",
+          "app_data": {
+            "ui_data": {
+              "label": "tgt_gold_customer_360",
+              "image": "/data-intg/flows/graphics/palette/lakehouse.svg",
+              "x_pos": 520,
+              "y_pos": 380
+            }
+          },
+          "inputs": [
+            {
+              "id": "4491c325-4c92-4c01-b828-3c540951d96d",
+              "schema_ref": "d72a8d62-49c3-441e-9a75-81cb6c329c06",
+              "app_data": {
+                "ui_data": {
+                  "label": "inPort"
+                }
+              },
+              "links": [
+                {
+                  "id": "f433f10d-86d0-4e39-acd2-115ca859ddd5",
+                  "node_id_ref": "8e5791b6-a07e-4218-9601-d712cc2e2fe3",
+                  "port_id_ref": "14aeda7c-49f9-4ec3-b6a8-cb0d0cf5d328",
+                  "link_name": "lnk_gold_customer_360",
+                  "type_attr": "PRIMARY",
+                  "app_data": {
+                    "ui_data": {
+                      "decorations": [
+                        {
+                          "id": "dec-lbl",
+                          "position": "middle",
+                          "label": "lnk_gold_customer_360",
+                          "label_editable": true,
+                          "label_single_line": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "parameters": {
+            "input_count": 1,
+            "output_count": 0,
+            "execmode": "default_par",
+            "inputName": "lnk_gold_customer_360",
+            "inputcolProperties": [
+              {
+                "ColumnName": "customer_id",
+                "DataType": "INTEGER",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "first_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_name",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "email",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "country",
+                "DataType": "VARCHAR",
+                "Length": 1024,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "signup_date",
+                "DataType": "DATE",
+                "Length": 10,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "completed_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "returned_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "pending_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "cancelled_orders",
+                "DataType": "BIGINT",
+                "Length": 19,
+                "Scale": 0,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "lifetime_value",
+                "DataType": "DECIMAL",
+                "Length": 14,
+                "Scale": 2,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_completed_order_ts",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              },
+              {
+                "ColumnName": "last_activity_ts",
+                "DataType": "TIMESTAMP",
+                "Length": 26,
+                "Scale": 6,
+                "Nullable_check": true,
+                "Key": false
+              }
+            ]
+          },
+          "connection": {
+            "ref": "d23d59d4-18c3-4f31-a6b9-fd6f59304c14",
+            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "connData": {
+              "op": "existing-asset",
+              "stageName": "lakehouse",
+              "connectionName": "IBM_watsonx.data_Presto"
+            },
+            "properties": {
+              "write_mode": "write",
+              "table_action": "replace",
+              "catalog_name": "iceberg_data",
+              "schema_name": "datastage_demo_gold",
+              "table_name": "gold_customer_360"
+            }
+          }
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        }
+      }
+    }
+  ],
+  "schemas": [
+    {
+      "id": "58bd794c-efe6-461b-ba16-f0d1dffc9474",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "order_date",
+          "type": "date",
+          "app_data": {
+            "odbc_type": "DATE",
+            "is_unicode_string": false,
+            "type_code": "DATE"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "category",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "order_count",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "units_sold",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 2,
+            "decimal_precision": 14,
+            "is_signed": true,
+            "max_length": 14
+          },
+          "nullable": true,
+          "name": "net_revenue",
+          "type": "decimal",
+          "app_data": {
+            "odbc_type": "DECIMAL",
+            "is_unicode_string": false,
+            "type_code": "DECIMAL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "8c0bdd13-3b51-4645-a064-68d7d8d567aa",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "category",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "total_orders",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "total_units",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 2,
+            "decimal_precision": 14,
+            "is_signed": true,
+            "max_length": 14
+          },
+          "nullable": true,
+          "name": "total_revenue",
+          "type": "decimal",
+          "app_data": {
+            "odbc_type": "DECIMAL",
+            "is_unicode_string": false,
+            "type_code": "DECIMAL"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 2,
+            "decimal_precision": 14,
+            "is_signed": true,
+            "max_length": 14
+          },
+          "nullable": true,
+          "name": "avg_revenue_per_unit",
+          "type": "decimal",
+          "app_data": {
+            "odbc_type": "DECIMAL",
+            "is_unicode_string": false,
+            "type_code": "DECIMAL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "d72a8d62-49c3-441e-9a75-81cb6c329c06",
+      "fields": [
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "customer_id",
+          "type": "integer",
+          "app_data": {
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "first_name",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "last_name",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "email",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": false,
+            "max_length": 1024
+          },
+          "nullable": true,
+          "name": "country",
+          "type": "string",
+          "app_data": {
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 10
+          },
+          "nullable": true,
+          "name": "signup_date",
+          "type": "date",
+          "app_data": {
+            "odbc_type": "DATE",
+            "is_unicode_string": false,
+            "type_code": "DATE"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "completed_orders",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "returned_orders",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "pending_orders",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "is_signed": true,
+            "max_length": 19
+          },
+          "nullable": true,
+          "name": "cancelled_orders",
+          "type": "bigint",
+          "app_data": {
+            "odbc_type": "BIGINT",
+            "is_unicode_string": false,
+            "type_code": "INT64"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 2,
+            "decimal_precision": 14,
+            "is_signed": true,
+            "max_length": 14
+          },
+          "nullable": true,
+          "name": "lifetime_value",
+          "type": "decimal",
+          "app_data": {
+            "odbc_type": "DECIMAL",
+            "is_unicode_string": false,
+            "type_code": "DECIMAL"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "last_completed_order_ts",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        },
+        {
+          "metadata": {
+            "is_key": false,
+            "min_length": 0,
+            "decimal_scale": 6,
+            "decimal_precision": 6,
+            "is_signed": true,
+            "max_length": 26
+          },
+          "nullable": true,
+          "name": "last_activity_ts",
+          "type": "timestamp",
+          "app_data": {
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          }
+        }
+      ]
+    }
+  ],
+  "runtimes": [
+    {
+      "id": "pxOsh",
+      "name": "pxOsh"
+    }
+  ],
+  "app_data": {}
+}

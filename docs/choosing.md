@@ -13,6 +13,11 @@
 
 ---
 
+<figure markdown="span">
+  ![Decision matrix — dbt vs Spark vs Confluent vs cpdctl vs DataStage](assets/images/wxd-decision-matrix.png){ loading=lazy }
+  <figcaption>At a glance: which path to reach for. dbt, Spark, and Confluent are interchangeable full pipelines producing identical Gold; cpdctl is ingest-only; DataStage is the no-code enterprise option.</figcaption>
+</figure>
+
 ## Three engines, one loader
 
 | | dbt | Spark | Confluent (Flink) | cpdctl |
