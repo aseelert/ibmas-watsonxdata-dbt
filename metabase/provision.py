@@ -3,7 +3,7 @@
 #  provision.py — auto-provision Metabase against the watsonx.data Presto catalog
 #
 #  Location  : metabase/provision.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

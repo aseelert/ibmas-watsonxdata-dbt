@@ -2,7 +2,7 @@
 #  dag_dbt_medallion.py — Airflow DAG: dbt/Presto medallion, one task per table
 #
 #  Location  : airflow/dags/dag_dbt_medallion.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

@@ -27,7 +27,7 @@
     is the **streaming** path — data flows continuously, row by row, never "finishing." All three
     start from the *same* four CSVs and must reach the *same* Gold marts. If the numbers differ,
     there is a bug. The full naming/schema map lives in
-    [`confluent/NAMING.md`](https://github.ibm.com/alexander/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md),
+    [`confluent/NAMING.md`](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md),
     and the under-the-hood deep dive (all 9 Flink jobs, the join, the upsert design) lives in
     [Confluent Internals](confluent-internals.md).
 
@@ -440,7 +440,7 @@ To replay from scratch without re-ingesting: drop `confluent_demo_silver`, then 
 
 - Go deeper — [Confluent Internals](confluent-internals.md): every one of the 9 Flink jobs, the
   four-way join, the upsert/idempotency design, and Schema-Registry governance in full.
-- The naming contract — [`confluent/NAMING.md`](https://github.ibm.com/alexander/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md).
+- The naming contract — [`confluent/NAMING.md`](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md).
 - New to the path model? [When to Use Which](choosing.md).
 - Want the no-code Gold engine? [DataStage — No-Code Gold](datastage-demo.md).
 - Something not starting? The **Streaming** section in

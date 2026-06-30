@@ -3,7 +3,7 @@
 #  upload_spark_assets.py — stage the PySpark app + raw CSVs into MinIO/S3
 #
 #  Location  : scripts/upload_spark_assets.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

@@ -3,7 +3,7 @@
 #  query_gold.py — query the dbt gold marts in watsonx.data and pretty-print them
 #
 #  Location  : scripts/query_gold.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

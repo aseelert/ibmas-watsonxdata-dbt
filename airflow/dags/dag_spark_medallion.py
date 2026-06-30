@@ -2,7 +2,7 @@
 #  dag_spark_medallion.py — Airflow DAG: submit one Spark job, verify each layer
 #
 #  Location  : airflow/dags/dag_spark_medallion.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

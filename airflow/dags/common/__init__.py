@@ -2,7 +2,7 @@
 #  __init__.py — Package marker for the shared Airflow DAG helpers
 #
 #  Location  : airflow/dags/common/__init__.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

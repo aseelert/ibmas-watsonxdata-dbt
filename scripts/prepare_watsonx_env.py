@@ -3,7 +3,7 @@
 #  prepare_watsonx_env.py — bootstrap .env + CA cert from a watsonx.data connection JSON
 #
 #  Location  : scripts/prepare_watsonx_env.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

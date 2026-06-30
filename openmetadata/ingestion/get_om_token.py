@@ -2,7 +2,7 @@
 #  get_om_token.py — mint a short-lived OpenMetadata ingestion-bot JWT to stdout
 #
 #  Location  : openmetadata/ingestion/get_om_token.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

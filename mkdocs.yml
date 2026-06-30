@@ -1,6 +1,7 @@
 site_name: watsonx.data · dbt · Spark Medallion Demo
 site_description: A beginner-friendly customer demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.
-repo_name: ibmas-watsonxdata-dbt
+repo_url: https://github.com/aseelert/ibmas-watsonxdata-dbt
+repo_name: aseelert/ibmas-watsonxdata-dbt
 theme:
   name: material
   favicon: assets/images/logo.svg

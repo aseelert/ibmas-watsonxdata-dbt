@@ -3,7 +3,7 @@
 #  expose_minio_route.sh — create an OpenShift Route for the watsonx.data MinIO
 # -----------------------------------------------------------------------------
 #  Location  : confluent/scripts/expose_minio_route.sh
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

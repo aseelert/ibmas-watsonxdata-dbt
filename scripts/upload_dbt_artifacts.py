@@ -3,7 +3,7 @@
 #  upload_dbt_artifacts.py — push staged dbt artifacts to S3 object storage for OpenMetadata
 #
 #  Location  : scripts/upload_dbt_artifacts.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

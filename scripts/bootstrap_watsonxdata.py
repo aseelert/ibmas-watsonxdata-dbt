@@ -3,7 +3,7 @@
 #  bootstrap_watsonxdata.py — create the medallion demo schemas in watsonx.data
 #
 #  Location  : scripts/bootstrap_watsonxdata.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.

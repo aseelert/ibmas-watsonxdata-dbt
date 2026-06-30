@@ -4,7 +4,7 @@
 #                                from the dbt catalog, so dbt lineage can attach.
 #
 #  Location  : scripts/seed_openmetadata_tables.py
-#  Repository: https://github.ibm.com/alexander/ibmas-watsonxdata-dbt
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
