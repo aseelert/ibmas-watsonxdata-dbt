@@ -81,7 +81,17 @@ done | sort
 
 echo ""
 echo "=== NODE CPU SUMMARY ==="
-for node in worker-01 worker-02 worker-03; do
+mapfile -t WORKERS < <(oc get nodes -l node-role.kubernetes.io/worker \
+  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | sort)
+for node in "${WORKERS[@]}"; do
+  allocatable=$(oc get node "$node" \
+    -o jsonpath='{.status.allocatable.cpu}' 2>/dev/null)
+  # convert allocatable to millicores (may be "24" or "24000m")
+  if [[ "$allocatable" == *m ]]; then
+    total_m="${allocatable%m}"
+  else
+    total_m=$(awk "BEGIN{printf \"%.0f\", $allocatable * 1000}")
+  fi
   used=$(oc get pods -A --field-selector="spec.nodeName=$node,status.phase=Running" \
     -o jsonpath='{range .items[*]}{.spec.containers[*].resources.requests.cpu}{"\n"}{end}' \
     2>/dev/null | grep -v "^$" | awk '
@@ -90,8 +100,9 @@ for node in worker-01 worker-02 worker-03; do
         if(v~/m$/) { sub(/m$/,"",v); s+=v }
         else if(v!="0") { s+=v*1000 }
     }} END { printf "%.0f", s }')
-  pct=$(echo "$used 24000" | awk '{printf "%.0f", $1/$2*100}')
-  free=$(echo "$used" | awk '{printf "%.1f", (24000-$1)/1000}')
-  printf "  %-12s  %5sm / 24000m  (%3s%% used, %s cores free)\n" \
-    "$node" "$used" "$pct" "$free"
+  used="${used:-0}"
+  pct=$(awk "BEGIN{printf \"%.0f\", $used/$total_m*100}")
+  free=$(awk "BEGIN{printf \"%.1f\", ($total_m-$used)/1000}")
+  printf "  %-20s  %6sm / %sm  (%3s%% used, %s cores free)\n" \
+    "$node" "$used" "$total_m" "$pct" "$free"
 done
