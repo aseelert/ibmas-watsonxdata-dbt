@@ -202,6 +202,18 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/aseelert/ibmas-watsonxdata-dbt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    aseelert/ibmas-watsonxdata-dbt
+  </div>
+</a>
+      </div>
+    
   </nav>
   
     
@@ -424,6 +436,18 @@
     </a>
     watsonx.data · dbt · Spark Medallion Demo
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aseelert/ibmas-watsonxdata-dbt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    aseelert/ibmas-watsonxdata-dbt
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix="">
     
@@ -2414,6 +2438,9 @@
                   
 
 
+  
+  
+
 
 <h1 id="path-c-confluent-streaming-kafka-flink-iceberg">Path C — Confluent: Streaming (Kafka → Flink → Iceberg)</h1>
 <div class="admonition abstract">
@@ -2446,7 +2473,7 @@ catalog → any engine — see <a href="../streaming-medallion/">Streaming Medal
 is the <strong>streaming</strong> path — data flows continuously, row by row, never "finishing." All three
 start from the <em>same</em> four CSVs and must reach the <em>same</em> Gold marts. If the numbers differ,
 there is a bug. The full naming/schema map lives in
-<a href="https://github.ibm.com/alexander/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md"><code>confluent/NAMING.md</code></a>,
+<a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md"><code>confluent/NAMING.md</code></a>,
 and the under-the-hood deep dive (all 9 Flink jobs, the join, the upsert design) lives in
 <a href="../confluent-internals/">Confluent Internals</a>.</p>
 </div>
@@ -2932,7 +2959,7 @@ That single sentence is the entire promise of this repository.</p>
 <ul>
 <li>Go deeper — <a href="../confluent-internals/">Confluent Internals</a>: every one of the 9 Flink jobs, the
   four-way join, the upsert/idempotency design, and Schema-Registry governance in full.</li>
-<li>The naming contract — <a href="https://github.ibm.com/alexander/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md"><code>confluent/NAMING.md</code></a>.</li>
+<li>The naming contract — <a href="https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/confluent/NAMING.md"><code>confluent/NAMING.md</code></a>.</li>
 <li>New to the path model? <a href="../choosing/">When to Use Which</a>.</li>
 <li>Want the no-code Gold engine? <a href="../datastage-demo/">DataStage — No-Code Gold</a>.</li>
 <li>Something not starting? The <strong>Streaming</strong> section in
