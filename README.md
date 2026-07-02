@@ -188,6 +188,29 @@ docker compose -f openmetadata/docker-compose.yml down
 
 ---
 
+## Databand (optional dbt run tracking)
+
+[IBM Data Observability by Databand](https://www.ibm.com/products/databand) can track dbt invocations — pass/fail status, duration, logs — in its own UI. This is **dbt-only**; it has nothing to do with Airflow (Databand's Airflow-DAG integration was tested and found broken on Airflow 3.x — its packages hard-import Airflow-1.x-only paths that don't exist in 2.x or 3.x).
+
+```bash
+# in .env — that's it, nothing else to run manually
+DBND__CORE__DATABAND_URL=https://<your-tenant>.databand.ai
+DBND__CORE__DATABAND_ACCESS_TOKEN=<your-access-token>   # Databand UI -> Profile -> API tokens
+
+bash scripts/dbt_env.sh run    # auto-reports to Databand afterward
+bash scripts/dbt_env.sh test   # same
+```
+
+`scripts/dbt_env.sh` auto-fires `scripts/report_dbt_to_databand.py` after `seed`/`run`/`test`/`build`/`snapshot` whenever `DBND__CORE__DATABAND_URL` is set — no manual step needed. Unset it and the script is a no-op (still callable directly with `--dry-run` to validate config with zero side effects). `dbnd` (Databand's core Python SDK, no Airflow dependency) is already in `requirements.txt`.
+
+**What you'll see in Databand — and what you won't**: each `dbt run`/`dbt test`/`dbt seed` invocation becomes **one standalone run with one box**, named literally `"dbt run"` / `"dbt test"` / `"dbt seed"`. This is dbnd's own dbt-core provider design (`_extract_step_meta_data()` hardcodes `"index": 1` and wraps it in a one-element list) — it reports "did this invocation succeed and how long did it take," not a connected task graph. Two things it does **not** give you:
+- **No per-model lineage within a run** — a `dbt run` building all 13 medallion models shows as one box, not 13 connected bronze→silver→gold nodes.
+- **No cross-invocation grouping** — `seed`, `run`, and `test` are separate `dbt` CLI processes, each gets its own random invocation ID, so Databand has no way to know they belong together; they show as unrelated runs.
+
+For the actual connected bronze → silver → gold dependency graph, use **OpenMetadata** (above) — it parses `manifest.json`'s `depends_on` relationships properly, which is what it's built for.
+
+---
+
 ## Prerequisites
 
 Before cloning, confirm you have:

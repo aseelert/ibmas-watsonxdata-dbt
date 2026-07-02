@@ -26,6 +26,10 @@ semantic_models:
     model: ref("gold_daily_sales")
     defaults:
       agg_time_dimension: order_date
+    entities:
+      - name: daily_sales_key
+        type: primary
+        expr: "CAST(order_date AS VARCHAR) || '|' || category"
     dimensions:
       - name: order_date
         type: time
@@ -63,6 +67,9 @@ semantic_models:
     defaults:
       agg_time_dimension: order_date
     entities:
+      - name: order_item_id
+        type: primary
+        expr: order_item_id
       - name: order_id
         type: foreign
         expr: order_id
@@ -88,6 +95,7 @@ semantic_models:
     measures:
       - name: order_line_count
         agg: count
+        expr: "1"
         description: >
           Count of individual order LINE ITEMS (grain of this fact), ALL statuses.
           This is line-level, not order-level — do not confuse it with daily_sales'

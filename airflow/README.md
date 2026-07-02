@@ -113,6 +113,24 @@ curl -s -X POST http://localhost:8082/api/v2/dags/dbt_medallion_hourly/dagRuns \
   -d '{"logical_date":"2026-06-19T12:00:00Z"}'
 ```
 
+## Note: Databand tracking is NOT part of this Airflow setup
+
+[IBM Data Observability by Databand](https://www.ibm.com/products/databand)
+was investigated as an Airflow-DAG-level integration here and found broken on
+Airflow 3.2.2 — all three of IBM's officially documented package names
+(`dbnd-airflow`, `dbnd-airflow-monitor`, `dbnd-airflow-auto-tracking`, all
+pinned to `1.0.34.1` as of this writing) resolve to the same code, which
+hard-imports Airflow-1.x-only paths (`airflow.hooks.base_hook`,
+`airflow.operators.bash_operator`, `airflow.operators.subdag_operator`) that
+don't exist in Airflow 2.x or 3.x, confirmed via live tests against this
+stack's running Airflow. Downgrading to Airflow 2.x would not fix it either —
+those imports predate Airflow 2.0 too, and Airflow 1.x is long end-of-life and
+incompatible with this repo's Airflow 3 architecture.
+
+Databand tracking for this demo is instead a **dbt-only, Airflow-independent**
+feature — see the root `README.md` "Databand (optional dbt run tracking)"
+section and `scripts/report_dbt_to_databand.py`.
+
 ## Files
 ```
 docker-compose.yml             # Airflow plus the optional Metabase/OpenMetadata services

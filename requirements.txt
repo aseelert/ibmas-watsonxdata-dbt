@@ -16,6 +16,13 @@ fastavro>=1.9,<2.0
 httpx>=0.26,<1.0
 psycopg2-binary>=2.9,<3.0
 
+# Optional: Databand (IBM Data Observability) dbt-run tracking, see
+# scripts/report_dbt_to_databand.py and airflow/README.md "Optional: Databand
+# tracking". Core package only — no Airflow dependency, so no version risk
+# here (unlike dbnd-airflow / dbnd-airflow-monitor, confirmed broken on
+# Airflow 3.x). No-ops at runtime unless DBND__CORE__DATABAND_URL is set.
+dbnd>=1.0,<2.0
+
 # MCP Server dependencies
 uv>=0.11,<1.0
 ibm-watsonxdata-dl-retrieval-mcp-server>=0.2.9,<1.0

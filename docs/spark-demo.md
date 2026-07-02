@@ -186,19 +186,75 @@ WXD_SPARK_DRY_RUN=true python scripts/submit_spark_application.py
 
 ---
 
+## Step 3.5: Refresh the Bearer Token
+
+!!! danger "HTTP 401? Your token has expired."
+    The Spark engine REST API authenticates with a **short-lived CPD bearer token** that expires after approximately 12 hours. If you skip this step and your `.env` holds a stale token you will see:
+
+    ```
+    Error 401 - Unauthorized
+    [FAIL] Spark submission rejected (HTTP 401) by …/spark_engines/spark656/applications
+    requests.exceptions.HTTPError: 401 Client Error: Unauthorized
+    ```
+
+    Refresh the token before every submit session — it takes five seconds.
+
+Run this command to fetch a fresh token and write it directly into `.env`:
+
+```bash
+python scripts/get_token.py --export
+```
+
+**What it does:**
+
+1. Authenticates against `WXD_CPD_AUTH_URL` using `WXD_CPD_USERNAME` + `WXD_API_KEY` from `.env`
+2. Receives a new short-lived JWT bearer token from the CPD auth endpoint
+3. Writes `WXD_SPARK_BEARER_TOKEN=<new-token>` back into your `.env` automatically
+4. Validates your `WXD_INSTANCE_ID` is reachable before returning
+
+Expected output:
+
+```text
+Auth URL:    https://cpd-cpd-instance.apps.../icp4d-api/v1/authorize
+CPD host:    cpd-cpd-instance.apps...
+Username:    cpadmin
+Instance ID: 1781163689818519
+
+1. Trying API key auth...
+  API key valid  [OK]
+  Token: eyJhbGciOi...
+
+2. Validating instance ID...
+  Instance: watsonx.data (1781163689818519)  [OK]
+
+Wrote WXD_SPARK_BEARER_TOKEN to .env
+```
+
+!!! tip "Check remaining lifetime without refreshing"
+    ```bash
+    python scripts/refresh_token.py --check
+    # Valid until: 2026-07-01 20:30:00 UTC  (11.4 hours remaining)
+    ```
+
+    If it shows `EXPIRED`, run `get_token.py --export` again.
+
+!!! note "Token lifetime"
+    CPD bearer tokens are valid for ~12 hours. One refresh per workday is sufficient for a full demo session. The token is stored only in your local `.env` file, which is git-ignored.
+
+---
+
 ## Step 4: Submit the Spark Job
 
-Once the dry run looks correct, submit the job to the watsonx.data Spark engine by setting `WXD_SPARK_DRY_RUN=false`.
+Once the dry run looks correct and the token is fresh, submit the job to the watsonx.data Spark engine by setting `WXD_SPARK_DRY_RUN=false`.
 
 ```bash
 WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
 ```
 
-The script authenticates to the Spark REST API using the credentials from your `.env`:
+The script authenticates to the Spark REST API using `WXD_SPARK_BEARER_TOKEN` from `.env` (written by Step 3.5):
 
 ```bash
-WXD_CPD_USERNAME=<software-hub-user>
-WXD_API_KEY=<software-hub-api-key>
+WXD_SPARK_BEARER_TOKEN=<fresh-bearer-token>   # from: python scripts/get_token.py --export
 ```
 
 !!! info "Capturing the application ID"
