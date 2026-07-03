@@ -1,23 +1,25 @@
-# SQL Reference — Bronze → Silver → Gold, Side by Side
+# SQL Reference — Bronze → Silver → Gold
 
 !!! abstract "What this page is"
     A pure code reference — no walkthrough, no setup steps. Just the **real SQL from this
-    project's dbt models**, laid out left to right so you can see exactly what changes at each
-    medallion layer: Bronze lands the raw columns as-is, Silver casts types and cleans/joins,
-    Gold aggregates into business-ready tables and views. Every query here is copy-pasted
-    straight from `models/bronze/`, `models/silver/`, and `models/gold/` — nothing is simplified
-    or invented for this page.
+    project's dbt models**, one full-width block per layer so every line is actually readable —
+    no squeezed columns, no horizontal-scroll code. Bronze lands the raw columns as-is, Silver
+    casts types and cleans/joins, Gold aggregates into business-ready tables and views. Every
+    query here is copy-pasted straight from `models/bronze/`, `models/silver/`, and
+    `models/gold/` — nothing is simplified or invented for this page.
 
 ---
 
 ## Orders: raw → cleaned → aggregated
 
-<div class="sql-grid-3" markdown>
+<div class="sql-stack" markdown>
 
-<div markdown>
-
-### :material-numeric-1-circle: Bronze
-*`models/bronze/bronze_orders.sql`*
+<div class="sql-step bronze" markdown>
+<div class="sql-step-head" markdown>
+<span class="step-badge">1</span>
+<h3>Bronze — land it as-is</h3>
+<span class="file-path">models/bronze/bronze_orders.sql</span>
+</div>
 
 Raw columns, untouched. Only ingestion metadata is added — no casting, no cleaning yet.
 
@@ -33,13 +35,14 @@ select
   'raw_orders.csv'   as _source_file
 from {{ ref('raw_orders') }}
 ```
-
 </div>
 
-<div markdown>
-
-### :material-numeric-2-circle: Silver
-*`models/silver/silver_orders.sql`*
+<div class="sql-step silver" markdown>
+<div class="sql-step-head" markdown>
+<span class="step-badge">2</span>
+<h3>Silver — cast, clean, filter</h3>
+<span class="file-path">models/silver/silver_orders.sql</span>
+</div>
 
 Types are cast, text is trimmed/lower-cased, bad rows are dropped.
 
@@ -50,24 +53,24 @@ Types are cast, text is trimmed/lower-cased, bad rows are dropped.
 }) }}
 
 select
-  cast(order_id as integer)    as order_id,
-  cast(customer_id as integer) as customer_id,
-  cast(order_ts as timestamp)  as order_ts,
-  cast(cast(order_ts as timestamp)
-       as date)                as order_date,
-  lower(trim(status))          as status,
-  lower(trim(payment_method))  as payment_method,
-  current_timestamp            as transformed_at
+  cast(order_id as integer)                 as order_id,
+  cast(customer_id as integer)               as customer_id,
+  cast(order_ts as timestamp)                as order_ts,
+  cast(cast(order_ts as timestamp) as date)  as order_date,
+  lower(trim(status))                        as status,
+  lower(trim(payment_method))                as payment_method,
+  current_timestamp                          as transformed_at
 from {{ ref('bronze_orders') }}
 where order_id is not null
 ```
-
 </div>
 
-<div markdown>
-
-### :material-numeric-3-circle: Gold
-*`models/gold/gold_daily_sales.sql`*
+<div class="sql-step gold" markdown>
+<div class="sql-step-head" markdown>
+<span class="step-badge">3</span>
+<h3>Gold — aggregate into a table</h3>
+<span class="file-path">models/gold/gold_daily_sales.sql</span>
+</div>
 
 A physical **table**, aggregated straight off the enriched silver fact.
 
@@ -75,15 +78,13 @@ A physical **table**, aggregated straight off the enriched silver fact.
 select
   order_date,
   category,
-  count(distinct order_id) as order_count,
-  sum(quantity)            as units_sold,
-  cast(sum(net_amount)
-       as decimal(14,2))   as net_revenue
+  count(distinct order_id)                as order_count,
+  sum(quantity)                            as units_sold,
+  cast(sum(net_amount) as decimal(14,2))   as net_revenue
 from {{ ref('silver_sales_enriched') }}
 where status = 'completed'
 group by 1, 2
 ```
-
 </div>
 
 </div>
@@ -104,12 +105,14 @@ group by 1, 2
 Cleaning one table isn't the whole story — Silver also **joins** the four cleaned entities into one
 row-per-order-line fact that Gold reads from. This is the "enriched" step:
 
-<div class="grid" markdown>
+<div class="sql-stack" markdown>
 
-<div markdown>
-
-### :material-set-merge: Silver — the join
-*`models/silver/silver_sales_enriched.sql`*
+<div class="sql-step silver" markdown>
+<div class="sql-step-head" markdown>
+<span class="step-badge">:material-set-merge:</span>
+<h3>Silver — the join</h3>
+<span class="file-path">models/silver/silver_sales_enriched.sql</span>
+</div>
 
 Four already-cleaned Silver tables are joined into one analytics-ready fact — this is what
 "enriched" means: not just clean, but carrying context from other tables (customer country,
@@ -121,32 +124,28 @@ select
   oi.order_id,
   o.order_date,
   o.status,
-  c.country                 as customer_country,
+  c.country                                                    as customer_country,
   p.product_name,
   p.category,
   oi.quantity,
   p.unit_price,
   oi.discount_pct,
-  cast(oi.quantity * p.unit_price
-       as decimal(14,2))    as gross_amount,
-  cast(oi.quantity * p.unit_price
-       * (1 - oi.discount_pct)
-       as decimal(14,2))    as net_amount
+  cast(oi.quantity * p.unit_price as decimal(14,2))            as gross_amount,
+  cast(oi.quantity * p.unit_price * (1 - oi.discount_pct)
+       as decimal(14,2))                                       as net_amount
 from {{ ref('silver_order_items') }} oi
-join {{ ref('silver_orders') }}    o
-  on oi.order_id = o.order_id
-join {{ ref('silver_products') }}  p
-  on oi.product_id = p.product_id
-join {{ ref('silver_customers') }} c
-  on o.customer_id = c.customer_id
+join {{ ref('silver_orders') }}    o  on oi.order_id   = o.order_id
+join {{ ref('silver_products') }}  p  on oi.product_id = p.product_id
+join {{ ref('silver_customers') }} c  on o.customer_id = c.customer_id
 ```
-
 </div>
 
-<div markdown>
-
-### :material-view-grid: Gold — a pre-aggregated view
-*`models/gold/gold_category_performance.sql`*
+<div class="sql-step gold" markdown>
+<div class="sql-step-head" markdown>
+<span class="step-badge">:material-view-grid:</span>
+<h3>Gold — a pre-aggregated view</h3>
+<span class="file-path">models/gold/gold_category_performance.sql</span>
+</div>
 
 Gold isn't always a fresh aggregation from scratch — this one is a **view** that rolls up the
 already-aggregated `gold_daily_sales` **table** above. Cheap to query, always up to date, no
@@ -157,17 +156,14 @@ extra storage.
 
 select
   category,
-  sum(order_count)         as total_orders,
-  sum(units_sold)          as total_units,
-  cast(sum(net_revenue)
-       as decimal(14,2))   as total_revenue,
-  cast(sum(net_revenue) /
-       nullif(sum(units_sold), 0)
-       as decimal(14,2))   as avg_revenue_per_unit
+  sum(order_count)                                             as total_orders,
+  sum(units_sold)                                               as total_units,
+  cast(sum(net_revenue) as decimal(14,2))                       as total_revenue,
+  cast(sum(net_revenue) / nullif(sum(units_sold), 0)
+       as decimal(14,2))                                        as avg_revenue_per_unit
 from {{ ref('gold_daily_sales') }}
 group by 1
 ```
-
 </div>
 
 </div>

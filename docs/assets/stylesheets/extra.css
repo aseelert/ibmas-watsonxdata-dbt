@@ -494,25 +494,69 @@ table.lineage .new { color: var(--green); font-weight: 500; }
   .mermaid-zoom-overlay { animation: none; }
 }
 
-/* ---- Fixed 3-column code grid (Bronze / Silver / Gold, left to right) --
-   Material's default .grid sizes columns from content (minmax(16rem,1fr)),
-   so wide code blocks collapse it to 2-per-row. Force exactly 3 equal
-   columns instead; each column's own code block scrolls horizontally if a
-   SQL line is longer than the column, rather than stealing width from its
-   neighbors. */
-.sql-grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.1rem 0 1.7rem;
+/* ---- Full-width SQL layer cards (Bronze -> Silver -> Gold reference) ----
+   A 3-across grid squeezed real SQL (60-90 char lines) into ~300px columns,
+   forcing constant horizontal scrolling — unreadable. Stack full-width cards
+   instead: every code block gets the whole content column, no cramped
+   columns, no cut-off lines. Order (top-to-bottom) + numbered badges convey
+   the same left-to-right pipeline story. */
+.sql-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin: 1.2rem 0 1.8rem;
 }
-.sql-grid-3 .highlight,
-.sql-grid-3 pre {
-  overflow-x: auto;
+
+.sql-step {
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.4rem 1.3rem;
 }
-@media (max-width: 900px) {
-  .sql-grid-3 { grid-template-columns: 1fr; }
+.sql-step.bronze { border-left-color: var(--bronze); }
+.sql-step.silver { border-left-color: var(--silver); }
+.sql-step.gold   { border-left-color: var(--gold); }
+
+.sql-step-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
 }
+.sql-step-head .step-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #fff;
+  background: var(--line);
+}
+.sql-step.bronze .step-badge { background: var(--bronze); }
+.sql-step.silver .step-badge { background: var(--silver); }
+.sql-step.gold   .step-badge { background: var(--gold); color: #1a1400; }
+
+.sql-step-head h3 { margin: 0; font-size: 1.02rem; }
+.sql-step-head .file-path {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.sql-step > p { margin: 0.2rem 0 0.9rem; color: var(--muted); font-size: 0.8rem; line-height: 1.6; }
+
+/* Code gets full width now, so bump it back up to a comfortably readable size. */
+.sql-step .highlight,
+.sql-step pre { font-size: 0.92em; }
+.sql-step .highlight,
+.sql-step .md-typeset pre { overflow-x: auto; }
 
 /* ---- Section intro lede -------------------------------------------- */
 .lede {
