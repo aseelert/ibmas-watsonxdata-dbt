@@ -1,6 +1,11 @@
 name: Deploy docs
 
-# Build the MkDocs site and publish it to the gh-pages branch.
+# Build the MkDocs site and publish it via GitHub Pages' native Actions
+# deployment (upload-pages-artifact + deploy-pages) instead of pushing to the
+# gh-pages branch. This bypasses GitHub's legacy Jekyll-based Pages builder,
+# which was failing ("Page build failed") on this repo's larger doc assets
+# (~180MB of presentations/infographics) — see the git history for the prior
+# `mkdocs gh-deploy` approach if this ever needs to be reverted.
 # Runs automatically when docs change on main, or on demand.
 on:
   push:
@@ -13,14 +18,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: deploy-docs
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,5 +44,20 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install "mkdocs>=1.6,<2.0" "mkdocs-material>=9.5,<10.0" "mkdocs-glightbox>=0.4,<1.0"
 
-      - name: Build and deploy to gh-pages
-        run: mkdocs gh-deploy --force --strict
+      - name: Build site
+        run: mkdocs build --strict
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
