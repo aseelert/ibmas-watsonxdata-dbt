@@ -101,6 +101,7 @@ nav:
     - "E · DataStage — Full Medallion (bronze→silver→gold)": datastage-medallion.md
   - Ingest & Compare:
     - "Ingestion Paths (cpdctl · Kafka · DataStage)": ingestion.md
+    - "SQL Reference — Bronze → Silver → Gold": sql-medallion-reference.md
     - "SQL — Compare dbt vs Spark vs Confluent Gold": sql-demo.md
   - Orchestrate:
     - "dbt vs DAG — What Orchestrates What": orchestrate.md

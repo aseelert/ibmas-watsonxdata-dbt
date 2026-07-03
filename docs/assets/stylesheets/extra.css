@@ -494,6 +494,26 @@ table.lineage .new { color: var(--green); font-weight: 500; }
   .mermaid-zoom-overlay { animation: none; }
 }
 
+/* ---- Fixed 3-column code grid (Bronze / Silver / Gold, left to right) --
+   Material's default .grid sizes columns from content (minmax(16rem,1fr)),
+   so wide code blocks collapse it to 2-per-row. Force exactly 3 equal
+   columns instead; each column's own code block scrolls horizontally if a
+   SQL line is longer than the column, rather than stealing width from its
+   neighbors. */
+.sql-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.1rem 0 1.7rem;
+}
+.sql-grid-3 .highlight,
+.sql-grid-3 pre {
+  overflow-x: auto;
+}
+@media (max-width: 900px) {
+  .sql-grid-3 { grid-template-columns: 1fr; }
+}
+
 /* ---- Section intro lede -------------------------------------------- */
 .lede {
   font-size: 0.86rem;
