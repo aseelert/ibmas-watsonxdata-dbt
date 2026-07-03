@@ -8,10 +8,10 @@
       
       
       
-        <link rel="prev" href="../metabase/">
+        <link rel="prev" href="../ingestion/">
       
       
-        <link rel="next" href="../enterprise/overview/">
+        <link rel="next" href="../sql-demo/">
       
       
         
@@ -22,7 +22,7 @@
     
     
       
-        <title>Semantic Models - watsonx.data · dbt · Spark Medallion Demo</title>
+        <title>SQL Reference — Bronze → Silver → Gold - watsonx.data · dbt · Spark Medallion Demo</title>
       
     
     
@@ -85,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#semantic-models" class="md-skip">
+        <a href="#sql-reference-bronze-silver-gold-side-by-side" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Semantic Models
+              SQL Reference — Bronze → Silver → Gold
             
           </span>
         </div>
@@ -292,10 +292,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../ingestion/" class="md-tabs__link">
           
   
@@ -336,12 +338,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../openmetadata/" class="md-tabs__link">
           
   
@@ -1071,8 +1071,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1086,19 +1088,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked="">
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -1116,7 +1121,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1159,10 +1164,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../sql-medallion-reference/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQL Reference — Bronze → Silver → Gold
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1178,6 +1210,126 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#orders-raw-cleaned-aggregated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Orders: raw → cleaned → aggregated
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Orders: raw → cleaned → aggregated">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bronze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bronze
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#silver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Silver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gold
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#silvers-second-job-enrichment-joining-not-just-cleaning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Silver's second job: enrichment (joining, not just cleaning)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Silver's second job: enrichment (joining, not just cleaning)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#silver-the-join" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Silver — the join
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gold-a-pre-aggregated-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gold — a pre-aggregated view
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-full-chain-in-one-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full chain in one picture
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1343,10 +1495,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -1364,22 +1514,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked="">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1397,7 +1544,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1524,37 +1671,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Semantic Models
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../semantic-models/" class="md-nav__link">
         
   
   
@@ -1570,120 +1690,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#why-semantic-models-exist" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why semantic models exist
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-two-semantic-models-in-this-demo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The two semantic models in this demo
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The two semantic models in this demo">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#daily_sales-built-on-gold_daily_sales" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        daily_sales — built on gold_daily_sales
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sales_orders-built-on-silver_sales_enriched" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sales_orders — built on silver_sales_enriched
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-yaml-that-defines-them" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The YAML that defines them
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-dbt-validates-the-semantic-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How dbt validates the semantic models
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-query-the-semantic-layer-metricflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to query the semantic layer (MetricFlow)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-this-fits-in-the-medallion-layers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where this fits in the medallion layers
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2205,33 +2211,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#why-semantic-models-exist" class="md-nav__link">
+  <a href="#orders-raw-cleaned-aggregated" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why semantic models exist
+        Orders: raw → cleaned → aggregated
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-two-semantic-models-in-this-demo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The two semantic models in this demo
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The two semantic models in this demo">
+    <nav class="md-nav" aria-label="Orders: raw → cleaned → aggregated">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#daily_sales-built-on-gold_daily_sales" class="md-nav__link">
+  <a href="#bronze" class="md-nav__link">
     <span class="md-ellipsis">
       
-        daily_sales — built on gold_daily_sales
+        Bronze
       
     </span>
   </a>
@@ -2239,10 +2234,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sales_orders-built-on-silver_sales_enriched" class="md-nav__link">
+  <a href="#silver" class="md-nav__link">
     <span class="md-ellipsis">
       
-        sales_orders — built on silver_sales_enriched
+        Silver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gold
       
     </span>
   </a>
@@ -2255,43 +2261,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-yaml-that-defines-them" class="md-nav__link">
+  <a href="#silvers-second-job-enrichment-joining-not-just-cleaning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The YAML that defines them
+        Silver's second job: enrichment (joining, not just cleaning)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Silver's second job: enrichment (joining, not just cleaning)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#silver-the-join" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Silver — the join
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#how-dbt-validates-the-semantic-models" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#gold-a-pre-aggregated-view" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How dbt validates the semantic models
+        Gold — a pre-aggregated view
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-query-the-semantic-layer-metricflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to query the semantic layer (MetricFlow)
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-this-fits-in-the-medallion-layers" class="md-nav__link">
+  <a href="#the-full-chain-in-one-picture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where this fits in the medallion layers
+        The full chain in one picture
       
     </span>
   </a>
@@ -2318,214 +2330,201 @@
   
 
 
-<h1 id="semantic-models">Semantic Models</h1>
+<h1 id="sql-reference-bronze-silver-gold-side-by-side">SQL Reference — Bronze → Silver → Gold, Side by Side</h1>
 <div class="admonition abstract">
-<p class="admonition-title">What this page is about</p>
-<p>A <strong>semantic model</strong> is a structured description of a dbt model that tells BI tools and
-AI assistants <em>what</em> the columns mean — not just their names, but whether they are
-dimensions to filter by, measures to add up, or keys to join on. This demo ships two
-semantic models so you can see how the concept works.</p>
+<p class="admonition-title">What this page is</p>
+<p>A pure code reference — no walkthrough, no setup steps. Just the <strong>real SQL from this
+project's dbt models</strong>, laid out left to right so you can see exactly what changes at each
+medallion layer: Bronze lands the raw columns as-is, Silver casts types and cleans/joins,
+Gold aggregates into business-ready tables and views. Every query here is copy-pasted
+straight from <code>models/bronze/</code>, <code>models/silver/</code>, and <code>models/gold/</code> — nothing is simplified
+or invented for this page.</p>
 </div>
-<h2 id="why-semantic-models-exist">Why semantic models exist</h2>
-<p>Imagine you build a beautiful <code>gold_daily_sales</code> table. A data analyst opens it and sees columns
-called <code>order_count</code>, <code>units_sold</code>, and <code>net_revenue</code>. They can probably guess what those mean.
-But how does a BI tool know that <code>net_revenue</code> should be <em>summed</em>, not <em>averaged</em>? How does it
-know that <code>order_date</code> is a time dimension you can drill by week or month? How does it know
-that <code>category</code> is a label you can group by?</p>
-<p>A semantic model answers all those questions in one YAML file. It is the difference between
-"here is some data" and "here is a <em>business concept</em> with well-defined metrics".</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Raw CSV  →  Bronze  →  Silver  →  Gold TABLE / VIEW
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                                       ↑
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                               semantic_models.yml  ← describes the business meaning
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                                       ↓
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                             BI tool / MetricFlow query
+<hr>
+<h2 id="orders-raw-cleaned-aggregated">Orders: raw → cleaned → aggregated</h2>
+<div class="sql-grid-3">
+<div>
+<h3 id="bronze"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7v2h2v8h2V7zm2-5a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"></path></svg></span> Bronze</h3>
+<p><em><code>models/bronze/bronze_orders.sql</code></em></p>
+<p>Raw columns, untouched. Only ingestion metadata is added — no casting, no cleaning yet.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">order_id</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">customer_id</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">order_ts</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">status</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">payment_method</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="k">current_timestamp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">_ingested_at</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="s1">'dbt seed'</span><span class="w">         </span><span class="k">as</span><span class="w"> </span><span class="n">_ingested_by</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="s1">'raw_orders.csv'</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">_source_file</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'raw_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
 </code></pre></div>
-<h2 id="the-two-semantic-models-in-this-demo">The two semantic models in this demo</h2>
-<p>Both are defined in <code>models/semantic_models.yml</code>.</p>
-<h3 id="daily_sales-built-on-gold_daily_sales"><code>daily_sales</code> — built on <code>gold_daily_sales</code></h3>
-<p>This is the <strong>presentation layer</strong>: a pre-aggregated, partitioned table that BI dashboards
-can query without ever touching raw data.</p>
+</div>
+<div>
+<h3 id="silver"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 7v2h4v2h-2a2 2 0 0 0-2 2v4h6v-2h-4v-2h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm3-5a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"></path></svg></span> Silver</h3>
+<p><em><code>models/silver/silver_orders.sql</code></em></p>
+<p>Types are cast, text is trimmed/lower-cased, bad rows are dropped.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="err">{{</span><span class="w"> </span><span class="n">config</span><span class="p">(</span><span class="n">properties</span><span class="o">=</span><span class="err">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="ss">"format"</span><span class="p">:</span><span class="w"> </span><span class="ss">"'PARQUET'"</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="ss">"partitioning"</span><span class="p">:</span><span class="w"> </span><span class="ss">"ARRAY['month(order_date)']"</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="err">}</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">select</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">order_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">integer</span><span class="p">)</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">order_id</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">customer_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">integer</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">)</span><span class="w">  </span><span class="k">as</span><span class="w"> </span><span class="n">order_ts</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">cast</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">)</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">date</span><span class="p">)</span><span class="w">                </span><span class="k">as</span><span class="w"> </span><span class="n">order_date</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="k">lower</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">status</span><span class="p">))</span><span class="w">          </span><span class="k">as</span><span class="w"> </span><span class="n">status</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="k">lower</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">payment_method</span><span class="p">))</span><span class="w">  </span><span class="k">as</span><span class="w"> </span><span class="n">payment_method</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="k">current_timestamp</span><span class="w">            </span><span class="k">as</span><span class="w"> </span><span class="n">transformed_at</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'bronze_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="k">where</span><span class="w"> </span><span class="n">order_id</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
+</code></pre></div>
+</div>
+<div>
+<h3 id="gold"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 15v-1.5a1.5 1.5 0 0 0-1.5-1.5 1.5 1.5 0 0 0 1.5-1.5V9a2 2 0 0 0-2-2H9v2h4v2h-2v2h2v2H9v2h4a2 2 0 0 0 2-2M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"></path></svg></span> Gold</h3>
+<p><em><code>models/gold/gold_daily_sales.sql</code></em></p>
+<p>A physical <strong>table</strong>, aggregated straight off the enriched silver fact.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">select</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">order_date</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">category</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="k">distinct</span><span class="w"> </span><span class="n">order_id</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">order_count</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="w">            </span><span class="k">as</span><span class="w"> </span><span class="n">units_sold</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_amount</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">net_revenue</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_sales_enriched'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">where</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'completed'</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+</code></pre></div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">What actually changed, column by column</p>
 <table>
 <thead>
 <tr>
-<th>Field</th>
-<th>Type</th>
 <th>Column</th>
-<th>What it means</th>
+<th>Bronze type</th>
+<th>Silver type</th>
+<th>What happened</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>order_date</code></td>
-<td><strong>Time dimension</strong></td>
-<td><code>order_date</code></td>
-<td>Drill by day / week / month</td>
+<td><code>order_id</code></td>
+<td>untyped (raw)</td>
+<td><code>integer</code></td>
+<td>explicit <code>cast(... as integer)</code></td>
 </tr>
 <tr>
-<td><code>category</code></td>
-<td><strong>Categorical dimension</strong></td>
-<td><code>category</code></td>
-<td>Filter or group by product category</td>
-</tr>
-<tr>
-<td><code>total_orders</code></td>
-<td><strong>Measure</strong> (SUM)</td>
-<td><code>order_count</code></td>
-<td>Count of completed orders</td>
-</tr>
-<tr>
-<td><code>total_units_sold</code></td>
-<td><strong>Measure</strong> (SUM)</td>
-<td><code>units_sold</code></td>
-<td>Total product units</td>
-</tr>
-<tr>
-<td><code>total_net_revenue</code></td>
-<td><strong>Measure</strong> (SUM)</td>
-<td><code>net_revenue</code></td>
-<td>Revenue after discounts</td>
-</tr>
-</tbody>
-</table>
-<h3 id="sales_orders-built-on-silver_sales_enriched"><code>sales_orders</code> — built on <code>silver_sales_enriched</code></h3>
-<p>This is the <strong>flexible fact</strong>: one row per order line item, all four entities already joined.
-Use this for ad-hoc analysis when you need to slice by country, payment method, or status.</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Column</th>
-<th>What it means</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>order_date</code></td>
-<td><strong>Time dimension</strong></td>
-<td><code>order_date</code></td>
-<td>Full date resolution</td>
-</tr>
-<tr>
-<td><code>category</code></td>
-<td><strong>Categorical dimension</strong></td>
-<td><code>category</code></td>
-<td>Product category</td>
-</tr>
-<tr>
-<td><code>customer_country</code></td>
-<td><strong>Categorical dimension</strong></td>
-<td><code>customer_country</code></td>
-<td>Buyer's country</td>
-</tr>
-<tr>
-<td><code>payment_method</code></td>
-<td><strong>Categorical dimension</strong></td>
-<td><code>payment_method</code></td>
-<td>card / paypal / bank_transfer</td>
+<td><code>order_ts</code></td>
+<td>untyped (raw)</td>
+<td><code>timestamp</code></td>
+<td>explicit <code>cast(... as timestamp)</code>, then re-cast to <code>date</code> for <code>order_date</code></td>
 </tr>
 <tr>
 <td><code>status</code></td>
-<td><strong>Categorical dimension</strong></td>
-<td><code>status</code></td>
-<td>completed / returned / cancelled / pending</td>
+<td>untyped (raw), mixed case/whitespace</td>
+<td><code>varchar</code>, normalized</td>
+<td><code>lower(trim(...))</code> so <code>" Completed"</code> and <code>"completed"</code> become identical</td>
 </tr>
 <tr>
-<td><code>order_id</code></td>
-<td><strong>Entity</strong> (foreign key)</td>
-<td><code>order_id</code></td>
-<td>Join key to the order header</td>
+<td><code>payment_method</code></td>
+<td>untyped (raw)</td>
+<td><code>varchar</code>, normalized</td>
+<td>same <code>lower(trim(...))</code> treatment</td>
 </tr>
 <tr>
-<td><code>customer_id</code></td>
-<td><strong>Entity</strong> (foreign key)</td>
-<td><code>customer_id</code></td>
-<td>Join key to the customer dimension</td>
-</tr>
-<tr>
-<td><code>product_id</code></td>
-<td><strong>Entity</strong> (foreign key)</td>
-<td><code>product_id</code></td>
-<td>Join key to the product dimension</td>
-</tr>
-<tr>
-<td><code>net_revenue</code></td>
-<td><strong>Measure</strong> (SUM)</td>
-<td><code>net_amount</code></td>
-<td>Revenue after discounts</td>
-</tr>
-<tr>
-<td><code>gross_revenue</code></td>
-<td><strong>Measure</strong> (SUM)</td>
-<td><code>gross_amount</code></td>
-<td>Revenue before discounts</td>
-</tr>
-<tr>
-<td><code>units_sold</code></td>
-<td><strong>Measure</strong> (SUM)</td>
-<td><code>quantity</code></td>
-<td>Units per line item</td>
+<td><em>(new in Gold)</em> <code>order_count</code>, <code>units_sold</code>, <code>net_revenue</code></td>
+<td>—</td>
+<td><code>bigint</code> / <code>decimal(14,2)</code></td>
+<td>created by <code>count(distinct ...)</code> / <code>sum(...)</code>, they don't exist before Gold</td>
 </tr>
 </tbody>
 </table>
-<h2 id="the-yaml-that-defines-them">The YAML that defines them</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">semantic_models</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">daily_sales</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref('gold_daily_sales')</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">defaults</span><span class="p">:</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">agg_time_dimension</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_date</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">dimensions</span><span class="p">:</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_date</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">time</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="nt">type_params</span><span class="p">:</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">          </span><span class="nt">time_granularity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">day</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">category</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">categorical</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">measures</span><span class="p">:</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">total_net_revenue</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="nt">agg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sum</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">        </span><span class="nt">expr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">net_revenue</span>
-</code></pre></div>
-<p>The <code>agg: sum</code> on <code>total_net_revenue</code> is the key part: it tells MetricFlow "when you need
-revenue, sum the <code>net_revenue</code> column". A BI tool querying this semantic model never has to
-write <code>SUM(net_revenue)</code> itself — it just asks for the <code>total_net_revenue</code> measure.</p>
-<h2 id="how-dbt-validates-the-semantic-models">How dbt validates the semantic models</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>/path/to/project
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>dbt<span class="w"> </span>parse<span class="w">   </span><span class="c1"># validates YAML structure including semantic models</span>
-</code></pre></div>
-<p><code>dbt parse</code> reads the YAML and checks that every <code>expr:</code> column exists in the referenced
-model, that time dimensions have a <code>time_granularity</code>, and that measure aggregations are
-valid. No extra package is needed for validation.</p>
-<h2 id="how-to-query-the-semantic-layer-metricflow">How to query the semantic layer (MetricFlow)</h2>
-<p>To actually run metric queries you need the MetricFlow CLI:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>dbt-metricflow
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>mf<span class="w"> </span>validate-configs<span class="w">   </span><span class="c1"># checks semantic models against the live warehouse</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>mf<span class="w"> </span>query<span class="w"> </span>--metrics<span class="w"> </span>total_net_revenue<span class="w"> </span>--group-by<span class="w"> </span>order_date__month
-</code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">MetricFlow and this demo</p>
-<p><code>dbt-metricflow</code> is not in this project's <code>requirements.txt</code> because it requires a
-supported semantic layer backend. The semantic models in <code>models/semantic_models.yml</code> are
-validated by <code>dbt parse</code> and serve as the source-of-truth business definitions — even
-without MetricFlow running. Any BI tool that understands the dbt semantic layer spec
-(Lightdash, Cube, Superset with dbt integration) can read them directly.</p>
 </div>
-<h2 id="where-this-fits-in-the-medallion-layers">Where this fits in the medallion layers</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Raw (CSV seeds)
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    │
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    ▼
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Bronze (typed copies)
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    │
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    ▼
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>Silver (silver_sales_enriched ←── semantic model: sales_orders)
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    │
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    ▼
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>Gold  (gold_daily_sales ←── semantic model: daily_sales)
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>       gold_category_performance  (view on gold_daily_sales — MV ready when Presto Iceberg supports it)
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>       gold_customer_360          (view on silver_sales_enriched)
+<hr>
+<h2 id="silvers-second-job-enrichment-joining-not-just-cleaning">Silver's second job: enrichment (joining, not just cleaning)</h2>
+<p>Cleaning one table isn't the whole story — Silver also <strong>joins</strong> the four cleaned entities into one
+row-per-order-line fact that Gold reads from. This is the "enriched" step:</p>
+<div class="grid">
+<div>
+<h3 id="silver-the-join"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 7v2h5V7zm10 2v2H9v2h3v2l3-3zm5 0v6h5V9zM2 11v2h5v-2zm0 4v2h5v-2z"></path></svg></span> Silver — the join</h3>
+<p><em><code>models/silver/silver_sales_enriched.sql</code></em></p>
+<p>Four already-cleaned Silver tables are joined into one analytics-ready fact — this is what
+"enriched" means: not just clean, but carrying context from other tables (customer country,
+product category) plus computed columns (<code>gross_amount</code>, <code>net_amount</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">select</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">order_item_id</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">order_id</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">o</span><span class="p">.</span><span class="n">order_date</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">o</span><span class="p">.</span><span class="n">status</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="k">c</span><span class="p">.</span><span class="n">country</span><span class="w">                 </span><span class="k">as</span><span class="w"> </span><span class="n">customer_country</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">product_name</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">category</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">discount_pct</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">gross_amount</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">       </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">discount_pct</span><span class="p">)</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">net_amount</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_order_items'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w"> </span><span class="n">oi</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w">    </span><span class="n">o</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">order_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">order_id</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_products'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w">  </span><span class="n">p</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">product_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">product_id</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_customers'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w"> </span><span class="k">c</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">customer_id</span>
 </code></pre></div>
-<p>The semantic models sit at the gold and silver layers — exactly where business logic lives.</p>
+</div>
+<div>
+<h3 id="gold-a-pre-aggregated-view"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11h8V3H3m0 18h8v-8H3m10 8h8v-8h-8m0-10v8h8V3"></path></svg></span> Gold — a pre-aggregated view</h3>
+<p><em><code>models/gold/gold_category_performance.sql</code></em></p>
+<p>Gold isn't always a fresh aggregation from scratch — this one is a <strong>view</strong> that rolls up the
+already-aggregated <code>gold_daily_sales</code> <strong>table</strong> above. Cheap to query, always up to date, no
+extra storage.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="err">{{</span><span class="w"> </span><span class="n">config</span><span class="p">(</span><span class="n">materialized</span><span class="o">=</span><span class="s1">'view'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">select</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">category</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">order_count</span><span class="p">)</span><span class="w">         </span><span class="k">as</span><span class="w"> </span><span class="n">total_orders</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">units_sold</span><span class="p">)</span><span class="w">          </span><span class="k">as</span><span class="w"> </span><span class="n">total_units</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_revenue</span><span class="p">)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">total_revenue</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_revenue</span><span class="p">)</span><span class="w"> </span><span class="o">/</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">       </span><span class="k">nullif</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">units_sold</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">avg_revenue_per_unit</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'gold_daily_sales'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span>
+</code></pre></div>
+</div>
+</div>
+<div class="admonition question">
+<p class="admonition-title">So is Gold a table with SUM, or a pre-aggregated view? — Both.</p>
+<p><code>gold_daily_sales</code> is a physical <strong>table</strong> built with <code>sum()</code>/<code>group by</code> directly off the
+Silver fact. <code>gold_category_performance</code> is a <strong>view</strong> — it does <em>not</em> re-scan Silver, it
+further summarizes the table above it. That's the whole point of layering Gold marts: cheap
+views can sit on top of expensive tables without redoing the heavy aggregation.</p>
+</div>
+<hr>
+<h2 id="the-full-chain-in-one-picture">The full chain in one picture</h2>
+<pre class="mermaid"><code>flowchart LR
+    raw["raw_orders\n(CSV seed)"] --&gt; bz["bronze_orders\nraw copy + metadata"]
+    bz --&gt; sv["silver_orders\ncast + trim + filter"]
+    sv --&gt; en["silver_sales_enriched\nJOIN 4 silver tables"]
+    en --&gt; gd["gold_daily_sales\nTABLE — SUM/GROUP BY"]
+    gd --&gt; gv["gold_category_performance\nVIEW — rolls up the table"]
+
+    style bz fill:#fff3e0,stroke:#b46d3c,color:#161616
+    style sv fill:#edf5ff,stroke:#0f62fe,color:#161616
+    style en fill:#edf5ff,stroke:#0f62fe,color:#161616
+    style gd fill:#fcf4d6,stroke:#b28600,color:#161616
+    style gv fill:#fcf4d6,stroke:#b28600,color:#161616</code></pre>
+<p>See also: <a href="../choosing/">When to Use Which</a> for the engine comparison, and
+<a href="../sql-demo/">SQL — Compare dbt vs Spark vs Confluent Gold</a> to see these same numbers
+reproduced by all three engines.</p>
 
 
 
@@ -2561,7 +2560,7 @@ without MetricFlow running. Any BI tool that understands the dbt semantic layer 
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../metabase/" class="md-footer__link md-footer__link--prev" aria-label="Previous: BI &amp; Dashboards (Metabase)">
+          <a href="../ingestion/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Ingestion Paths (cpdctl · Kafka · DataStage)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -2571,20 +2570,20 @@ without MetricFlow running. Any BI tool that understands the dbt semantic layer 
                 Previous
               </span>
               <div class="md-ellipsis">
-                BI &amp; Dashboards (Metabase)
+                Ingestion Paths (cpdctl · Kafka · DataStage)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../enterprise/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Why Upgrade — Open Source vs Enterprise">
+          <a href="../sql-demo/" class="md-footer__link md-footer__link--next" aria-label="Next: SQL — Compare dbt vs Spark vs Confluent Gold">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Why Upgrade — Open Source vs Enterprise
+                SQL — Compare dbt vs Spark vs Confluent Gold
               </div>
             </div>
             <div class="md-footer__button md-icon">
