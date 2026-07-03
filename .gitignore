@@ -35,3 +35,8 @@ oc.zip
 certs/*.pem
 certs/*.crt
 certs/*.key
+
+# macOS Finder metadata / Office lock files — never worth tracking.
+.DS_Store
+**/.DS_Store
+~$*
