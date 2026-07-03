@@ -94,9 +94,9 @@ TABLES = {
     "raw_order_items.csv": "order_items",
 }
 
-# Explicit DDL schemas passed via --source-file-schema to avoid Spark CSV type
-# inference. Without this the ingestion engine guesses types from a sample of the
-# file, which causes two problems for order_items specifically:
+# Explicit DDL schemas passed via --schema to avoid Spark CSV type inference.
+# Without this the ingestion engine guesses types from a sample of the file,
+# which causes two problems for order_items specifically:
 #
 #  1. discount_pct (values like 0.00 / 0.05 / 0.10) is inferred as DOUBLE. The
 #     Iceberg writer accepts it, but the downstream Spark silver job expects
@@ -109,23 +109,37 @@ TABLES = {
 #     columns, which then conflict with the INT primary-key definition in the
 #     Iceberg sink declared by Flink — breaking cross-engine parity queries.
 #
-# The schema string format is the cpdctl --source-file-schema JSON array:
-#   [{"column_name": "<col>", "column_type": "<presto/iceberg type>"}]
-# Types must match seeds/raw_*.csv column headers exactly (case-sensitive).
+# CHANGELOG 2026-07-03: cpdctl 1.8.233 removed the old --source-file-schema
+# flag entirely (fails with "unknown flag: --source-file-schema" — this is why
+# order_items ingestion stopped working: it's the only table that ever passed
+# this flag, so the other three silently kept working while order_items always
+# failed before even creating a table). The replacement is --schema, which:
+#   - Uses snake_case keys (header_name/type/field_id), NOT the camelCase shown
+#     in `cpdctl wx-data ingestion create --help` (headerName/fieldId) — those
+#     are silently rejected as "unsupported fields" and default to null, which
+#     then crashes the Spark job with "field name None should be a string"
+#     (confirmed by testing both forms directly against a live ingestion job).
+#   - Applies types POSITIONALLY, by array order matching the CSV's actual
+#     column order — header_name is accepted in the payload but not actually
+#     used to match columns by name, so array order must be exactly right.
+# The schema string format is the cpdctl --schema JSON array:
+#   [{"header_name": "<col>", "type": "<presto/iceberg type>", "field_id": <1-based int>}]
+# Types must match seeds/raw_*.csv column headers exactly (case-sensitive) AND
+# be listed in the same left-to-right order as the CSV's actual columns.
 # None means "let the engine infer" (safe for the three small tables).
 TABLE_SCHEMAS: dict[str, list[dict] | None] = {
     "raw_customers.csv":   None,   # 50 rows, all STRING/INT — inference is fine
     "raw_products.csv":    None,   # 20 rows, unit_price DOUBLE is acceptable here
     "raw_orders.csv":      None,   # 500 rows, all STRING/INT — inference is fine
     "raw_order_items.csv": [       # 1,134 rows — MUST pin types explicitly
-        {"column_name": "order_item_id", "column_type": "INTEGER"},
-        {"column_name": "order_id",      "column_type": "INTEGER"},
-        {"column_name": "product_id",    "column_type": "INTEGER"},
-        {"column_name": "quantity",      "column_type": "INTEGER"},
-        # Pin as DECIMAL(5,2) — matches the Flink silver cast and the dbt model.
+        {"header_name": "order_item_id", "type": "integer",       "field_id": 1},
+        {"header_name": "order_id",      "type": "integer",       "field_id": 2},
+        {"header_name": "product_id",    "type": "integer",       "field_id": 3},
+        {"header_name": "quantity",      "type": "integer",       "field_id": 4},
+        # Pin as decimal(5,2) — matches the Flink silver cast and the dbt model.
         # Without this Spark infers DOUBLE, which triggers the slow-serialisation
         # restart loop described above.
-        {"column_name": "discount_pct",  "column_type": "DECIMAL(5,2)"},
+        {"header_name": "discount_pct",  "type": "decimal(5,2)",  "field_id": 5},
     ],
 }
 
@@ -135,6 +149,19 @@ TABLE_SCHEMAS: dict[str, list[dict] | None] = {
 TABLE_TIMEOUTS: dict[str, int] = {
     "raw_order_items.csv": 600,   # 10 min — covers slow Spark cold-start + commit
 }
+
+# How long to wait, after submitting each table's job, for it to leave the
+# "starting" state before submitting the next one. cpdctl's `ingestion create`
+# returns as soon as the job is ACCEPTED, not once the Spark application has
+# actually launched — submitting all four back-to-back (no stagger) causes
+# the Spark engine's timestamp-based application-id scheme to collide
+# ("Target log directory already exists (.../eventlog_v2_app-<ts>-0000)"),
+# which silently fails whichever job loses the race (order_items, being the
+# slowest to schedule, lost it every time this was observed). Confirmed fix by
+# reproducing the exact collision, then submitting sequentially with this
+# stagger and re-running clean — all 4 tables landed correctly.
+SUBMIT_STAGGER_TIMEOUT = 90
+SUBMIT_STAGGER_POLL_INTERVAL = 3
 
 
 def _env(name: str, default: str | None = None) -> str:
@@ -352,6 +379,13 @@ def main() -> int:
         help="Max seconds to wait for jobs to finish (default: 600, keeping the "
              "total run under the 10-minute budget).",
     )
+    parser.add_argument(
+        "--table",
+        choices=sorted(TABLES.values()),
+        help="Submit/check only this table instead of all four. Useful for "
+             "isolating a single failing table without re-submitting (and "
+             "duplicating rows in) the others.",
+    )
     args = parser.parse_args()
 
     if load_dotenv is not None:
@@ -375,8 +409,12 @@ def main() -> int:
     batch = args.batch or os.getenv("WXD_INGEST_BATCH_ID") or str(int(time.time()))
     instance_id = _env("WXD_INSTANCE_ID")
 
+    tables = TABLES
+    if args.table:
+        tables = {k: v for k, v in TABLES.items() if v == args.table}
+
     # Job ids are deterministic from the batch, so status checks need no state file.
-    job_ids = [f"ingest-{table}-{batch}" for table in TABLES.values()]
+    job_ids = [f"ingest-{table}-{batch}" for table in tables.values()]
 
     print(f"Catalog: {catalog}")
     print(f"Spark engine: {engine_id}")
@@ -399,7 +437,7 @@ def main() -> int:
 
     failures = 0
     submitted = []
-    for csv_name, table in TABLES.items():
+    for csv_name, table in tables.items():
         target = f"{catalog}.{ingest_schema}.{table}"
         job_id = f"ingest-{table}-{batch}"
         timeout = TABLE_TIMEOUTS.get(csv_name, CPDCTL_CREATE_TIMEOUT)
@@ -417,7 +455,7 @@ def main() -> int:
         # to enter an infinite Spark restart loop and never finish.
         schema = TABLE_SCHEMAS.get(csv_name)
         if schema is not None:
-            cmd += ["--source-file-schema", json.dumps(schema)]
+            cmd += ["--schema", json.dumps(schema)]
         cmd += ["--profile", cpdctl_profile]
         if storage := os.getenv("WXD_INGEST_STORAGE_NAME"):
             cmd += ["--storage-name", storage]
@@ -432,6 +470,15 @@ def main() -> int:
         if result.returncode == 0:
             submitted.append(job_id)
             print(f"  submitted {job_id} [OK]")
+            # Stagger: wait for the Spark application to actually launch before
+            # submitting the next table, to avoid the event-log-directory
+            # collision described above.
+            deadline = time.time() + SUBMIT_STAGGER_TIMEOUT
+            status = _job_status(job_id, instance_id, cpdctl_profile)
+            while status in {"starting", "unknown"} and time.time() < deadline:
+                time.sleep(SUBMIT_STAGGER_POLL_INTERVAL)
+                status = _job_status(job_id, instance_id, cpdctl_profile)
+            print(f"  {job_id} now {status} — proceeding")
         else:
             failures += 1
             print(f"!! ingestion failed for {csv_name} (exit {result.returncode}) [FAIL]")
