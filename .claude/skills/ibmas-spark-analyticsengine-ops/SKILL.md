@@ -21,9 +21,14 @@ description: "Use for the Spark medallion path in this project — both the Open
    AnalyticsEngine compute, not a separate k8s object — you won't find it via `oc get`.
    **Live-verified on this cluster (2026-08-20): the current id is `spark588`**
    (`display_name: ibmas-spark-java`, `status: running`, `type: spark`, `origin: native`)
-   — `spark656` was only ever a placeholder example in `.env.example`, never a real value;
-   always confirm via `GET /lakehouse/api/v3/spark_engines` (see `ibmas-watsonxdata-rest-api`)
-   or `.env`'s actual `WXD_SPARK_ENGINE_ID`, never hardcode an id from memory.
+   — **`spark656` is a dead id, but it is not just a doc example**: it's still hardcoded as
+   a fallback default in `scripts/spark_application_status.py`,
+   `scripts/submit_spark_application.py`, and `scripts/ingest_with_cpdctl.py` (used only if
+   the env var is unset), plus `.env.example`/`.env.backup`. Harmless while `.env` has the
+   correct `WXD_SPARK_ENGINE_ID`, but if `.env` ever fails to load, these scripts silently
+   target the dead `spark656` id instead of erroring. Always confirm via
+   `GET /lakehouse/api/v3/spark_engines` (see `ibmas-watsonxdata-rest-api`) or `.env`'s
+   actual `WXD_SPARK_ENGINE_ID`, never hardcode an id from memory.
 3. **The local job**: `spark/load_medallion_demo.py` — the actual PySpark medallion
    transformation code, submitted as an `application_details.application` URI in the
    payload above.

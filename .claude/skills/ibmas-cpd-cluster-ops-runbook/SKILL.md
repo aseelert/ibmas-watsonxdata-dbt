@@ -89,6 +89,36 @@ status | verify | shutdown | startup | restart | prepare-upgrade | resume-upgrad
   leaves Zen/console/IAM/scheduler/CCS/EDB/FDB up so node drains evict fewer slow-probe
   pods. State is saved to `logs/*.state` for exact restore.
 
+## `ccs-cr` immutable-StatefulSet-field failure (recurring, usually self-heals)
+
+`ccs-cr` (`cpd-instance`) occasionally fails a reconcile with `"Create statefulset for
+rabbitmq"` → HTTP `422 FieldValueForbidden` on StatefulSet `rabbitmq-ha` ("updates to
+statefulset spec for fields other than replicas, ordinals, template, updateStrategy,
+persistentVolumeClaimRetentionPolicy and minReadySeconds are forbidden"). This cascades:
+`wkc-cr` reports "Dependency CCS failed to install" and blocks all IKC/WKC work.
+
+**Don't diagnose from the pod list or `.status.diagnosticStatus`** — both can look green
+while this is active (pods stay untouched by the rejected patch; diagnosticStatus has
+misreported unrelated Completed cronjob pods as "not Ready" in the past). Read
+`.status.reconcileHistory` and `.status.conditions[?(@.type=="Failure")].message` instead:
+```bash
+oc get ccs ccs-cr -n cpd-instance -o jsonpath='{.status.reconcileHistory}'
+```
+
+**This failure class recurs** (seen 2026-07-14→08-06 stuck at 31.2%, then again as a single
+transient entry on 2026-08-19) — treat it as expected periodic operator behavior, not a
+one-off. **It usually self-heals within a few reconcile cycles** (~8 min, confirmed
+2026-08-19) without intervention. Only if it stays wedged at a fixed percentage for more
+than a few cycles, fall back to the manual fix (zero downtime, pods are adopted, not
+restarted):
+```bash
+oc -n cpd-instance delete statefulset rabbitmq-ha --cascade=orphan
+```
+If `wkc-cr` doesn't clear on its own cycle once CCS recovers, nudge it:
+```bash
+oc patch wkc wkc-cr -n cpd-instance --type merge --patch '{"spec":{"dummyone":true}}'
+```
+
 ## Pod-deletion triage (the "just delete the pod" ask)
 
 1. `oc get pods -n cpd-instance | grep -vE 'Running|Completed'` — find the actual problem

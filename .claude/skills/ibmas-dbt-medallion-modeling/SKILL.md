@@ -34,7 +34,7 @@ This project explicitly requires PARQUET, never ORC:
 ```python
 config(
     materialized='table',
-    properties={"format": "'PARQUET'", "partitioning": "ARRAY['order_date']"},
+    properties={"format": "'PARQUET'", "partitioning": "ARRAY['month(order_date)']"},
 )
 ```
 Note the **inner single quotes** inside the Python string — the `dbt-watsonx-presto`
