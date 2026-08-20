@@ -20,7 +20,7 @@ mcp = FastMCP("watsonx-projects")
 
 _CPD_HOST = os.getenv('WXD_CPD_HOST', '')
 _USERNAME = os.getenv('WXD_CPD_USERNAME', '')
-_PASSWORD = os.getenv('CPADMIN_PASSWORD', '')
+_PASSWORD = os.getenv('WXD_CPD_PASSWORD', '')
 _CA_BUNDLE = os.getenv('WXD_SSL_VERIFY', '')
 
 if _CA_BUNDLE and not _CA_BUNDLE.startswith('/'):
@@ -163,7 +163,7 @@ def validate_watsonx_connection() -> dict:
 
 
 if __name__ == "__main__":
-    missing = [v for v in ("WXD_CPD_HOST", "WXD_CPD_USERNAME", "CPADMIN_PASSWORD", "WXD_SSL_VERIFY") if not os.getenv(v)]
+    missing = [v for v in ("WXD_CPD_HOST", "WXD_CPD_USERNAME", "WXD_CPD_PASSWORD", "WXD_SSL_VERIFY") if not os.getenv(v)]
     if missing:
         print(f"Missing env vars: {', '.join(missing)}", file=sys.stderr)
         sys.exit(1)

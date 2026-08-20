@@ -26,6 +26,9 @@ Order ID,glossary_term,Retail Medallion Lakehouse >> Order,"[order_id] Order ID 
 Order Status,glossary_term,Retail Medallion Lakehouse >> Order,"[status] Order Status is the lifecycle state code: completed, returned, pending or cancelled. Only completed orders count toward net_revenue and lifetime_value. Must conform to the Order Status reference data set. Source file: raw_orders.csv.",order,status
 ,,,,status,
 ,,,,code,
+Payment Method,glossary_term,Retail Medallion Lakehouse >> Order,"[payment_method] Payment Method is how the customer paid: card, paypal or bank_transfer. Carried unchanged from Bronze into Silver for payment-mix analysis. Must conform to the Payment Method reference data set. Source file: raw_orders.csv.",order,payment_method
+,,,,payment,
+,,,,code,
 Order Quantity,glossary_term,Retail Medallion Lakehouse >> Order,[quantity] Order Quantity is the number of product units on an order line item. Summed into units_sold in gold_daily_sales. Source file: raw_order_items.csv. Governed constraint (numeric range): positive integer 1-99.,order,quantity
 ,,,,measure,
 ,,,,quantity,

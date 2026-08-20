@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 """Upload Retail Medallion Lakehouse governance CSVs to IBM Knowledge Catalog.
 
+SUPERSEDED — use scripts/provision_ikc_governance.py instead.
+  This script uploads CSVs but stops there: it never publishes the resulting
+  drafts, and it imports data classes *before* business terms, which is the
+  wrong order (a data class cannot resolve Related Terms against a term that is
+  still in draft — GIM00015E). It is kept only as the minimal "just POST the
+  CSVs" reference. The replacement does import → publish → verify per stage, in
+  dependency order, and also creates the data protection rule:
+
+      python scripts/provision_ikc_governance.py --dry-run
+      python scripts/provision_ikc_governance.py
+
 Steps performed:
-  1. Authenticate with cpadmin credentials (CPADMIN_PASSWORD from .env)
+  1. Authenticate with cpadmin credentials (WXD_CPD_PASSWORD from .env)
   2. Upload 01_categories.csv   → REST /v3/glossary_terms/import  (categories + terms share this endpoint)
   3. Upload 03_classifications.csv → REST /v3/classifications/import
   4. Upload 04_data_classes.csv  → REST /v3/data_classes/import
@@ -51,11 +62,11 @@ def load_env():
     load_dotenv(ENV_FILE)
     cpd_host = os.environ.get("WXD_CPD_HOST", "").strip()
     auth_url = os.environ.get("WXD_CPD_AUTH_URL", "").strip()
-    password = os.environ.get("CPADMIN_PASSWORD", "").strip()
+    password = os.environ.get("WXD_CPD_PASSWORD", "").strip()
     if not cpd_host:
         raise SystemExit("WXD_CPD_HOST missing from .env")
     if not password:
-        raise SystemExit("CPADMIN_PASSWORD missing from .env")
+        raise SystemExit("WXD_CPD_PASSWORD missing from .env")
     return cpd_host, auth_url, password
 
 
@@ -124,6 +135,10 @@ def main() -> None:
     do_all = not any([args.dc_only, args.cls_only, args.terms_only, args.cats_only])
 
     print("=== Retail Medallion Lakehouse — IKC Governance Upload ===")
+    print("NOTE: superseded by scripts/provision_ikc_governance.py, which publishes")
+    print("      each stage before importing the next one. This script leaves every")
+    print("      artifact in draft, so data-class → term links will not resolve.")
+    print()
     cpd_host, auth_url, password = load_env()
     token = get_token(auth_url, password)
 

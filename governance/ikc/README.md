@@ -13,7 +13,7 @@ dbt / Spark / Confluent paths, so each business term describes a concept identic
 Retail Medallion Lakehouse                    (top-level)
 ├── Customer      Customer ID · Customer Email · Customer Country · Customer 360
 ├── Product       Product ID · Product Category · Unit Price
-├── Order         Order ID · Order Status · Order Quantity · Net Amount
+├── Order         Order ID · Order Status · Payment Method · Order Quantity · Net Amount
 ├── Gold Sales    Daily Sales · Net Revenue · Category Performance
 └── Data Governance
     ├── Business Data   (classification)
@@ -26,11 +26,55 @@ Retail Medallion Lakehouse                    (top-level)
 |------|------|---------------|-------|
 | 1 | `01_categories.csv` | category | 6 categories incl. `Data Governance` sub-cat |
 | 2 | `03_classifications.csv` | classification | `Business Data` + `Personal Data` |
-| 3 | `02_business_terms.csv` | glossary_term | 14 terms — **no** data-class or related-term links (base pass) |
-| 4 | `04_data_classes.csv` | data_class | 14 custom regex DCs, each linked to the matching business term |
+| 3 | `02_business_terms.csv` | glossary_term | 15 terms — **no** data-class or related-term links (base pass) |
+| 4 | `04_data_classes.csv` | data_class | 15 custom regex DCs, each linked to the matching business term |
+| 5 | `05_reference_data_sets.csv` + `05_refvalues_*.csv` | reference_data_set | 4 code lists, then their values |
+| 6 | `06_rules.csv` | rule | the documented policy in the glossary — enforces nothing |
+| 6 | `06_data_protection_rules.json` | data_protection_rule | the rule that actually masks `email` |
 
-> Files 05 and 06 (reference data sets, rules) exist in this folder but are not part of the
-> core import — apply them separately after the 4-step cycle is complete.
+> Step 6 is deliberately two artifacts. A glossary **rule** artifact is a searchable policy
+> statement; a **data protection rule** is the enforcement object, served by
+> `POST /v3/enforcement/rules` with a JSON body rather than a CSV row. The demo creates both so
+> the policy and its technical enforcement are visible side by side.
+
+## Automated path (recommended)
+
+`scripts/provision_ikc_governance.py` drives the whole cycle below non-interactively —
+import → publish the resulting drafts via the workflow API → verify → next stage. It needs no
+`oc` session; authentication tries, in order, a bearer token already in `.env`, then
+`WXD_API_KEY`, then a `WXD_CPD_PASSWORD` login (prompting if neither is set) — the same
+waterfall as `scripts/get_token.py`. Pass `--auth token|api-key|password` to force one, and
+`--save-api-key` to rotate a fresh API key into `.env` after a password login so the next run
+is non-interactive.
+
+```bash
+python scripts/provision_ikc_governance.py --dry-run   # show every write, perform none
+python scripts/provision_ikc_governance.py             # all six stages, in order
+python scripts/provision_ikc_governance.py --verify-only
+```
+
+By default each CSV is split and imported **one artifact at a time**, publishing each before the
+next is imported (`--mode per-artifact`) — this is the only artifact-creation contract IBM's
+shipped client actually implements (`POST /v3/governance_artifact_types/{type}/import`), so this
+script never guesses a per-artifact JSON create body. Pass `--mode bulk` to import a whole CSV in
+one call and publish everything afterward instead, matching the original manual-UI behavior.
+
+Useful flags: `--stage terms` (repeatable) for one stage, `--no-publish` to leave drafts for a
+manual review pass, `--publish-only` to clear drafts left by an earlier partial run, `--keep-going`
+to continue past a failed stage instead of stopping, `--skip-dpr` to build the glossary without the
+masking rule, `-v` for HTTP-level logging.
+
+> If a publish call fails with `action_config=#?XXXX` in the error body, that is a known CPD 5.3.4
+> workflow-template bug, not a script bug — REST/MCP publish is rejected on this instance. Publish
+> that artifact from the UI workflow inbox (Governance → My tasks) instead.
+
+The DSL→native transform for data protection rules
+(`POST /v4/enforcement-transform/utility/json_to_rule`) is marked **SaaS-only** in IBM's own
+client code. If it is not routed on your software instance the script says so rather than posting
+a guessed body: build that one rule in the UI, then capture and replay it with
+`--dpr-dump-existing dpr.json` / `--dpr-native dpr.json`.
+
+The manual UI procedure below still applies and is what the script automates.
 
 ## Import order (upload one file at a time, publish after each)
 
@@ -46,7 +90,7 @@ Step 2  Import 03_classifications.csv   UI: Governance → Classifications → I
 
 Step 3  Import 02_business_terms.csv    UI: Governance → Business terms → Import  (merge: all)
         Publish workflow tasks
-        (14 terms are now live — can be referenced by data classes)
+        (15 terms are now live — can be referenced by data classes)
 
 Step 4  Import 04_data_classes.csv      UI: Governance → Data classes → Import  (merge: all)
         Publish workflow tasks
@@ -76,10 +120,19 @@ Step 4  Import 04_data_classes.csv      UI: Governance → Data classes → Impo
 7. New artifacts land in **draft** (`IMPORT_CREATE`) and must be **published** to become active.
 8. `GIM00015E: Artifact X not found in hierarchy` = the referenced artifact is either in draft
    or does not exist yet. Fix: publish the dependency first, then re-import.
+9. **Data class names are unique across the whole instance**, not per category — hence the `RML `
+   prefix on all of them. A collision fails with `WKCBG5003E`.
+10. **Publishing is a workflow, not a flag.** There is no `skip_workflow` parameter on the import
+    endpoint. Non-interactively it takes three calls per artifact:
+    `GET /v3/workflows?artifact_id=…&include_user_tasks=true&return_active_workflows=true` to find
+    the task, `POST /v3/workflow_user_tasks/{id}/actions {"action":"claim"}`, then
+    `POST …/actions {"action":"complete","assignee":<uid>,"form_properties":[…]}`. The `assignee`
+    is the `uid` claim of your own JWT (on SaaS it is `iam_id` instead), and the approve value must
+    be read from the task's own `form_properties[].enum_values` rather than hardcoded.
 
 ## Data class design
 
-Each of the 14 data classes maps 1-to-1 with a business term and contains:
+Each of the 15 data classes maps 1-to-1 with a business term and contains:
 
 - **`RegularExpressionClassifier`** — value-level regex derived from the seed CSV sample data
 - **`ColumnNameFilter`** — exact column name regex (e.g. `^customer_id$`) so WKC profiling
@@ -99,6 +152,7 @@ Each of the 14 data classes maps 1-to-1 with a business term and contains:
 | Unit Price | `unit_price` | non-negative decimal ≤ 99999.99 |
 | Order ID | `order_id` | `^3[0-9]{3}$` |
 | Order Status | `status` | `^(completed\|returned\|pending\|cancelled)$` |
+| Payment Method | `payment_method` | `^(card\|paypal\|bank_transfer)$` |
 | Order Quantity | `quantity` | `^[1-9][0-9]?$` |
 | Net Amount | `net_amount` | non-negative decimal |
 | Daily Sales | `order_date` | ISO 8601 date `YYYY-MM-DD` |

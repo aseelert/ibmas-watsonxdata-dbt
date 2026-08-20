@@ -30,7 +30,7 @@ def check_prerequisites():
     checks.append(version.major >= 3 and version.minor >= 11)
     
     # Environment variables
-    required_vars = ['WXD_CPD_HOST', 'WXD_CPD_USERNAME', 'CPADMIN_PASSWORD', 'WXD_SSL_VERIFY']
+    required_vars = ['WXD_CPD_HOST', 'WXD_CPD_USERNAME', 'WXD_CPD_PASSWORD', 'WXD_SSL_VERIFY']
     print("\nEnvironment variables:")
     for var in required_vars:
         value = os.getenv(var)
@@ -83,7 +83,7 @@ def test_server_startup():
     # Setup environment
     cpd_host = os.getenv('WXD_CPD_HOST', '')
     cpd_username = os.getenv('WXD_CPD_USERNAME', '')
-    cpd_password = os.getenv('CPADMIN_PASSWORD', '')
+    cpd_password = os.getenv('WXD_CPD_PASSWORD', '')
     ca_bundle = os.getenv('WXD_SSL_VERIFY', '')
     
     if not ca_bundle.startswith('/'):

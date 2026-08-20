@@ -28,7 +28,26 @@ the `.venv` dbt binary. Don't call bare `dbt` — env vars from `.env` won't be 
 # One-time setup
 python3.11 -m venv .venv && source .venv/bin/activate   # Python 3.11 REQUIRED (3.14 breaks dbt)
 pip install -r requirements.txt
-python scripts/prepare_watsonx_env.py     # parses watsonx_data/instance_details.json → .env + certs/watsonxdata-ca.pem
+
+# Bootstrap .env from the Presto connection JSON exported from the watsonx.data UI
+# (save the export as watsonx_data/instance_details.json first):
+python3 scripts/prepare_watsonx_env.py
+#   → parses JSON → writes WXD_HOST, WXD_PORT, WXD_INSTANCE_ID, WXD_CPD_HOST, etc.
+#   → derives all URLs (WXD_CPD_AUTH_URL, WXD_OPENSHIFT_CONSOLE, Spark endpoints, MinIO, PG)
+#   → writes CA cert to certs/watsonxdata-ca.pem
+#   → if logged in with oc: also reads WXD_SPARK_ENGINE_ID, MinIO creds, PG_PASSWORD from secrets
+#
+# Useful flags:
+#   --dry-run               show diff only, write nothing
+#   --overwrite             also replace existing non-placeholder values
+#   --no-oc                 skip OpenShift secret discovery (offline / no oc session)
+#   --presto-json PATH      use a different Presto connection JSON
+#   --spark-json  PATH      also parse a Spark engine connection JSON
+#   -v / --verbose          DEBUG logging
+#
+# After the script, only two values need to be set by hand:
+#   WXD_API_KEY             → Software Hub UI: Profile → API key
+#   WXD_SPARK_BEARER_TOKEN  → python3 scripts/get_token.py --export  (refresh per session)
 
 # dbt path (all go through the wrapper)
 bash scripts/dbt_env.sh debug

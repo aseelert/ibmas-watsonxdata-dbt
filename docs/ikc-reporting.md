@@ -174,23 +174,63 @@ Trigger it via **CPD UI → Knowledge Catalog → Administration → Reporting �
 ### `IKCBI2019E: Permission check …`
 
 The `manage_reporting` permission is not in the user's session cache.  Grant the role and restart
-the service so the cache is flushed:
+the service so the cache is flushed.
+
+!!! danger "`PUT user_roles` replaces the whole list — never send a hand-written one"
+    That endpoint is a **full replacement**, not an append. If `cpadmin` is the only
+    administrator on the cluster (the usual case) and the body omits
+    `zen_administrator_role`, you remove your own admin rights and lose the UI you would
+    need to put them back. Always **read the current roles first** and add to them.
 
 ```bash
-# Grant role (replace cpadmin with the affected user)
 CPD_HOST="$(grep WXD_CPD_HOST .env | cut -d= -f2)"
 TOKEN="$(.venv/bin/python scripts/get_token.py)"
+CPD_USER=cpadmin      # the affected user
 
-curl -sk -X PUT "https://${CPD_HOST}/icp4d-api/v1/users/cpadmin" \
+# 1. Read what the user has today
+curl -sk "https://${CPD_HOST}/icp4d-api/v1/users/${CPD_USER}" \
+  -H "Authorization: Bearer ${TOKEN}" | python3 -m json.tool | grep -A6 user_roles
+
+# 2. Send that list PLUS the reporting role — nothing removed
+ROLES="$(curl -sk "https://${CPD_HOST}/icp4d-api/v1/users/${CPD_USER}" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  | python3 -c 'import sys,json
+u=json.load(sys.stdin).get("UserInfo",{})
+r=u.get("user_roles") or []
+if "wkc_reporting_administrator" not in r: r.append("wkc_reporting_administrator")
+print(json.dumps(r))')"
+echo "Sending: ${ROLES}"     # sanity-check before the write
+
+curl -sk -X PUT "https://${CPD_HOST}/icp4d-api/v1/users/${CPD_USER}" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
-  -d '{"user_roles":["zen_administrator_role","wkc_reporting_administrator"]}' \
+  -d "{\"user_roles\": ${ROLES}}" \
   | python3 -m json.tool | grep -E "status|message"
+```
 
-# Restart the service to flush its permission cache
+Then make it take effect. A role is invisible to any token minted **before** the grant —
+CPD carries permissions inside the JWT — so a fresh token is as necessary as the restart:
+
+```bash
+.venv/bin/python scripts/get_token.py --export        # new token, now carries manage_reporting
 oc -n cpd-instance rollout restart deployment/wkc-bi-data-service
 oc -n cpd-instance rollout status  deployment/wkc-bi-data-service --timeout=180s
 ```
+
+A safer alternative that cannot remove anything, because it is additive by construction —
+grant through a user group instead of on the user record:
+
+```bash
+curl -sk -X POST "https://${CPD_HOST}/usermgmt/v2/groups" \
+  -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+  -d '{"name":"ikc-reporting-admins","description":"IKC reporting",
+       "role_identifiers":["wkc_reporting_administrator"]}'
+```
+
+`scripts/provision_pg_reporting.sh` does all of the above for you — it reports the user's
+roles by default and only writes with `--grant-role`, read-modify-write.  Its `--verify-only`
+mode checks the cluster-side prerequisites (including whether the IKC licence is Enterprise)
+without changing anything.
 
 ### `ccs-cr` stuck in `InProgress` / never `Completed`
 
@@ -252,7 +292,7 @@ flowchart LR
         IKCDB["ikc-dp-dps-bidata-\nmde-mdi-postgres\n(ikcdb — IKC data mart)"]
         IKC --> BI --> IKCDB
     end
-    subgraph PG["Standalone PostgreSQL\n(postgresql DC)"]
+    subgraph PG["Standalone PostgreSQL\n(Crunchy PostgresCluster\nibmas-reporting)"]
         RPT["ibmas_reporting\n(gold mirror — custom)"]
     end
     G -->|"pg_reporting.py refresh"| RPT

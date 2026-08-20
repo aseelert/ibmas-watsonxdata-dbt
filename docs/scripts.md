@@ -13,7 +13,7 @@ source .venv/bin/activate
 ```bash
 # ── ONCE: import connection JSON → .env + SSL cert ───────────────────────────
 python scripts/prepare_watsonx_env.py
-# then open .env and set WXD_API_KEY=<your-key>
+# ensure WXD_OC_PASSWORD is set in .env (the only value the script cannot auto-discover)
 
 # ── EVERY SESSION: validate auth ─────────────────────────────────────────────
 python scripts/get_token.py --export     # checks key, writes bearer token to .env
@@ -74,24 +74,33 @@ python scripts/cleanup_watsonxdata.py
 
 ## Step-by-step reference
 
-### 0a · `prepare_watsonx_env.py` — import connection JSON
+### 0a · `prepare_watsonx_env.py` — bootstrap the full environment
 
-**Run once** after downloading the Presto connection JSON from the watsonx.data console
-(**Engine details → Download connection**). Save the file as `watsonx_data/instance_details.json`, then:
+**Run once** (or after any cluster change) to fill all 40+ `.env` variables automatically.
+Download the Presto connection JSON from the watsonx.data console
+(**Engine details → Download connection**), save it as `watsonx_data/instance_details.json`, then:
 
 ```bash
+# Recommended — oc login + token fetch are on by default
 python scripts/prepare_watsonx_env.py
 ```
 
-Writes `WXD_HOST`, `WXD_PORT`, `WXD_INSTANCE_ID`, `WXD_CPD_HOST`, `WXD_CPD_AUTH_URL`,
-and the SSL cert to `certs/watsonxdata-ca.pem`. Preserves any existing `WXD_API_KEY`.
+This single command: parses the Presto JSON, writes `certs/watsonxdata-ca.pem`, derives all
+URLs, runs `oc login`, discovers OpenShift secrets (MinIO keys, PG password, CPD password),
+checks reachability, and rotates the API key + bearer token.
 
 | Flag | Default | Description |
 |---|---|---|
-| `--connection-json PATH` | `watsonx_data/instance_details.json` | Downloaded JSON |
+| `--presto-json PATH` | `watsonx_data/instance_details.json` | Presto connection JSON from the UI |
+| `--spark-json PATH` | auto-detected | Optional Spark connection JSON |
 | `--env-file PATH` | `.env` | Target env file |
 | `--cert-file PATH` | `certs/watsonxdata-ca.pem` | PEM output path |
+| `--oc-login` / `--no-oc-login` | **on** | Run `oc login` before discovery |
+| `--fetch-tokens` / `--no-fetch-tokens` | **on** | Rotate API key + fetch bearer token |
+| `--no-oc` | off | Skip all `oc`-based discovery entirely |
 | `--overwrite` | off | Re-import non-secret values even if already set |
+| `--dry-run` | off | Print proposed changes without writing |
+| `--verbose` | off | Enable DEBUG log output |
 
 ---
 
@@ -253,6 +262,58 @@ python scripts/demo_time_travel.py
 
 Shows snapshot history, partition metadata, and a time-travel query against the silver layer.
 Requires the silver schema to exist (run dbt or Spark path first).
+
+---
+
+### 6b · `provision_ikc_governance.py` — build the governance layer
+
+```bash
+python scripts/provision_ikc_governance.py --dry-run     # show every write, perform none
+python scripts/provision_ikc_governance.py               # all stages, in dependency order
+python scripts/provision_ikc_governance.py --verify-only # what is published right now
+python scripts/provision_ikc_governance.py --stage terms # one stage (repeatable)
+```
+
+Applies `governance/ikc/` to IBM Knowledge Catalog on CPD / IBM Software Hub 5.3 in the only order
+that works: categories → classifications → business terms → data classes → reference data → rules.
+Each stage is **published before the next one starts**, because an artifact still in draft cannot be
+referenced (`GIM00015E`). Publishing is a workflow, not a flag: the script claims the task, reads
+the approve value from the task's own form, and completes it with your token's `uid` as assignee.
+
+Authenticates as `WXD_CPD_USERNAME` (default `cpadmin`) via the same waterfall as
+[`get_token.py`](#0b-get_tokenpy-validate-auth-refresh-api-key): an existing bearer token in `.env`, then `WXD_API_KEY`, then a
+`WXD_CPD_PASSWORD` login (prompting interactively if neither is set). No `oc` session needed.
+Safe to re-run — every import uses `merge_option=all`, which overwrites in place.
+
+By default (`--mode per-artifact`) each CSV is split into one artifact per row-group, and each
+artifact is imported and published before the next is imported — the only artifact-creation
+contract IBM's shipped MCP client/`cpdctl` actually implement is the whole-file CSV import
+endpoint, so this script builds single-artifact CSVs on the fly rather than guessing a per-type
+JSON create body. `--mode bulk` restores the original whole-file-per-type import instead.
+
+| Flag | Default | What it does |
+|------|---------|--------------|
+| `--dry-run` | off | Print every write that would happen, perform none. |
+| `--stage <key>` | all | Run one stage only; repeatable. Keys: `categories`, `classifications`, `terms`, `data_classes`, `reference_data`, `rules`. |
+| `--mode {per-artifact,bulk}` | `per-artifact` | Import one artifact at a time (splits each CSV, publishes as it goes) vs. one whole-file import per type. |
+| `--auth {auto,token,api-key,password}` | `auto` | Force a specific credential instead of the token → API-key → password waterfall. |
+| `--save-api-key` | off | After a password login, rotate a fresh API key into `.env` so the next run is non-interactive. |
+| `--no-publish` | off | Import only, leave everything in draft for a manual review pass. |
+| `--publish-only` | off | Publish drafts left behind by an earlier partial run; import nothing. |
+| `--verify-only` | off | Read-only inventory: published vs draft count per artifact type. |
+| `--keep-going` | off | Continue to the next stage after one fails, instead of stopping. |
+| `--skip-dpr` | off | Build the glossary but skip the data protection (masking) rule. |
+| `--dpr-dump-existing PATH` | — | Write the instance's current data protection rules to `PATH` and exit — how you capture the native body shape from a rule built once in the UI. |
+| `--dpr-native PATH` | — | POST that captured payload verbatim instead of transforming the DSL. |
+| `--env-file PATH` | `.env` | Override `.env` path. |
+| `-v` | off | Log every HTTP request and response status. |
+
+If a publish call fails with `action_config=#?XXXX` in the error body, that is a known CPD 5.3.4
+workflow-template bug (REST/MCP publish rejected on this instance), not a script defect — the
+script's error message says so and points at the UI workflow inbox (Governance → My tasks) as the
+fallback.
+
+See [Governance layer](governance-ikc.md) for the artifact inventory and the manual UI equivalent.
 
 ---
 
@@ -600,6 +661,141 @@ bash scripts/configure_ikc_reporting.sh --disable
 | `--skip-restart` | Patch configmap + wkc-cr only; skip pod restarts and deletions |
 | `--namespace NS` | CPD operands namespace (default: `cpd-instance`) |
 | `--dry-run` | Preview only — nothing is changed |
+
+### 10b · `provision_pg_reporting.sh` — the reporting PostgreSQL, end to end
+
+!!! info "Optional — requires `oc` login + the Crunchy Postgres operator"
+    This provisions the **custom** reporting database (`ibmas_reporting`) that mirrors the gold
+    marts.  It is *not* the IKC data mart — see
+    [IKC Reporting — Optional Setup](ikc-reporting.md) for how the two differ.
+
+One command creates the Postgres cluster, the database/user/schema, the Kubernetes Secret, the
+CPD project (if missing), and the CPD connection:
+
+```bash
+bash scripts/provision_pg_reporting.sh
+```
+
+It runs seven steps in dependency order, and each one is idempotent — re-running adopts what
+already exists rather than failing:
+
+| Step | What happens |
+|---|---|
+| −1 | Read-only health check: Deployments/StatefulSets Ready, no stuck pods, every watsonx.data + IKC operand CR `Completed`, plus the two IKC reporting prerequisites (see below) |
+| 0 | Creates the Crunchy `PostgresCluster` CR and waits for the Patroni leader pod |
+| 1 | Creates database `ibmas_reporting`, user `ibmas_reporting_user`, schema `ibmas_reporting` |
+| 2 | Writes all credentials to the Secret `ibmas-reporting-creds` |
+| 3 | Mints a CPD bearer token, then resolves — or **creates** — the CPD project |
+| 3b | **Reports** whether the CPD user holds `wkc_reporting_administrator`; only writes it with `--grant-role` |
+| 4 | Resolves the PostgreSQL datasource type from the cluster, then registers the `ibmas-reporting` connection in that project |
+| 5 | *(optional, `--dsd`)* Adds a Data Source Definition |
+
+The health check in step −1 does not stop at pod readiness. It reads four more things, each
+of which produces a failure this script cannot fix and would otherwise be blamed on it:
+
+- **`wxd/lakehouse` and `wxdAddon/wxdaddon` `.spec.shutdown`** — must both be `false`. This
+  is the one failure mode a readiness scan structurally cannot see: after
+  `cpd_maintenance.sh shutdown` the operators scale their Deployments to `0/0`, and `0/0`
+  satisfies "ready equals desired", so a fully quiesced cluster reads perfectly healthy.
+- **`ZenService/lite-cr` and `Ibmcpd/ibmcpd-cr`** — the platform layer the operands sit on.
+  Mid-reconcile, the CPD API answers unpredictably (401s, empty project lists).
+- **`wkc-cr .spec.license`** — the reporting data mart is an **Enterprise** feature. On
+  Standard or Base the connection still registers, but IKC reporting fails with `IKCBI2019E`
+  and no role grant will change that.
+- **`ccs-features-configmap`** → `enforceAuthorizeReporting` / `defaultAuthorizeReporting`.
+  Turn them on with `configure_ikc_reporting.sh --enforce` (§10 above).
+
+#### Two logins, in this order
+
+The script needs **two separate identities**, and getting them mixed up is the most common
+source of confusing errors:
+
+1. **An `oc` session** (OpenShift API) — for steps −1, 0, 1 and 2.  Taken from
+   `WXD_OPENSHIFT_TOKEN`, or `WXD_OPENSHIFT_API` + `WXD_OC_USER` + `WXD_OC_PASSWORD`.
+   If `oc whoami` fails, the script logs in from `.env` by itself.
+2. **A CPD bearer token** (Software Hub API) — for steps 3, 3b, 4 and 5.  Minted from
+   `WXD_API_KEY`, else `WXD_CPD_PASSWORD`, else reused from `WXD_SPARK_BEARER_TOKEN`.
+   A stale token in `.env` is probed and rejected up front rather than failing later:
+
+```bash
+.venv/bin/python scripts/get_token.py --export
+```
+
+#### Check the cluster before provisioning anything
+
+`--verify-only` runs just the health check and exits `0` when everything is healthy — useful
+as a pre-demo smoke test:
+
+```bash
+bash scripts/provision_pg_reporting.sh --verify-only
+```
+
+The operand CR names are **discovered** from the cluster's API groups rather than hardcoded,
+so the check keeps working across CPD versions instead of reporting a false "not installed".
+The pod/Deployment/StatefulSet half of the check is not reimplemented here — it calls
+`scripts/lib/readiness.sh`, the same library the other cluster scripts use.
+
+!!! note "`--verify-only` checks the platform, not the reporting database"
+    It exits before step 0, so it says nothing about the `PostgresCluster`, its PVCs, the
+    `-primary` Service or the `ibmas-reporting-creds` Secret. To check those, look directly:
+
+    ```bash
+    oc -n cpd-instance get postgrescluster ibmas-reporting,svc/ibmas-reporting-primary,secret/ibmas-reporting-creds
+    ```
+
+#### Two defaults that will not act without being asked
+
+Both exist because the wrong guess is expensive and hard to undo:
+
+- **Near-matching project names are refused.** If no project matches `--project-name`
+  exactly but a similar one exists, the script prints the candidate and stops rather than
+  adopting it — on a cluster with several `*-ingest-demo` projects, silently binding the
+  reporting connection to the wrong one is worse than failing. Pass the exact name, or
+  `--allow-fuzzy-project` to accept the near match.
+- **The role grant is read-only.** `PUT /icp4d-api/v1/users/<user>` replaces the user's
+  **entire** role list, and `cpadmin` is typically the only administrator — a bad write
+  locks you out of your own cluster. Step 3b therefore just reports what the user holds.
+  `--grant-role` sends the write, read-modify-write (existing roles preserved), and only
+  reports success after reading the record back.
+
+    A grant never helps the run that performs it: CPD embeds permissions **inside the JWT**,
+    so the current token cannot see a role granted a second ago. Mint a fresh token and
+    restart the reporting service — the script prints both commands.
+
+#### Common invocations
+
+```bash
+# Preview everything; change nothing
+bash scripts/provision_pg_reporting.sh --dry-run
+
+# Also create the Data Source Definition, reachable from a workstation
+bash scripts/provision_pg_reporting.sh --dsd --external-url localhost:15432
+
+# Target a project that already exists, and never create one
+bash scripts/provision_pg_reporting.sh --project-id <GUID> --no-create-project
+
+# Full trace of every API call and SQL statement
+bash scripts/provision_pg_reporting.sh --verbose
+```
+
+| Flag | Effect |
+|---|---|
+| `--project-name NAME` | Project to look up / create (default: `WXD_CPD_PROJECT`, else `ibmas-ingest-demo`) |
+| `--project-id GUID` | Use this project directly; skips lookup and creation |
+| `--no-create-project` | Fail instead of creating a missing project |
+| `--allow-fuzzy-project` | Accept a project whose name only *resembles* the requested one |
+| `--grant-role` | Actually write `wkc_reporting_administrator` (step 3b is read-only otherwise) |
+| `--verify-only` | Run only the deployment health check, then exit |
+| `--skip-verify` | Skip the health check |
+| `--skip-cluster` / `--skip-postgres` / `--skip-role` / `--skip-connection` | Skip individual steps |
+| `--dsd` / `--external-url H:P` | Create a DSD, optionally with an external hostname |
+| `--dry-run` / `--verbose` | Preview only / full debug trace |
+
+!!! warning "TLS is not optional on this cluster"
+    The Crunchy operator generates a `pg_hba.conf` that accepts regular users over
+    `hostssl` **only**.  `PG_SSL_MODE=require` is therefore mandatory — including over a
+    `port-forward`, because TLS terminates at PostgreSQL, not at the tunnel.  Setting
+    `disable` produces *"no pg_hba.conf entry for host …, SSL off"*.
 
 ### 11 · `reset_demo.sh` — full reset for a 100% clean rerun
 

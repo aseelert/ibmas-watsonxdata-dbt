@@ -5,7 +5,26 @@ The Retail Medallion Lakehouse ships a complete governance layer in **IBM Knowle
 described by a business term, classified, matched by a custom regex data class, and —
 where PII applies — masked by a data protection rule.
 
-All source files live in `governance/ikc/` in this repository and are imported in four sequential steps described below.
+All source files live in `governance/ikc/` in this repository and are imported in dependency
+order — categories, then classifications, then terms, then data classes, then reference data and
+rules — publishing each stage before the next one starts.
+
+One command does all of it:
+
+```bash
+python scripts/provision_ikc_governance.py --dry-run   # show every write, perform none
+python scripts/provision_ikc_governance.py             # import → publish → verify, per stage
+```
+
+It authenticates with whichever credential is available — a bearer token in `.env`, then
+`WXD_API_KEY`, then a `WXD_CPD_PASSWORD` login as a last resort — and, by default, imports and
+publishes **one artifact at a time** rather than a whole CSV in one call, because a per-artifact
+JSON create endpoint isn't attested anywhere in IBM's shipped tooling for this artifact family;
+see [`--mode` / `--auth`](scripts.md#6b-provision_ikc_governancepy-build-the-governance-layer)
+for the flags.
+
+The manual UI walkthrough is kept at the end of this page, because it is what the script
+automates and it is the version you demo when explaining *why* the order matters.
 
 ---
 
@@ -15,10 +34,10 @@ All source files live in `governance/ikc/` in this repository and are imported i
 Retail Medallion Lakehouse          ← top-level category
 ├── Customer                        ← 4 business terms + data classes
 ├── Product                         ← 3 business terms + data classes
-├── Order                           ← 4 business terms + data classes
+├── Order                           ← 5 business terms + data classes
 ├── Gold Sales                      ← 3 business terms + data classes
 └── Data Governance
-    ├── Business Data  (classification — applied to all 14 terms)
+    ├── Business Data  (classification — applied to all 15 terms)
     └── Personal Data  (classification — Customer ID + Customer Email only)
 ```
 
@@ -32,7 +51,7 @@ Two custom classifications live under the `Data Governance` sub-category.
 
 | Classification | Parent | Applied to |
 |---------------|--------|------------|
-| Business Data | — | All 14 data classes |
+| Business Data | — | All 15 data classes |
 | Personal Data | Business Data | RML Customer ID, RML Customer Email |
 
 Source file: see `governance/ikc/` in the repository root
@@ -41,7 +60,7 @@ Source file: see `governance/ikc/` in the repository root
 
 ## Business terms
 
-Fourteen terms describe every governed concept in the medallion pipeline.
+Fifteen terms describe every governed concept in the medallion pipeline.
 All terms are published under the `Retail Medallion Lakehouse` category hierarchy.
 
 | Term | Category | Source column | Description |
@@ -55,6 +74,7 @@ All terms are published under the `Retail Medallion Lakehouse` category hierarch
 | Unit Price | Product | `unit_price` | List price before discount; drives `net_amount` in Silver. |
 | Order ID | Order | `order_id` | 4-digit integer PK (3001–3500). One order → many line items. |
 | Order Status | Order | `status` | Lifecycle code: completed / returned / pending / cancelled. |
+| Payment Method | Order | `payment_method` | How the customer paid: card / paypal / bank_transfer. |
 | Order Quantity | Order | `quantity` | Units per line item (1–99); rolls into `units_sold` in Gold. |
 | Net Amount | Order | `net_amount` | `unit_price × quantity × (1 − discount_pct)` — atomic revenue measure. |
 | Daily Sales | Gold Sales | `order_date` | Gold PARQUET table grain: one row per order_date × category. |
@@ -86,6 +106,7 @@ exist as system data classes — our custom versions are `RML Customer ID` / `RM
 | RML Unit Price | `unit_price` | Non-negative decimal ≤ 99999.99 | Business Data |
 | RML Order ID | `order_id` | `^3[0-9]{3}$` | Business Data |
 | RML Order Status | `status` | `^(completed\|returned\|pending\|cancelled)$` | Business Data |
+| RML Payment Method | `payment_method` | `^(card\|paypal\|bank_transfer)$` | Business Data |
 | RML Order Quantity | `quantity` | `^[1-9][0-9]?$` | Business Data |
 | RML Net Amount | `net_amount` | Non-negative decimal | Business Data |
 | RML Daily Sales | `order_date` | `YYYY-MM-DD` ISO 8601 | Business Data |
@@ -106,12 +127,28 @@ Source file: see `governance/ikc/` in the repository root
 | State | Active |
 | Scope | All assets in `ibmas-catalog` that contain an `email` column |
 
-Source file: see `governance/ikc/` in the repository root
+Source files: `governance/ikc/06_rules.csv` (the documented policy) and
+`governance/ikc/06_data_protection_rules.json` (the rule that enforces it).
 
-!!! note "Policy service on CPD 5.3.4"
-    The data protection rule must be created via the **IKC UI** (Governance → Data protection
-    rules → Add rule). The policy service REST endpoint returns HTTP 405 on this CPD version
-    when called via MCP or REST directly.
+!!! info "Two artifacts, one policy"
+    A glossary **rule** artifact is a searchable policy statement — it documents the intent and
+    enforces nothing. A **data protection rule** is the enforcement object: it lives in the policy
+    service, has a JSON body rather than a CSV row, and is what actually masks the column. The demo
+    creates both, so learners can see the written policy next to the thing that implements it.
+
+!!! warning "Policy service on CPD 5.3.4"
+    The friendly rule DSL is normally converted to the native rule body by
+    `POST /v4/enforcement-transform/utility/json_to_rule` — but IBM's own client marks that
+    transform service as **SaaS-only**, and earlier attempts to drive the policy service directly
+    on this cluster returned HTTP 405. `provision_ikc_governance.py` therefore probes the transform
+    first and, if it is not routed, tells you to create this one rule in the **IKC UI**
+    (Governance → Rules → Add rule → Data protection rule) instead of posting a guessed payload.
+    Once it exists you can capture the native shape and replay it on any other cluster:
+
+    ```bash
+    python scripts/provision_ikc_governance.py --dpr-dump-existing dpr.json
+    python scripts/provision_ikc_governance.py --stage rules --dpr-native dpr.json
+    ```
 
 ---
 
@@ -130,6 +167,7 @@ The table below maps every governed column across all medallion layers.
 | Bronze / Silver | `*_products` | `unit_price` | Unit Price | RML Unit Price | — | — |
 | Bronze / Silver | `*_orders` | `order_id` | Order ID | RML Order ID | — | — |
 | Bronze / Silver | `*_orders` | `status` | Order Status | RML Order Status | — | — |
+| Bronze / Silver | `*_orders` | `payment_method` | Payment Method | RML Payment Method | — | — |
 | Silver | `silver_order_items` | `quantity` | Order Quantity | RML Order Quantity | — | — |
 | Silver | `silver_order_items` | `net_amount` | Net Amount | RML Net Amount | — | — |
 | Gold | `gold_customer_360` | `customer_id` | Customer ID | RML Customer ID | ✅ | — |
@@ -148,8 +186,10 @@ The table below maps every governed column across all medallion layers.
 
 ## Staged import order
 
-IKC import has strict dependency rules. The four CSV files must be imported in this order,
-with a **publish step after each one** (UI workflow inbox) before moving to the next.
+IKC import has strict dependency rules. The CSV files must be imported in this order, with a
+**publish step after each one** before moving to the next — in the UI that means clearing the
+workflow inbox by hand; `provision_ikc_governance.py` does the same three calls per artifact over
+the workflow API (`claim` the task, read its form, `complete` it with the approve value).
 
 ```
 Step 1  governance/ikc/01_categories.csv      → Governance → Categories → Import
@@ -161,10 +201,17 @@ Step 2  governance/ikc/03_classifications.csv  → Governance → Classification
 
 Step 3  governance/ikc/02_business_terms.csv   → Governance → Business terms → Import (merge: all)
         ↳ Publish workflow tasks
-        (14 terms are now live — data classes can reference them)
+        (15 terms are now live — data classes can reference them)
 
 Step 4  governance/ikc/04_data_classes.csv     → Governance → Data classes → Import (merge: all)
         ↳ Publish workflow tasks
+
+Step 5  governance/ikc/05_reference_data_sets.csv  → Governance → Reference data → Import
+        ↳ Publish, then load each 05_refvalues_*.csv into its set
+
+Step 6  governance/ikc/06_rules.csv            → Governance → Rules → Import
+        ↳ Publish workflow tasks
+        Then create the data protection rule from 06_data_protection_rules.json
 ```
 
 !!! warning "Known pitfalls"
@@ -177,3 +224,13 @@ Step 4  governance/ikc/04_data_classes.csv     → Governance → Data classes �
     - **Related Terms need full `>>` paths** in data class CSVs — `Retail Medallion Lakehouse >> Customer >> Customer ID`,
       not just `Customer ID`.
     - **`>>` is the only valid category separator** — not `/` (the MCP schema is wrong on this).
+    - **Multiple values need multiple rows.** Tags, classifications and related terms use
+      continuation rows with only the new value filled in. A comma-separated list in one cell is
+      read as a single name and fails with `GIM00015E`.
+    - **There is no "skip the workflow" flag.** Every import lands in draft (`IMPORT_CREATE`);
+      publishing is a workflow task that must be claimed and completed. When completing it over
+      REST, the `assignee` is the `uid` claim of your own bearer token — on SaaS it is `iam_id`
+      instead, which is the single most common reason a SaaS snippet fails on software.
+    - **`action_config=#?XXXX` in a publish error** — a known CPD 5.3.4 workflow-template bug, not
+      a credential or payload problem. REST/MCP publish is rejected outright on affected instances;
+      complete that task from the UI workflow inbox (Governance → My tasks) instead.

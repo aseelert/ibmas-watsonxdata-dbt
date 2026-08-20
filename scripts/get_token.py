@@ -278,7 +278,15 @@ def main() -> int:
         print("2. Regenerating API key...")
         new_key = regenerate_api_key(cpd_host, token, verify)
         if new_key:
-            set_key(str(env_path), "WXD_API_KEY", new_key)
+            # quote_mode="never": python-dotenv's default wraps the value in
+            # single quotes, which every reader in this repo (this script's own
+            # _read_env, and scripts/provision_pg_reporting.sh's bash mirror)
+            # does NOT strip — they only trim whitespace, matching the rest of
+            # .env's unquoted convention. A quoted value comes back with the
+            # literal quote characters still attached, which silently breaks
+            # any bearer-token auth built on it (e.g. the "Bearer '<token>'"
+            # header CPD rejects as malformed).
+            set_key(str(env_path), "WXD_API_KEY", new_key, quote_mode="never")
             os.environ["WXD_API_KEY"] = new_key
             k = new_key[:8] + "..."
             print(f"  New API key: {k}  — saved to {env_path.name}  [OK]")
@@ -290,7 +298,8 @@ def main() -> int:
     print()
 
     if args.export:
-        set_key(str(env_path), "WXD_SPARK_BEARER_TOKEN", token)
+        # quote_mode="never" — see the WXD_API_KEY set_key() call above for why.
+        set_key(str(env_path), "WXD_SPARK_BEARER_TOKEN", token, quote_mode="never")
         print(f"Wrote WXD_SPARK_BEARER_TOKEN to {env_path.name}")
         print()
 

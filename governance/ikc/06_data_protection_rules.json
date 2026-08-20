@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "Data protection rules for the Retail Medallion Lakehouse demo.",
+    "",
+    "WHY A SEPARATE FILE: '06_rules.csv' imports a governance *rule artifact* — a",
+    "documented, human-readable policy statement that lives in the glossary. It",
+    "does not enforce anything. Actual masking is done by a *data protection rule*",
+    "(DPR), which is a different artifact served by POST /v3/enforcement/rules and",
+    "has a JSON body, not a CSV row. Both are created so the demo shows the",
+    "documented policy AND its technical enforcement.",
+    "",
+    "FORMAT: each entry in 'rules' is the friendly rule DSL as specified by the",
+    "watsonx.data Intelligence MCP server tool 'get_data_protection_rule_schema'.",
+    "Valid trigger terms are exactly: $Business.Term, $Asset.UserClassification,",
+    "$Asset.InferredClassification, $User.Name, $User.Role, $User.Group,",
+    "$Asset.Owner, $Asset.Tags, $Asset.ColumnName, $Asset.Schema, $Asset.Name.",
+    "Value prefixes: '$' for classifications/business terms, '#' for asset,",
+    "column, owner and user names, no prefix for user groups.",
+    "",
+    "WHY THE COLUMN-NAME TRIGGER: $Asset.ColumnName works the moment the table is",
+    "published to a catalog. The more elegant alternative below triggers on the",
+    "inferred data class instead, but only fires after metadata enrichment has",
+    "actually assigned 'RML Customer Email' to the column:",
+    "  trigger: [[\"$Asset.InferredClassification\", \"CONTAINS\", [\"$RML Customer Email\"]]]",
+    "  action : redactDataClasses with dataclass_ids [\"RML Customer Email\"]",
+    "",
+    "Set 'state' to 'draft' instead of 'active' to stage a rule without enforcing it."
+  ],
+  "rules": [
+    {
+      "name": "RML — Mask Customer Email (PII)",
+      "description": "Customer Email (email column) must be masked for all users. The email address is the only direct PII in the Retail Medallion Lakehouse seed data and is classified as Personal Data.",
+      "governance_type_id": "Access",
+      "state": "active",
+      "trigger": [["$Asset.ColumnName", "CONTAINS", ["#email"]]],
+      "action": {
+        "name": "Transform",
+        "subaction": {
+          "name": "redactColumns",
+          "parameters": [
+            {
+              "name": "column_names",
+              "value": ["email"]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

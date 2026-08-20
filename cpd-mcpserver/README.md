@@ -48,7 +48,7 @@ Ensure your `.env` file contains:
 # Required for MCP server
 WXD_CPD_HOST=cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
 WXD_CPD_USERNAME=cpadmin
-CPADMIN_PASSWORD=your_password_here
+WXD_CPD_PASSWORD=your_password_here
 WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
 
 # Optional: Set custom MCP port (default: random 45000-45999)
@@ -229,7 +229,7 @@ The server uses these variables from `.env`:
 |----------|-------------|----------|
 | `WXD_CPD_HOST` | CPD host URL | Yes |
 | `WXD_CPD_USERNAME` | CPD username | Yes |
-| `CPADMIN_PASSWORD` | CPD password | Yes |
+| `WXD_CPD_PASSWORD` | CPD password | Yes |
 | `WXD_SSL_VERIFY` | CA certificate path | Yes |
 | `MCP_SERVER_PORT` | Custom port (default: random) | No |
 
@@ -282,7 +282,7 @@ If you get "address already in use" error:
 ### Authentication Errors
 
 Check:
-- `CPADMIN_PASSWORD` is correct in `.env`
+- `WXD_CPD_PASSWORD` is correct in `.env`
 - `WXD_CPD_HOST` is accessible
 - CA certificate path is valid
 

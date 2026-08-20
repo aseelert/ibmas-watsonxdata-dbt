@@ -216,55 +216,91 @@ ssl_certificate         PEM-encoded CA certificate chain for TLS
 
 ---
 
-## Step 5: Import connection values
+## Step 5: Bootstrap the environment
 
-The `prepare_watsonx_env.py` script reads `watsonx_data/instance_details.json`, extracts the non-secret values, writes the SSL certificate to disk, and updates your `.env` file automatically. You only need to run this once (or again if the JSON changes).
+`prepare_watsonx_env.py` is a fully-automated bootstrap script — one command fills in all 40+ `.env`
+variables, writes the CA certificate to disk, logs into OpenShift, and fetches fresh API tokens.
+
+Both `--oc-login` and `--fetch-tokens` are **on by default**. Just run:
 
 ```bash
 python scripts/prepare_watsonx_env.py
 ```
 
-Expected output:
+Expected output (abbreviated):
 
 ```text
-Reading watsonx.data connection JSON: watsonx_data/instance_details.json
-  Parsed 9 connection field(s)  [OK]
-Loading existing env file: .env
-Writing CA certificate chain: certs/watsonxdata-ca.pem
-  Certificate chain written  [OK]
-Read connection details from: watsonx_data/instance_details.json
-Wrote certificate chain to: certs/watsonxdata-ca.pem
-Updated env file: .env
-
-Imported values:
-  WXD_INSTANCE_ID=<your-instance-id>
-  WXD_HOST=ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
-  WXD_PORT=443
-  WXD_PRESTO_ENGINE_ID=presto651
-  WXD_CPD_HOST=cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
-  WXD_CPD_AUTH_URL=https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/icp4d-api/v1/authorize
-  WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
-  WXD_CATALOG=iceberg_data
-  WXD_SCHEMA=dbt_demo
+INFO  Step 1/5  Reading Presto connection JSON: watsonx_data/instance_details.json
+INFO            Parsed 10 connection field(s)
+INFO  Step 2/5  Extracting CA certificate chain ...
+INFO            Wrote certs/watsonxdata-ca.pem
+INFO  Step 3/5  Deriving URLs and defaults ...
+INFO            Namespace:  cpd-instance
+INFO            App domain: apps.watson.ibmas-zocp-techcluster.org
+INFO    [oc-login] oc login https://api.<cluster>:6443 -u kubeadmin ...
+INFO    [oc-login] Logged in successfully.
+INFO  Step 4/5  OpenShift discovery via oc ...
+INFO            WXD_OPENSHIFT_API = https://api.<cluster>:6443
+INFO            WXD_OBJECT_STORE_ACCESS_KEY  [read from secret]
+INFO            WXD_OBJECT_STORE_SECRET_KEY  [read from secret]
+INFO            PG_PASSWORD  [read from ibmas-reporting-creds]
+INFO            WXD_CPD_PASSWORD  [read from platform-auth-idp-credentials]
+INFO  Step 5/5  Reachability checks ...
+INFO    ✓  cpd-cpd-instance.apps.<cluster>  [OK]
+INFO    ✓  <presto-host>:443  [OK]
+INFO  Step 6/6  Fetching tokens ...
+INFO    [fetch-tokens] WXD_API_KEY  rotated
+INFO    [fetch-tokens] WXD_SPARK_BEARER_TOKEN  written
+INFO  Wrote .env  (42 values)
 ```
 
-After this step two things will have changed on disk:
+After this step the following files will have been written or updated:
 
-- `certs/watsonxdata-ca.pem` — the CA certificate that both dbt and cpdctl use to verify the cluster's TLS certificate.
-- `.env` — now contains the Presto host, port, instance ID, and CPD host in addition to your API key.
+- `certs/watsonxdata-ca.pem` — CA certificate used by dbt, cpdctl, and the Spark driver for TLS verification.
+- `.env` — all 40+ connection values, API key, and bearer token.
 
-!!! tip "JSON file in a different location?"
-    If your exported JSON lives somewhere else on your laptop, pass the path explicitly:
-
-    ```bash
-    python scripts/prepare_watsonx_env.py --connection-json /path/to/presto-connection.json
-    ```
-
-    If the JSON changed (for example, the administrator rotated the certificate) and you want to overwrite the values already in `.env`, add the `--overwrite` flag:
+!!! tip "Common one-liners"
 
     ```bash
+    # Normal run (oc login + token fetch are both on by default)
+    python scripts/prepare_watsonx_env.py
+
+    # Refresh tokens only — skip oc login if already logged in
+    python scripts/prepare_watsonx_env.py --no-oc-login
+
+    # Dry run — show what would change without writing anything
+    python scripts/prepare_watsonx_env.py --dry-run
+
+    # Overwrite non-secret values that are already in .env
     python scripts/prepare_watsonx_env.py --overwrite
+
+    # JSON lives in a custom location
+    python scripts/prepare_watsonx_env.py --presto-json /path/to/presto-connection.json
     ```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--presto-json PATH` | `watsonx_data/instance_details.json` | Presto connection JSON from the UI |
+| `--spark-json PATH` | auto-detected | Optional Spark connection JSON |
+| `--env-file PATH` | `.env` | Target env file |
+| `--cert-file PATH` | `certs/watsonxdata-ca.pem` | PEM output path |
+| `--oc-login` / `--no-oc-login` | **on** | Run `oc login` before discovery |
+| `--fetch-tokens` / `--no-fetch-tokens` | **on** | Rotate API key + fetch bearer token |
+| `--no-oc` | off | Skip all `oc`-based discovery entirely |
+| `--overwrite` | off | Re-import non-secret values even if already set |
+| `--dry-run` | off | Print proposed changes without writing |
+| `--verbose` | off | Enable DEBUG log output |
+
+!!! warning "What you must set manually"
+    `WXD_OC_PASSWORD` (your kubeadmin password) is the only value that cannot be
+    auto-discovered. Set it in `.env` once:
+
+    ```env
+    WXD_OC_PASSWORD=<your-kubeadmin-password>
+    ```
+
+    All other secrets — `WXD_API_KEY`, `WXD_SPARK_BEARER_TOKEN`, `WXD_CPD_PASSWORD`,
+    MinIO keys, and PostgreSQL password — are fetched automatically.
 
 ---
 

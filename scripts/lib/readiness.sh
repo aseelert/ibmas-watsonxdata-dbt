@@ -362,8 +362,15 @@ verify_ready() {
     return 1
   fi
 
+  # Same fail-closed rule for the scratch file: with $f empty (mktemp refused by
+  # a read-only/locked-down TMPDIR) every `>> "$f"` fails, the offender list ends
+  # up empty and the block below would announce "All workloads READY" — a false
+  # green from a filesystem problem. Refuse instead.
   local f
-  f="$(mktemp)"
+  if ! f="$(mktemp 2>/dev/null)" || [[ -z "$f" ]]; then
+    $quiet || error "Cannot create a temp file (TMPDIR=${TMPDIR:-/tmp}). Refusing to report READY."
+    return 1
+  fi
   local ns
   for ns in "${READY_NAMESPACES[@]}"; do
     { check_pods "$ns"

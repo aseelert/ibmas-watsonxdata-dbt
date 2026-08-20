@@ -8,7 +8,7 @@ watsonxdata_medallion_demo:
       password: "{{ env_var('WXD_API_KEY') }}"
       catalog: "{{ env_var('WXD_CATALOG', 'iceberg_data') }}"
       schema: "{{ env_var('WXD_SCHEMA', 'dbt_demo') }}"
-      host: "{{ env_var('WXD_HOST', 'ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org') }}"
+      host: "{{ env_var('WXD_HOST', 'ibm-lh-lakehouse-presto653-presto-svc.apps.watson.ibmas-zocp-techcluster.org') }}"
       port: "{{ env_var('WXD_PORT', '443') | int }}"
       ssl_verify: "{{ env_var('WXD_SSL_VERIFY', 'certs/watsonxdata-ca.pem') }}"
       http_headers:
