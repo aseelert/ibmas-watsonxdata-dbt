@@ -9,6 +9,36 @@
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
 #
 #  Changelog :
+#    v4.5 (2026-08-20) — --dsd was dead code: it POSTed to /v2/datasource_definitions,
+#                        confirmed live to be a routing-level 404 ("Error 404 -
+#                        Not Found", plain text, not even a CAMS JSON error) —
+#                        that path is not wired to any backend service on this
+#                        cluster at all. A CPD Data Source Definition is not a
+#                        dedicated REST resource; it's a generic catalog asset
+#                        of type 'ibm_data_source' (confirmed via
+#                        GET /v2/asset_types/ibm_data_source, and a live example
+#                        found already in the Platform assets catalog, an
+#                        auto-created DSD named "IBM Software Hub"). Its
+#                        scope_restrictions lock it to the Platform assets
+#                        catalog only — never a project or another catalog.
+#                        STEP 5 now POSTs to /v2/assets?catalog_id=<platform
+#                        catalog>, with entity.ibm_data_source.data_source_type_id
+#                        (the SAME datasource-type UUID Step 4 already resolves
+#                        — reused, not re-resolved) and
+#                        entity.ibm_data_source.data_source_endpoints.values=
+#                        [{host, port}] (port is numeric, not a string; DSDs
+#                        have no 'database' field — that stays on the connection
+#                        asset). New _resolve_platform_catalog() resolves the
+#                        Platform assets catalog GUID by name (override via
+#                        --platform-catalog-id). New --platform-connection flag
+#                        (opt-in, off by default) registers 'ibmas-reporting' as
+#                        a second, CATALOG-scoped connection in that same
+#                        Platform assets catalog — alongside, not instead of,
+#                        the project-scoped one from Step 4 — so other
+#                        projects/catalogs can reuse it later via a connection
+#                        copy instead of re-entering credentials. Not yet write-
+#                        verified against this exact cluster; run --dry-run
+#                        first if in doubt.
 #    v4.4 (2026-08-20) — Two more real-cluster corrections found by probing a
 #                        live CPD 5.3 build end-to-end with password auth:
 #                        • project create sent "tags": [] — this build rejects
@@ -226,7 +256,17 @@
 #   --cpd-user USER      CPD username              (default: from WXD_CPD_USERNAME / cpadmin)
 #   --cpd-password PASS  CPD password              (default: from WXD_CPD_PASSWORD)
 #   --cpd-token TOKEN    CPD bearer token          (default: from WXD_SPARK_BEARER_TOKEN)
-#   --dsd                Also create a CPD DSD asset
+#   --platform-connection Also register 'ibmas-reporting' as a CATALOG-scoped
+#                        ("platform") connection in the Platform assets catalog,
+#                        in addition to the project-scoped one from Step 4. This
+#                        is what lets other projects/catalogs reuse it later via
+#                        a connection COPY, instead of re-entering credentials.
+#   --platform-catalog-id ID
+#                        Platform assets catalog GUID (default: resolved by name,
+#                        matching "platform assets catalog" case-insensitively)
+#   --dsd                Also create a CPD DSD asset (an 'ibm_data_source' asset
+#                        in the Platform assets catalog — DSDs are scope-locked
+#                        there, they cannot live in a project or other catalog)
 #   --external-url H:P   Optionally register an external hostname:port in the DSD
 #   --skip-cluster       Skip the PostgresCluster CR creation step
 #   --skip-postgres      Skip the PostgreSQL provisioning step (DB/user/schema)
@@ -285,6 +325,8 @@ CPD_USER="${WXD_CPD_USERNAME:-cpadmin}"
 CPD_PASS="${WXD_CPD_PASSWORD:-}"
 CPD_TOKEN="${WXD_SPARK_BEARER_TOKEN:-}"
 DO_DSD=false
+DO_PLATFORM_CONN=false
+PLATFORM_CATALOG_ID=""   # resolved at runtime if not set (see _resolve_platform_catalog)
 EXTERNAL_URL=""        # host:port for workstation access, e.g. localhost:15432
 SKIP_CLUSTER=false
 SKIP_PG=false
@@ -360,6 +402,8 @@ while [[ $# -gt 0 ]]; do
     --cpd-password)   CPD_PASS="$2";      shift 2 ;;
     --cpd-token)      CPD_TOKEN="$2";     shift 2 ;;
     --dsd)            DO_DSD=true;        shift   ;;
+    --platform-connection) DO_PLATFORM_CONN=true; shift ;;
+    --platform-catalog-id) PLATFORM_CATALOG_ID="$2"; shift 2 ;;
     --external-url)   EXTERNAL_URL="$2";  shift 2 ;;
     --skip-cluster)   SKIP_CLUSTER=true;  shift   ;;
     --skip-postgres)  SKIP_PG=true;       shift   ;;
@@ -1875,18 +1919,11 @@ if hit:
   return 1
 }
 
-CONN_ID=""
-if ! $SKIP_CONN; then
-  step "Step 4/5 — CPD connection 'ibmas-reporting' in project ${PROJECT_ID}"
-
-  if $DRY_RUN; then
-    PG_DATASOURCE_TYPE="${PG_DATASOURCE_NAME}"
-    dryrun "GET  https://${CPD_HOST}/v2/datasource_types?limit=200  → PostgreSQL asset_id"
-  else
-    info "Resolving the PostgreSQL datasource type …"
-    _resolve_datasource_type || true
-  fi
-
+# Shared by both connection-creation steps (project-scoped Step 4 and the
+# catalog-scoped/"platform" Step 4b) — the connection body itself is identical
+# either way; catalog_id vs project_id is a query param on the create URL, not
+# part of the payload.
+_build_conn_payload() {
   # Built with json.dumps, not string interpolation: the password comes from a
   # K8s Secret when --skip-postgres is used, and a human-set value containing a
   # quote or backslash would otherwise emit malformed JSON that the API rejects
@@ -1923,6 +1960,71 @@ print(json.dumps({
     "ibmas_reporting schema — Crunchy PostgresCluster '${CLUSTER_NAME}' in ${NS}, provisioned by provision_pg_reporting.sh" \
     "${PG_DATASOURCE_TYPE}" "${PG_HOST}" "${PG_PORT}" "${REPORT_DB}" \
     "${REPORT_USER}" "${REPORT_PASS}")"
+}
+
+# Resolves the Platform assets catalog's GUID by name. Confirmed live
+# (2026-08-20): a CPD "Data Source Definition" is a generic catalog asset of
+# type 'ibm_data_source', and that asset type's scope_restrictions.uids is
+# ["ibm-global-catalog"] — the Platform assets catalog's fixed internal uid on
+# every CPD install (distinct from its per-cluster metadata.guid, which we
+# still need for the actual create/list calls). DSDs, and the optional
+# catalog-scoped "platform" connection, can ONLY live in this one catalog.
+_resolve_platform_catalog() {
+  cpd_curl GET "https://${CPD_HOST}/v2/catalogs?limit=100"
+  [[ "${_CURL_HTTP}" != "200" ]] && return 1
+
+  PLATFORM_CATALOG_ID="$(printf '%s' "${_CURL_BODY}" | "${PY}" -c '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+# /v2/catalogs is its own snowflake: the list key is "catalogs", not the
+# "resources" every other CPD list endpoint (connections, projects,
+# datasource_types, ...) uses. Confirmed live 2026-08-20 — check both, "resources"
+# first only as a defensive fallback in case a future CPD version normalizes it.
+for r in d.get("catalogs") or d.get("resources") or []:
+    ent  = r.get("entity", {}) or {}
+    cat  = ent.get("catalog", {}) or {}
+    name = (ent.get("name") or cat.get("name") or "").lower()
+    uid  = ent.get("uid") or cat.get("uid") or ""
+    if "platform assets" in name or uid == "ibm-global-catalog":
+        print((r.get("metadata", {}) or {}).get("guid", ""))
+        break
+' 2>/dev/null || true)"
+
+  [[ -n "${PLATFORM_CATALOG_ID}" ]] && return 0
+  return 1
+}
+
+# Resolves PLATFORM_CATALOG_ID once (memoised) — call this at the top of any
+# step that needs the Platform assets catalog (Step 4b, Step 5/DSD).
+_ensure_platform_catalog() {
+  [[ -n "${PLATFORM_CATALOG_ID}" ]] && return 0
+  info "Resolving the Platform assets catalog …"
+  if _resolve_platform_catalog; then
+    ok "  Platform assets catalog: ${PLATFORM_CATALOG_ID}"
+    return 0
+  fi
+  warn "  Could not resolve the Platform assets catalog by name."
+  warn "  Pass --platform-catalog-id <GUID> explicitly. List catalogs with:"
+  warn "    curl -sk -H \"Authorization: Bearer \$TOKEN\" 'https://${CPD_HOST}/v2/catalogs?limit=100'"
+  return 1
+}
+
+CONN_ID=""
+if ! $SKIP_CONN; then
+  step "Step 4/5 — CPD connection 'ibmas-reporting' in project ${PROJECT_ID}"
+
+  if $DRY_RUN; then
+    PG_DATASOURCE_TYPE="${PG_DATASOURCE_NAME}"
+    dryrun "GET  https://${CPD_HOST}/v2/datasource_types?limit=200  → PostgreSQL asset_id"
+  else
+    info "Resolving the PostgreSQL datasource type …"
+    _resolve_datasource_type || true
+  fi
+
+  _build_conn_payload
 
   if $DRY_RUN; then
     dryrun "POST https://${CPD_HOST}/v2/connections?project_id=${PROJECT_ID}"
@@ -2017,74 +2119,220 @@ for r in d.get('resources',[]):
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# STEP 5 — Optional DSD
+# STEP 4b — Optional CPD Platform Connection (catalog-scoped, reusable across
+#           every project/catalog, as opposed to Step 4's project-scoped one)
 # ─────────────────────────────────────────────────────────────────────────────
-DSD_ID=""
-if $DO_DSD; then
-  step "Step 5/5 — CPD Data Source Definition (DSD)"
-
-  # Internal DSD
-  DSD_PAYLOAD="{
-    \"name\": \"IBMAS-Reporting-Postgres-DSD\",
-    \"description\": \"Standalone PostgreSQL reporting instance — ibmas_reporting database\",
-    \"datasource_type\": \"${PG_DATASOURCE_TYPE}\",
-    \"origin_country\": \"us\",
-    \"properties\": {
-      \"host\": \"${PG_HOST}\",
-      \"port\": \"${PG_PORT}\",
-      \"database\": \"${REPORT_DB}\"
-    }
-  }"
+PLATFORM_CONN_ID=""
+if $DO_PLATFORM_CONN; then
+  step "Step 4b/5 — CPD platform connection 'ibmas-reporting' (Platform assets catalog)"
 
   if $DRY_RUN; then
-    dryrun "POST https://${CPD_HOST}/v2/datasource_definitions"
-    dryrun "${DSD_PAYLOAD}"
+    dryrun "GET  https://${CPD_HOST}/v2/catalogs?limit=100  → Platform assets catalog GUID"
+    [[ -z "${PG_DATASOURCE_TYPE}" ]] && PG_DATASOURCE_TYPE="${PG_DATASOURCE_NAME}"
+    _build_conn_payload
+    dryrun "POST https://${CPD_HOST}/v2/connections?catalog_id=<platform catalog>"
+    dryrun "${CONN_PAYLOAD}"
+  elif _ensure_platform_catalog; then
+    # --skip-connection can leave PG_DATASOURCE_TYPE/CONN_PAYLOAD unset if Step 4
+    # never ran — resolve/build them here too so this step works standalone.
+    [[ -z "${PG_DATASOURCE_TYPE}" ]] && { info "Resolving the PostgreSQL datasource type …"; _resolve_datasource_type || true; }
+    [[ -z "${CONN_PAYLOAD:-}" ]] && _build_conn_payload
+
+    info "Checking for an existing 'ibmas-reporting' connection in the platform catalog …"
+    cpd_curl GET "https://${CPD_HOST}/v2/connections?catalog_id=${PLATFORM_CATALOG_ID}&entity.name=ibmas-reporting"
+    if [[ "${_CURL_HTTP}" == "200" ]]; then
+      PLATFORM_CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+hits = [r for r in d.get('resources', [])
+        if (r.get('entity', {}) or {}).get('name') == 'ibmas-reporting']
+if hits:
+    print((hits[0].get('metadata', {}) or {}).get('asset_id', ''))
+" 2>/dev/null || true)"
+    fi
+
+    if [[ -n "${PLATFORM_CONN_ID}" ]]; then
+      ok "Platform connection 'ibmas-reporting' already exists: ${PLATFORM_CONN_ID}"
+      info "  Not recreating it. To rotate the password in place:"
+      info "    PATCH /v2/connections/${PLATFORM_CONN_ID}?catalog_id=${PLATFORM_CATALOG_ID}"
+      info "    [{\"op\":\"replace\",\"path\":\"/properties/password\",\"value\":\"…\"}]"
+    else
+      info "Registering platform connection 'ibmas-reporting' in catalog ${PLATFORM_CATALOG_ID} …"
+      cpd_curl POST "https://${CPD_HOST}/v2/connections?catalog_id=${PLATFORM_CATALOG_ID}" "${CONN_PAYLOAD}"
+
+      PLATFORM_CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
+        "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('asset_id',''))" 2>/dev/null || true)"
+
+      if [[ -n "${PLATFORM_CONN_ID}" ]] && [[ "${PLATFORM_CONN_ID}" != "ERROR" ]]; then
+        ok "Platform connection registered: ${PLATFORM_CONN_ID}"
+      else
+        MSG="$(echo "${_CURL_BODY}" | "${PY}" -c \
+          "import sys,json; d=json.load(sys.stdin); e=d.get('errors',[{}]); print(e[0].get('message','') if e else '')" 2>/dev/null || true)"
+        debug "Platform connection create HTTP ${_CURL_HTTP}, message: ${MSG}"
+
+        if [[ "${_CURL_HTTP}" == "409" ]] \
+           || echo "${MSG}" | grep -qi "already exist\|duplicate\|conflict"; then
+          warn "Platform connection 'ibmas-reporting' already exists — looking up existing asset ID."
+          cpd_curl GET "https://${CPD_HOST}/v2/connections?catalog_id=${PLATFORM_CATALOG_ID}"
+          PLATFORM_CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c "
+import sys,json
+d=json.load(sys.stdin)
+for r in d.get('resources',[]):
+    if r.get('entity',{}).get('name','') == 'ibmas-reporting':
+        print(r['metadata']['asset_id'])
+        break
+" 2>/dev/null || true)"
+          if [[ -n "${PLATFORM_CONN_ID}" ]]; then
+            ok "Existing platform connection found: ${PLATFORM_CONN_ID}"
+          else
+            warn "Could not resolve existing platform connection ID."
+            warn "  HTTP ${_CURL_HTTP}  list response: ${_CURL_BODY:0:300}"
+          fi
+        else
+          warn "Platform connection registration failed (HTTP ${_CURL_HTTP}): ${MSG:-${_CURL_BODY:0:300}}"
+          warn "  Raw response body:"
+          printf '%s\n' "${_CURL_BODY:0:1200}" >&2
+        fi
+      fi
+    fi
+  fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STEP 5 — Optional DSD
+# ─────────────────────────────────────────────────────────────────────────────
+# A CPD "Data Source Definition" is NOT the dedicated REST resource its name
+# suggests — confirmed live (2026-08-20) that POST/GET /v2/datasource_definitions
+# is a routing-level 404 on this cluster (plain-text "Error 404 - Not Found",
+# not even a CAMS JSON error — nothing is wired to that path at all). A DSD is
+# a generic catalog asset of type 'ibm_data_source' (GET /v2/asset_types/
+# data_source_definition itself 404s with "AssetType 'data_source_definition'
+# does not exist"; 'ibm_data_source' is the real one, found by listing all 111
+# registered asset types). Its scope_restrictions lock it to the Platform
+# assets catalog only, so it always needs _ensure_platform_catalog — never a
+# project_id or an arbitrary catalog_id.
+DSD_ID=""
+if $DO_DSD; then
+  step "Step 5/5 — CPD Data Source Definition 'IBMAS-Reporting-Postgres-DSD'"
+
+  if $DRY_RUN; then
+    dryrun "GET  https://${CPD_HOST}/v2/catalogs?limit=100  → Platform assets catalog GUID"
+    [[ -z "${PG_DATASOURCE_TYPE}" ]] && PG_DATASOURCE_TYPE="${PG_DATASOURCE_NAME}"
+    dryrun "POST https://${CPD_HOST}/v2/assets?catalog_id=<platform catalog>"
+    dryrun '{"metadata":{"name":"IBMAS-Reporting-Postgres-DSD","asset_type":"ibm_data_source",...},"entity":{"ibm_data_source":{"data_source_type_id":"'"${PG_DATASOURCE_TYPE}"'","data_source_endpoints":{"values":[{"host":"'"${PG_HOST}"'","port":'"${PG_PORT}"'}]}}}}'
     [[ -n "${EXTERNAL_URL}" ]] && \
       dryrun "Would also create external DSD with host=${EXTERNAL_URL%%:*} port=${EXTERNAL_URL##*:}"
-  else
-    # [ST-4] Use cpd_curl
-    info "Creating internal DSD 'IBMAS-Reporting-Postgres-DSD' …"
-    cpd_curl POST "https://${CPD_HOST}/v2/datasource_definitions" "${DSD_PAYLOAD}"
+  elif _ensure_platform_catalog; then
+    # --skip-connection can leave PG_DATASOURCE_TYPE unset if Step 4 never ran
+    # (Step 4b may not have run either, if --platform-connection wasn't given)
+    # — resolve it here too. The DSD's data_source_type_id is the SAME
+    # datasource-type UUID the connection steps use, just under a different
+    # field name; reused, not re-resolved from scratch.
+    [[ -z "${PG_DATASOURCE_TYPE}" ]] && { info "Resolving the PostgreSQL datasource type …"; _resolve_datasource_type || true; }
 
-    DSD_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
-      "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('asset_id',d.get('id','')))" 2>/dev/null || true)"
+    # asset_type=ibm_data_source's schema, confirmed live: port is a NUMBER
+    # (not a string, unlike the connection asset's properties.port), and there
+    # is no "database" field at all — a DSD is a host/port endpoint only; the
+    # database name lives on the connection asset created in Step 4/4b.
+    _build_dsd_payload() {
+      "${PY}" -c '
+import json, sys
+(name, desc, dstype_id, host, port) = sys.argv[1:6]
+print(json.dumps({
+    "metadata": {
+        "name": name,
+        "description": desc,
+        "asset_type": "ibm_data_source",
+        "origin_country": "us",
+        "rov": {"mode": 0},
+    },
+    "entity": {
+        "ibm_data_source": {
+            "data_source_state": "ACTIVE",
+            "data_source_type_id": dstype_id,
+            "data_source_endpoints": {"values": [{"host": host, "port": int(port)}]},
+        }
+    },
+}))' "$@"
+    }
 
-    if [[ -n "${DSD_ID}" ]] && [[ "${DSD_ID}" != "ERROR" ]]; then
-      ok "DSD registered: IBMAS-Reporting-Postgres-DSD (${DSD_ID})"
+    # Pre-check by name via the asset-type search endpoint (the only confirmed-
+    # working way to query ibm_data_source assets — a plain
+    # GET /v2/assets?catalog_id=…&entity.name=… is not documented for generic
+    # asset types the way it is for connections).
+    _find_dsd_by_name() {
+      local dsd_name="$1"
+      cpd_curl POST "https://${CPD_HOST}/v2/asset_types/ibm_data_source/search?catalog_id=${PLATFORM_CATALOG_ID}" \
+        "{\"query\": \"asset.name:${dsd_name}\"}"
+      [[ "${_CURL_HTTP}" != "200" ]] && return 1
+      echo "${_CURL_BODY}" | "${PY}" -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+for r in d.get('resources', []) or []:
+    if (r.get('metadata', {}) or {}).get('name') == '${dsd_name}':
+        print((r.get('metadata', {}) or {}).get('asset_id', ''))
+        break
+" 2>/dev/null || true
+    }
+
+    info "Checking for an existing 'IBMAS-Reporting-Postgres-DSD' asset …"
+    DSD_ID="$(_find_dsd_by_name "IBMAS-Reporting-Postgres-DSD")"
+
+    if [[ -n "${DSD_ID}" ]]; then
+      ok "DSD 'IBMAS-Reporting-Postgres-DSD' already exists: ${DSD_ID}"
     else
-      DSD_MSG="$(echo "${_CURL_BODY}" | "${PY}" -c \
-        "import sys,json; d=json.load(sys.stdin); e=d.get('errors',[{}]); print(e[0].get('message',''))" 2>/dev/null || true)"
-      warn "DSD registration failed (HTTP ${_CURL_HTTP}): ${DSD_MSG:-${_CURL_BODY:0:300}}"
+      DSD_PAYLOAD="$(_build_dsd_payload \
+        "IBMAS-Reporting-Postgres-DSD" \
+        "Standalone PostgreSQL reporting instance — ibmas_reporting database" \
+        "${PG_DATASOURCE_TYPE}" "${PG_HOST}" "${PG_PORT}")"
+
+      info "Creating internal DSD 'IBMAS-Reporting-Postgres-DSD' …"
+      cpd_curl POST "https://${CPD_HOST}/v2/assets?catalog_id=${PLATFORM_CATALOG_ID}" "${DSD_PAYLOAD}"
+
+      DSD_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
+        "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('asset_id',''))" 2>/dev/null || true)"
+
+      if [[ -n "${DSD_ID}" ]] && [[ "${DSD_ID}" != "ERROR" ]]; then
+        ok "DSD registered: IBMAS-Reporting-Postgres-DSD (${DSD_ID})"
+      else
+        DSD_MSG="$(echo "${_CURL_BODY}" | "${PY}" -c \
+          "import sys,json; d=json.load(sys.stdin); e=d.get('errors',[{}]); print(e[0].get('message','') if e else '')" 2>/dev/null || true)"
+        warn "DSD registration failed (HTTP ${_CURL_HTTP}): ${DSD_MSG:-${_CURL_BODY:0:300}}"
+        printf '%s\n' "${_CURL_BODY:0:1200}" >&2
+      fi
     fi
 
     # External DSD if requested
     if [[ -n "${EXTERNAL_URL}" ]]; then
       EXT_HOST="${EXTERNAL_URL%%:*}"
       EXT_PORT="${EXTERNAL_URL##*:}"
-      info "Creating external DSD for ${EXT_HOST}:${EXT_PORT} …"
 
-      # [ST-2] Fixed: was incorrectly using undefined ${SVC}; correct var is ${PG_SVC}
-      EXT_DSD_PAYLOAD="{
-          \"name\": \"IBMAS-Reporting-Postgres-External-DSD\",
-          \"description\": \"External / workstation access to ibmas_reporting (port-forward: oc -n ${NS} port-forward svc/${PG_SVC} ${EXT_PORT}:5432)\",
-          \"datasource_type\": \"${PG_DATASOURCE_TYPE}\",
-          \"origin_country\": \"us\",
-          \"properties\": {
-            \"host\": \"${EXT_HOST}\",
-            \"port\": \"${EXT_PORT}\",
-            \"database\": \"${REPORT_DB}\"
-          }
-        }"
-
-      cpd_curl POST "https://${CPD_HOST}/v2/datasource_definitions" "${EXT_DSD_PAYLOAD}"
-
-      EXT_DSD_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
-        "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('asset_id',d.get('id','')))" 2>/dev/null || true)"
-
-      if [[ -n "${EXT_DSD_ID}" ]] && [[ "${EXT_DSD_ID}" != "ERROR" ]]; then
-        ok "External DSD registered: ${EXT_HOST}:${EXT_PORT} (${EXT_DSD_ID})"
+      EXT_DSD_ID="$(_find_dsd_by_name "IBMAS-Reporting-Postgres-External-DSD")"
+      if [[ -n "${EXT_DSD_ID}" ]]; then
+        ok "External DSD 'IBMAS-Reporting-Postgres-External-DSD' already exists: ${EXT_DSD_ID}"
       else
-        warn "External DSD registration failed (HTTP ${_CURL_HTTP}): ${_CURL_BODY:0:300}"
+        info "Creating external DSD for ${EXT_HOST}:${EXT_PORT} …"
+        EXT_DSD_PAYLOAD="$(_build_dsd_payload \
+          "IBMAS-Reporting-Postgres-External-DSD" \
+          "External / workstation access to ibmas_reporting (port-forward: oc -n ${NS} port-forward pod/\${PG_POD} ${EXT_PORT}:5432)" \
+          "${PG_DATASOURCE_TYPE}" "${EXT_HOST}" "${EXT_PORT}")"
+
+        cpd_curl POST "https://${CPD_HOST}/v2/assets?catalog_id=${PLATFORM_CATALOG_ID}" "${EXT_DSD_PAYLOAD}"
+
+        EXT_DSD_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
+          "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('asset_id',''))" 2>/dev/null || true)"
+
+        if [[ -n "${EXT_DSD_ID}" ]] && [[ "${EXT_DSD_ID}" != "ERROR" ]]; then
+          ok "External DSD registered: ${EXT_HOST}:${EXT_PORT} (${EXT_DSD_ID})"
+        else
+          warn "External DSD registration failed (HTTP ${_CURL_HTTP}): ${_CURL_BODY:0:300}"
+        fi
       fi
     fi
   fi
@@ -2155,8 +2403,9 @@ line "SSL"                  "${PG_SSL_MODE} (PGO pg_hba permits hostssl only)"
 line "RW Service"           "${PG_SVC}"
 line "Primary pod"          "${PG_POD:-<not resolved>}"
 line "K8s Secret"           "${NS}/${SECRET_NAME}"
-[[ -n "${CONN_ID}" ]] && line "CPD Connection ID" "${CONN_ID}"
-[[ -n "${DSD_ID}"  ]] && line "CPD DSD ID"        "${DSD_ID}"
+[[ -n "${CONN_ID}" ]]          && line "CPD Connection ID"          "${CONN_ID}"
+[[ -n "${PLATFORM_CONN_ID}" ]] && line "CPD Platform Connection ID" "${PLATFORM_CONN_ID}"
+[[ -n "${DSD_ID}"  ]]          && line "CPD DSD ID"                 "${DSD_ID}"
 echo -e "${BOLD}╠$(printf '═%.0s' $(seq 1 "${INNER}"))╣${RESET}"
 line "JDBC URL" "jdbc:postgresql://${PG_HOST}:${PG_PORT}/${REPORT_DB}?ssl=true&sslmode=${PG_SSL_MODE}"
 echo -e "${BOLD}╚$(printf '═%.0s' $(seq 1 "${INNER}"))╝${RESET}"
