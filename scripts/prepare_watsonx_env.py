@@ -377,9 +377,20 @@ def _set(
     """Set key=value if allowed.  Returns the value actually stored, or None."""
     if not value:
         return None
-    if key in _PROTECTED_SECRETS:
-        return None
     existing = values.get(key, "")
+    if key in _PROTECTED_SECRETS:
+        # Protected secrets are never clobbered once a REAL value already
+        # exists — that's the whole point of the set, so --overwrite / manual
+        # edits can't accidentally blow away a working credential. But an
+        # empty/placeholder field is fair game: this is the only thing that
+        # lets --fetch-tokens actually persist what it just fetched, instead
+        # of fetching a valid key over the network and then silently
+        # discarding it (see Step 6's docstring, which already claims this
+        # write happens).
+        if existing and not _is_placeholder(existing):
+            return None
+        values[key] = value
+        return value
     if overwrite or not existing or _is_placeholder(existing):
         values[key] = value
         return value

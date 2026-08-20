@@ -45,8 +45,11 @@ python3 scripts/prepare_watsonx_env.py
 #   --spark-json  PATH      also parse a Spark engine connection JSON
 #   -v / --verbose          DEBUG logging
 #
-# After the script, only two values need to be set by hand:
-#   WXD_API_KEY             → Software Hub UI: Profile → API key
+# After the script, two values usually still need attention:
+#   WXD_API_KEY             → auto-fetched by prepare_watsonx_env.py IF currently empty
+#                              (never rotates an existing one); to force-rotate:
+#                              python3 scripts/get_token.py --refresh-key
+#                              or manually: Software Hub UI → Profile → API key
 #   WXD_SPARK_BEARER_TOKEN  → python3 scripts/get_token.py --export  (refresh per session)
 
 # dbt path (all go through the wrapper)
@@ -86,7 +89,7 @@ Changing the demo's schema prefix is a single `WXD_SCHEMA` change.
 `gold_daily_sales` is a table; `gold_category_performance` and `gold_customer_360` are views.
 
 **Iceberg format is PARQUET, never ORC** (explicit project requirement). Tables set
-`properties={"format": "'PARQUET'", "partitioning": "ARRAY['order_date']"}` — note the
+`properties={"format": "'PARQUET'", "partitioning": "ARRAY['month(order_date)']"}` — note the
 **inner single quotes** are required by the adapter.
 
 **`CREATE MATERIALIZED VIEW` is not supported** on Presto Iceberg (errors `NOT_SUPPORTED`).
@@ -103,6 +106,11 @@ the instance is re-provisioned or the token/cert changes.
 
 **Secrets.** `.env` is git-ignored and holds `WXD_API_KEY`. Never commit it. If a key leaks
 into a commit or chat, rotate it before any customer demo.
+
+**dbt reads `~/.dbt/profiles.yml`, not `profiles/profiles.yml` directly** — `scripts/dbt_env.sh`
+pins `DBT_PROFILES_DIR` to the repo's `profiles/` directory so this repo's tracked file is
+always authoritative. If you ever invoke `dbt` directly (bypassing the wrapper), set
+`DBT_PROFILES_DIR` yourself or edits to `profiles/profiles.yml` won't take effect.
 
 ## Layout
 

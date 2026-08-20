@@ -79,8 +79,12 @@ This is the one secret you genuinely provide. Everything else is built from it.
       *Profile and settings* → **API key** tab → **Regenerate API key** → copy it into
       `.env` as `WXD_API_KEY=<key>`.
     * **Script:** `python scripts/get_token.py --refresh-key` does a one-time **password**
-      login, calls `POST /usermgmt/v1/user/apikey/regenerate`, and writes the new key into
-      `.env` for you.
+      login, then fetches a key from whichever CPD endpoint this cluster's build actually
+      exposes (CPD 5.3.0 here: `GET /usermgmt/v1/user/apiKey`; older CPD 4.x builds use a
+      different `POST .../apikey/regenerate` route instead) and writes the new key into
+      `.env` for you. The endpoint varies across CPD versions, which is why this isn't a
+      single hardcoded call — see `prepare_watsonx_env.py`'s `_cpd_fetch_tokens()` for the
+      full candidate list it tries in order.
 * **Used for:** Presto/dbt auth (it is the *password* for the Presto user
   `ibmlhapikey_cpadmin`), Spark REST auth (via the derived ZenApiKey below), and cpdctl.
 * **Lifetime:** long-lived until you regenerate it. **Regenerating invalidates the old

@@ -147,22 +147,45 @@ def auth_with_password(auth_url: str, username: str, password: str, verify: bool
     )
 
 
-def regenerate_api_key(cpd_host: str, token: str, verify: bool | str) -> str | None:
-    """Call CPD to rotate the current user's API key and return the new key."""
-    url = f"https://{cpd_host}/usermgmt/v1/user/apikey/regenerate"
-    resp = requests.post(
-        url,
-        headers={"Authorization": f"Bearer {token}"},
-        verify=verify,
-        timeout=30,
+def regenerate_api_key(
+    cpd_host: str,
+    auth_url: str,
+    username: str,
+    password: str,
+    cert_path: Path,
+    verify: bool | str,
+) -> str | None:
+    """Fetch/rotate the current user's API key.
+
+    CPD 5.3.0 (this cluster) does not expose the classic
+    `POST /usermgmt/v1/user/apikey/regenerate` route this function used to call
+    directly — confirmed as a hard 404 here, not a permissions error. Delegate
+    to prepare_watsonx_env.py's `_cpd_fetch_tokens()`, which already carries a
+    verified multi-endpoint candidate cascade for this (the working one on
+    this cluster is `GET /usermgmt/v1/user/apiKey` with a `ZenApiKey <bearer>`
+    auth header, per IBM's CPD 5.3.0 spec) — keeping one source of truth for
+    "how do we actually get an API key on this CPD version" instead of two
+    scripts drifting apart.
+    """
+    import prepare_watsonx_env as pwe
+
+    api_key, _bearer = pwe._cpd_fetch_tokens(
+        cpd_host=cpd_host,
+        auth_url=auth_url,
+        username=username,
+        password=password,
+        cert_path=cert_path,
+        dry_run=False,
     )
-    if resp.status_code == 200:
-        return resp.json().get("apiKey") or resp.json().get("api_key")
-    print(
-        f"  WARNING: could not regenerate API key ({resp.status_code}): {resp.text}",
-        file=sys.stderr,
-    )
-    return None
+    if not api_key:
+        print(
+            "  WARNING: could not obtain an API key from any known CPD endpoint "
+            "(see prepare_watsonx_env.py's _cpd_fetch_tokens for the full candidate "
+            "list) — falling back to the manual UI path documented in this script's "
+            "module docstring.",
+            file=sys.stderr,
+        )
+    return api_key
 
 
 # ---------------------------------------------------------------------------
@@ -276,7 +299,11 @@ def main() -> int:
     # --- Step 3: regenerate API key after password login ---
     if used_password or args.refresh_key:
         print("2. Regenerating API key...")
-        new_key = regenerate_api_key(cpd_host, token, verify)
+        _ssl_val = os.getenv("WXD_SSL_VERIFY", "").strip()
+        cert_path = Path(_ssl_val) if _ssl_val else (Path(__file__).resolve().parents[1] / "certs" / "watsonxdata-ca.pem")
+        if not cert_path.is_absolute():
+            cert_path = Path(__file__).resolve().parents[1] / cert_path
+        new_key = regenerate_api_key(cpd_host, auth_url, username, password, cert_path, verify)
         if new_key:
             # quote_mode="never": python-dotenv's default wraps the value in
             # single quotes, which every reader in this repo (this script's own

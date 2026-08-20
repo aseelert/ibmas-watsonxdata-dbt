@@ -87,7 +87,12 @@ python scripts/prepare_watsonx_env.py
 
 This single command: parses the Presto JSON, writes `certs/watsonxdata-ca.pem`, derives all
 URLs, runs `oc login`, discovers OpenShift secrets (MinIO keys, PG password, CPD password),
-checks reachability, and rotates the API key + bearer token.
+checks reachability, and fetches the API key + bearer token.
+
+`--fetch-tokens` **only fills `WXD_API_KEY` in when it's empty** — if a real key is already
+in `.env`, this flag never touches or rotates it (by design, so a routine re-run can't
+silently invalidate a working credential). To force-rotate an existing key, use
+`get_token.py --refresh-key` below instead.
 
 | Flag | Default | Description |
 |---|---|---|

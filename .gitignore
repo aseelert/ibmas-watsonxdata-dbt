@@ -41,6 +41,11 @@ certs/*.pem
 certs/*.crt
 certs/*.key
 
+# Connection-export JSON (same cluster-specific cert-chain/hostname payload as the
+# watsonx_data/*.json rule above, just saved under certs/ by some export flows).
+certs/*.json
+watsonx_data/*.json.bck
+
 # macOS Finder metadata / Office lock files — never worth tracking.
 .DS_Store
 **/.DS_Store

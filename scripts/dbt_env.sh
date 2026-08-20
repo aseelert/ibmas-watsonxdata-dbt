@@ -75,6 +75,16 @@ else
   echo "[dbt_env] no .env at ${repo_root}/.env — using the ambient environment" >&2
 fi
 
+if [[ -z "${DBT_PROFILES_DIR:-}" ]]; then
+  # Without this, dbt falls back to its default ~/.dbt/profiles.yml — a
+  # separate, un-tracked copy that has to be manually kept in sync with this
+  # repo's profiles/profiles.yml (confirmed byte-identical but already 3 days
+  # stale from a manual sync on 2026-08-20). Pinning it here means editing the
+  # tracked file always takes effect, with no copy step and no drift risk.
+  export DBT_PROFILES_DIR="${repo_root}/profiles"
+  echo "[dbt_env] DBT_PROFILES_DIR=${DBT_PROFILES_DIR}" >&2
+fi
+
 if [[ -x "${repo_root}/.venv/bin/dbt" ]]; then
   dbt_bin="${repo_root}/.venv/bin/dbt"
   echo "[dbt_env] using virtualenv dbt: ${dbt_bin} $*" >&2
