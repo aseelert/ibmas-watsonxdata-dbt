@@ -1,7 +1,11 @@
 .env
 .env.*
 !.env.example
-.claude/
+.claude/*
+!.claude/agents/
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/ibmas-*/
 .bob/*
 !.bob/skills/
 .venv/
