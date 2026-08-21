@@ -15,7 +15,7 @@ DAG: spark_medallion_hourly
 Orchestrates the **watsonx.data Spark** medallion — the same steps you run by
 hand (upload assets → authenticate → submit → wait → check results):
 
-    [prepare]  upload_assets        (scripts/upload_spark_assets.py)   * optional
+    [prepare]  upload_assets        (scripts/03a_upload_spark_assets.py)   * optional
     [auth]     get_token            mint a CPD bearer token from WXD_API_KEY
     [build]    submit_spark_app     POST load_medallion_demo.py to the Spark engine
                wait_for_spark       poll the app until state == finished
@@ -39,7 +39,7 @@ WHEN to run
   Auto-scheduled @hourly (catchup=False, max_active_runs=1). Trigger manually
   from the UI for a demo. The Spark app + raw CSVs must already exist in the
   object store — either set the `upload_assets` param to True (uploads via
-  scripts/upload_spark_assets.py, needs MinIO reachable from the container) or,
+  scripts/03a_upload_spark_assets.py, needs MinIO reachable from the container) or,
   more usually, run that upload once on the host beforehand.
 
 PARAMS
@@ -197,7 +197,7 @@ def spark_medallion_hourly():
         )
         upload_assets = BashOperator(
             task_id="upload_assets",
-            bash_command=f"cd {PROJECT_DIR} && python scripts/upload_spark_assets.py",
+            bash_command=f"cd {PROJECT_DIR} && python scripts/03a_upload_spark_assets.py",
         )
         gate_upload >> upload_assets
 
@@ -243,7 +243,7 @@ def spark_medallion_hourly():
                 "spark.driver.memory": os.getenv("WXD_SPARK_DRIVER_MEMORY", "2G"),
             }
             # Pass medallion settings to driver + executors (every prefix the
-            # engine honours), mirroring submit_spark_application.py.
+            # engine honours), mirroring scripts/03b_submit_spark_application.py.
             env_vars = {
                 "WXD_SPARK_INPUT_BASE": input_base,
                 "WXD_SPARK_CATALOG": catalog,

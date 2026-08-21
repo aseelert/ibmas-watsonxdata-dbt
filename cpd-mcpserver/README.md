@@ -60,8 +60,12 @@ MCP_SERVER_PORT=45123
 Run the test script to verify everything is configured correctly:
 
 ```bash
-python cpd-mcpserver/test_mcp_server.py
+python cpd-mcpserver/_archive/test_mcp_server.py
 ```
+
+> `test_mcp_server.py` now lives in `_archive/` — it validates the document-library MCP
+> server described in this README (`run_mcp_server.py`), not `watsonx_projects_mcp_server.py`,
+> which is the server actually registered in `.bob/mcp.json` / `.claude/.mcp.json`.
 
 ## Usage
 
@@ -248,7 +252,7 @@ MCP_SERVER_PORT=45123
 ### Quick Test
 
 ```bash
-python cpd-mcpserver/test_mcp_server.py
+python cpd-mcpserver/_archive/test_mcp_server.py
 ```
 
 This will:
@@ -306,9 +310,11 @@ Ensure:
 
 ```
 cpd-mcpserver/
-├── README.md              # This file
-├── run_mcp_server.py      # Main server runner
-└── test_mcp_server.py     # Test script
+├── README.md                    # This file
+├── run_mcp_server.py            # Main server runner
+└── _archive/
+    └── test_mcp_server.py       # Test script (archived — tests this document-library
+                                  # server, not watsonx_projects_mcp_server.py)
 ```
 
 ### Adding to Bob Skills
@@ -327,7 +333,7 @@ For issues or questions:
 1. Check the troubleshooting section above
 2. Review server logs for error messages
 3. Verify all prerequisites are met
-4. Test with `test_mcp_server.py`
+4. Test with `_archive/test_mcp_server.py`
 
 ---
 

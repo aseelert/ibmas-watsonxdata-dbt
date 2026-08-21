@@ -38,7 +38,7 @@ WHAT / WHY
   │  --run to also compile and trigger a job run afterwards.                    │
   └──────────────────────────────────────────────────────────────────────────┘
 
-AUTH (same pattern as scripts/get_token.py — read for reference, not edited)
+AUTH (same pattern as scripts/00b_get_token.py — read for reference, not edited)
   1. POST https://<WXD_CPD_HOST>/icp4d-api/v1/authorize
        body {"username": WXD_CPD_USERNAME, "api_key": WXD_API_KEY}  → bearer token
   2. Fallback to {"username", "password": WXD_CPD_PASSWORD} if no/!api_key.
@@ -129,7 +129,7 @@ def err(msg: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Env helpers (same conventions as scripts/get_token.py)
+# Env helpers (same conventions as scripts/00b_get_token.py)
 # ---------------------------------------------------------------------------
 def _env(name: str, default: str | None = None, required: bool = False) -> str:
     value = os.getenv(name, default)
@@ -157,7 +157,7 @@ def _ssl_verify() -> bool | str:
 
 
 # ---------------------------------------------------------------------------
-# Auth — mirror of scripts/get_token.py (api_key first, password fallback)
+# Auth — mirror of scripts/00b_get_token.py (api_key first, password fallback)
 # ---------------------------------------------------------------------------
 def get_bearer_token(cpd_host: str, username: str, verify: bool | str) -> str:
     auth_url = os.getenv("WXD_CPD_AUTH_URL", "").strip()
@@ -182,7 +182,7 @@ def get_bearer_token(cpd_host: str, username: str, verify: bool | str) -> str:
     if not password:
         raise SystemExit(
             "Auth failed: no usable WXD_API_KEY and no WXD_CPD_PASSWORD set.\n"
-            "  Set one in .env, or run: python scripts/get_token.py --refresh-key"
+            "  Set one in .env, or run: python scripts/00b_get_token.py --refresh-key"
         )
     info("Authenticating with password ...")
     resp = requests.post(

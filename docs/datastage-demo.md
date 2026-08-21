@@ -72,7 +72,7 @@ follows them automatically.
 
 ```bash
 # 0. (once) sanity-check auth the same way every other script does
-python scripts/get_token.py
+python scripts/00b_get_token.py
 
 # 1. point the gold engine at DataStage
 #    in .env:  CONFLUENT_GOLD_ENGINE=datastage

@@ -1,52 +1,65 @@
 # DataStage medallion path (bronze → silver → gold)
 
 A **fourth, interchangeable medallion path** next to dbt / Spark / cpdctl, built as
-three **IBM DataStage** flows on Cloud Pak for Data **5.3.4**. Every transformation is
-the *exact* dbt SQL, pushed down to the **watsonx.data Presto** engine through **one
-connection** (`ibmas-presto`). DataStage just orchestrates read → write.
+**five IBM DataStage** flows on Cloud Pak for Data **5.3.4**. Every transformation is
+the *exact* dbt SQL/logic, pushed down to the **watsonx.data Presto** engine through
+**one connection** (`ibmas-presto`), with real DataStage **Transformer** and **Join**
+stages doing the cast/clean/enrich work visually instead of as raw SQL pushdown.
 
 ```
-CSV already landed as Iceberg in  iceberg_data.dbt_demo_raw   (on MinIO)
-   │  ds_medallion_bronze   raw + ingest metadata
-   ▼  iceberg_data.datastage_demo_bronze.*
-   │  ds_medallion_silver   cast / clean / filter / inner-join (silver_sales_enriched)
-   ▼  iceberg_data.datastage_demo_silver.*
-   │  ds_medallion_gold     business aggregates (daily_sales, category_perf, customer_360)
-   ▼  iceberg_data.datastage_demo_gold.*
+CSV already landed as Iceberg in  iceberg_data.dbt_demo_raw        (on MinIO)
+   │  ds_medallion_bronze_v2         raw + ingest metadata
+   ▼  iceberg_data.datastage_demo_bronze_v2.*
+   │  ds_medallion_silver_clean_v2   cast / filter + Transformer (trim/lower/upper)
+   ▼  iceberg_data.datastage_demo_silver_v2.* (clean tables)
+   │  ds_medallion_silver_enrich_v2  3 Join stages + Transformer → silver_sales_enriched
+   ▼  iceberg_data.datastage_demo_silver_v2.silver_sales_enriched
+   │  ds_medallion_gold_daily_v2     gold_daily_sales
+   ▼  iceberg_data.datastage_demo_gold_v2.gold_daily_sales
+   │  ds_medallion_gold_marts_v2     gold_category_performance + gold_customer_360
+   ▼  iceberg_data.datastage_demo_gold_v2.*
 ```
 
-Run order is **bronze → silver → gold** (each layer reads the physical tables the
-previous layer wrote). Within a flow every stage reads only a *prior* layer, so the
-stages are safe to run in parallel — `silver_sales_enriched` inlines the four cleaning
-CTEs over bronze instead of reading the sibling silver tables, and
-`gold_category_performance` reads `silver_sales_enriched` directly instead of
-`gold_daily_sales`. Both rewrites are provably equivalent (see parity check).
+Run order is **bronze → silver_clean → silver_enrich → gold_daily → gold_marts**
+(each flow reads the physical tables the previous flow wrote). DataStage can run
+independent branches within one flow concurrently, so dbt dependencies that cross a
+model boundary are split into their own flow asset rather than folded into a single
+flow.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `ds_flow_lib.py` | Builds pipeline-flow **v3** JSON: one `lakehouse` (watsonx.data Presto) source→target pair per model, with custom-SQL pushdown on the source and `table_action=replace` on the target. |
-| `create_medallion_flows.py` | Defines all 13 models, builds/writes JSON, creates the target schemas, POSTs the flows, and runs a Presto parity check vs the dbt tables. |
-| `flows/ds_medallion_{bronze,silver,gold}.json` | The generated, version-controllable flow definitions. |
+| `create_medallion_flows_v2.py` | Builds the pipeline-flow **v3** JSON for all 5 flows (bronze, silver clean, silver enrich, gold daily, gold marts) with real `Transformer`/`PxJoin` stages, creates the target schemas, POSTs the flows, and — with `--run` — recreates each target table, compiles, and executes the flows in order. Also runs a Presto parity check vs the dbt tables (`--verify`). |
+| `flows/ds_medallion_*_v2.json` | The generated, version-controllable flow definitions. |
+
+`_archive/create_medallion_flows.py` and `_archive/ds_flow_lib.py` are the **v1**
+implementation (3 flows, SQL-pushdown-only, no Transformer/Join stages, no compile+run
+path). They are superseded by v2 and kept only for reference —
+[`docs/datastage-medallion.md`](../../docs/datastage-medallion.md) no longer documents
+them, and they are not otherwise wired into any script or doc.
 
 ## Usage
 
 ```bash
 source .venv/bin/activate          # needs requests, python-dotenv, presto-python-client
-# build the JSON only
-python scripts/datastage/create_medallion_flows.py --build
-# prove the SQL matches dbt (row counts + gold value sums) — no DataStage runtime needed
-python scripts/datastage/create_medallion_flows.py --verify
-# create the schemas + the 3 flows in the ibmas-ingest-demo project
-python scripts/datastage/create_medallion_flows.py --create
+# 1) build the JSON only
+python scripts/datastage/create_medallion_flows_v2.py --build
+# 2) prove the SQL/logic matches dbt (row counts + gold value sums) — no DataStage runtime needed
+python scripts/datastage/create_medallion_flows_v2.py --verify
+# 3) create the target schemas + the 5 flows in the ibmas-ingest-demo project
+python scripts/datastage/create_medallion_flows_v2.py --create
+# 4) create, then compile + recreate targets + run the flows in order
+python scripts/datastage/create_medallion_flows_v2.py --create --run
 ```
 
 Auth/env come from `.env` (the same `WXD_*` vars dbt and Presto use). A CPD bearer
 token is minted from `WXD_API_KEY`.
 
-Created flow asset ids (project `ibmas-ingest-demo` = `2d2415ea-…611e`):
-`ds_medallion_bronze`, `ds_medallion_silver`, `ds_medallion_gold`. Open them in
+Created flow asset ids live in project `ibmas-ingest-demo`:
+`ds_medallion_bronze_v2`, `ds_medallion_silver_clean_v2`,
+`ds_medallion_silver_enrich_v2`, `ds_medallion_gold_daily_v2`,
+`ds_medallion_gold_marts_v2`. Open them in
 **Projects → ibmas-ingest-demo → Assets → DataStage flows**.
 
 ## Parity (verified)
@@ -78,14 +91,18 @@ watsonx.data Presto connector node: `op:"lakehouse"`, `type:"binding"`,
 `connection.ref` = the `ibmas-presto` connection id.
 
 - **source** — `properties.read_mode:"select"` + `properties.select_statement:"<SQL>"`
-- **target** — `properties.table_action:"replace"` + `catalog_name` / `schema_name` / `table_name`
+  (bronze/silver clean, silver enrich pre-Transformer) or `properties.read_mode:"general"`
+  + `schema_name`/`table_name` feeding a `Transformer`/`PxJoin` stage.
+- **target** — `properties.table_action:"append"` (with `--run` recreating an empty
+  Iceberg table via Presto immediately beforehand) + `catalog_name` / `schema_name` /
+  `table_name`.
 
 ## Caveat — design-time vs runtime
 
 Flow **creation** (design-time, CAMS) works and is verified by round-trip. **Compiling
-and running** a flow needs the DataStage **px-runtime** to be active; on this instance
-`POST …/compile` currently returns `500` for *every* flow (including the pre-existing
-`DS-merge` and the data-rule flows), i.e. the runtime instance is not started — an
-environment state, not a defect in these flows. Start/scale the DataStage instance in
-CPD, then compile and run **bronze → silver → gold** in order (or create a DataStage job
-per flow). Until then, `--verify` proves the logic on the live Presto engine.
+and running** a flow needs the DataStage **px-runtime** to be active; when the runtime
+instance is not started, `POST …/compile` returns `500` for every flow — an environment
+state, not a defect in these flows. Start/scale the DataStage instance in CPD, then
+`--create --run` compiles and runs **bronze → silver_clean → silver_enrich → gold_daily
+→ gold_marts** in order. Until then, `--verify` proves the logic on the live Presto
+engine.

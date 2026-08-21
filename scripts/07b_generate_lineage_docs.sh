@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  generate_lineage_docs.sh — refresh ONLY the dbt lineage artifacts for OpenMetadata.
 #
-#  Location  : scripts/generate_lineage_docs.sh
+#  Location  : scripts/07b_generate_lineage_docs.sh
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -14,7 +14,7 @@
 #
 #  WHAT / WHY
 #    A lineage-only convenience entry point. It is a thin wrapper that calls
-#    `scripts/prepare_openmetadata_dbt_artifacts.py --docs-only`, which runs ONLY
+#    `scripts/07a_prepare_openmetadata_dbt_artifacts.py --docs-only`, which runs ONLY
 #    `dbt docs generate` (emitting manifest.json + catalog.json + run_results.json)
 #    and then stages those three files into the OpenMetadata artifact directory.
 #    Unlike the full prepare run, NO seed/run/test happens. Delegating to the
@@ -27,10 +27,10 @@
 #    AFTER dbt has built the models at least once (so the warehouse tables exist
 #    for `docs generate` to introspect for catalog.json), and BEFORE
 #    openmetadata/ingestion/run-ingestion.sh. If the tables do NOT yet exist,
-#    use scripts/prepare_openmetadata_dbt_artifacts.py instead (full build).
+#    use scripts/07a_prepare_openmetadata_dbt_artifacts.py instead (full build).
 #
 #  ENV VARS
-#    Reads none directly. `dbt docs generate` runs through scripts/dbt_env.sh,
+#    Reads none directly. `dbt docs generate` runs through scripts/02_dbt_env.sh,
 #    which sources <repo>/.env (WXD_HOST / WXD_USER / WXD_PASSWORD / ...). The
 #    staging step honours WXD_DBT_ARTIFACT_DIR (default openmetadata/dbt-artifacts).
 #
@@ -39,9 +39,9 @@
 #    (catalog.json is built from a live warehouse query), and the repo .venv.
 #
 #  USAGE
-#    scripts/generate_lineage_docs.sh
-#    scripts/generate_lineage_docs.sh --artifact-dir /tmp/om-dbt
-#    scripts/generate_lineage_docs.sh --retries 3
+#    scripts/07b_generate_lineage_docs.sh
+#    scripts/07b_generate_lineage_docs.sh --artifact-dir /tmp/om-dbt
+#    scripts/07b_generate_lineage_docs.sh --retries 3
 #    # all flags are forwarded verbatim to prepare_openmetadata_dbt_artifacts.py
 #    # (e.g. --artifact-dir, --retries). Do not pass --skip-dbt here.
 #
@@ -59,4 +59,4 @@ trap 'echo "[ERROR] ${BASH_SOURCE[0]}:${LINENO}: command failed: ${BASH_COMMAND}
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 echo "[lineage] refreshing OpenMetadata lineage artifacts (docs generate only — no seed/run/test)" >&2
-exec python3 "${repo_root}/scripts/prepare_openmetadata_dbt_artifacts.py" --docs-only "$@"
+exec python3 "${repo_root}/scripts/07a_prepare_openmetadata_dbt_artifacts.py" --docs-only "$@"

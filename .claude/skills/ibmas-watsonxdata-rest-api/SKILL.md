@@ -29,7 +29,7 @@ the shorter form (without the path segment) to match this project's existing scr
 
 | Header | Value | Notes |
 |---|---|---|
-| `Authorization` | `Bearer {WXD_SPARK_BEARER_TOKEN}` | Obtained from `WXD_CPD_AUTH_URL` (`/icp4d-api/v1/authorize`) via `python scripts/get_token.py --export`, ~12h TTL. `ZenApiKey base64(username:api_key)` is IBM's documented alternative (see "Authentication software" on the API docs) — this project's `submit_spark_application.py` already falls back to it via `_derived_zen_api_key()` when a bearer token isn't set. |
+| `Authorization` | `Bearer {WXD_SPARK_BEARER_TOKEN}` | Obtained from `WXD_CPD_AUTH_URL` (`/icp4d-api/v1/authorize`) via `python scripts/00b_get_token.py --export`, ~12h TTL. `ZenApiKey base64(username:api_key)` is IBM's documented alternative (see "Authentication software" on the API docs) — this project's `submit_spark_application.py` already falls back to it via `_derived_zen_api_key()` when a bearer token isn't set. |
 | Instance context (**required, either name**) | `WXD_INSTANCE_ID` | Confirmed live: **both `AuthInstanceId` (the canonical name per the v3 spec) and `LhInstanceId` (this project's existing header name, and CPD's legacy alias) work identically** on this cluster. Omitting both → `400`/`401` depending on the endpoint (`presto_engines` 400s with a JWT-validation error; `spark_engines/.../applications` 401s). Existing scripts already send `LhInstanceId` — no change needed there, but when writing new calls either name is fine; use `AuthInstanceId` if you want to match the official spec wording. |
 
 ```bash
@@ -58,7 +58,7 @@ in the v3 reference. OpenSearch on this cluster is managed purely at the OpenShi
 level (`clusters.opensearch.cloudpackopen.ibm.com`) — check it via `oc`, not this API
 (see `ibmas-watsonxdata-engine-control`).
 
-## Spark application sub-resource (used by `scripts/submit_spark_application.py`)
+## Spark application sub-resource (used by `scripts/03b_submit_spark_application.py`)
 
 ```
 GET    /spark_engines/{id}/applications              # list

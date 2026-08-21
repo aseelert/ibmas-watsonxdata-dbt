@@ -15,14 +15,14 @@ DAG: dbt_medallion_hourly
 Orchestrates the **dbt / Presto** medallion exactly as you run it by hand, but
 with one Airflow task per table so the medallion build is visible end-to-end:
 
-    bootstrap_schemas                 (scripts/bootstrap_watsonxdata.py)
+    bootstrap_schemas                 (scripts/01_bootstrap_watsonxdata.py)
         │                              create dbt_demo_{raw,bronze,silver,gold}
         ├── RAW    : dbt seed  --select raw_<x>      -> dbt_demo_raw
         ├── BRONZE : dbt run   --select bronze_<x>   -> dbt_demo_bronze
         ├── SILVER : dbt run   --select silver_<x>   -> dbt_demo_silver
         ├── GOLD   : dbt run   --select gold_<x>     -> dbt_demo_gold
         ├── dbt_test                                  (schema + data tests)
-        └── query_gold                                (scripts/query_gold.py)
+        └── query_gold                                (scripts/05_query_gold.py)
 
 The task dependencies below are a 1:1 copy of the dbt ref() graph, so Airflow
 runs models in true lineage order (and parallelises independent branches).
@@ -146,7 +146,7 @@ def dbt_medallion_hourly():
     bootstrap = BashOperator(
         task_id="bootstrap_schemas",
         bash_command=script_cmd(
-            "scripts/bootstrap_watsonxdata.py",
+            "scripts/01_bootstrap_watsonxdata.py",
             banner="bootstrap: create dbt_demo_{raw,bronze,silver,gold} schemas",
         ),
     )
@@ -231,18 +231,18 @@ def dbt_medallion_hourly():
             ),
         )
 
-    # --- 5. Tests + a real customer-facing query (reuses query_gold.py) ---
+    # --- 5. Tests + a real customer-facing query (reuses 05_query_gold.py) ---
     dbt_test = BashOperator(
         task_id="dbt_test",
         bash_command=dbt_cmd("test", banner="TEST: dbt schema + data tests"),
     )
-    # Bounded final preview: reuses scripts/query_gold.py (a fixed top-N query),
+    # Bounded final preview: reuses scripts/05_query_gold.py (a fixed top-N query),
     # so it echoes the gold mart without any risk of hanging.
     query_gold = BashOperator(
         task_id="query_gold",
         bash_command=script_cmd(
-            "scripts/query_gold.py",
-            banner="PREVIEW: query gold mart (scripts/query_gold.py)",
+            "scripts/05_query_gold.py",
+            banner="PREVIEW: query gold mart (scripts/05_query_gold.py)",
         ),
     )
 

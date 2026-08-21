@@ -97,8 +97,11 @@ To verify Bob can use the MCP server:
 
 1. **Check server availability:**
    ```bash
-   python cpd-mcpserver/test_mcp_server.py
+   python cpd-mcpserver/_archive/test_mcp_server.py
    ```
+   (`test_mcp_server.py` now lives in `_archive/` — it validates the `watsonxdata-documents`
+   document-library server, a separate, not-currently-wired-up MCP server from
+   `watsonx_projects_mcp_server.py`, which is the one this doc is otherwise about.)
 
 2. **Ask Bob to use it:**
    ```
@@ -126,7 +129,7 @@ To verify Bob can use the MCP server:
 
 3. **Test server manually:**
    ```bash
-   python cpd-mcpserver/test_mcp_server.py
+   python cpd-mcpserver/_archive/test_mcp_server.py
    ```
 
 ### IBM Bob doesn't see MCP tools

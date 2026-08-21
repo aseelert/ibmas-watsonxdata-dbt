@@ -237,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         conn = connect()
     except KeyError as exc:
-        log.error("Missing required env var: %s (source .env / run prepare_watsonx_env.py)", exc)
+        log.error("Missing required env var: %s (source .env / run scripts/00a_prepare_watsonx_env.py)", exc)
         return 1
     except ImportError:
         log.error("prestodb not installed — run: pip install -r requirements.txt")

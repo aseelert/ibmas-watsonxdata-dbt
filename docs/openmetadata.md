@@ -71,7 +71,7 @@ docker compose -f openmetadata/docker-compose.yml up --detach
 ```
 
 !!! tip "All-in-one entry point"
-    OpenMetadata is also `include`d in the repo-root `docker-compose.yml`, so it now runs under the **same** Compose project as Metabase and Airflow (`ibmas-watsonxdata-dbt`). From the repo root, `docker compose up -d` starts all three stacks together and `docker compose down -v` stops them. The `-f openmetadata/docker-compose.yml` command above still works for running OpenMetadata standalone — but if you start it that way, use `scripts/reset_demo.sh --docker` to tear it down cleanly.
+    OpenMetadata is also `include`d in the repo-root `docker-compose.yml`, so it now runs under the **same** Compose project as Metabase and Airflow (`ibmas-watsonxdata-dbt`). From the repo root, `docker compose up -d` starts all three stacks together and `docker compose down -v` stops them. The `-f openmetadata/docker-compose.yml` command above still works for running OpenMetadata standalone — but if you start it that way, use `scripts/11_reset_demo.sh --docker` to tear it down cleanly.
 
 After the containers start, wait for the web server to become ready. This command polls every 20 seconds and prints a confirmation when the API responds:
 
@@ -98,7 +98,7 @@ The three JSON files below are everything OpenMetadata needs. Run `dbt docs gene
 | `run_results.json` | Which tests passed and which failed on the last dbt run. This is what populates the Data Quality tab. |
 
 ```bash
-bash scripts/dbt_env.sh docs generate --no-compile
+bash scripts/02_dbt_env.sh docs generate --no-compile
 ```
 
 Then copy the files to the directory the ingestion config expects:
@@ -116,13 +116,13 @@ cp target/manifest.json \
     want fresh lineage, run:
 
     ```bash
-    scripts/generate_lineage_docs.sh
+    scripts/07b_generate_lineage_docs.sh
     ```
 
     It runs **only** `dbt docs generate` (no seed/run/test) and stages
     `manifest.json`, `catalog.json`, and `run_results.json` into
     `openmetadata/dbt-artifacts/`. For a full rebuild first, use
-    `python scripts/prepare_openmetadata_dbt_artifacts.py` instead.
+    `python scripts/07a_prepare_openmetadata_dbt_artifacts.py` instead.
 
 !!! note "If `catalog.json` is missing"
     `catalog.json` requires a live Presto connection because it queries the warehouse for column metadata. If Presto is unavailable, run `dbt docs generate` later and repeat the copy step. OpenMetadata can still show model lineage from `manifest.json` alone — it just shows fewer column details.
@@ -145,7 +145,7 @@ The script does the following automatically:
 3. Renders `openmetadata/ingestion/metadata-ingestion.yaml` and tries a live Presto metadata scan.
 4. If the live scan fails or `WXD_OM_SKIP_LIVE=1` is set, runs `scripts/seed_openmetadata_tables.py` to create the table entities from staged `catalog.json`.
 5. Runs dbt ingestion from `openmetadata/ingestion/dbt-ingestion.yaml` to attach dbt models, lineage edges, descriptions, and test results.
-6. Runs `scripts/apply_openmetadata_governance.py` to apply glossary terms, classifications, fallback descriptions, and the online/offline ingestion-mode tag.
+6. Runs `scripts/07d_apply_openmetadata_governance.py` to apply glossary terms, classifications, fallback descriptions, and the online/offline ingestion-mode tag.
 
 See [OpenMetadata Glossary & Classification](openmetadata-governance.md) for the glossary terms, classifications, and auto-classification rules.
 
@@ -323,7 +323,7 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
     `catalog.json` is only produced by `dbt docs generate`, not by `dbt run` or `dbt test`. If you only ran `dbt run`, the file will not exist. Fix:
 
     ```bash
-    bash scripts/dbt_env.sh docs generate --no-compile
+    bash scripts/02_dbt_env.sh docs generate --no-compile
     cp target/catalog.json openmetadata/dbt-artifacts/
     bash openmetadata/ingestion/run-ingestion.sh
     ```
@@ -334,7 +334,7 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
 
 OpenMetadata requires Docker and is best for showing a full lineage UI. If you only need to demonstrate **Iceberg's audit trail** without any extra infrastructure, Presto exposes metadata tables directly — no additional services needed.
 
-Run these queries in the watsonx.data SQL editor or via `python scripts/query_gold.py`:
+Run these queries in the watsonx.data SQL editor or via `python scripts/05_query_gold.py`:
 
 ```sql
 -- Full snapshot history: every dbt run creates a new snapshot

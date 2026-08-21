@@ -11,7 +11,7 @@
 #  Changelog :
 #    v1.0 (2026-06-26) — Initial version. POSTs confluent/spark/confluent_gold.py
 #      to the watsonx.data Spark engine (same REST/auth pattern as
-#      scripts/submit_spark_application.py); argparse with --dry-run/--wait.
+#      scripts/03b_submit_spark_application.py); argparse with --dry-run/--wait.
 #    v1.1 (2026-06-26) — Durable s3a:// fix landed upstream (silver_jobs.sql +
 #      docker-compose.yml warehouse now 's3a://'), so the silver metadata records
 #      s3a:// paths the engine reads natively. The old per-job s3->s3a filesystem
@@ -35,7 +35,7 @@ Flink-written Confluent silver tables and materialises the
 ``confluent_gold_*`` marts in ``iceberg_data.{CONFLUENT_GOLD_SCHEMA}``.
 
 It reuses the SAME submit/auth pattern as
-``scripts/submit_spark_application.py`` (the Spark-medallion submitter):
+``scripts/03b_submit_spark_application.py`` (the Spark-medallion submitter):
 bearer / ZenApiKey / derived-CPD-token auth, the ``spark.hadoop.wxd.apiKey``
 data-access key, runtime env propagated to driver + executors via every prefix
 the engine might honor, and a best-effort Presto pre-create of the target
@@ -127,7 +127,7 @@ def _ssl_verify() -> bool | str:
 
 
 # ---------------------------------------------------------------------------
-# Auth — identical pattern to scripts/submit_spark_application.py
+# Auth — identical pattern to scripts/03b_submit_spark_application.py
 # ---------------------------------------------------------------------------
 
 def _cpd_username() -> str | None:

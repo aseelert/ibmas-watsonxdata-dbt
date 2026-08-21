@@ -223,7 +223,7 @@ Macros are reusable Jinja/SQL functions that dbt calls during compilation. They 
 | File | What it does |
 |---|---|
 | `macros/generate_schema_name.sql` | Overrides dbt's default schema-naming behaviour so that schema names come directly from environment variables (e.g. `WXD_BRONZE_SCHEMA`) rather than being prefixed with the dbt target name. Without this macro, dbt would write to `dev_dbt_demo_bronze` instead of `dbt_demo_bronze`. |
-| `macros/create_medallion_schemas.sql` | Creates all four demo schemas (`_raw`, `_bronze`, `_silver`, `_gold`) in one call. Called by `scripts/bootstrap_watsonxdata.py` via `dbt run-operation`. |
+| `macros/create_medallion_schemas.sql` | Creates all four demo schemas (`_raw`, `_bronze`, `_silver`, `_gold`) in one call. Called by `scripts/01_bootstrap_watsonxdata.py` via `dbt run-operation`. |
 | `macros/materialized_view.sql` | Defines a custom `materialized_view` materialization for the `watsonx_presto` adapter. It issues `CREATE MATERIALIZED VIEW ... AS SELECT ...` followed by `REFRESH MATERIALIZED VIEW`. **Note:** the Presto Iceberg connector in the current watsonx.data version does not support materialized views — this macro is forward-looking and reserved for when that support lands. Use the standard `view` materialization today. |
 
 !!! warning "Materialized views are not yet usable"
@@ -245,9 +245,9 @@ The Spark directory contains a self-contained PySpark job that reproduces the en
 To run the Spark path, use the helper scripts in order:
 
 ```bash
-python scripts/upload_spark_assets.py    # upload PySpark file + CSVs to MinIO
-python scripts/submit_spark_application.py  # submit to Spark engine via REST
-python scripts/spark_application_status.py  # poll until FINISHED
+python scripts/03a_upload_spark_assets.py    # upload PySpark file + CSVs to MinIO
+python scripts/03b_submit_spark_application.py  # submit to Spark engine via REST
+python scripts/03c_spark_application_status.py  # poll until FINISHED
 ```
 
 ---
@@ -260,34 +260,34 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 
 | Script | When to run | What it does |
 |---|---|---|
-| `prepare_watsonx_env.py` | Once, at setup | Reads the watsonx.data Presto connection JSON export (`watsonx_data/instance_details.json`), writes the TLS certificate to `certs/watsonxdata-ca.pem`, and populates `.env` with the host, port, catalog, and instance ID values |
-| `bootstrap_watsonxdata.py` | Once, at setup | Calls `dbt run-operation create_medallion_schemas` to create the four demo schemas in the `iceberg_data` catalog on watsonx.data; safe to re-run (`CREATE SCHEMA IF NOT EXISTS`) |
-| `upload_spark_assets.py` | Before Spark demo | Uploads `spark/load_medallion_demo.py` and all four seed CSVs to MinIO via the S3 API; opens an `oc port-forward` to MinIO automatically if `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true` |
-| `submit_spark_application.py` | Spark demo step | Submits `load_medallion_demo.py` to the watsonx.data Spark engine REST endpoint; prints the application ID you need for the status check |
-| `spark_application_status.py` | After submission | Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by `submit_spark_application.py` |
-| `query_gold.py` | After any demo path | Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI |
-| `ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `spark_demo_cpdctl_raw` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `spark_demo_cpdctl_raw` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `spark_demo_cpdctl_raw` as a post-action (cpdctl + dbt/Spark = full pipeline) |
-| `prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | By default runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and `dbt docs generate`, then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage. Flags: `--docs-only` (lineage only — `dbt docs generate` + stage, no seed/run/test), `--skip-dbt` (copy existing `target/*.json` only), `--skip-seed` (skip the seed step), `--artifact-dir <path>` (override the staging directory), `--retries <n>` (retries per dbt command, default 1) |
-| `generate_lineage_docs.sh` | Refresh OpenMetadata lineage only | Thin wrapper around `prepare_openmetadata_dbt_artifacts.py --docs-only`: runs **only** `dbt docs generate` (no seed/run/test) and stages the three artifacts into `openmetadata/dbt-artifacts/`. Use when the medallion tables already exist and you only need fresh lineage/column metadata. Flags are forwarded to the python stager |
-| `upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
-| `cleanup_watsonxdata.py` | Reset — schemas | Drops all tables/views and the schemas themselves: `dbt_demo_{raw,bronze,silver,gold}`, `spark_demo_{bronze,silver,gold}`, and the cpdctl raw schema (`WXD_INGEST_SCHEMA`, default `spark_demo_cpdctl_raw`). Catalog objects only — Iceberg data files in MinIO are removed by `cleanup_minio.py` |
-| `cleanup_minio.py` | Reset — object storage | Deletes only the demo's own prefixes inside `iceberg-bucket` (the medallion schema folders, the `spark_demo/` app+CSVs, and `openmetadata/dbt-artifacts/`); verifies the prefixes end empty and reports that the bucket itself is kept. `--dry-run` previews. Needs an `oc` session |
-| `reset_demo.sh` | Reset — everything | One command to get back to a clean rerun. Flags: `--docker` (tear down the Metabase/Airflow/OpenMetadata stacks — containers + volumes + the demo's own images), `--schemas`, `--minio`, `--warehouse` (= schemas + minio), `--all`; plus `--dry-run`, `--keep-images`, `--purge-base-images`, `-y`. Scoped to this demo only — see the [Scripts page](scripts.md#11-reset_demosh-full-reset-for-a-100-clean-rerun) |
-| `dbt_env.sh` | Shell convenience | Sources `.env` and activates the virtual environment, then passes all remaining arguments to the `dbt` command; use this when your shell does not source `.env` automatically |
+| `00a_prepare_watsonx_env.py` | Once, at setup | Reads the watsonx.data Presto connection JSON export (`watsonx_data/instance_details.json`), writes the TLS certificate to `certs/watsonxdata-ca.pem`, and populates `.env` with the host, port, catalog, and instance ID values |
+| `01_bootstrap_watsonxdata.py` | Once, at setup | Opens a direct Presto connection and runs `CREATE SCHEMA IF NOT EXISTS` for the four demo schemas in the `iceberg_data` catalog; safe to re-run |
+| `03a_upload_spark_assets.py` | Before Spark demo | Uploads `spark/load_medallion_demo.py` and all four seed CSVs to MinIO via the S3 API; opens an `oc port-forward` to MinIO automatically if `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true` |
+| `03b_submit_spark_application.py` | Spark demo step | Submits `load_medallion_demo.py` to the watsonx.data Spark engine REST endpoint; prints the application ID you need for the status check |
+| `03c_spark_application_status.py` | After submission | Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by `03b_submit_spark_application.py` |
+| `05_query_gold.py` | After any demo path | Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI |
+| `04_ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `spark_demo_cpdctl_raw` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `spark_demo_cpdctl_raw` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `spark_demo_cpdctl_raw` as a post-action (cpdctl + dbt/Spark = full pipeline) |
+| `07a_prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | By default runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and `dbt docs generate`, then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage. Flags: `--docs-only` (lineage only — `dbt docs generate` + stage, no seed/run/test), `--skip-dbt` (copy existing `target/*.json` only), `--skip-seed` (skip the seed step), `--artifact-dir <path>` (override the staging directory), `--retries <n>` (retries per dbt command, default 1) |
+| `07b_generate_lineage_docs.sh` | Refresh OpenMetadata lineage only | Thin wrapper around `07a_prepare_openmetadata_dbt_artifacts.py --docs-only`: runs **only** `dbt docs generate` (no seed/run/test) and stages the three artifacts into `openmetadata/dbt-artifacts/`. Use when the medallion tables already exist and you only need fresh lineage/column metadata. Flags are forwarded to the python stager |
+| `07c_upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
+| `08_cleanup_watsonxdata.py` | Reset — schemas | Drops all tables/views and the schemas themselves: `dbt_demo_{raw,bronze,silver,gold}`, `spark_demo_{bronze,silver,gold}`, and the cpdctl raw schema (`WXD_INGEST_SCHEMA`, default `spark_demo_cpdctl_raw`). Catalog objects only — Iceberg data files in MinIO are removed by `09_cleanup_minio.py` |
+| `09_cleanup_minio.py` | Reset — object storage | Deletes only the demo's own prefixes inside `iceberg-bucket` (the medallion schema folders, the `spark_demo/` app+CSVs, and `openmetadata/dbt-artifacts/`); verifies the prefixes end empty and reports that the bucket itself is kept. `--dry-run` previews. Needs an `oc` session |
+| `11_reset_demo.sh` | Reset — everything | One command to get back to a clean rerun. Flags: `--docker` (tear down the Metabase/Airflow/OpenMetadata stacks — containers + volumes + the demo's own images), `--schemas`, `--minio`, `--warehouse` (= schemas + minio), `--all`; plus `--dry-run`, `--keep-images`, `--purge-base-images`, `-y`. Scoped to this demo only — see the [Scripts page](scripts.md#11-11_reset_demosh-full-reset-for-a-100-clean-rerun) |
+| `02_dbt_env.sh` | Shell convenience | Sources `.env` and activates the virtual environment, then passes all remaining arguments to the `dbt` command; use this when your shell does not source `.env` automatically |
 
 !!! example "Typical setup sequence (run once)"
     ```bash
-    python scripts/prepare_watsonx_env.py
-    python scripts/bootstrap_watsonxdata.py
+    python scripts/00a_prepare_watsonx_env.py
+    python scripts/01_bootstrap_watsonxdata.py
     dbt deps
     dbt seed
     dbt run
     dbt test
-    python scripts/query_gold.py
+    python scripts/05_query_gold.py
     ```
 
 !!! tip "cpdctl prerequisite"
-    `ingest_with_cpdctl.py` requires the `cpdctl` binary on your PATH. Download it from the IBM GitHub release page and configure a context for this CPD instance before running the script. The script prints the required `cpdctl config` commands if the binary is not found.
+    `04_ingest_with_cpdctl.py` requires the `cpdctl` binary on your PATH. Download it from the IBM GitHub release page and configure a context for this CPD instance before running the script. The script prints the required `cpdctl config` commands if the binary is not found.
 
 ---
 
@@ -303,7 +303,7 @@ OpenMetadata 1.13.0 runs locally in Docker and provides a data catalog UI where 
 | `openmetadata/ingestion/get_om_token.py` | Logs in to OpenMetadata as `admin`, retrieves the `ingestion-bot` user ID, generates a one-hour JWT for that bot, and prints the token to stdout. Called by `run-ingestion.sh` — not meant to be run directly. |
 
 !!! note "OpenMetadata is local only"
-    The Docker Compose stack runs entirely on your laptop. It does not connect to the OpenShift cluster; it reads the dbt artifact JSON files from disk at `openmetadata/dbt-artifacts/`. Run `prepare_openmetadata_dbt_artifacts.py` before starting ingestion to ensure the artifacts are current.
+    The Docker Compose stack runs entirely on your laptop. It does not connect to the OpenShift cluster; it reads the dbt artifact JSON files from disk at `openmetadata/dbt-artifacts/`. Run `07a_prepare_openmetadata_dbt_artifacts.py` before starting ingestion to ensure the artifacts are current.
 
 !!! example "Start OpenMetadata and run ingestion"
     ```bash
@@ -314,7 +314,7 @@ OpenMetadata 1.13.0 runs locally in Docker and provides a data catalog UI where 
     # Open http://localhost:8585 — login: admin / admin
 
     # 3. Stage current dbt artifacts
-    python scripts/prepare_openmetadata_dbt_artifacts.py
+    python scripts/07a_prepare_openmetadata_dbt_artifacts.py
 
     # 4. Run the dbt ingestion
     bash openmetadata/ingestion/run-ingestion.sh
@@ -328,7 +328,7 @@ Watsonx.data runs behind an OpenShift route with a custom CA. Python scripts and
 
 | File | What it is | How it is created |
 |---|---|---|
-| `certs/watsonxdata-ca.pem` | PEM-encoded TLS certificate chain for the watsonx.data Presto endpoint | Generated automatically by `scripts/prepare_watsonx_env.py` from the certificate field inside `watsonx_data/instance_details.json`. You should not need to create or edit this file manually. |
+| `certs/watsonxdata-ca.pem` | PEM-encoded TLS certificate chain for the watsonx.data Presto endpoint | Generated automatically by `scripts/00a_prepare_watsonx_env.py` from the certificate field inside `watsonx_data/instance_details.json`. You should not need to create or edit this file manually. |
 
 !!! warning "Certificate path must match `.env`"
     The `WXD_SSL_VERIFY` variable in `.env` must point to this file. The default value is `certs/watsonxdata-ca.pem` (relative to the repo root). If you move the file, update the variable.
@@ -378,7 +378,7 @@ These paths are created at runtime and are not committed to the repository.
 |---|---|---|
 | `.venv/` | `python -m venv .venv` | Python virtual environment with all workshop dependencies |
 | `target/` | `dbt run`, `dbt docs generate` | Compiled SQL, execution manifests, and documentation artifacts |
-| `openmetadata/dbt-artifacts/` | `prepare_openmetadata_dbt_artifacts.py` | Staged copies of `manifest.json`, `catalog.json`, `run_results.json` for OpenMetadata ingestion |
+| `openmetadata/dbt-artifacts/` | `07a_prepare_openmetadata_dbt_artifacts.py` | Staged copies of `manifest.json`, `catalog.json`, `run_results.json` for OpenMetadata ingestion |
 | `site/` | `mkdocs build` | Generated HTML for this documentation site |
 | `logs/` | Port-forward scripts | Output from `oc port-forward` sessions and query logs |
 | `watsonx_data/instance_details.json` | Manual export from watsonx.data UI | Presto connection JSON containing the certificate and endpoint — your starting point for setup |
@@ -420,14 +420,14 @@ the `iceberg_data` catalog.
 | `spark_demo/app/`, `spark_demo/raw/` | upload script (MinIO) | Spark engine and cpdctl read the staged CSVs and the app |
 | `spark_demo_bronze/` `spark_demo_silver/` `spark_demo_gold/` | Spark engine | next Spark layer; BI / SQL clients read gold |
 | `spark_demo_cpdctl_raw/` | cpdctl native ingest (Presto-created schema) | a dbt or Spark transform run as a post-action |
-| `openmetadata/dbt-artifacts/dbt_demo/` | `prepare_openmetadata_dbt_artifacts.py` | OpenMetadata ingestion (lineage) |
+| `openmetadata/dbt-artifacts/dbt_demo/` | `07a_prepare_openmetadata_dbt_artifacts.py` | OpenMetadata ingestion (lineage) |
 
 !!! info "Resetting these prefixes for a clean rerun"
-    `scripts/cleanup_minio.py` deletes **exactly these demo prefixes** (and nothing else) so a
+    `scripts/09_cleanup_minio.py` deletes **exactly these demo prefixes** (and nothing else) so a
     rerun starts clean. The `iceberg-bucket` bucket itself is always kept, and any non-demo
     folders in it (e.g. another project's data) are left untouched — the script lists the
     bucket's top-level folders at the end and labels which are demo vs. not. Run
-    `python scripts/cleanup_minio.py --dry-run` to preview, or use the all-in-one
-    `scripts/reset_demo.sh` (see the [Scripts page](scripts.md#9-cleanup_miniopy-delete-the-demos-minio-files)).
-    Recommended order: drop the schemas first (`cleanup_watsonxdata.py`), then sweep MinIO —
-    `reset_demo.sh --warehouse` does both in that order.
+    `python scripts/09_cleanup_minio.py --dry-run` to preview, or use the all-in-one
+    `scripts/11_reset_demo.sh` (see the [Scripts page](scripts.md#9-09_cleanup_miniopy-delete-the-demos-minio-files)).
+    Recommended order: drop the schemas first (`08_cleanup_watsonxdata.py`), then sweep MinIO —
+    `11_reset_demo.sh --warehouse` does both in that order.

@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  provision_ikc_governance.py — build the IKC governance model in dependency order
 #
-#  Location  : scripts/provision_ikc_governance.py
+#  Location  : scripts/06b_provision_ikc_governance.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
@@ -78,7 +78,7 @@ GLOSSARY RULE vs DATA PROTECTION RULE
 AUTH (software / on-prem — NOT SaaS)
   Everything is a bearer token in the end: Authorization: Bearer <jwt>. Three
   ways to get one are tried in order (--auth picks one explicitly), the same
-  strategy scripts/get_token.py uses:
+  strategy scripts/00b_get_token.py uses:
 
     1. token    an existing JWT in WXD_CPD_BEARER_TOKEN or WXD_SPARK_BEARER_TOKEN.
                 Checked for expiry locally, then probed against the governance
@@ -123,21 +123,21 @@ IDEMPOTENCY
   partial failure picks up whatever is still in draft and publishes it.
 
 USAGE
-    python scripts/provision_ikc_governance.py                  # all stages, one artifact at a time
-    python scripts/provision_ikc_governance.py --dry-run        # plan only, no writes
-    python scripts/provision_ikc_governance.py --mode bulk      # one import per artifact type
-    python scripts/provision_ikc_governance.py --stage terms    # one stage
-    python scripts/provision_ikc_governance.py --stage categories --stage terms
-    python scripts/provision_ikc_governance.py --auth password  # force password login
-    python scripts/provision_ikc_governance.py --save-api-key   # rotate an API key into .env
-    python scripts/provision_ikc_governance.py --no-publish     # import, leave drafts
-    python scripts/provision_ikc_governance.py --publish-only   # publish existing drafts
-    python scripts/provision_ikc_governance.py --verify-only    # read-only report
-    python scripts/provision_ikc_governance.py --keep-going     # do not stop at a failed stage
-    python scripts/provision_ikc_governance.py -v               # verbose HTTP logging
-    python scripts/provision_ikc_governance.py --skip-dpr       # governance only, no masking
-    python scripts/provision_ikc_governance.py --dpr-dump-existing dpr.json
-    python scripts/provision_ikc_governance.py --stage rules --dpr-native dpr.json
+    python scripts/06b_provision_ikc_governance.py                  # all stages, one artifact at a time
+    python scripts/06b_provision_ikc_governance.py --dry-run        # plan only, no writes
+    python scripts/06b_provision_ikc_governance.py --mode bulk      # one import per artifact type
+    python scripts/06b_provision_ikc_governance.py --stage terms    # one stage
+    python scripts/06b_provision_ikc_governance.py --stage categories --stage terms
+    python scripts/06b_provision_ikc_governance.py --auth password  # force password login
+    python scripts/06b_provision_ikc_governance.py --save-api-key   # rotate an API key into .env
+    python scripts/06b_provision_ikc_governance.py --no-publish     # import, leave drafts
+    python scripts/06b_provision_ikc_governance.py --publish-only   # publish existing drafts
+    python scripts/06b_provision_ikc_governance.py --verify-only    # read-only report
+    python scripts/06b_provision_ikc_governance.py --keep-going     # do not stop at a failed stage
+    python scripts/06b_provision_ikc_governance.py -v               # verbose HTTP logging
+    python scripts/06b_provision_ikc_governance.py --skip-dpr       # governance only, no masking
+    python scripts/06b_provision_ikc_governance.py --dpr-dump-existing dpr.json
+    python scripts/06b_provision_ikc_governance.py --stage rules --dpr-native dpr.json
 
 EXIT
   0 when every requested stage imported, published and verified. Non-zero on an
@@ -277,7 +277,7 @@ REFERENCE_VALUE_FILES = {
 
 
 # ---------------------------------------------------------------------------
-# Environment helpers (same conventions as scripts/get_token.py)
+# Environment helpers (same conventions as scripts/00b_get_token.py)
 # ---------------------------------------------------------------------------
 
 def _env(name: str, default: str | None = None) -> str:
@@ -286,7 +286,7 @@ def _env(name: str, default: str | None = None) -> str:
         raise SystemExit(
             f"Missing required env var: {name}\n"
             f"  Copy .env.example to .env and fill it in, or run:\n"
-            f"    python scripts/prepare_watsonx_env.py"
+            f"    python scripts/00a_prepare_watsonx_env.py"
         )
     return value.strip()
 
@@ -430,7 +430,7 @@ def resolve_token(*, auth_url, cpd_host, username, verify, env_path,
         elif method == "token":
             raise SystemExit(
                 "   --auth token needs WXD_CPD_BEARER_TOKEN or WXD_SPARK_BEARER_TOKEN in .env.\n"
-                "   Generate one with: python scripts/get_token.py --export"
+                "   Generate one with: python scripts/00b_get_token.py --export"
             )
 
     # 2. The API key: non-interactive and long-lived, so it is the normal path.
@@ -449,7 +449,7 @@ def resolve_token(*, auth_url, cpd_host, username, verify, env_path,
             )
 
     # 3. Password login, then optionally mint an API key so the next run is
-    #    non-interactive — the same self-healing scripts/get_token.py does.
+    #    non-interactive — the same self-healing scripts/00b_get_token.py does.
     if want & {"auto", "password"}:
         password = os.getenv("WXD_CPD_PASSWORD", "").strip()
         if not password and allow_prompt and sys.stdin.isatty():
@@ -475,7 +475,7 @@ def resolve_token(*, auth_url, cpd_host, username, verify, env_path,
         "     WXD_API_KEY           long-lived, non-interactive (recommended)\n"
         "     WXD_CPD_PASSWORD      password for WXD_CPD_USERNAME (default cpadmin)\n"
         "     WXD_CPD_BEARER_TOKEN  a JWT you already have\n"
-        "   Or run: python scripts/get_token.py --export"
+        "   Or run: python scripts/00b_get_token.py --export"
     )
 
 
@@ -1287,7 +1287,7 @@ def main() -> int:
         dump_path.write_text(json.dumps(rules, indent=2))
         print(f"\n2. Wrote {len(rules)} data protection rule(s) to {dump_path}")
         print("   Edit it down to the rule(s) you want, then replay with:")
-        print(f"     python scripts/provision_ikc_governance.py --stage rules --dpr-native {dump_path}")
+        print(f"     python scripts/06b_provision_ikc_governance.py --stage rules --dpr-native {dump_path}")
         return 0
 
     # --- verify-only short circuit ---

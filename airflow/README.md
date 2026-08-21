@@ -37,7 +37,7 @@ bootstrap_schemas
  ├─gold───  gold_daily_sales → gold_category_performance
  │          gold_customer_360  (← silver_customers, silver_sales_enriched)
  ├─        dbt_test
- └─        query_gold          (scripts/query_gold.py)
+ └─        query_gold          (scripts/05_query_gold.py)
 ```
 Targets `dbt_demo_{raw,bronze,silver,gold}`.
 
@@ -62,7 +62,7 @@ raw→bronze→silver→gold shape as the dbt DAG, honestly.
 |-----------|-------------------|
 | **Single source of truth** | Every `WXD_*` value comes from `.env` via compose `env_file`. The compose `environment:` block holds only Airflow/dbt infra paths — no business config is duplicated. |
 | **No copies** | The repo is bind-mounted **read-only** at `/opt/airflow/project`. The TLS cert `certs/watsonxdata-ca.pem` is read straight from there. |
-| **Reuse, don't reimplement** | DAGs call the existing scripts (`bootstrap_watsonxdata.py`, `query_gold.py`, `upload_spark_assets.py`). Shared auth/TLS/Presto logic lives once in `airflow/dags/common/wxd.py`, mirroring the scripts. |
+| **Reuse, don't reimplement** | DAGs call the existing scripts (`scripts/01_bootstrap_watsonxdata.py`, `scripts/05_query_gold.py`, `scripts/03a_upload_spark_assets.py`). Shared auth/TLS/Presto logic lives once in `airflow/dags/common/wxd.py`, mirroring the scripts. |
 | **Read-only project** | dbt's writable dirs are redirected via `DBT_TARGET_PATH` / `DBT_LOG_PATH` into the logs volume, so the mounted repo stays pristine. |
 | **Resilient auth** | `get_token` mints a fresh CPD bearer token from the long-lived `WXD_API_KEY` on every run — no stale tokens in scheduled runs. |
 
@@ -147,5 +147,5 @@ airflow/dags/
 - **DAG parsing** is a separate `dag-processor` service (not in the scheduler).
 - Auth uses the native **SimpleAuthManager** (no Flask-AppBuilder).
 - `upload_assets` needs the MinIO object store reachable from the container; it
-  is **off by default** — run `python scripts/upload_spark_assets.py` on the
+  is **off by default** — run `python scripts/03a_upload_spark_assets.py` on the
   host once instead (it handles the `oc port-forward`).

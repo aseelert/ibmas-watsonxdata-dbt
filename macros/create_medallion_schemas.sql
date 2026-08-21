@@ -22,7 +22,7 @@
     models and the Spark ETL job then read/write to the same consistent path.
 
     The identical problem exists for the Spark path, which is why
-    submit_spark_application.py also pre-creates spark_demo_bronze/silver/gold
+    scripts/03b_submit_spark_application.py also pre-creates spark_demo_bronze/silver/gold
     via Presto before submitting the PySpark job (see _ensure_spark_schemas_via_presto()).
 
   WHEN IT IS CALLED

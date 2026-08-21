@@ -40,7 +40,7 @@ If the command returns `command not found`, install Python 3.11 from
 **Always use the virtual environment interpreter directly when activating fails:**
 
 ```bash
-.venv/bin/python scripts/prepare_watsonx_env.py
+.venv/bin/python scripts/00a_prepare_watsonx_env.py
 ```
 
 !!! tip "Activate before running scripts"
@@ -56,7 +56,7 @@ Scripts exit immediately with errors such as `KeyError: 'WXD_API_KEY'` or
 `WXD_API_KEY is not set`.
 
 The `.env` file holds your API key and the connection values written by
-`prepare_watsonx_env.py`. Without it nothing can authenticate.
+`scripts/00a_prepare_watsonx_env.py`. Without it nothing can authenticate.
 
 **Create it from the template:**
 
@@ -74,7 +74,7 @@ WXD_API_KEY=<your-software-hub-api-key>
 Then re-run the environment preparation so all other values are filled in automatically:
 
 ```bash
-python scripts/prepare_watsonx_env.py
+python scripts/00a_prepare_watsonx_env.py
 ```
 
 !!! warning "Never commit `.env`"
@@ -103,7 +103,7 @@ environment preparation script from the connection JSON.
 **Regenerate the file:**
 
 ```bash
-python scripts/prepare_watsonx_env.py --overwrite
+python scripts/00a_prepare_watsonx_env.py --overwrite
 ```
 
 **Confirm it exists:**
@@ -119,7 +119,7 @@ certificate. See "Connection JSON not found" below.
 
 ### Connection JSON not found
 
-`prepare_watsonx_env.py` exits with:
+`scripts/00a_prepare_watsonx_env.py` exits with:
 
 ```text
 FileNotFoundError: watsonx_data/instance_details.json not found
@@ -144,19 +144,19 @@ cp /path/to/presto-connection.json watsonx_data/instance_details.json
 Then re-run setup step 5:
 
 ```bash
-python scripts/prepare_watsonx_env.py
+python scripts/00a_prepare_watsonx_env.py
 ```
 
 !!! info "One JSON per environment"
     If the administrator rotates the certificate or the cluster changes, request a fresh JSON
-    and run `prepare_watsonx_env.py --overwrite` to apply the new values.
+    and run `scripts/00a_prepare_watsonx_env.py --overwrite` to apply the new values.
 
 ---
 
 ## Path A — dbt Errors
 
-These errors occur while running the dbt path: `dbt_env.sh seed`, `dbt_env.sh run`,
-`dbt_env.sh test`, or `query_gold.py`.
+These errors occur while running the dbt path: `scripts/02_dbt_env.sh seed`, `scripts/02_dbt_env.sh run`,
+`scripts/02_dbt_env.sh test`, or `scripts/05_query_gold.py`.
 
 ---
 
@@ -180,7 +180,7 @@ parallel, the cluster drops some of them mid-query.
 **Reduce thread count and retry:**
 
 ```bash
-bash scripts/dbt_env.sh run --threads 1
+bash scripts/02_dbt_env.sh run --threads 1
 ```
 
 !!! tip "Use `--select` to avoid re-running completed models"
@@ -188,7 +188,7 @@ bash scripts/dbt_env.sh run --threads 1
     rather than re-running the whole pipeline:
 
     ```bash
-    bash scripts/dbt_env.sh run --threads 1 --select silver_sales_enriched+
+    bash scripts/02_dbt_env.sh run --threads 1 --select silver_sales_enriched+
     ```
 
     The `+` suffix tells dbt to also run all downstream dependencies.
@@ -215,7 +215,7 @@ short-lived; you need to refresh them at the start of every session.
 **Refresh the token:**
 
 ```bash
-python scripts/prepare_watsonx_env.py --overwrite
+python scripts/00a_prepare_watsonx_env.py --overwrite
 ```
 
 Then retry the dbt command that failed. The `--overwrite` flag forces the script to fetch a
@@ -223,7 +223,7 @@ new token even if `.env` already has values.
 
 !!! note "Token lifetime"
     IBM Software Hub tokens typically expire after a few hours. If you started the workshop in
-    the morning and return after lunch, run `prepare_watsonx_env.py --overwrite` before
+    the morning and return after lunch, run `scripts/00a_prepare_watsonx_env.py --overwrite` before
     continuing.
 
 ---
@@ -270,9 +270,9 @@ same time.
 **Build one layer at a time with a reduced thread count:**
 
 ```bash
-bash scripts/dbt_env.sh run --threads 1 --select tag:bronze
-bash scripts/dbt_env.sh run --threads 1 --select tag:silver
-bash scripts/dbt_env.sh run --threads 1 --select tag:gold
+bash scripts/02_dbt_env.sh run --threads 1 --select tag:bronze
+bash scripts/02_dbt_env.sh run --threads 1 --select tag:silver
+bash scripts/02_dbt_env.sh run --threads 1 --select tag:gold
 ```
 
 This reduces the number of simultaneous Presto connections from however many models are in
@@ -288,14 +288,14 @@ other workshop participants.
 
 ## Path B — Spark Errors
 
-These errors occur while running the Spark path: `upload_spark_assets.py`,
-`submit_spark_application.py`, or `spark_application_status.py`.
+These errors occur while running the Spark path: `scripts/03a_upload_spark_assets.py`,
+`scripts/03b_submit_spark_application.py`, or `scripts/03c_spark_application_status.py`.
 
 ---
 
 ### Upload fails / connection refused on MinIO
 
-`upload_spark_assets.py` exits with:
+`scripts/03a_upload_spark_assets.py` exits with:
 
 ```text
 ConnectionRefusedError: [Errno 111] Connection refused
@@ -322,7 +322,7 @@ oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
 ```bash
 source .venv/bin/activate
 export WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000
-python scripts/upload_spark_assets.py
+python scripts/03a_upload_spark_assets.py
 ```
 
 !!! tip "Automatic port-forwarding"
@@ -363,12 +363,12 @@ oc whoami --show-server          # confirm the API URL is the right cluster
 
 ```bash
 oc config use-context <watsonx-data-context>
-python scripts/upload_spark_assets.py
+python scripts/03a_upload_spark_assets.py
 ```
 
 !!! tip "Pin the context so this can't recur"
     Set `WXD_OPENSHIFT_CONTEXT=<watsonx-data-context>` in `.env`. The uploader and
-    `cleanup_minio.py` then pass `--context` on every `oc` call, so they always target the
+    `scripts/09_cleanup_minio.py` then pass `--context` on every `oc` call, so they always target the
     right cluster regardless of your default context.
 
 ---
@@ -395,7 +395,7 @@ engine may be misconfigured.
 **From the terminal, check the engine's current application list:**
 
 ```bash
-python scripts/spark_application_status.py <application-id>
+python scripts/03c_spark_application_status.py <application-id>
 ```
 
 ```mermaid
@@ -438,8 +438,8 @@ Common causes and fixes:
 
 | Symptom in logs | Likely cause | Fix |
 |---|---|---|
-| `Path does not exist: s3a://iceberg-bucket/spark_demo/raw/` | CSV files not uploaded | Re-run `python scripts/upload_spark_assets.py` |
-| `Schema iceberg_data.spark_demo_bronze not found` | Schema bootstrap skipped | Run `python scripts/bootstrap_watsonxdata.py` first |
+| `Path does not exist: s3a://iceberg-bucket/spark_demo/raw/` | CSV files not uploaded | Re-run `python scripts/03a_upload_spark_assets.py` |
+| `Schema iceberg_data.spark_demo_bronze not found` | Schema bootstrap skipped | Run `python scripts/01_bootstrap_watsonxdata.py` first |
 | `NoCredentialsError` / `Access Denied` | Wrong MinIO credentials in Spark config | Verify `WXD_OBJECT_STORE_ACCESS_KEY` and `WXD_OBJECT_STORE_SECRET_KEY` in `.env` |
 | `OutOfMemoryError` | Spark worker has insufficient memory | Check cluster resource usage in the console and retry when other jobs are done |
 
@@ -463,7 +463,7 @@ Find the job under **Infrastructure manager → Spark → Applications**, or che
 from the terminal:
 
 ```bash
-python scripts/spark_application_status.py <application-id>
+python scripts/03c_spark_application_status.py <application-id>
 ```
 
 !!! info "If you want a job that appears in Ingestion history, use Path C"
@@ -828,7 +828,7 @@ It requires a live Presto connection because it queries the warehouse for column
 **Generate the artifacts and copy them:**
 
 ```bash
-bash scripts/dbt_env.sh docs generate --no-compile
+bash scripts/02_dbt_env.sh docs generate --no-compile
 cp target/manifest.json target/catalog.json target/run_results.json \
    openmetadata/dbt-artifacts/
 ```
@@ -837,15 +837,15 @@ cp target/manifest.json target/catalog.json target/run_results.json \
 alone by skipping the catalog step:
 
 ```bash
-python scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt
-python scripts/upload_dbt_artifacts.py
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py --skip-dbt
+python scripts/07c_upload_dbt_artifacts.py
 ```
 
 Then rerun the full artifact generation when Presto recovers:
 
 ```bash
-python scripts/prepare_openmetadata_dbt_artifacts.py
-python scripts/upload_dbt_artifacts.py
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py
+python scripts/07c_upload_dbt_artifacts.py
 ```
 
 !!! info "`manifest.json` vs `catalog.json`"
@@ -934,7 +934,7 @@ and pointed to by the right environment variable for each tool.
 ls certs/watsonxdata-ca.pem
 
 # If missing, regenerate it
-python scripts/prepare_watsonx_env.py --overwrite
+python scripts/00a_prepare_watsonx_env.py --overwrite
 ```
 
 **For cpdctl (via `SSL_CERT_FILE` environment variable):**
@@ -984,7 +984,7 @@ cluster. This is intentional for verifying config — set the flag to `false` to
 real:
 
 ```bash
-WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
+WXD_SPARK_DRY_RUN=false python scripts/03b_submit_spark_application.py
 ```
 
 Or set it permanently in `.env`:

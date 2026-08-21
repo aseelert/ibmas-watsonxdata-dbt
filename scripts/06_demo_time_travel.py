@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  demo_time_travel.py — show Iceberg snapshot history / time travel on Presto
 #
-#  Location  : scripts/demo_time_travel.py
+#  Location  : scripts/06_demo_time_travel.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -60,7 +60,7 @@ PREREQUISITES
   - A reachable, resumed watsonx.data Presto engine; populated silver schema.
 
 USAGE
-  - python scripts/demo_time_travel.py
+  - python scripts/06_demo_time_travel.py
 
 SIDE EFFECTS / EXIT
   - Read-only: issues only SELECTs against the table and its Iceberg metadata

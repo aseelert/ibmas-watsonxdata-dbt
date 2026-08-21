@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  reset_demo.sh — get the watsonx.data medallion demo back to a 100% clean state.
 #
-#  Location  : scripts/reset_demo.sh
+#  Location  : scripts/11_reset_demo.sh
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -29,8 +29,8 @@
 #    preview first with `--dry-run`.
 #
 #  ENV VARS
-#    Indirectly via the helper Python scripts it calls (cleanup_watsonxdata.py,
-#    cleanup_minio.py), which read the demo's `.env` (WXD_* connection settings,
+#    Indirectly via the helper Python scripts it calls (08_cleanup_watsonxdata.py,
+#    09_cleanup_minio.py), which read the demo's `.env` (WXD_* connection settings,
 #    schema prefixes, MinIO/S3 endpoint + credentials).
 #
 #  PREREQUISITES
@@ -77,10 +77,10 @@
 #   -h, --help      Show this help.
 #
 # Examples:
-#   scripts/reset_demo.sh --all --dry-run     # preview a full wipe
-#   scripts/reset_demo.sh --docker            # just tear down the containers
-#   scripts/reset_demo.sh --confluent -y      # reset only the Confluent path
-#   scripts/reset_demo.sh --warehouse -y      # drop schemas + MinIO files, no prompt
+#   scripts/11_reset_demo.sh --all --dry-run     # preview a full wipe
+#   scripts/11_reset_demo.sh --docker            # just tear down the containers
+#   scripts/11_reset_demo.sh --confluent -y      # reset only the Confluent path
+#   scripts/11_reset_demo.sh --warehouse -y      # drop schemas + MinIO files, no prompt
 #
 # Safety notes:
 #   * Docker teardown is scoped to THIS demo's compose files / container names only
@@ -250,10 +250,10 @@ reset_docker() {
 reset_schemas() {
   echo "==> Drop watsonx.data schemas + tables/views (Presto)"
   if $DRY_RUN; then
-    echo "    DRY: $PY scripts/cleanup_watsonxdata.py"
+    echo "    DRY: $PY scripts/08_cleanup_watsonxdata.py"
     return
   fi
-  ( cd "$REPO" && "$PY" scripts/cleanup_watsonxdata.py )
+  ( cd "$REPO" && "$PY" scripts/08_cleanup_watsonxdata.py )
 }
 
 reset_minio() {
@@ -269,7 +269,7 @@ reset_minio() {
   fi
   local args=()
   $DRY_RUN && args=(--dry-run)
-  ( cd "$REPO" && "$PY" scripts/cleanup_minio.py "${args[@]}" )
+  ( cd "$REPO" && "$PY" scripts/09_cleanup_minio.py "${args[@]}" )
 }
 
 reset_confluent() {
@@ -283,9 +283,9 @@ reset_confluent() {
   # --- 1) Catalog: drop ONLY the two confluent_* schemas (Presto) ------------
   echo "    -- watsonx.data schemas: ${silver} + ${gold}"
   if $DRY_RUN; then
-    echo "    DRY: $PY scripts/cleanup_watsonxdata.py --confluent-only"
+    echo "    DRY: $PY scripts/08_cleanup_watsonxdata.py --confluent-only"
   else
-    ( cd "$REPO" && "$PY" scripts/cleanup_watsonxdata.py --confluent-only ) \
+    ( cd "$REPO" && "$PY" scripts/08_cleanup_watsonxdata.py --confluent-only ) \
       || echo "    (warning: confluent schema drop reported issues; continuing)"
   fi
 
@@ -299,7 +299,7 @@ reset_confluent() {
   else
     local margs=(--confluent-only)
     $DRY_RUN && margs+=(--dry-run)
-    ( cd "$REPO" && "$PY" scripts/cleanup_minio.py "${margs[@]}" ) \
+    ( cd "$REPO" && "$PY" scripts/09_cleanup_minio.py "${margs[@]}" ) \
       || echo "    (warning: confluent MinIO cleanup reported issues; continuing)"
   fi
 

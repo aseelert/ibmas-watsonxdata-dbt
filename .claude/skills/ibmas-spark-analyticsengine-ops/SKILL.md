@@ -17,13 +17,13 @@ description: "Use for the Spark medallion path in this project — both the Open
 2. **watsonx.data registration**: a logical "Spark engine" (env var `WXD_SPARK_ENGINE_ID`)
    registered inside watsonx.data's own engine catalog, addressed via
    `lakehouse/api/v3/spark_engines/<id>/applications` — this is what
-   `scripts/submit_spark_application.py` actually POSTs to. It's a binding on top of the
+   `scripts/03b_submit_spark_application.py` actually POSTs to. It's a binding on top of the
    AnalyticsEngine compute, not a separate k8s object — you won't find it via `oc get`.
    **Live-verified on this cluster (2026-08-20): the current id is `spark588`**
    (`display_name: ibmas-spark-java`, `status: running`, `type: spark`, `origin: native`)
    — **`spark656` is a dead id, but it is not just a doc example**: it's still hardcoded as
-   a fallback default in `scripts/spark_application_status.py`,
-   `scripts/submit_spark_application.py`, and `scripts/ingest_with_cpdctl.py` (used only if
+   a fallback default in `scripts/03c_spark_application_status.py`,
+   `scripts/03b_submit_spark_application.py`, and `scripts/04_ingest_with_cpdctl.py` (used only if
    the env var is unset), plus `.env.example`/`.env.backup`. Harmless while `.env` has the
    correct `WXD_SPARK_ENGINE_ID`, but if `.env` ever fails to load, these scripts silently
    target the dead `spark656` id instead of erroring. Always confirm via
@@ -39,8 +39,8 @@ If someone asks "is Spark healthy," check layer 1 (`oc get analyticsengines`); i
 ## Submitting a job
 
 ```bash
-python scripts/get_token.py --export          # refresh WXD_SPARK_BEARER_TOKEN, ~12h TTL
-python scripts/submit_spark_application.py    # DRY RUN by default (WXD_SPARK_DRY_RUN=true)
+python scripts/00b_get_token.py --export          # refresh WXD_SPARK_BEARER_TOKEN, ~12h TTL
+python scripts/03b_submit_spark_application.py    # DRY RUN by default (WXD_SPARK_DRY_RUN=true)
 ```
 Set `WXD_SPARK_DRY_RUN=false` in `.env` to actually submit — the dry-run default is a
 deliberate safety rail, don't flip it without the user asking to actually run the job.
@@ -57,7 +57,7 @@ here is non-fatal to the submit.
 ## Monitoring and follow-up
 
 ```bash
-python scripts/spark_application_status.py <app_id>     # poll to terminal state
+python scripts/03c_spark_application_status.py <app_id>     # poll to terminal state
 python scripts/create_gold_views.py --path spark         # AFTER app finishes: Spark writes
                                                            # only daily_sales as a table; the
                                                            # category/customer_360 gold marts
@@ -70,7 +70,7 @@ python scripts/create_gold_views.py --path spark         # AFTER app finishes: S
 
 `WXD_SPARK_BEARER_TOKEN` (preferred) → `WXD_ZEN_API_KEY` → `WXD_CPD_USERNAME`/`WXD_USER` +
 `WXD_CPD_API_KEY`/`WXD_API_KEY` → `WXD_CPD_PASSWORD` (via `WXD_CPD_AUTH_URL`). HTTP 401 from
-the submit script almost always means the bearer token expired — re-run `get_token.py`.
+the submit script almost always means the bearer token expired — re-run `scripts/00b_get_token.py`.
 
 The script sends the instance context as `LhInstanceId: $WXD_INSTANCE_ID` — **confirmed
 live-equivalent to `AuthInstanceId`** on this cluster, no change needed. See
@@ -80,7 +80,7 @@ existing scripts already do.
 
 ## Safety tiering for this skill
 
-- **Auto-run**: status checks (`oc get analyticsengines`, `spark_application_status.py`),
+- **Auto-run**: status checks (`oc get analyticsengines`, `scripts/03c_spark_application_status.py`),
   token refresh, dry-run submits (the default).
 - **Confirm first**: flipping `WXD_SPARK_DRY_RUN=false` to actually submit a live job, any
   `oc patch`/scale on the `analyticsengine-sample` CR.

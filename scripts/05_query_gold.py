@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  query_gold.py — query the dbt gold marts in watsonx.data and pretty-print them
 #
-#  Location  : scripts/query_gold.py
+#  Location  : scripts/05_query_gold.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
@@ -48,9 +48,9 @@ PREREQUISITES
   - A reachable, resumed watsonx.data Presto engine; the populated gold schema.
 
 USAGE
-  - python scripts/query_gold.py              # default: all reports
-  - python scripts/query_gold.py daily_sales  # just the daily sales mart
-  - python scripts/query_gold.py customer_360 # just the customer-360 mart
+  - python scripts/05_query_gold.py              # default: all reports
+  - python scripts/05_query_gold.py daily_sales  # just the daily sales mart
+  - python scripts/05_query_gold.py customer_360 # just the customer-360 mart
 
 SIDE EFFECTS / EXIT
   - Read-only: issues only SELECTs, writes nothing. Prints the connection

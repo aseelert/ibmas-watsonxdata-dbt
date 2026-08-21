@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  dbt_env.sh — dbt launcher that loads the demo .env and the repo virtualenv.
 #
-#  Location  : scripts/dbt_env.sh
+#  Location  : scripts/02_dbt_env.sh
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
@@ -42,9 +42,9 @@
 #    falls back to the first `dbt` on PATH.
 #
 #  USAGE
-#    scripts/dbt_env.sh debug
-#    scripts/dbt_env.sh run  --select bronze
-#    scripts/dbt_env.sh test --select silver+
+#    scripts/02_dbt_env.sh debug
+#    scripts/02_dbt_env.sh run  --select bronze
+#    scripts/02_dbt_env.sh test --select silver+
 #
 #  SIDE EFFECTS / EXIT
 #    dbt's own exit code is always returned verbatim to the caller (0 on

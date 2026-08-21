@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  cleanup_watsonxdata.py — drop the medallion demo schemas from watsonx.data
 #
-#  Location  : scripts/cleanup_watsonxdata.py
+#  Location  : scripts/08_cleanup_watsonxdata.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -28,12 +28,12 @@ presenter can reset the demo deterministically between runs.
 
 Pass ``--confluent-only`` to drop ONLY the two Confluent schemas (silver + gold)
 and leave the dbt + Spark + cpdctl schemas untouched — used by the
-``--confluent`` surface of ``scripts/reset_demo.sh`` for a scoped Confluent reset.
+``--confluent`` surface of ``scripts/11_reset_demo.sh`` for a scoped Confluent reset.
 
 WHEN to run it
   Run this when you want to tear down the catalog state — typically as part of a
   full reset, before re-running ``bootstrap_watsonxdata.py`` + ingest + dbt. It
-  is usually invoked from the all-in-one ``scripts/reset_demo.sh``. It is safe to
+  is usually invoked from the all-in-one ``scripts/11_reset_demo.sh``. It is safe to
   re-run: non-existent schemas are skipped.
 
   For safety it only touches the exact schema names derived from ``WXD_SCHEMA``,
@@ -69,8 +69,8 @@ Prerequisites
   - A valid WXD_API_KEY. No ``oc login`` / ``cpdctl`` is required for this step.
 
 USAGE
-    python scripts/cleanup_watsonxdata.py                  # drop ALL demo schemas
-    python scripts/cleanup_watsonxdata.py --confluent-only # drop ONLY confluent_*
+    python scripts/08_cleanup_watsonxdata.py                  # drop ALL demo schemas
+    python scripts/08_cleanup_watsonxdata.py --confluent-only # drop ONLY confluent_*
 
 Side effects + exit behavior
   DESTRUCTIVE: drops the listed schemas and all their tables/views from the
@@ -80,8 +80,8 @@ Side effects + exit behavior
   dependency, and propagates Presto errors otherwise.
 
   Note: dropping the schemas removes the catalog objects, but Iceberg data files
-  may linger in object storage. Run ``scripts/cleanup_minio.py`` (or the
-  all-in-one ``scripts/reset_demo.sh``) afterwards to delete the underlying MinIO
+  may linger in object storage. Run ``scripts/09_cleanup_minio.py`` (or the
+  all-in-one ``scripts/11_reset_demo.sh``) afterwards to delete the underlying MinIO
   files too.
 """
 

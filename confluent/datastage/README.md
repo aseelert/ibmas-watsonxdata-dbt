@@ -130,7 +130,7 @@ Nothing is hardcoded — every host / schema / id comes from `.env`.
 5. **The Flink silver tables are populated** (`confluent_demo_silver.confluent_silver_*`).
 6. Valid auth in `.env`: `WXD_CPD_HOST`, `WXD_CPD_USERNAME` (`cpadmin`),
    `WXD_API_KEY` (or `WXD_CPD_PASSWORD`). Sanity-check with
-   `python scripts/get_token.py`.
+   `python scripts/00b_get_token.py`.
 
 ---
 
@@ -138,7 +138,7 @@ Nothing is hardcoded — every host / schema / id comes from `.env`.
 
 ```bash
 # 0. (once) sanity-check auth
-python scripts/get_token.py
+python scripts/00b_get_token.py
 
 # 1. Preview the exact request — DRY RUN, no network call (this is the default):
 python confluent/scripts/create_datastage_flow.py
@@ -150,7 +150,7 @@ python confluent/scripts/create_datastage_flow.py --apply
 python confluent/scripts/create_datastage_flow.py --apply --run
 ```
 
-`create_datastage_flow.py` authenticates exactly like `scripts/get_token.py`
+`create_datastage_flow.py` authenticates exactly like `scripts/00b_get_token.py`
 (API key first, password fallback), renders the template, and POSTs it. Open the
 created flow in the DataStage canvas afterwards to confirm the connector bindings
 resolved against your CP4D version, then run it.

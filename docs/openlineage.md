@@ -27,7 +27,7 @@ OpenLineage is **not** a catalog by itself. It is the event format. You still ne
 What actually produces the lineage graph you see in the [OpenMetadata page](openmetadata.md):
 
 1. dbt runs against Presto and `dbt docs generate` writes three JSON artifacts — `manifest.json` (the full model/`ref()` graph), `catalog.json` (column names + types), and `run_results.json` (which tests passed).
-2. Those artifacts are prepared by the repo's helper scripts (`scripts/prepare_openmetadata_dbt_artifacts.py` for a full build, or `scripts/generate_lineage_docs.sh` to refresh lineage only) and ingested by `openmetadata/ingestion/run-ingestion.sh`.
+2. Those artifacts are prepared by the repo's helper scripts (`scripts/07a_prepare_openmetadata_dbt_artifacts.py` for a full build, or `scripts/07b_generate_lineage_docs.sh` to refresh lineage only) and ingested by `openmetadata/ingestion/run-ingestion.sh`.
 3. OpenMetadata first tries to discover the real tables through live Presto metadata ingestion. If that fails, it seeds the same table entities from `catalog.json`.
 4. OpenMetadata reads `manifest.json` to draw the **model and column lineage** — `raw CSV → bronze → silver_sales_enriched → gold_daily_sales` — and the governance pass applies glossary terms and auto-classification tags. The full column-by-column trace is documented on the [Architecture & Lineage page](lineage.md).
 

@@ -3,7 +3,7 @@
 #  pg_reporting.py — create the ibmas_reporting schema in PostgreSQL and run
 #                    curated gold-layer reports directly against it.
 #
-#  Location  : scripts/pg_reporting.py
+#  Location  : scripts/10c_pg_reporting.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -57,10 +57,10 @@ PREREQUISITES
   then set PG_HOST=localhost PG_PORT=15432 PG_SSL_MODE=disable.
 
 USAGE
-  python scripts/pg_reporting.py init
-  python scripts/pg_reporting.py refresh
-  python scripts/pg_reporting.py query "SELECT * FROM gold_reporting_customer_360 LIMIT 5"
-  python scripts/pg_reporting.py list
+  python scripts/10c_pg_reporting.py init
+  python scripts/10c_pg_reporting.py refresh
+  python scripts/10c_pg_reporting.py query "SELECT * FROM gold_reporting_customer_360 LIMIT 5"
+  python scripts/10c_pg_reporting.py list
 """
 
 from __future__ import annotations
@@ -353,10 +353,10 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python scripts/pg_reporting.py init\n"
-            "  python scripts/pg_reporting.py refresh\n"
-            "  python scripts/pg_reporting.py list\n"
-            "  python scripts/pg_reporting.py query "
+            "  python scripts/10c_pg_reporting.py init\n"
+            "  python scripts/10c_pg_reporting.py refresh\n"
+            "  python scripts/10c_pg_reporting.py list\n"
+            "  python scripts/10c_pg_reporting.py query "
             "\"SELECT * FROM gold_reporting_customer_360 LIMIT 5\"\n"
         ),
     )

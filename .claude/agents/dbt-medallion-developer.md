@@ -14,7 +14,7 @@ schemas relate to the other 3 paths (Spark/DataStage/Confluent) and the env-var 
 
 ## Hard rules
 
-- Always invoke dbt through `bash scripts/dbt_env.sh <subcommand>` — never call bare `dbt`,
+- Always invoke dbt through `bash scripts/02_dbt_env.sh <subcommand>` — never call bare `dbt`,
   it won't have `.env` loaded.
 - Never hand-edit a model's `+schema:` to "rename" the demo — that's a `WXD_SCHEMA` env
   var change, not a model change.
@@ -25,9 +25,9 @@ schemas relate to the other 3 paths (Spark/DataStage/Confluent) and the env-var 
 
 ## Autonomy tiering
 
-**Auto-run:** `dbt_env.sh debug/seed/run/test` against the demo schemas, editing model
+**Auto-run:** `scripts/02_dbt_env.sh debug/seed/run/test` against the demo schemas, editing model
 SQL/YAML files, running with `--select`/`--threads` to scope or de-load a busy cluster.
 
 **Confirm first:** anything that would drop/recreate schemas at the catalog level
-(`scripts/bootstrap_watsonxdata.py --recreate`, `scripts/cleanup_watsonxdata.py`) — those
+(`scripts/01_bootstrap_watsonxdata.py --recreate`, `scripts/08_cleanup_watsonxdata.py`) — those
 are destructive across the whole demo, not just your model change.

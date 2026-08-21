@@ -14,8 +14,8 @@ transform with dbt or Spark to build a medallion. No prior watsonx.data experien
 git clone <repo-url> && cd ibmas-watsonxdata-dbt
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python scripts/prepare_watsonx_env.py     # reads watsonx_data/instance_details.json
-bash scripts/dbt_env.sh run               # runs the full dbt medallion pipeline
+python scripts/00a_prepare_watsonx_env.py     # reads watsonx_data/instance_details.json
+bash scripts/02_dbt_env.sh run               # runs the full dbt medallion pipeline
 ```
 
 !!! info "Python version"
@@ -168,7 +168,7 @@ docker compose -f openmetadata/docker-compose.yml up --detach
 until curl -sf http://localhost:8585/api/v1/system/version; do sleep 20; done
 
 # Generate dbt artifacts and run ingestion (re-runnable after every dbt run)
-bash scripts/dbt_env.sh docs generate --no-compile
+bash scripts/02_dbt_env.sh docs generate --no-compile
 cp target/manifest.json target/catalog.json target/run_results.json openmetadata/dbt-artifacts/
 source .venv/bin/activate
 bash openmetadata/ingestion/run-ingestion.sh
@@ -197,11 +197,11 @@ docker compose -f openmetadata/docker-compose.yml down
 DBND__CORE__DATABAND_URL=https://<your-tenant>.databand.ai
 DBND__CORE__DATABAND_ACCESS_TOKEN=<your-access-token>   # Databand UI -> Profile -> API tokens
 
-bash scripts/dbt_env.sh run    # auto-reports to Databand afterward
-bash scripts/dbt_env.sh test   # same
+bash scripts/02_dbt_env.sh run    # auto-reports to Databand afterward
+bash scripts/02_dbt_env.sh test   # same
 ```
 
-`scripts/dbt_env.sh` auto-fires `scripts/report_dbt_to_databand.py` after `seed`/`run`/`test`/`build`/`snapshot` whenever `DBND__CORE__DATABAND_URL` is set — no manual step needed. Unset it and the script is a no-op (still callable directly with `--dry-run` to validate config with zero side effects). `dbnd` (Databand's core Python SDK, no Airflow dependency) is already in `requirements.txt`.
+`scripts/02_dbt_env.sh` auto-fires `scripts/report_dbt_to_databand.py` after `seed`/`run`/`test`/`build`/`snapshot` whenever `DBND__CORE__DATABAND_URL` is set — no manual step needed. Unset it and the script is a no-op (still callable directly with `--dry-run` to validate config with zero side effects). `dbnd` (Databand's core Python SDK, no Airflow dependency) is already in `requirements.txt`.
 
 **What you'll see in Databand — and what you won't**: each `dbt run`/`dbt test`/`dbt seed` invocation becomes **one standalone run with one box**, named literally `"dbt run"` / `"dbt test"` / `"dbt seed"`. This is dbnd's own dbt-core provider design (`_extract_step_meta_data()` hardcodes `"index": 1` and wraps it in a one-element list) — it reports "did this invocation succeed and how long did it take," not a connected task graph. Two things it does **not** give you:
 - **No per-model lineage within a run** — a `dbt run` building all 13 medallion models shows as one box, not 13 connected bronze→silver→gold nodes.
@@ -227,7 +227,7 @@ See the [full setup guide](docs/setup.md) for which tools each path needs and th
 
 !!! info "Connection JSON"
     Export the Presto connection JSON from the watsonx.data console and save it as `watsonx_data/instance_details.json`.
-    Then run `python scripts/prepare_watsonx_env.py` — it populates `.env` and writes `certs/watsonxdata-ca.pem` automatically.
+    Then run `python scripts/00a_prepare_watsonx_env.py` — it populates `.env` and writes `certs/watsonxdata-ca.pem` automatically.
 
 ---
 

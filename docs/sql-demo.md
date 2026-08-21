@@ -28,7 +28,7 @@ Paste any query from this page and click **Run**.
 The repo includes a convenience script that connects to Presto and queries the gold marts.
 
 ```bash
-python scripts/query_gold.py
+python scripts/05_query_gold.py
 ```
 
 !!! info "Catalog to use"

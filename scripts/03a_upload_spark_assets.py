@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  upload_spark_assets.py — stage the PySpark app + raw CSVs into MinIO/S3
 #
-#  Location  : scripts/upload_spark_assets.py
+#  Location  : scripts/03a_upload_spark_assets.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -28,7 +28,7 @@ WHEN TO RUN IT
     Run this BEFORE submitting the Spark medallion job (it produces the
     ``WXD_SPARK_APPLICATION`` and ``WXD_SPARK_INPUT_BASE`` S3A paths printed at the
     end, which the submit step consumes). Its sibling cleanup script
-    ``scripts/cleanup_minio.py`` re-uses this module's port-forward + credential
+    ``scripts/09_cleanup_minio.py`` re-uses this module's port-forward + credential
     helpers, so keeping them in sync matters.
 
 ENV VARS (read here)
@@ -63,7 +63,7 @@ PREREQUISITES
     (``python -m pip install -r requirements.txt``).
 
 USAGE
-    python scripts/upload_spark_assets.py
+    python scripts/03a_upload_spark_assets.py
 
 SIDE EFFECTS / EXIT
     Writes objects under ``s3://<bucket>/<prefix>/app`` and ``.../raw``; may spawn

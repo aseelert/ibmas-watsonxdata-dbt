@@ -127,7 +127,7 @@ Before the Spark engine can run the job, both the PySpark script and the CSV sou
 ```bash
 cd /Users/aseelert/GitHub/ibmas-watsonxdata-dbt
 source .venv/bin/activate
-python scripts/upload_spark_assets.py
+python scripts/03a_upload_spark_assets.py
 ```
 
 The script uploads five objects to the expected S3 paths:
@@ -166,7 +166,7 @@ s3a://iceberg-bucket/spark_demo/raw/raw_order_items.csv
     ```bash
     source .venv/bin/activate
     export WXD_OBJECT_STORE_ENDPOINT=http://127.0.0.1:19000
-    python scripts/upload_spark_assets.py
+    python scripts/03a_upload_spark_assets.py
     ```
 
     The upload script also supports automatic port-forwarding when `WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true` is set in `.env`.
@@ -178,7 +178,7 @@ s3a://iceberg-bucket/spark_demo/raw/raw_order_items.csv
 A dry run assembles the complete Spark job payload and prints it to the terminal — it does not submit anything to the cluster. This is the fastest way to catch config errors before committing to a real job run.
 
 ```bash
-WXD_SPARK_DRY_RUN=true python scripts/submit_spark_application.py
+WXD_SPARK_DRY_RUN=true python scripts/03b_submit_spark_application.py
 ```
 
 !!! tip "What to look for in the dry-run output"
@@ -202,7 +202,7 @@ WXD_SPARK_DRY_RUN=true python scripts/submit_spark_application.py
 Run this command to fetch a fresh token and write it directly into `.env`:
 
 ```bash
-python scripts/get_token.py --export
+python scripts/00b_get_token.py --export
 ```
 
 **What it does:**
@@ -236,7 +236,7 @@ Wrote WXD_SPARK_BEARER_TOKEN to .env
     # Valid until: 2026-07-01 20:30:00 UTC  (11.4 hours remaining)
     ```
 
-    If it shows `EXPIRED`, run `get_token.py --export` again.
+    If it shows `EXPIRED`, run `scripts/00b_get_token.py --export` again.
 
 !!! note "Token lifetime"
     CPD bearer tokens are valid for ~12 hours. One refresh per workday is sufficient for a full demo session. The token is stored only in your local `.env` file, which is git-ignored.
@@ -248,13 +248,13 @@ Wrote WXD_SPARK_BEARER_TOKEN to .env
 Once the dry run looks correct and the token is fresh, submit the job to the watsonx.data Spark engine by setting `WXD_SPARK_DRY_RUN=false`.
 
 ```bash
-WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
+WXD_SPARK_DRY_RUN=false python scripts/03b_submit_spark_application.py
 ```
 
 The script authenticates to the Spark REST API using `WXD_SPARK_BEARER_TOKEN` from `.env` (written by Step 3.5):
 
 ```bash
-WXD_SPARK_BEARER_TOKEN=<fresh-bearer-token>   # from: python scripts/get_token.py --export
+WXD_SPARK_BEARER_TOKEN=<fresh-bearer-token>   # from: python scripts/00b_get_token.py --export
 ```
 
 !!! info "Capturing the application ID"
@@ -273,7 +273,7 @@ WXD_SPARK_BEARER_TOKEN=<fresh-bearer-token>   # from: python scripts/get_token.p
 Pass the application ID from the previous step to the status script. You can run this command repeatedly; it returns the current state each time.
 
 ```bash
-python scripts/spark_application_status.py <application-id>
+python scripts/03c_spark_application_status.py <application-id>
 ```
 
 !!! example "What each state means"

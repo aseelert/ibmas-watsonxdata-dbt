@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  submit_spark_application.py — submit the Spark medallion demo to watsonx.data
 #
-#  Location  : scripts/submit_spark_application.py
+#  Location  : scripts/03b_submit_spark_application.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -43,7 +43,7 @@ WHEN TO RUN (demo flow)
    steps) and while the Spark engine ``spark656`` is running.
  - Defaults to DRY RUN: it prints the redacted payload and exits 0. Set
    ``WXD_SPARK_DRY_RUN=false`` to actually submit. After submission, poll with
-   ``scripts/spark_application_status.py <app_id>``.
+   ``scripts/03c_spark_application_status.py <app_id>``.
 
 ENV VARS (read)
  - Endpoint/instance : WXD_SPARK_APPLICATIONS_ENDPOINT, WXD_INSTANCE_ID,
@@ -66,8 +66,8 @@ PREREQUISITES
    No ``oc login`` / ``cpdctl`` needed — this talks straight to the REST API.
 
 USAGE
- - Dry run (default) : ``python scripts/submit_spark_application.py``
- - Real submit       : ``WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py``
+ - Dry run (default) : ``python scripts/03b_submit_spark_application.py``
+ - Real submit       : ``WXD_SPARK_DRY_RUN=false python scripts/03b_submit_spark_application.py``
 
 SIDE EFFECTS / EXIT
  - On a real run: creates Iceberg namespaces via Presto (best-effort) and
@@ -433,7 +433,7 @@ def main() -> int:
         if state:
             print(f"Initial state: {state}")
         print("\nCheck status / poll until FINISHED:")
-        print(f"  python scripts/spark_application_status.py {app_id}")
+        print(f"  python scripts/03c_spark_application_status.py {app_id}")
         print(f"\nStatus API: {endpoint.rstrip('/')}/{app_id}")
         print(
             f"Spark application UI: {_spark_app_ui_url(endpoint, instance_id, engine_id, app_id)}"

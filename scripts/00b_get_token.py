@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  get_token.py — fetch a CPD bearer token, self-heal the API key, validate the instance
 #
-#  Location  : scripts/get_token.py
+#  Location  : scripts/00b_get_token.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
@@ -44,10 +44,10 @@ ENV VARS IT READS (from .env via python-dotenv)
   WXD_SPARK_BEARER_TOKEN back into .env.
 
 USAGE
-    python scripts/get_token.py               # validate + print token
-    python scripts/get_token.py --export      # also write bearer token to .env
-    python scripts/get_token.py --refresh-key # force password login + new API key
-    python scripts/get_token.py --env-file /path/to/.env
+    python scripts/00b_get_token.py               # validate + print token
+    python scripts/00b_get_token.py --export      # also write bearer token to .env
+    python scripts/00b_get_token.py --refresh-key # force password login + new API key
+    python scripts/00b_get_token.py --env-file /path/to/.env
 
 How to get a fresh API key from the UI (if you prefer):
   1. Open https://<WXD_CPD_HOST>
@@ -167,7 +167,14 @@ def regenerate_api_key(
     "how do we actually get an API key on this CPD version" instead of two
     scripts drifting apart.
     """
-    import prepare_watsonx_env as pwe
+    import importlib.util
+
+    _spec = importlib.util.spec_from_file_location(
+        "prepare_watsonx_env",
+        Path(__file__).resolve().parent / "00a_prepare_watsonx_env.py",
+    )
+    pwe = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(pwe)
 
     api_key, _bearer = pwe._cpd_fetch_tokens(
         cpd_host=cpd_host,
@@ -204,7 +211,7 @@ def validate_instance(cpd_host: str, instance_id: str, token: str, verify: bool 
         raise SystemExit(
             f"Instance ID not found: {instance_id}\n"
             f"  WXD_INSTANCE_ID may be stale — re-run:\n"
-            f"    python scripts/prepare_watsonx_env.py"
+            f"    python scripts/00a_prepare_watsonx_env.py"
         )
     if resp.status_code == 401:
         raise SystemExit(
@@ -307,7 +314,7 @@ def main() -> int:
         if new_key:
             # quote_mode="never": python-dotenv's default wraps the value in
             # single quotes, which every reader in this repo (this script's own
-            # _read_env, and scripts/provision_pg_reporting.sh's bash mirror)
+            # _read_env, and scripts/10b_provision_pg_reporting.sh's bash mirror)
             # does NOT strip — they only trim whitespace, matching the rest of
             # .env's unquoted convention. A quoted value comes back with the
             # literal quote characters still attached, which silently breaks
@@ -331,7 +338,7 @@ def main() -> int:
         print()
 
     print("Connection looks good. You can now run:")
-    print("  python scripts/query_gold.py")
+    print("  python scripts/05_query_gold.py")
     print()
     print("Bearer token:")
     print(f"  {token}")

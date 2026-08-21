@@ -30,8 +30,8 @@ WHY this exists
   table and attaches descriptions + bronze→silver→gold lineage.
 
 WHEN to run it
-  AFTER the artifacts are staged (run ``scripts/generate_lineage_docs.sh`` or
-  ``scripts/prepare_openmetadata_dbt_artifacts.py`` first) and the local
+  AFTER the artifacts are staged (run ``scripts/07b_generate_lineage_docs.sh`` or
+  ``scripts/07a_prepare_openmetadata_dbt_artifacts.py`` first) and the local
   OpenMetadata stack is healthy on localhost:8585. Run it BEFORE
   ``openmetadata/ingestion/run-ingestion.sh``. Re-running is safe: every write is
   an idempotent PUT (create-or-update).
@@ -167,7 +167,7 @@ def main() -> int:
     if not catalog_path.exists():
         raise SystemExit(
             f"catalog.json not found at {catalog_path}. "
-            "Run scripts/generate_lineage_docs.sh first."
+            "Run scripts/07b_generate_lineage_docs.sh first."
         )
 
     catalog = json.loads(catalog_path.read_text())

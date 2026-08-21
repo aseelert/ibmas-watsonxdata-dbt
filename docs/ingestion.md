@@ -28,7 +28,7 @@ ingest step — the equivalent of `dbt seed` or Spark's raw CSV read.
 | Path | Tool | Language | Who uses it | Shows in UI Ingestion history? | Best for | Schema written to |
 |------|------|----------|-------------|-------------------------------|----------|-------------------|
 | A · dbt | dbt-watsonx-presto adapter | SQL | Analytics engineers, data teams | No — visible in dbt logs and OpenMetadata lineage | Governed SQL transforms, tests, documentation, pull-request review | `dbt_demo_raw`, `bronze`, `silver`, `gold` |
-| B · Spark | `submit_spark_application.py` | Python | Data engineers, ML engineers | No — visible under Infrastructure manager → Spark → Applications | Large data, Python libraries, distributed joins, ML feature prep | `spark_demo_bronze`, `spark_demo_silver`, `spark_demo_gold` |
+| B · Spark | `scripts/03b_submit_spark_application.py` | Python | Data engineers, ML engineers | No — visible under Infrastructure manager → Spark → Applications | Large data, Python libraries, distributed joins, ML feature prep | `spark_demo_bronze`, `spark_demo_silver`, `spark_demo_gold` |
 | C · cpdctl | `cpdctl wx-data ingestion` | CLI (drives Spark) | Platform operators, anyone who wants UI-tracked loads | **Yes** — appears under Data manager → Ingestion | IBM-native loads that appear in the platform audit history | `spark_demo_cpdctl_raw` |
 
 All three paths produce **Apache Iceberg tables** stored in **MinIO** (the S3-compatible object
@@ -49,7 +49,7 @@ flowchart LR
 
     subgraph B["Path B — Spark"]
         direction TB
-        B1["submit_spark_application.py\n(PySpark job)"]
+        B1["scripts/03b_submit_spark_application.py\n(PySpark job)"]
         B2["spark_demo_bronze\nSilver / Gold"]
         B1 --> B2
     end
@@ -365,7 +365,7 @@ them.
 The Spark demo path already uploads these files — run the same upload script:
 
 ```bash
-python scripts/upload_spark_assets.py
+python scripts/03a_upload_spark_assets.py
 ```
 
 This uploads the four CSV files to `s3://iceberg-bucket/spark_demo/raw/` under the paths the
@@ -384,8 +384,8 @@ The ingestion script creates the target schema if it does not exist, then submit
 job per CSV file.
 
 ```bash
-python scripts/ingest_with_cpdctl.py            # submit all four jobs
-python scripts/ingest_with_cpdctl.py --wait     # submit, then poll until all jobs finish
+python scripts/04_ingest_with_cpdctl.py            # submit all four jobs
+python scripts/04_ingest_with_cpdctl.py --wait     # submit, then poll until all jobs finish
 ```
 
 !!! success "Auth is self-healing — Step 2 is a one-time convenience, not a per-run requirement"
@@ -399,7 +399,7 @@ python scripts/ingest_with_cpdctl.py --wait     # submit, then poll until all jo
     ```text
     WXD_API_KEY was rejected by CPD (401). The key is expired or revoked.
       Refresh it, then re-run this script:
-        python scripts/get_token.py --refresh-key
+        python scripts/00b_get_token.py --refresh-key
     ```
 
 Internally, for each CSV file the script calls `cpdctl wx-data ingestion create`. The equivalent
@@ -437,7 +437,7 @@ Submitted 4 ingestion job(s); 0 failed.
   job_id: ingest-orders-1781856578
   job_id: ingest-order_items-1781856578
 
-Check status anytime:  python ingest_with_cpdctl.py --status --batch 1781856578
+Check status anytime:  python scripts/04_ingest_with_cpdctl.py --status --batch 1781856578
 ==========================================================================
 ```
 
@@ -460,10 +460,10 @@ The simplest way is to let the script poll for you. Either submit and wait in on
 
 ```bash
 # Check the status of all four jobs for a batch and exit
-python scripts/ingest_with_cpdctl.py --status --batch 1781856578
+python scripts/04_ingest_with_cpdctl.py --status --batch 1781856578
 
 # Poll every 20s until all jobs reach a terminal state (or --timeout, default 900s)
-python scripts/ingest_with_cpdctl.py --status --batch 1781856578 --wait
+python scripts/04_ingest_with_cpdctl.py --status --batch 1781856578 --wait
 ```
 
 ```text

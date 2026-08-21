@@ -89,7 +89,7 @@ SILVER_TABLES = [
 
 
 # ---------------------------------------------------------------------------
-# Helpers (same pattern as scripts/bootstrap_watsonxdata.py)
+# Helpers (same pattern as scripts/01_bootstrap_watsonxdata.py)
 # ---------------------------------------------------------------------------
 
 def _env(name: str, default: str | None = None) -> str:

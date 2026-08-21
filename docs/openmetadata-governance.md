@@ -11,7 +11,7 @@ OpenMetadata is a **data catalog**. It does not replace dbt, Spark, Presto, Iceb
 | Question | OpenMetadata answer in this demo |
 | --- | --- |
 | What tables exist? | `raw`, `bronze`, `silver`, and `gold` Iceberg tables under `watsonxdata-presto.iceberg_data`. |
-| What does each table/column mean? | Descriptions from dbt `schema.yml`, with fallback descriptions from `scripts/apply_openmetadata_governance.py`. |
+| What does each table/column mean? | Descriptions from dbt `schema.yml`, with fallback descriptions from `scripts/07d_apply_openmetadata_governance.py`. |
 | Where did the data come from? | dbt lineage from `manifest.json`, showing raw seeds through bronze, silver, and gold. |
 | Can I trust the model? | dbt test results from `run_results.json` in the Data Quality tab. |
 | How is the asset governed? | Glossary terms, classification tags, PII/financial tags, medallion layer tags, and online/offline ingestion-mode tags. |
@@ -37,7 +37,7 @@ The ingestion flow runs in three passes:
 
 1. **Live table discovery:** OpenMetadata connects to Presto and discovers the real `iceberg_data.dbt_demo_*` tables.
 2. **Offline fallback:** if the live Presto pass fails, `scripts/seed_openmetadata_tables.py` creates the same table entities from staged dbt `catalog.json`.
-3. **Governance enrichment:** `scripts/apply_openmetadata_governance.py` creates glossary/classification objects and attaches them to the dbt tables and columns.
+3. **Governance enrichment:** `scripts/07d_apply_openmetadata_governance.py` creates glossary/classification objects and attaches them to the dbt tables and columns.
 
 The governance pass is the same for online and offline runs. The only difference is the ingestion-mode tag:
 
@@ -100,7 +100,7 @@ Descriptions exist in two places:
 | Source | Purpose |
 | --- | --- |
 | `models/**/schema.yml` | dbt documentation-as-code. These descriptions appear in dbt docs and are included in dbt artifacts. |
-| `scripts/apply_openmetadata_governance.py` | OpenMetadata fallback descriptions and classification rules. This keeps live Presto and offline dbt-artifact runs consistent. |
+| `scripts/07d_apply_openmetadata_governance.py` | OpenMetadata fallback descriptions and classification rules. This keeps live Presto and offline dbt-artifact runs consistent. |
 
 When the two differ, update `schema.yml` first, then update the governance script only if the OpenMetadata fallback should change too.
 
@@ -138,13 +138,13 @@ Normally this runs automatically from `openmetadata/ingestion/run-ingestion.sh`.
 
 ```bash
 source .venv/bin/activate
-python scripts/apply_openmetadata_governance.py --mode online
+python scripts/07d_apply_openmetadata_governance.py --mode online
 ```
 
 Force the offline classification tag:
 
 ```bash
-python scripts/apply_openmetadata_governance.py --mode offline
+python scripts/07d_apply_openmetadata_governance.py --mode offline
 ```
 
 Use `--strict` when you want the command to fail if the local OpenMetadata API rejects a glossary, tag, or table update.

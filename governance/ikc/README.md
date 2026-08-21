@@ -39,18 +39,18 @@ Retail Medallion Lakehouse                    (top-level)
 
 ## Automated path (recommended)
 
-`scripts/provision_ikc_governance.py` drives the whole cycle below non-interactively —
+`scripts/06b_provision_ikc_governance.py` drives the whole cycle below non-interactively —
 import → publish the resulting drafts via the workflow API → verify → next stage. It needs no
 `oc` session; authentication tries, in order, a bearer token already in `.env`, then
 `WXD_API_KEY`, then a `WXD_CPD_PASSWORD` login (prompting if neither is set) — the same
-waterfall as `scripts/get_token.py`. Pass `--auth token|api-key|password` to force one, and
+waterfall as `scripts/00b_get_token.py`. Pass `--auth token|api-key|password` to force one, and
 `--save-api-key` to rotate a fresh API key into `.env` after a password login so the next run
 is non-interactive.
 
 ```bash
-python scripts/provision_ikc_governance.py --dry-run   # show every write, perform none
-python scripts/provision_ikc_governance.py             # all six stages, in order
-python scripts/provision_ikc_governance.py --verify-only
+python scripts/06b_provision_ikc_governance.py --dry-run   # show every write, perform none
+python scripts/06b_provision_ikc_governance.py             # all six stages, in order
+python scripts/06b_provision_ikc_governance.py --verify-only
 ```
 
 By default each CSV is split and imported **one artifact at a time**, publishing each before the

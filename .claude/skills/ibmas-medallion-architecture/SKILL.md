@@ -12,10 +12,10 @@ tables into the **same** `iceberg_data` catalog on MinIO, all queryable via Pres
 
 | Path | Engine | Schema prefix | Entry point |
 |---|---|---|---|
-| **dbt** (SQL) | Presto | `dbt_demo_{raw,bronze,silver,gold}` | `scripts/dbt_env.sh run` |
-| **Spark** | watsonx.data Spark engine | `spark_demo_{bronze,silver,gold}` | `scripts/submit_spark_application.py` |
-| **cpdctl** (native ingest) | — | `spark_demo_cpdctl_raw` (raw only) | `scripts/ingest_with_cpdctl.py` |
-| **DataStage** | Presto (SQL-pushdown via `lakehouse` connector) | `datastage_demo_{bronze,silver,gold}` | `scripts/datastage/create_medallion_flows.py` |
+| **dbt** (SQL) | Presto | `dbt_demo_{raw,bronze,silver,gold}` | `scripts/02_dbt_env.sh run` |
+| **Spark** | watsonx.data Spark engine | `spark_demo_{bronze,silver,gold}` | `scripts/03b_submit_spark_application.py` |
+| **cpdctl** (native ingest) | — | `spark_demo_cpdctl_raw` (raw only) | `scripts/04_ingest_with_cpdctl.py` |
+| **DataStage** | Presto (SQL-pushdown via `lakehouse` connector) | `datastage_demo_{bronze,silver,gold}` | `scripts/datastage/create_medallion_flows_v2.py` |
 | **Confluent** (streaming, newer) | Flink (silver) + Spark or DataStage (gold) | `confluent_demo_{silver,gold}` | `confluent/start.sh` |
 
 All 5 read the same 4 seed CSVs (50 customers, 20 products, 500 orders, 1134 order_items)
@@ -29,13 +29,13 @@ side-by-side in the same catalog without collision.
 
 ## Env var glossary (what derives what)
 
-Source of truth: `.env` (git-ignored), bootstrapped by `python3 scripts/prepare_watsonx_env.py`
+Source of truth: `.env` (git-ignored), bootstrapped by `python3 scripts/00a_prepare_watsonx_env.py`
 from a Presto connection JSON exported from the watsonx.data UI + OpenShift secrets.
 
 ### Presto / dbt core
 | Var | Meaning | Derivation |
 |---|---|---|
-| `WXD_HOST` / `WXD_PORT` | Presto engine's service hostname:443 | AUTO from connection JSON `engine_host`/`engine_port` — **drifts**: engine pods get recreated with a new numeric suffix (e.g. `presto651`→`presto653`); always re-run `prepare_watsonx_env.py` rather than trust a stale value |
+| `WXD_HOST` / `WXD_PORT` | Presto engine's service hostname:443 | AUTO from connection JSON `engine_host`/`engine_port` — **drifts**: engine pods get recreated with a new numeric suffix (e.g. `presto651`→`presto653`); always re-run `scripts/00a_prepare_watsonx_env.py` rather than trust a stale value |
 | `WXD_INSTANCE_ID` | watsonx.data instance id | AUTO from JSON `instance_id` |
 | `WXD_PRESTO_ENGINE_ID` | Current Presto engine short id (e.g. `presto653`) | AUTO from JSON `engine_id` — confirm against live `oc get wxdengine -A` before trusting |
 | `WXD_USER` | Presto auth username, always `ibmlhapikey_<software-hub-user>` | MANUAL |
@@ -55,14 +55,14 @@ from a Presto connection JSON exported from the watsonx.data UI + OpenShift secr
 | `WXD_OPENSHIFT_API` / `WXD_OPENSHIFT_CONSOLE` | `api.<domain>:6443` / console route |
 | `WXD_OPENSHIFT_NAMESPACE` | `cpd-instance` — where every `wxd*`/`wkc*`/`datastage*` CR lives |
 | `WXD_CPD_PROJECT` | CPD project owning demo connections/assets, default `ibmas-ingest-demo` |
-| `WXD_OC_USER` / `WXD_OC_PASSWORD` / `WXD_OC_TOKEN` | oc login creds — password is the only value `prepare_watsonx_env.py` cannot auto-discover |
+| `WXD_OC_USER` / `WXD_OC_PASSWORD` / `WXD_OC_TOKEN` | oc login creds — password is the only value `scripts/00a_prepare_watsonx_env.py` cannot auto-discover |
 
 ### Spark
 | Var | Meaning |
 |---|---|
 | `WXD_SPARK_ENGINE_ID` | The **watsonx.data-registered** Spark engine id used in the `lakehouse/api/v3/spark_engines/<id>` REST path — a logical registration, distinct from the underlying `AnalyticsEngine` k8s CR. Live-verified value on this cluster: `spark588`; drifts, always confirm via `.env` or `GET /lakehouse/api/v3/spark_engines` rather than trusting a remembered id (see `ibmas-spark-analyticsengine-ops`, `ibmas-watsonxdata-rest-api`) |
 | `WXD_SPARK_APPLICATIONS_ENDPOINT` | Full REST URL scripts POST to for job submission |
-| `WXD_SPARK_BEARER_TOKEN` | **SECRET**, ~12h TTL — refresh via `python scripts/get_token.py --export` before every submit session |
+| `WXD_SPARK_BEARER_TOKEN` | **SECRET**, ~12h TTL — refresh via `python scripts/00b_get_token.py --export` before every submit session |
 | `WXD_SPARK_DRY_RUN` | AUTO default `true` — submit script prints the redacted payload and exits 0 until flipped |
 | `WXD_SPARK_{CATALOG,SCHEMA,BRONZE_SCHEMA,...}` | Spark's own schema namespace, kept separate from dbt's |
 

@@ -33,9 +33,9 @@ on Airflow 3.x, see the changelog above. This script only needs the ``dbnd``
 core package, which has no Airflow dependency at all.
 
 WHEN to run it: immediately after a dbt run/test you want visible in
-Databand — e.g. as a step after ``scripts/dbt_env.sh run`` and
-``scripts/dbt_env.sh test``. It reports whatever is CURRENTLY in ``target/``;
-it does not run dbt itself (unlike scripts/prepare_openmetadata_dbt_artifacts.py).
+Databand — e.g. as a step after ``scripts/02_dbt_env.sh run`` and
+``scripts/02_dbt_env.sh test``. It reports whatever is CURRENTLY in ``target/``;
+it does not run dbt itself (unlike scripts/07a_prepare_openmetadata_dbt_artifacts.py).
 
 ENV VARS read (from .env via python-dotenv, or already-exported):
  - ``DBND__CORE__DATABAND_URL`` — Databand tenant URL. Required for anything
@@ -44,7 +44,7 @@ ENV VARS read (from .env via python-dotenv, or already-exported):
  - ``DBND__CORE__DATABAND_ACCESS_TOKEN`` — Databand access token (SECRET).
 
 PREREQUISITES: ``target/manifest.json`` and ``target/run_results.json`` must
-already exist (run ``scripts/dbt_env.sh run`` first), and the ``dbt`` package
+already exist (run ``scripts/02_dbt_env.sh run`` first), and the ``dbt`` package
 import path must resolve ``dbnd`` (add it to requirements.txt / the active
 venv — see airflow/README.md for the install note).
 
@@ -124,7 +124,7 @@ def main() -> int:
         raise SystemExit(
             "Missing dbt artifacts in target/: "
             + ", ".join(missing)
-            + ". Run `scripts/dbt_env.sh run` first."
+            + ". Run `scripts/02_dbt_env.sh run` first."
         )
 
     databand_url = os.getenv("DBND__CORE__DATABAND_URL")

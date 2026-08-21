@@ -10,7 +10,7 @@
     - Run automated data quality tests against every model layer
     - Query the Gold marts to see final analytics results
 
-    The commands below run `scripts/dbt_env.sh seed --full-refresh`, then `run`, then `test`. On a clean run this loads 4 raw seed tables, builds 13 models (4 Bronze, 6 Silver, 3 Gold), and passes all 34 tests in roughly two minutes.
+    The commands below run `scripts/02_dbt_env.sh seed --full-refresh`, then `run`, then `test`. On a clean run this loads 4 raw seed tables, builds 13 models (4 Bronze, 6 Silver, 3 Gold), and passes all 34 tests in roughly two minutes.
 
     Estimated time: approximately 20 minutes.
 
@@ -107,7 +107,7 @@ source .venv/bin/activate
 Refresh the Presto authentication token from the watsonx.data connection JSON so all subsequent commands can reach the cluster.
 
 ```bash
-python scripts/prepare_watsonx_env.py
+python scripts/00a_prepare_watsonx_env.py
 ```
 
 !!! info "What this does"
@@ -139,7 +139,7 @@ Imported values:
 Bootstrap the four Iceberg schemas in the `iceberg_data` catalog so dbt has somewhere to write its tables.
 
 ```bash
-python scripts/bootstrap_watsonxdata.py
+python scripts/01_bootstrap_watsonxdata.py
 ```
 
 Expected output:
@@ -161,7 +161,7 @@ ensured iceberg_data.dbt_demo_gold
     `WXD_SCHEMA_LOCATION_BASE` is unset, so the bootstrap creates each schema with **no** `location` clause. The `iceberg_data` catalog places them at its default warehouse — the object-store bucket root — so they land directly as `s3://iceberg-bucket/dbt_demo_raw/`, `s3://iceberg-bucket/dbt_demo_bronze/`, and so on (no nesting, no `.db` suffix).
 
 !!! note "Run this once per environment"
-    If the schemas already exist, the script skips them safely. You only need to re-run this if you clean up with `cleanup_watsonxdata.py` or start on a fresh cluster.
+    If the schemas already exist, the script skips them safely. You only need to re-run this if you clean up with `scripts/08_cleanup_watsonxdata.py` or start on a fresh cluster.
 
 ---
 
@@ -170,7 +170,7 @@ ensured iceberg_data.dbt_demo_gold
 dbt seed reads the four CSV files from `seeds/` and loads them into `dbt_demo_raw` as Iceberg tables.
 
 ```bash
-bash scripts/dbt_env.sh seed --full-refresh
+bash scripts/02_dbt_env.sh seed --full-refresh
 ```
 
 !!! info "What `--full-refresh` does"
@@ -228,7 +228,7 @@ Done. PASS=4 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=4
 dbt runs all SQL models in dependency order — Bronze first, then Silver, then Gold. Each model is a `.sql` file in `models/`.
 
 ```bash
-bash scripts/dbt_env.sh run
+bash scripts/02_dbt_env.sh run
 ```
 
 !!! info "Dependency order"
@@ -297,7 +297,7 @@ Done. PASS=13 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=13
 dbt tests check data quality rules defined in `schema.yml` files — rules like "every `order_id` must be unique" and "every order must reference a real customer".
 
 ```bash
-bash scripts/dbt_env.sh test
+bash scripts/02_dbt_env.sh test
 ```
 
 !!! info "Where the test rules live"
@@ -343,14 +343,14 @@ Done. PASS=34 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=34
 Run the query script to read results from the three Gold objects and display sample rows.
 
 ```bash
-python scripts/query_gold.py
+python scripts/05_query_gold.py
 ```
 
 You can also query a single mart by name:
 
 ```bash
-python scripts/query_gold.py daily_sales
-python scripts/query_gold.py customer_360
+python scripts/05_query_gold.py daily_sales
+python scripts/05_query_gold.py customer_360
 ```
 
 !!! example "Sample output: gold_daily_sales"
@@ -398,7 +398,7 @@ The Presto endpoint being queried is:
 `dbt build` is the modern single-command equivalent of seed + run + test. It executes everything in dependency order and runs tests right after each model is created — not as a separate step at the end.
 
 ```bash
-bash scripts/dbt_env.sh build --full-refresh
+bash scripts/02_dbt_env.sh build --full-refresh
 ```
 
 The pipeline steps above (seed → run → test) are shown individually because they make it easier to explain what each phase does during a workshop. In day-to-day use `dbt build` is preferred.
@@ -412,13 +412,13 @@ The pipeline steps above (seed → run → test) are shown individually because 
 
     ```bash
     # Build only Bronze models
-    bash scripts/dbt_env.sh run --select tag:bronze
+    bash scripts/02_dbt_env.sh run --select tag:bronze
 
     # Build only Silver models (requires Bronze to exist)
-    bash scripts/dbt_env.sh run --select tag:silver
+    bash scripts/02_dbt_env.sh run --select tag:silver
 
     # Build only Gold models (requires Silver to exist)
-    bash scripts/dbt_env.sh run --select tag:gold
+    bash scripts/02_dbt_env.sh run --select tag:gold
     ```
 
     The tags are defined in `dbt_project.yml` under the `models:` section. Each layer has its own tag, so you can rebuild any single layer without touching the others.
@@ -441,13 +441,13 @@ Open `seeds/raw_orders.csv` and add one row with a duplicate `order_id` value:
 Save the file, then reload the seed:
 
 ```bash
-bash scripts/dbt_env.sh seed --full-refresh
+bash scripts/02_dbt_env.sh seed --full-refresh
 ```
 
 **Step 2 — Run only the tests (models already exist)**
 
 ```bash
-bash scripts/dbt_env.sh test --select raw_orders
+bash scripts/02_dbt_env.sh test --select raw_orders
 ```
 
 Expected failure output:
@@ -479,8 +479,8 @@ having count(*) > 1
 Remove the duplicate row from `seeds/raw_orders.csv`, reload, and re-run the test:
 
 ```bash
-bash scripts/dbt_env.sh seed --full-refresh
-bash scripts/dbt_env.sh test --select raw_orders
+bash scripts/02_dbt_env.sh seed --full-refresh
+bash scripts/02_dbt_env.sh test --select raw_orders
 ```
 
 ```text
@@ -539,10 +539,10 @@ To try it, save this as `models/silver/silver_orders_incremental.sql` and run:
 
 ```bash
 # First run — full load
-bash scripts/dbt_env.sh run --select silver_orders_incremental --full-refresh
+bash scripts/02_dbt_env.sh run --select silver_orders_incremental --full-refresh
 
 # Subsequent runs — incremental (only new rows)
-bash scripts/dbt_env.sh run --select silver_orders_incremental
+bash scripts/02_dbt_env.sh run --select silver_orders_incremental
 ```
 
 !!! note "Adapter support"
@@ -565,7 +565,7 @@ Iceberg records every `dbt run` as an immutable snapshot. The time travel script
 ```bash
 # load env then run
 set -a && source .env && set +a
-python scripts/demo_time_travel.py
+python scripts/06_demo_time_travel.py
 ```
 
 Expected output:
@@ -620,7 +620,7 @@ every dbt run, seed, or INSERT creates a new snapshot you can query back to.
 ```
 
 !!! tip "See diverging snapshots"
-    Run `bash scripts/dbt_env.sh run --full-refresh` then run the script again.
+    Run `bash scripts/02_dbt_env.sh run --full-refresh` then run the script again.
     Step 3 will show a different row count at the old snapshot vs. the current state,
     proving the old data is still accessible via `FOR VERSION AS OF`.
 

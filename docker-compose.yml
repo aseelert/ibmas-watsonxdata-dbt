@@ -20,7 +20,7 @@
 #    docker compose ps                    # see everything in one project
 #    docker compose down                  # stop all (keep volumes)
 #    docker compose down -v --remove-orphans   # stop all + remove volumes
-#    scripts/reset_demo.sh --docker       # full demo-scoped teardown (preferred)
+#    scripts/11_reset_demo.sh --docker       # full demo-scoped teardown (preferred)
 #
 #  NOTE
 #    These stacks are OPTIONAL. The core dbt + Spark medallion demo runs fine

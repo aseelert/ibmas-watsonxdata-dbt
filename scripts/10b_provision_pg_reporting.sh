@@ -3,7 +3,7 @@
 #  provision_pg_reporting.sh — full end-to-end setup of the ibmas_reporting
 #                              PostgreSQL database with CPD integration.
 #
-#  Location  : scripts/provision_pg_reporting.sh
+#  Location  : scripts/10b_provision_pg_reporting.sh
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
@@ -71,7 +71,7 @@
 #                          the Patroni leader, not a label selector, and
 #                          port-forward needs the latter. Now targets
 #                          pod/${PG_POD} instead, which does work.
-#                        • scripts/get_token.py wrote WXD_API_KEY /
+#                        • scripts/00b_get_token.py wrote WXD_API_KEY /
 #                          WXD_SPARK_BEARER_TOKEN via python-dotenv's
 #                          set_key(), whose default quote_mode="always" wraps
 #                          the value in literal single quotes. Every reader in
@@ -200,7 +200,7 @@
 #        by POST /icp4d-api/v1/authorize from an API key, a password, or reused
 #        from WXD_SPARK_BEARER_TOKEN. Tokens expire; a stale one in .env is
 #        probed and rejected up front rather than failing later. Refresh with:
-#            .venv/bin/python scripts/get_token.py --export
+#            .venv/bin/python scripts/00b_get_token.py --export
 #
 #   With the token in hand, the CPD calls happen in dependency order:
 #        GET  /v2/projects?limit=100          → find the project by name
@@ -220,12 +220,12 @@
 #   CA is not verified). Do not set PG_SSL_MODE=disable for this cluster.
 #
 # USAGE
-#   bash scripts/provision_pg_reporting.sh
-#   bash scripts/provision_pg_reporting.sh --dry-run
-#   bash scripts/provision_pg_reporting.sh --dsd
-#   bash scripts/provision_pg_reporting.sh --dsd --external-url myhost.example.com:15432
-#   bash scripts/provision_pg_reporting.sh --cpd-user cpadmin --cpd-password secret
-#   bash scripts/provision_pg_reporting.sh --verbose
+#   bash scripts/10b_provision_pg_reporting.sh
+#   bash scripts/10b_provision_pg_reporting.sh --dry-run
+#   bash scripts/10b_provision_pg_reporting.sh --dsd
+#   bash scripts/10b_provision_pg_reporting.sh --dsd --external-url myhost.example.com:15432
+#   bash scripts/10b_provision_pg_reporting.sh --cpd-user cpadmin --cpd-password secret
+#   bash scripts/10b_provision_pg_reporting.sh --verbose
 #
 # OPTIONS
 #   --namespace NS       OpenShift namespace      (default: cpd-instance)
@@ -1358,7 +1358,7 @@ _cpd_token() {
   fi
 
   # Third path: a bearer token supplied directly (--cpd-token) or left in .env by
-  # scripts/get_token.py. Validate it before use — an expired token would
+  # scripts/00b_get_token.py. Validate it before use — an expired token would
   # otherwise surface as a confusing 401 several steps later.
   if [[ -z "${TOKEN}" ]] && [[ -n "${cpd_token}" ]]; then
     info "  Trying pre-existing bearer token (WXD_SPARK_BEARER_TOKEN / --cpd-token) …"
@@ -1371,7 +1371,7 @@ _cpd_token() {
       debug "  Supplied bearer token validated (${#TOKEN} chars)."
     else
       warn "  Supplied bearer token rejected (HTTP ${_probe}) — probably expired."
-      warn "  Refresh it with: .venv/bin/python scripts/get_token.py --export"
+      warn "  Refresh it with: .venv/bin/python scripts/00b_get_token.py --export"
       _resp="bearer token probe returned HTTP ${_probe}"
     fi
   fi
@@ -1390,7 +1390,7 @@ _cpd_token() {
     • Inline comments in .env on the key/password line (must be stripped)\n\
     • CPD host unreachable or TLS certificate rejected\n\
   Fix: set one of them in .env, pass --cpd-password / --cpd-token, or run:\n\
-    .venv/bin/python scripts/get_token.py --export"
+    .venv/bin/python scripts/00b_get_token.py --export"
   fi
 }
 
@@ -1817,7 +1817,7 @@ print(json.dumps(roles))
             # interrupts other users of the reporting service. Printed only on a
             # verified grant: after a failed one there is nothing to activate.
             info "  To make it effective:"
-            info "    .venv/bin/python scripts/get_token.py --export   # fresh token"
+            info "    .venv/bin/python scripts/00b_get_token.py --export   # fresh token"
             info "    oc -n ${NS} rollout restart deployment/wkc-bi-data-service"
           else
             warn "PUT returned 200 but ${CPD_USER} still does not show"
@@ -2425,13 +2425,13 @@ ${BOLD}Workstation access (port-forward):${RESET}
   # PG_SSL_MODE stays 'require' even over the tunnel: the TLS session terminates
   # at Postgres, not at the port-forward, and PGO rejects unencrypted clients.
   PG_HOST=localhost PG_PORT=15432 PG_SSL_MODE=${PG_SSL_MODE} \\
-    .venv/bin/python scripts/pg_reporting.py list
+    .venv/bin/python scripts/10c_pg_reporting.py list
 
 ${BOLD}Initialise and populate reporting tables:${RESET}
-  .venv/bin/python scripts/pg_reporting.py init
-  .venv/bin/python scripts/pg_reporting.py refresh
-  .venv/bin/python scripts/pg_reporting.py list
-  .venv/bin/python scripts/pg_reporting.py query \\
+  .venv/bin/python scripts/10c_pg_reporting.py init
+  .venv/bin/python scripts/10c_pg_reporting.py refresh
+  .venv/bin/python scripts/10c_pg_reporting.py list
+  .venv/bin/python scripts/10c_pg_reporting.py query \\
     "SELECT * FROM gold_reporting_customer_360 ORDER BY lifetime_value DESC LIMIT 5"
 
 ${BOLD}CPD project URL:${RESET}

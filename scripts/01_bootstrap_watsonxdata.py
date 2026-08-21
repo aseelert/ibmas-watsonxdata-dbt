@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  bootstrap_watsonxdata.py — create the medallion demo schemas in watsonx.data
 #
-#  Location  : scripts/bootstrap_watsonxdata.py
+#  Location  : scripts/01_bootstrap_watsonxdata.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -50,8 +50,8 @@ Prerequisites
   - A valid WXD_API_KEY. No ``oc login`` / ``cpdctl`` is required for this step.
 
 USAGE
-    python scripts/bootstrap_watsonxdata.py
-    python scripts/bootstrap_watsonxdata.py --recreate
+    python scripts/01_bootstrap_watsonxdata.py
+    python scripts/01_bootstrap_watsonxdata.py --recreate
 
   ``--recreate`` DROPs each schema (after dropping every table/view in it, since
   Presto has no DROP SCHEMA CASCADE) and re-creates it. Use this only when you
@@ -213,6 +213,11 @@ def main() -> int:
         print(f"ensured {catalog}.{schema}")
 
     print(f"[OK] bootstrap complete — {len(schemas)} schema(s) ready in {catalog}")
+    print()
+    print("Next — pick the path you want to build:")
+    print("  bash scripts/02_dbt_env.sh seed && bash scripts/02_dbt_env.sh run   # Path A: dbt")
+    print("  python scripts/03a_upload_spark_assets.py                          # Path B: Spark")
+    print("  python scripts/04_ingest_with_cpdctl.py                            # Path C: cpdctl")
     return 0
 
 

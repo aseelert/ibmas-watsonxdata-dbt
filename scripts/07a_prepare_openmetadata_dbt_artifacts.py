@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  prepare_openmetadata_dbt_artifacts.py — build dbt artifacts and stage them locally for OpenMetadata
 #
-#  Location  : scripts/prepare_openmetadata_dbt_artifacts.py
+#  Location  : scripts/07a_prepare_openmetadata_dbt_artifacts.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -18,14 +18,14 @@ This script is the FIRST half of the OpenMetadata lineage workflow: it makes
 sure fresh dbt artifacts (``manifest.json``, ``catalog.json``,
 ``run_results.json``) exist in the project ``target/`` directory and then
 copies them into a stable staging directory that OpenMetadata can read. The
-companion script ``scripts/upload_dbt_artifacts.py`` later pushes those staged
+companion script ``scripts/07c_upload_dbt_artifacts.py`` later pushes those staged
 files to S3-compatible object storage. OpenMetadata consumes the manifest to
 reconstruct dbt model/table lineage and column-level metadata for the
 watsonx.data medallion demo.
 
 WHAT it does:
  - Optionally runs the full dbt pipeline against watsonx.data via the
-   ``scripts/dbt_env.sh`` wrapper: ``seed --full-refresh`` (unless
+   ``scripts/02_dbt_env.sh`` wrapper: ``seed --full-refresh`` (unless
    ``--skip-seed``), then ``run``, ``test`` and ``docs generate``. The
    ``docs generate`` step is what emits ``catalog.json`` with rich column
    metadata.
@@ -39,7 +39,7 @@ WHAT it does:
 
 WHEN to run it: after the dbt project is configured and able to reach
 watsonx.data (i.e. ``.env`` is populated and the Presto/Iceberg engine is
-running). Run this BEFORE ``scripts/upload_dbt_artifacts.py``, which depends on
+running). Run this BEFORE ``scripts/07c_upload_dbt_artifacts.py``, which depends on
 the files this script stages. Use ``--skip-dbt`` to re-stage already-built
 artifacts without re-hitting the live engine.
 
@@ -47,26 +47,26 @@ ENV VARS read:
  - ``WXD_DBT_ARTIFACT_DIR`` — staging directory for the artifacts
    (default: ``openmetadata/dbt-artifacts``, resolved relative to repo root
    when not absolute). Overridable per-run via ``--artifact-dir``.
- - Plus whatever ``scripts/dbt_env.sh`` itself reads to authenticate against
+ - Plus whatever ``scripts/02_dbt_env.sh`` itself reads to authenticate against
    watsonx.data (loaded here from ``.env`` via python-dotenv when available).
 
 PREREQUISITES: a working dbt profile pointing at watsonx.data, the
-``scripts/dbt_env.sh`` wrapper, and (when not using ``--skip-dbt``) a reachable
+``scripts/02_dbt_env.sh`` wrapper, and (when not using ``--skip-dbt``) a reachable
 Presto engine. No ``oc login`` / ``cpdctl`` is required by this script itself.
 
 USAGE examples:
- - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py``
+ - ``python3 scripts/07a_prepare_openmetadata_dbt_artifacts.py``
      full pipeline (seed + run + test + docs) then stage.
- - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py --skip-seed``
+ - ``python3 scripts/07a_prepare_openmetadata_dbt_artifacts.py --skip-seed``
      skip the seed refresh but still run/test/docs.
- - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py --docs-only``
+ - ``python3 scripts/07a_prepare_openmetadata_dbt_artifacts.py --docs-only``
      lineage-only: run just ``dbt docs generate`` (no seed/run/test) then stage.
      Use when the medallion tables already exist and you only need fresh
-     lineage/column metadata. The ``scripts/generate_lineage_docs.sh`` wrapper
+     lineage/column metadata. The ``scripts/07b_generate_lineage_docs.sh`` wrapper
      is a convenience entry point for exactly this mode.
- - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt``
+ - ``python3 scripts/07a_prepare_openmetadata_dbt_artifacts.py --skip-dbt``
      only re-copy existing ``target/*.json`` into the staging directory.
- - ``python3 scripts/prepare_openmetadata_dbt_artifacts.py \\
+ - ``python3 scripts/07a_prepare_openmetadata_dbt_artifacts.py \\
        --artifact-dir /tmp/om-dbt --retries 3``
      custom staging dir and 3 retries per dbt command.
 
@@ -180,13 +180,13 @@ def main() -> int:
     if not args.skip_dbt:
         if args.docs_only:
             # Lineage-only: refresh just the artifacts OpenMetadata reads.
-            _run(["scripts/dbt_env.sh", "docs", "generate"], args.retries)
+            _run(["scripts/02_dbt_env.sh", "docs", "generate"], args.retries)
         else:
             if not args.skip_seed:
-                _run(["scripts/dbt_env.sh", "seed", "--full-refresh"], args.retries)
-            _run(["scripts/dbt_env.sh", "run"], args.retries)
-            _run(["scripts/dbt_env.sh", "test"], args.retries)
-            _run(["scripts/dbt_env.sh", "docs", "generate"], args.retries)
+                _run(["scripts/02_dbt_env.sh", "seed", "--full-refresh"], args.retries)
+            _run(["scripts/02_dbt_env.sh", "run"], args.retries)
+            _run(["scripts/02_dbt_env.sh", "test"], args.retries)
+            _run(["scripts/02_dbt_env.sh", "docs", "generate"], args.retries)
 
     source_dir = ROOT / "target"
     target_dir = (
@@ -232,6 +232,9 @@ def main() -> int:
         path = target_dir / name
         if path.exists():
             print(f"  {name}: {path}")
+    print()
+    print("Next: scripts/07c_upload_dbt_artifacts.py (remote OpenMetadata over S3) "
+          "or openmetadata/ingestion/run-ingestion.sh (local Docker stack).")
     return 0
 
 

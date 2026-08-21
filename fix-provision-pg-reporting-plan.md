@@ -1,8 +1,8 @@
-# Plan: Fix `provision_pg_reporting.sh` — Complete Debug & Hardening
+# Plan: Fix `10b_provision_pg_reporting.sh` — Complete Debug & Hardening
 
 ## Top-Level Overview
 
-The script `scripts/provision_pg_reporting.sh` has several correctness bugs (one **critical** 
+The script `scripts/10b_provision_pg_reporting.sh` has several correctness bugs (one **critical** 
 blocker), missing error output, silent failure paths, and a password-desync logic error.  
 The goal is to make every step emit clear INFO/DEBUG/ERROR output explaining what is happening 
 and why things fail, and to fix all known bugs so the script runs end-to-end reliably.
@@ -53,7 +53,7 @@ fails to find the primary pod and dies immediately.
    `oc -n ${NS} get pods -l postgres-operator.crunchydata.com/cluster=${CLUSTER_NAME}`
 
 **Relevant Context:**
-- File: `scripts/provision_pg_reporting.sh` lines 237–258
+- File: `scripts/10b_provision_pg_reporting.sh` lines 237–258
 - Crunchy v5 changed role label: `master` → `primary`
 
 ---
@@ -260,12 +260,12 @@ the role.
 - Sub-Tasks 6–8 add observability and pre-flight hardening; implement third.
 - Each sub-task touches a distinct section of the script and can be implemented independently.
 - Do NOT change the overall step structure, option names, or script semantics.
-- After all sub-tasks, run `bash --norc -n scripts/provision_pg_reporting.sh` (syntax check) 
-  and `shellcheck -S warning scripts/provision_pg_reporting.sh` if shellcheck is available.
+- After all sub-tasks, run `bash --norc -n scripts/10b_provision_pg_reporting.sh` (syntax check) 
+  and `shellcheck -S warning scripts/10b_provision_pg_reporting.sh` if shellcheck is available.
 
 ## Completion
 
-All 8 sub-tasks implemented in a single rewrite of `scripts/provision_pg_reporting.sh`.  
+All 8 sub-tasks implemented in a single rewrite of `scripts/10b_provision_pg_reporting.sh`.  
 Validation results:
-- `bash --norc -n scripts/provision_pg_reporting.sh` → **EXIT:0** (no syntax errors)
-- `shellcheck -S warning scripts/provision_pg_reporting.sh` → **EXIT:0** (no warnings)
+- `bash --norc -n scripts/10b_provision_pg_reporting.sh` → **EXIT:0** (no syntax errors)
+- `shellcheck -S warning scripts/10b_provision_pg_reporting.sh` → **EXIT:0** (no warnings)

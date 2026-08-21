@@ -3,7 +3,7 @@
 #  configure_ikc_reporting.sh — Configure IKC reporting settings for IBM
 #                               Knowledge Catalog on Cloud Pak for Data.
 #
-#  Location  : scripts/configure_ikc_reporting.sh
+#  Location  : scripts/10_configure_ikc_reporting.sh
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
@@ -28,12 +28,12 @@
 #      on catalog-api. Injects the configMapKeyRef env block if missing.
 #
 # USAGE
-#   bash scripts/configure_ikc_reporting.sh                  # default: enforce=false default=true
-#   bash scripts/configure_ikc_reporting.sh --enforce        # enforce=true  default=true
-#   bash scripts/configure_ikc_reporting.sh --disable        # enforce=false default=false (revert)
-#   bash scripts/configure_ikc_reporting.sh --dry-run        # preview only
-#   bash scripts/configure_ikc_reporting.sh --skip-restart   # patch only, skip pod restarts
-#   bash scripts/configure_ikc_reporting.sh --namespace myCPD
+#   bash scripts/10_configure_ikc_reporting.sh                  # default: enforce=false default=true
+#   bash scripts/10_configure_ikc_reporting.sh --enforce        # enforce=true  default=true
+#   bash scripts/10_configure_ikc_reporting.sh --disable        # enforce=false default=false (revert)
+#   bash scripts/10_configure_ikc_reporting.sh --dry-run        # preview only
+#   bash scripts/10_configure_ikc_reporting.sh --skip-restart   # patch only, skip pod restarts
+#   bash scripts/10_configure_ikc_reporting.sh --namespace myCPD
 #
 # OPTIONS
 #   --namespace NS      CPD operands namespace  (default: from .env WXD_OPENSHIFT_NAMESPACE or cpd-instance)
@@ -381,9 +381,9 @@ ${BOLD}Check wkc-cr spec fields:${RESET}
   oc -n ${NS} get wkc wkc-cr -o jsonpath='{.spec.wkc_term_assignment_ta_rules_allow_regex}{" "}{.spec.wdp_profiling_load_record_count}' && echo
 
 ${BOLD}Re-run idempotently (to enforce=true):${RESET}
-  bash scripts/configure_ikc_reporting.sh --enforce
+  bash scripts/10_configure_ikc_reporting.sh --enforce
 
 ${BOLD}Revert to defaults (both false):${RESET}
-  bash scripts/configure_ikc_reporting.sh --disable
+  bash scripts/10_configure_ikc_reporting.sh --disable
 
 EOF

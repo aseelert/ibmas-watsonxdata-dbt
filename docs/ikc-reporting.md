@@ -49,7 +49,7 @@ https://api.<your-cluster>:6443
 
 ## What the script does
 
-`scripts/configure_ikc_reporting.sh` automates the full
+`scripts/10_configure_ikc_reporting.sh` automates the full
 IBM docs procedure end-to-end:
 
 | Step | Action |
@@ -87,32 +87,32 @@ project, catalog, and category.
 New projects/catalogs report by default but collaborators can opt out.
 
 ```bash
-bash scripts/configure_ikc_reporting.sh
+bash scripts/10_configure_ikc_reporting.sh
 ```
 
 ### Lock all reporting on (enforce=true, default=true)
 
 ```bash
-bash scripts/configure_ikc_reporting.sh --enforce
+bash scripts/10_configure_ikc_reporting.sh --enforce
 ```
 
 ### Preview without changing anything
 
 ```bash
-bash scripts/configure_ikc_reporting.sh --dry-run
-bash scripts/configure_ikc_reporting.sh --enforce --dry-run
+bash scripts/10_configure_ikc_reporting.sh --dry-run
+bash scripts/10_configure_ikc_reporting.sh --enforce --dry-run
 ```
 
 ### Patch only — skip pod restarts (pods already running)
 
 ```bash
-bash scripts/configure_ikc_reporting.sh --enforce --skip-restart
+bash scripts/10_configure_ikc_reporting.sh --enforce --skip-restart
 ```
 
 ### Revert to IBM defaults (both false)
 
 ```bash
-bash scripts/configure_ikc_reporting.sh --disable
+bash scripts/10_configure_ikc_reporting.sh --disable
 ```
 
 ### Full option reference
@@ -184,7 +184,7 @@ the service so the cache is flushed.
 
 ```bash
 CPD_HOST="$(grep WXD_CPD_HOST .env | cut -d= -f2)"
-TOKEN="$(.venv/bin/python scripts/get_token.py)"
+TOKEN="$(.venv/bin/python scripts/00b_get_token.py)"
 CPD_USER=cpadmin      # the affected user
 
 # 1. Read what the user has today
@@ -212,7 +212,7 @@ Then make it take effect. A role is invisible to any token minted **before** the
 CPD carries permissions inside the JWT — so a fresh token is as necessary as the restart:
 
 ```bash
-.venv/bin/python scripts/get_token.py --export        # new token, now carries manage_reporting
+.venv/bin/python scripts/00b_get_token.py --export        # new token, now carries manage_reporting
 oc -n cpd-instance rollout restart deployment/wkc-bi-data-service
 oc -n cpd-instance rollout status  deployment/wkc-bi-data-service --timeout=180s
 ```
@@ -227,7 +227,7 @@ curl -sk -X POST "https://${CPD_HOST}/usermgmt/v2/groups" \
        "role_identifiers":["wkc_reporting_administrator"]}'
 ```
 
-`scripts/provision_pg_reporting.sh` does all of the above for you — it reports the user's
+`scripts/10b_provision_pg_reporting.sh` does all of the above for you — it reports the user's
 roles by default and only writes with `--grant-role`, read-modify-write.  Its `--verify-only`
 mode checks the cluster-side prerequisites (including whether the IKC licence is Enterprise)
 without changing anything.
@@ -252,7 +252,7 @@ The deployment may have hardcoded literals instead of a `configMapKeyRef`.  Run 
 with `--skip-restart` to re-trigger the step-10 env-var check and patch:
 
 ```bash
-bash scripts/configure_ikc_reporting.sh --enforce --skip-restart
+bash scripts/10_configure_ikc_reporting.sh --enforce --skip-restart
 ```
 
 ### Volume warnings on `catalog-api`
@@ -277,8 +277,8 @@ profiling scores, classifications) — not the gold table data — and pushes it
 EDB PostgreSQL data mart (`ikcdb` in the `ikc-dp-dps-bidata-mde-mdi-postgres` EDB cluster).
 
 The PostgreSQL reporting database provisioned by
-`scripts/provision_pg_reporting.sh` and queried by
-`scripts/pg_reporting.py` is a **separate, custom** reporting
+`scripts/10b_provision_pg_reporting.sh` and queried by
+`scripts/10c_pg_reporting.py` is a **separate, custom** reporting
 schema (`ibmas_reporting`) that mirrors the gold mart data — it is not the IKC data mart.
 
 ```mermaid
@@ -295,7 +295,7 @@ flowchart LR
     subgraph PG["Standalone PostgreSQL\n(Crunchy PostgresCluster\nibmas-reporting)"]
         RPT["ibmas_reporting\n(gold mirror — custom)"]
     end
-    G -->|"pg_reporting.py refresh"| RPT
+    G -->|"10c_pg_reporting.py refresh"| RPT
     G -->|"asset metadata\n(terms, DQ scores)"| IKC
     style IKCDB fill:#e8f4fd,stroke:#3b82d4
     style RPT fill:#f0fdf4,stroke:#22c55e

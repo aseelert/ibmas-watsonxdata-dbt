@@ -12,7 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables
-env_path = Path(__file__).parent.parent / '.env'
+env_path = Path(__file__).parent.parent.parent / '.env'
 load_dotenv(env_path)
 
 def check_prerequisites():
@@ -45,7 +45,7 @@ def check_prerequisites():
             checks.append(False)
     
     # CA certificate
-    ca_path = Path(__file__).parent.parent / os.getenv('WXD_SSL_VERIFY', '')
+    ca_path = Path(__file__).parent.parent.parent / os.getenv('WXD_SSL_VERIFY', '')
     if ca_path.exists():
         print(f"\n✓ CA certificate found: {ca_path}")
         checks.append(True)
@@ -87,7 +87,7 @@ def test_server_startup():
     ca_bundle = os.getenv('WXD_SSL_VERIFY', '')
     
     if not ca_bundle.startswith('/'):
-        ca_bundle = str((Path(__file__).parent.parent / ca_bundle).absolute())
+        ca_bundle = str((Path(__file__).parent.parent.parent / ca_bundle).absolute())
     
     env = os.environ.copy()
     env['CPD_ENDPOINT'] = f"https://{cpd_host}"

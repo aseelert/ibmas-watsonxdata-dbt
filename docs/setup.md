@@ -118,7 +118,7 @@ The key looks like a long alphanumeric string provided by your workshop administ
 
 `.env` is the single place that holds your secret and your environment-specific values. The dbt
 profile and every script read from it, so you edit *one* file to point the whole workshop at your
-cluster. You provide just the **API key** by hand; `prepare_watsonx_env.py` (Step 5) fills in the
+cluster. You provide just the **API key** by hand; `scripts/00a_prepare_watsonx_env.py` (Step 5) fills in the
 rest from the connection JSON. Values below marked **auto** are written for you; **manual** values
 already have a working default in the template.
 
@@ -218,13 +218,13 @@ ssl_certificate         PEM-encoded CA certificate chain for TLS
 
 ## Step 5: Bootstrap the environment
 
-`prepare_watsonx_env.py` is a fully-automated bootstrap script — one command fills in all 40+ `.env`
+`scripts/00a_prepare_watsonx_env.py` is a fully-automated bootstrap script — one command fills in all 40+ `.env`
 variables, writes the CA certificate to disk, logs into OpenShift, and fetches fresh API tokens.
 
 Both `--oc-login` and `--fetch-tokens` are **on by default**. Just run:
 
 ```bash
-python scripts/prepare_watsonx_env.py
+python scripts/00a_prepare_watsonx_env.py
 ```
 
 Expected output (abbreviated):
@@ -263,19 +263,19 @@ After this step the following files will have been written or updated:
 
     ```bash
     # Normal run (oc login + token fetch are both on by default)
-    python scripts/prepare_watsonx_env.py
+    python scripts/00a_prepare_watsonx_env.py
 
     # Refresh tokens only — skip oc login if already logged in
-    python scripts/prepare_watsonx_env.py --no-oc-login
+    python scripts/00a_prepare_watsonx_env.py --no-oc-login
 
     # Dry run — show what would change without writing anything
-    python scripts/prepare_watsonx_env.py --dry-run
+    python scripts/00a_prepare_watsonx_env.py --dry-run
 
     # Overwrite non-secret values that are already in .env
-    python scripts/prepare_watsonx_env.py --overwrite
+    python scripts/00a_prepare_watsonx_env.py --overwrite
 
     # JSON lives in a custom location
-    python scripts/prepare_watsonx_env.py --presto-json /path/to/presto-connection.json
+    python scripts/00a_prepare_watsonx_env.py --presto-json /path/to/presto-connection.json
     ```
 
 | Flag | Default | Description |
@@ -357,7 +357,7 @@ watsonxdata_medallion_demo:        # profile name — matches `profile:` in dbt_
 | `threads` | Parallel model builds | How many models compile/run at once |
 
 **The key idea:** the profile holds **no literal secrets** — every `{{ env_var('...') }}` reads from
-your `.env` at runtime (the `scripts/dbt_env.sh` wrapper loads `.env` before calling dbt). So you copy
+your `.env` at runtime (the `scripts/02_dbt_env.sh` wrapper loads `.env` before calling dbt). So you copy
 this template once and never edit it; to point dbt at a different cluster you change only `.env`.
 
 !!! note "Why ~/.dbt and not the project folder?"
@@ -367,10 +367,10 @@ this template once and never edit it; to point dbt at a different cluster you ch
 
 ```text
 watsonx_data/instance_details.json     ← you export from the watsonx.data console (Step 4)
-            │   python scripts/prepare_watsonx_env.py   (Step 5)
+            │   python scripts/00a_prepare_watsonx_env.py   (Step 5)
             ▼
 .env   ← host, port, instance ID, cert path auto-filled; you paste WXD_API_KEY (Step 3)
-            │   scripts/dbt_env.sh loads .env before calling dbt
+            │   scripts/02_dbt_env.sh loads .env before calling dbt
             ▼
 ~/.dbt/profiles.yml   ← {{ env_var('WXD_*') }} reads the values (Step 6)
             │
@@ -392,12 +392,12 @@ Run either of these two checks (they test the same connection from different ang
 
 ```bash
 # Option A: run a small gold-layer query via Python
-python scripts/query_gold.py
+python scripts/05_query_gold.py
 ```
 
 ```bash
 # Option B: ask dbt to verify its own profile
-bash scripts/dbt_env.sh debug
+bash scripts/02_dbt_env.sh debug
 ```
 
 Successful output for Option A shows the gold mart tables (run it after completing the full pipeline in [Path A — dbt](dbt-demo.md)):
@@ -638,22 +638,22 @@ export SSL_CERT_FILE="$PWD/certs/watsonxdata-ca.pem"
 Before moving on, confirm all four items below:
 
 - [ ] `(.venv)` appears in your terminal prompt (virtual environment is active).
-- [ ] `bash scripts/dbt_env.sh debug` ended with `All checks passed!` (Step 7, Option B).
+- [ ] `bash scripts/02_dbt_env.sh debug` ended with `All checks passed!` (Step 7, Option B).
 - [ ] `certs/watsonxdata-ca.pem` exists (run `ls certs/watsonxdata-ca.pem`).
 - [ ] `.env` contains a real value for `WXD_API_KEY` (not the placeholder `replace-with-your-software-hub-api-key`).
 
-If every item above is checked, your laptop is fully configured. (`query_gold.py` only returns rows *after* you build the gold layer, which is the next page.)
+If every item above is checked, your laptop is fully configured. (`scripts/05_query_gold.py` only returns rows *after* you build the gold layer, which is the next page.)
 
 !!! success "The happy path from here — Path A · dbt"
     Setup is done. The actual medallion build runs on the next page, [Path A — dbt](dbt-demo.md), in this order:
 
     ```bash
-    python scripts/bootstrap_watsonxdata.py   # create the 4 schemas (raw/bronze/silver/gold)
+    python scripts/01_bootstrap_watsonxdata.py   # create the 4 schemas (raw/bronze/silver/gold)
     dbt deps                                  # download the dbt-watsonx-presto adapter package
     dbt seed                                  # load 4 raw tables: 50 + 20 + 500 + 1,134 rows
     dbt run                                   # build 13 models: 4 bronze, 6 silver, 3 gold
     dbt test                                  # run the data-quality tests (all should pass)
-    python scripts/query_gold.py              # see the gold marts — the business payoff
+    python scripts/05_query_gold.py              # see the gold marts — the business payoff
     ```
 
     On a clean instance the whole dbt path finishes in roughly two minutes.

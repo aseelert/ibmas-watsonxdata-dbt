@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  spark_application_status.py — check a watsonx.data Spark application's status
 #
-#  Location  : scripts/spark_application_status.py
+#  Location  : scripts/03c_spark_application_status.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -48,8 +48,8 @@ PREREQUISITES
    straight to the REST API. A reachable, running Spark engine and valid auth.
 
 USAGE
- - With id arg : ``python scripts/spark_application_status.py <app_id>``
- - From env    : ``WXD_SPARK_APPLICATION_ID=<app_id> python scripts/spark_application_status.py``
+ - With id arg : ``python scripts/03c_spark_application_status.py <app_id>``
+ - From env    : ``WXD_SPARK_APPLICATION_ID=<app_id> python scripts/03c_spark_application_status.py``
 
 SIDE EFFECTS / EXIT
  - Read-only against the engine. Prints status + UI links. Exits 0 on a 2xx

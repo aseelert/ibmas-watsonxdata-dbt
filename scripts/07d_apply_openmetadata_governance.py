@@ -3,7 +3,7 @@
 #  apply_openmetadata_governance.py — attach glossary, classifications, and
 #                                     descriptions to OpenMetadata tables
 #
-#  Location  : scripts/apply_openmetadata_governance.py
+#  Location  : scripts/07d_apply_openmetadata_governance.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer

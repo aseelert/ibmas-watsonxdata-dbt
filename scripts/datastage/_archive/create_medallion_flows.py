@@ -2,10 +2,14 @@
 # -----------------------------------------------------------------------------
 #  create_medallion_flows.py — build + create the DataStage medallion flows in CPD
 #
-#  Location  : scripts/datastage/create_medallion_flows.py
+#  Location  : scripts/datastage/_archive/create_medallion_flows.py
 #  Project   : watsonx.data · dbt · Spark · Confluent · DataStage medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  ARCHIVED 2026-08-21 — superseded by ../create_medallion_flows_v2.py (5 flows with
+#  real transformer/join stages, plus a working --run compile+execute path). Kept
+#  here for reference only; docs/datastage-medallion.md documents v2 exclusively.
 #
 #  WHAT
 #  ----
@@ -31,7 +35,7 @@
 #    python scripts/datastage/create_medallion_flows.py --create --verify
 #
 #  Auth/env come from .env (same vars dbt/Presto use). A CPD bearer token is
-#  minted from WXD_API_KEY exactly like scripts/get_token.py.
+#  minted from WXD_API_KEY exactly like scripts/00b_get_token.py.
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 import argparse
@@ -48,8 +52,8 @@ from ds_flow_lib import FlowBuilder  # noqa: E402
 
 requests.packages.urllib3.disable_warnings()
 
-ROOT = Path(__file__).resolve().parents[2]
-FLOWS_DIR = Path(__file__).resolve().parent / "flows"
+ROOT = Path(__file__).resolve().parents[3]
+FLOWS_DIR = Path(__file__).resolve().parent.parent / "flows"  # flows/ stayed in scripts/datastage/
 load_dotenv(ROOT / ".env")
 
 PROJECT_ID = "2d2415ea-71b5-4215-a7b6-b32a4889611e"           # ibmas-ingest-demo

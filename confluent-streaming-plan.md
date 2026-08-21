@@ -30,8 +30,8 @@ proprietary IBM auth — not standard S3.
 > OpenShift Route"*
 
 We create that Route using `oc expose` — the same `oc` tooling already used by
-[`scripts/upload_spark_assets.py`](scripts/upload_spark_assets.py) and
-[`scripts/reset_demo.sh`](scripts/reset_demo.sh), reading credentials from the
+[`scripts/03a_upload_spark_assets.py`](scripts/03a_upload_spark_assets.py) and
+[`scripts/11_reset_demo.sh`](scripts/11_reset_demo.sh), reading credentials from the
 same `.env` file. The Route is **permanent** (survives restarts, no tunnel needed)
 and gives every Docker container a stable HTTPS URL for MinIO.
 
@@ -453,7 +453,7 @@ catalog — using only the Presto HTTPS connection that already works for dbt.
 **Todo List:**
 1. Create `confluent/scripts/prep_iceberg_schemas.py`
 2. Connect to Presto using the identical pattern from
-   [`scripts/bootstrap_watsonxdata.py`](scripts/bootstrap_watsonxdata.py):
+   [`scripts/01_bootstrap_watsonxdata.py`](scripts/01_bootstrap_watsonxdata.py):
    `prestodb.dbapi.connect(host, port, user, auth=BasicAuthentication(user, password),
    http_scheme='https', http_headers={'LhInstanceId': instance_id})` — reads
    `WXD_USER`, `WXD_API_KEY`, `WXD_HOST`, `WXD_PORT`, `WXD_INSTANCE_ID`,
@@ -479,7 +479,7 @@ catalog — using only the Presto HTTPS connection that already works for dbt.
    - `confluent-prep`: runs Phase B (depends on flink-runner `service_completed_successfully`)
 
 **Relevant Context:**
-- [`scripts/bootstrap_watsonxdata.py`](scripts/bootstrap_watsonxdata.py) — exact Presto
+- [`scripts/01_bootstrap_watsonxdata.py`](scripts/01_bootstrap_watsonxdata.py) — exact Presto
   connection pattern, `_ssl_verify()` helper, `_http_headers()` helper, `_execute()` wrapper
 - `requirements.txt` already has `presto-python-client==0.8.4` and `requests>=2.31`
 - Iceberg REST catalog API: `GET /v1/namespaces/{ns}/tables/{table}` returns

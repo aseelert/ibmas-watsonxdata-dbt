@@ -428,7 +428,7 @@ flowchart LR
 ```bash
 bash confluent/start.sh --stop                 # stop the 7 containers, keep data/volumes
 bash confluent/start.sh --reset -y             # DESTRUCTIVE — remove containers/volumes/images
-scripts/reset_demo.sh --warehouse              # drop the confluent_demo_* schemas + MinIO files
+scripts/11_reset_demo.sh --warehouse              # drop the confluent_demo_* schemas + MinIO files
 ```
 
 To replay from scratch without re-ingesting: drop `confluent_demo_silver`, then re-run

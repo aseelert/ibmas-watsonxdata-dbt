@@ -7,7 +7,7 @@ error, this is the page to check.
 
 !!! tip "You do not set most of these by hand"
     You manually provide **two** things — your **API key** and the **connection JSON**. Running
-    `python scripts/prepare_watsonx_env.py` then fills in the rest of `.env` and writes the TLS
+    `python scripts/00a_prepare_watsonx_env.py` then fills in the rest of `.env` and writes the TLS
     certificate automatically. The big tables below exist so you can verify and troubleshoot, not
     so you type every value.
 
@@ -17,9 +17,9 @@ error, this is the page to check.
 
 | File | Where it goes | How you get it | Used by |
 |---|---|---|---|
-| `watsonx_data/instance_details.json` | repo root, in `watsonx_data/` | Export from the watsonx.data console (**Infrastructure manager → your Presto engine → Download connection details**), or your administrator hands you a pre-exported file | `scripts/prepare_watsonx_env.py` |
-| `certs/watsonxdata-ca.pem` | repo root, in `certs/` | **Auto-written** by `prepare_watsonx_env.py` from the `ssl_certificate` field in the JSON — you do not create it by hand | dbt, the Presto Python client, cpdctl (`SSL_CERT_FILE`) |
-| `.env` | repo root | `cp .env.example .env`, set `WXD_API_KEY`, then `prepare_watsonx_env.py` fills in the rest | every script + the dbt profile |
+| `watsonx_data/instance_details.json` | repo root, in `watsonx_data/` | Export from the watsonx.data console (**Infrastructure manager → your Presto engine → Download connection details**), or your administrator hands you a pre-exported file | `scripts/00a_prepare_watsonx_env.py` |
+| `certs/watsonxdata-ca.pem` | repo root, in `certs/` | **Auto-written** by `scripts/00a_prepare_watsonx_env.py` from the `ssl_certificate` field in the JSON — you do not create it by hand | dbt, the Presto Python client, cpdctl (`SSL_CERT_FILE`) |
+| `.env` | repo root | `cp .env.example .env`, set `WXD_API_KEY`, then `scripts/00a_prepare_watsonx_env.py` fills in the rest | every script + the dbt profile |
 | `~/.dbt/profiles.yml` | your home directory, in `.dbt/` (Windows: `%USERPROFILE%\.dbt\`) | `cp profiles/profiles.example.yml ~/.dbt/profiles.yml` | dbt |
 
 !!! warning "Never commit secrets"
@@ -67,7 +67,7 @@ flowchart TD
     BEARER --> SPARKREST["Spark REST / Presto / cpdctl"]
     ZEN --> SPARKREST
     MINIO["watsonx.data install<br/>creates MinIO keys"] -->|"stored in OpenShift secret<br/>ibm-lh-minio-secret"| OCSECRET["WXD_OBJECT_STORE_ACCESS_KEY<br/>WXD_OBJECT_STORE_SECRET_KEY"]
-    OCSECRET -->|"oc get secret → base64 -d"| UPLOAD["upload_spark_assets.py"]
+    OCSECRET -->|"oc get secret → base64 -d"| UPLOAD["scripts/03a_upload_spark_assets.py"]
 ```
 
 #### 1. `WXD_API_KEY` — IBM Software Hub API key (the *root* credential)
@@ -78,12 +78,12 @@ This is the one secret you genuinely provide. Everything else is built from it.
     * **UI:** open `https://<WXD_CPD_HOST>`, log in as `cpadmin` → avatar (top-right) →
       *Profile and settings* → **API key** tab → **Regenerate API key** → copy it into
       `.env` as `WXD_API_KEY=<key>`.
-    * **Script:** `python scripts/get_token.py --refresh-key` does a one-time **password**
+    * **Script:** `python scripts/00b_get_token.py --refresh-key` does a one-time **password**
       login, then fetches a key from whichever CPD endpoint this cluster's build actually
       exposes (CPD 5.3.0 here: `GET /usermgmt/v1/user/apiKey`; older CPD 4.x builds use a
       different `POST .../apikey/regenerate` route instead) and writes the new key into
       `.env` for you. The endpoint varies across CPD versions, which is why this isn't a
-      single hardcoded call — see `prepare_watsonx_env.py`'s `_cpd_fetch_tokens()` for the
+      single hardcoded call — see `scripts/00a_prepare_watsonx_env.py`'s `_cpd_fetch_tokens()` for the
       full candidate list it tries in order.
 * **Used for:** Presto/dbt auth (it is the *password* for the Presto user
   `ibmlhapikey_cpadmin`), Spark REST auth (via the derived ZenApiKey below), and cpdctl.
@@ -96,9 +96,9 @@ A session token, not a permanent secret — it **expires**. You usually do **not
 store it.
 
 * **Created from the API key:** `POST WXD_CPD_AUTH_URL` (`/icp4d-api/v1/authorize`) with
-  `{username, api_key}` returns a `token`. `scripts/get_token.py` prints it;
-  `scripts/get_token.py --export` writes it to `.env`.
-* **Derived automatically when missing:** `scripts/submit_spark_application.py` and the
+  `{username, api_key}` returns a `token`. `scripts/00b_get_token.py` prints it;
+  `scripts/00b_get_token.py --export` writes it to `.env`.
+* **Derived automatically when missing:** `scripts/03b_submit_spark_application.py` and the
   Airflow `common/wxd.py` helper mint a fresh token (or a derived `ZenApiKey` =
   `base64("<user>:<api_key>")`) at run time, so the Spark path works **without** any
   `WXD_SPARK_BEARER_TOKEN` in `.env`.
@@ -112,7 +112,7 @@ do not generate them. The demo reads them from the cluster.
 
 * **Where they live:** the OpenShift secret `ibm-lh-minio-secret` (namespace
   `cpd-instance`), under keys `LH_S3_ACCESS_KEY` / `LH_S3_SECRET_KEY`.
-* **How the demo gets them:** `scripts/upload_spark_assets.py` runs, in effect,
+* **How the demo gets them:** `scripts/03a_upload_spark_assets.py` runs, in effect,
   `oc get secret ibm-lh-minio-secret -n cpd-instance -o jsonpath='{.data.LH_S3_ACCESS_KEY}'`
   and base64-decodes it — so as long as you are logged in with `oc`, you can leave both
   keys **unset** in `.env`.
@@ -127,9 +127,9 @@ do not generate them. The demo reads them from the cluster.
 
     | Credential | How to rotate |
     |---|---|
-    | `WXD_API_KEY` | Regenerate in the Software Hub UI, or `python scripts/get_token.py --refresh-key`. The old key stops working. |
+    | `WXD_API_KEY` | Regenerate in the Software Hub UI, or `python scripts/00b_get_token.py --refresh-key`. The old key stops working. |
     | `WXD_SPARK_BEARER_TOKEN` | Just delete it from `.env` — it expires on its own and is re-minted from the API key when needed. |
-    | `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | Ask your cluster admin to rotate the `ibm-lh-minio-secret`; remove them from `.env` and let `upload_spark_assets.py` read the new values via `oc`. |
+    | `WXD_OBJECT_STORE_ACCESS_KEY` / `_SECRET_KEY` | Ask your cluster admin to rotate the `ibm-lh-minio-secret`; remove them from `.env` and let `scripts/03a_upload_spark_assets.py` read the new values via `oc`. |
 
     `.env` is git-ignored (see `.gitignore`), so these never reach Git — but they are still
     real working credentials on disk.
@@ -139,7 +139,7 @@ do not generate them. The demo reads them from the cluster.
 ## `.env` reference — every variable
 
 `.env` starts as a copy of `.env.example`. Values marked **auto** are filled in by
-`prepare_watsonx_env.py` from the connection JSON; **manual** values you set yourself (most already
+`scripts/00a_prepare_watsonx_env.py` from the connection JSON; **manual** values you set yourself (most already
 have a sensible default in the template). Variables shown commented-out are optional overrides.
 
 ### Core Presto / dbt connection
@@ -316,12 +316,12 @@ target exactly what the demo created:
 
 | Tool | Reads | Scope |
 |---|---|---|
-| `scripts/cleanup_watsonxdata.py` | `WXD_SCHEMA`, `WXD_SPARK_SCHEMA`, `WXD_INGEST_SCHEMA` (+ optional `WXD_*_SCHEMA` overrides) | DROPs only those exact schemas via Presto |
-| `scripts/cleanup_minio.py` | `WXD_SPARK_ASSET_BUCKET`, `WXD_SPARK_ASSET_PREFIX`, the schema vars, plus the same `WXD_OBJECT_STORE_*` / `oc` settings as the uploader | deletes only the demo's prefixes inside the bucket; the bucket is kept |
-| `scripts/reset_demo.sh` | the above, and the three `docker-compose*.yml` files | adds Docker teardown (containers + volumes + demo images) |
+| `scripts/08_cleanup_watsonxdata.py` | `WXD_SCHEMA`, `WXD_SPARK_SCHEMA`, `WXD_INGEST_SCHEMA` (+ optional `WXD_*_SCHEMA` overrides) | DROPs only those exact schemas via Presto |
+| `scripts/09_cleanup_minio.py` | `WXD_SPARK_ASSET_BUCKET`, `WXD_SPARK_ASSET_PREFIX`, the schema vars, plus the same `WXD_OBJECT_STORE_*` / `oc` settings as the uploader | deletes only the demo's prefixes inside the bucket; the bucket is kept |
+| `scripts/11_reset_demo.sh` | the above, and the three `docker-compose*.yml` files | adds Docker teardown (containers + volumes + demo images) |
 
 Because every target is derived from your `.env`, changing a schema name or bucket here makes
-the reset scripts follow it automatically. See the [Scripts page](scripts.md#11-reset_demosh-full-reset-for-a-100-clean-rerun)
+the reset scripts follow it automatically. See the [Scripts page](scripts.md#11-11_reset_demosh-full-reset-for-a-100-clean-rerun)
 for the full flag reference. Always preview with `--dry-run` first.
 
 ---
@@ -350,7 +350,7 @@ watsonxdata_medallion_demo:
       threads: "{{ env_var('DBT_THREADS', '4') | int }}"
 ```
 
-The wrapper `scripts/dbt_env.sh` sources `.env` before calling dbt, so these `env_var(...)` lookups
+The wrapper `scripts/02_dbt_env.sh` sources `.env` before calling dbt, so these `env_var(...)` lookups
 resolve. (On Windows, run dbt from a shell where `.env` is loaded — see below.)
 
 ---

@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  cleanup_minio.py — scoped delete of the demo's MinIO/S3 prefixes for a clean rerun
 #
-#  Location  : scripts/cleanup_minio.py
+#  Location  : scripts/09_cleanup_minio.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -30,7 +30,7 @@ WHAT / WHY
       * the ``openmetadata/dbt-artifacts`` prefix (published dbt manifest/catalog).
 
     Pass ``--confluent-only`` to clear ONLY the two Confluent prefixes (used by the
-    ``--confluent`` surface of ``scripts/reset_demo.sh`` for a scoped reset).
+    ``--confluent`` surface of ``scripts/11_reset_demo.sh`` for a scoped reset).
 
     It NEVER empties the whole bucket — only these known demo prefixes. After a real
     delete it VERIFIES each prefix is empty (no relics/orphans) and lists the
@@ -38,9 +38,9 @@ WHAT / WHY
     data) is intact.
 
 WHEN TO RUN IT
-    Pairs with ``scripts/cleanup_watsonxdata.py`` (which DROPs the Presto/Iceberg
+    Pairs with ``scripts/08_cleanup_watsonxdata.py`` (which DROPs the Presto/Iceberg
     schemas). Recommended order: drop the schemas first, then run this to remove any
-    files the drop left behind. The all-in-one ``scripts/reset_demo.sh`` does both.
+    files the drop left behind. The all-in-one ``scripts/11_reset_demo.sh`` does both.
 
 ENV VARS (read here)
     WXD_OBJECT_STORE_ENDPOINT       — S3 endpoint URL (required).
@@ -63,16 +63,16 @@ ENV VARS (read here)
 
 PREREQUISITES
     On this cluster MinIO has no external Route, so the object store is reached via
-    an ``oc`` port-forward — exactly like ``scripts/upload_spark_assets.py`` (whose
+    an ``oc`` port-forward — exactly like ``scripts/03a_upload_spark_assets.py`` (whose
     ``_maybe_start_port_forward`` + ``_object_store_credentials`` are reused so the
     two scripts behave identically). You must be logged in with ``oc`` (the
     credentials are read from the ``ibm-lh-minio-secret`` OpenShift secret unless
     ``WXD_OBJECT_STORE_ACCESS_KEY``/``_SECRET_KEY`` are set). Requires ``boto3``.
 
 USAGE
-    python scripts/cleanup_minio.py --dry-run        # list what WOULD be deleted
-    python scripts/cleanup_minio.py                  # actually delete
-    python scripts/cleanup_minio.py --confluent-only # clear ONLY confluent_* folders
+    python scripts/09_cleanup_minio.py --dry-run        # list what WOULD be deleted
+    python scripts/09_cleanup_minio.py                  # actually delete
+    python scripts/09_cleanup_minio.py --confluent-only # clear ONLY confluent_* folders
 
 SIDE EFFECTS / EXIT
     With ``--dry-run`` nothing is deleted (objects are only counted). Without it,
@@ -98,11 +98,17 @@ except ImportError:
 
 # Reuse the proven oc port-forward + credential helpers from the uploader so the
 # two scripts behave identically (same secret, same port-forward, same endpoint).
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from upload_spark_assets import (  # noqa: E402
-    _maybe_start_port_forward,
-    _object_store_credentials,
+# A plain `import` can't target a filename starting with a digit, so this loads
+# the sibling module by file path instead.
+import importlib.util  # noqa: E402
+
+_uploader_spec = importlib.util.spec_from_file_location(
+    "upload_spark_assets", Path(__file__).resolve().parent / "03a_upload_spark_assets.py"
 )
+_uploader = importlib.util.module_from_spec(_uploader_spec)
+_uploader_spec.loader.exec_module(_uploader)
+_maybe_start_port_forward = _uploader._maybe_start_port_forward
+_object_store_credentials = _uploader._object_store_credentials
 
 
 def _env(name: str, default: str | None = None) -> str:
@@ -315,6 +321,8 @@ def main() -> int:
     print(f"\n{verb} {total} object(s) total across {len(prefixes)} prefix(es).")
     if args.dry_run and total:
         print("Re-run without --dry-run to actually delete.")
+    elif not args.dry_run:
+        print("\nNext: python scripts/01_bootstrap_watsonxdata.py to start a fresh cycle.")
     return 0
 
 

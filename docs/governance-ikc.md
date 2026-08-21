@@ -12,15 +12,15 @@ rules — publishing each stage before the next one starts.
 One command does all of it:
 
 ```bash
-python scripts/provision_ikc_governance.py --dry-run   # show every write, perform none
-python scripts/provision_ikc_governance.py             # import → publish → verify, per stage
+python scripts/06b_provision_ikc_governance.py --dry-run   # show every write, perform none
+python scripts/06b_provision_ikc_governance.py             # import → publish → verify, per stage
 ```
 
 It authenticates with whichever credential is available — a bearer token in `.env`, then
 `WXD_API_KEY`, then a `WXD_CPD_PASSWORD` login as a last resort — and, by default, imports and
 publishes **one artifact at a time** rather than a whole CSV in one call, because a per-artifact
 JSON create endpoint isn't attested anywhere in IBM's shipped tooling for this artifact family;
-see [`--mode` / `--auth`](scripts.md#6b-provision_ikc_governancepy-build-the-governance-layer)
+see [`--mode` / `--auth`](scripts.md#6b-06b_provision_ikc_governancepy-build-the-governance-layer)
 for the flags.
 
 The manual UI walkthrough is kept at the end of this page, because it is what the script
@@ -140,14 +140,14 @@ Source files: `governance/ikc/06_rules.csv` (the documented policy) and
     The friendly rule DSL is normally converted to the native rule body by
     `POST /v4/enforcement-transform/utility/json_to_rule` — but IBM's own client marks that
     transform service as **SaaS-only**, and earlier attempts to drive the policy service directly
-    on this cluster returned HTTP 405. `provision_ikc_governance.py` therefore probes the transform
+    on this cluster returned HTTP 405. `scripts/06b_provision_ikc_governance.py` therefore probes the transform
     first and, if it is not routed, tells you to create this one rule in the **IKC UI**
     (Governance → Rules → Add rule → Data protection rule) instead of posting a guessed payload.
     Once it exists you can capture the native shape and replay it on any other cluster:
 
     ```bash
-    python scripts/provision_ikc_governance.py --dpr-dump-existing dpr.json
-    python scripts/provision_ikc_governance.py --stage rules --dpr-native dpr.json
+    python scripts/06b_provision_ikc_governance.py --dpr-dump-existing dpr.json
+    python scripts/06b_provision_ikc_governance.py --stage rules --dpr-native dpr.json
     ```
 
 ---
@@ -188,7 +188,7 @@ The table below maps every governed column across all medallion layers.
 
 IKC import has strict dependency rules. The CSV files must be imported in this order, with a
 **publish step after each one** before moving to the next — in the UI that means clearing the
-workflow inbox by hand; `provision_ikc_governance.py` does the same three calls per artifact over
+workflow inbox by hand; `scripts/06b_provision_ikc_governance.py` does the same three calls per artifact over
 the workflow API (`claim` the task, read its form, `complete` it with the approve value).
 
 ```

@@ -12,31 +12,31 @@ source .venv/bin/activate
 
 ```bash
 # ── ONCE: import connection JSON → .env + SSL cert ───────────────────────────
-python scripts/prepare_watsonx_env.py
+python scripts/00a_prepare_watsonx_env.py
 # ensure WXD_OC_PASSWORD is set in .env (the only value the script cannot auto-discover)
 
 # ── EVERY SESSION: validate auth ─────────────────────────────────────────────
-python scripts/get_token.py --export     # checks key, writes bearer token to .env
+python scripts/00b_get_token.py --export     # checks key, writes bearer token to .env
 
 # ── ONCE on fresh env: create schemas ────────────────────────────────────────
-python scripts/bootstrap_watsonxdata.py
+python scripts/01_bootstrap_watsonxdata.py
 
 # ── PATH A · dbt ─────────────────────────────────────────────────────────────
-bash scripts/dbt_env.sh seed
-bash scripts/dbt_env.sh run
-bash scripts/dbt_env.sh test
+bash scripts/02_dbt_env.sh seed
+bash scripts/02_dbt_env.sh run
+bash scripts/02_dbt_env.sh test
 
 # ── PATH B · Spark ───────────────────────────────────────────────────────────
 # terminal 2 (keep open while uploading):
 oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
 
-python scripts/upload_spark_assets.py
-WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
-python scripts/spark_application_status.py   # repeat until finished
+python scripts/03a_upload_spark_assets.py
+WXD_SPARK_DRY_RUN=false python scripts/03b_submit_spark_application.py
+python scripts/03c_spark_application_status.py   # repeat until finished
 
 # ── PATH C · cpdctl ingestion ────────────────────────────────────────────────
-python scripts/ingest_with_cpdctl.py --wait          # submit + poll to completion
-python scripts/ingest_with_cpdctl.py --status --batch <id>   # check a prior run
+python scripts/04_ingest_with_cpdctl.py --wait          # submit + poll to completion
+python scripts/04_ingest_with_cpdctl.py --status --batch <id>   # check a prior run
 
 # ── PATH D · Confluent streaming (Kafka→Flink→Iceberg) ───────────────────────
 python scripts/check_hosts.py                        # verify /etc/hosts → bastion
@@ -54,27 +54,27 @@ python scripts/create_gold_views.py --path confluent
 python scripts/reconcile_gold.py                     # gold = 494 / 5 / 50, identical across engines
 
 # ── QUERY gold layer ─────────────────────────────────────────────────────────
-python scripts/query_gold.py
+python scripts/05_query_gold.py
 
 # ── OPTIONAL: Iceberg time travel demo ───────────────────────────────────────
-python scripts/demo_time_travel.py
+python scripts/06_demo_time_travel.py
 
 # ── OPTIONAL: OpenMetadata artifacts ─────────────────────────────────────────
-python scripts/prepare_openmetadata_dbt_artifacts.py
-python scripts/upload_dbt_artifacts.py
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py
+python scripts/07c_upload_dbt_artifacts.py
 
 # ── TEARDOWN (destructive!) ───────────────────────────────────────────────────
-scripts/reset_demo.sh --all --dry-run   # preview everything that would be removed
-scripts/reset_demo.sh --all             # Docker stacks + schemas + MinIO files
+scripts/11_reset_demo.sh --all --dry-run   # preview everything that would be removed
+scripts/11_reset_demo.sh --all             # Docker stacks + schemas + MinIO files
 # (or just the schemas, like before:)
-python scripts/cleanup_watsonxdata.py
+python scripts/08_cleanup_watsonxdata.py
 ```
 
 ---
 
 ## Step-by-step reference
 
-### 0a · `prepare_watsonx_env.py` — bootstrap the full environment
+### 0a · `00a_prepare_watsonx_env.py` — bootstrap the full environment
 
 **Run once** (or after any cluster change) to fill all 40+ `.env` variables automatically.
 Download the Presto connection JSON from the watsonx.data console
@@ -82,7 +82,7 @@ Download the Presto connection JSON from the watsonx.data console
 
 ```bash
 # Recommended — oc login + token fetch are on by default
-python scripts/prepare_watsonx_env.py
+python scripts/00a_prepare_watsonx_env.py
 ```
 
 This single command: parses the Presto JSON, writes `certs/watsonxdata-ca.pem`, derives all
@@ -92,7 +92,7 @@ checks reachability, and fetches the API key + bearer token.
 `--fetch-tokens` **only fills `WXD_API_KEY` in when it's empty** — if a real key is already
 in `.env`, this flag never touches or rotates it (by design, so a routine re-run can't
 silently invalidate a working credential). To force-rotate an existing key, use
-`get_token.py --refresh-key` below instead.
+`scripts/00b_get_token.py --refresh-key` below instead.
 
 | Flag | Default | Description |
 |---|---|---|
@@ -109,13 +109,13 @@ silently invalidate a working credential). To force-rotate an existing key, use
 
 ---
 
-### 0b · `get_token.py` — validate auth + refresh API key
+### 0b · `00b_get_token.py` — validate auth + refresh API key
 
 **Run at the start of every session.** Use `--export` so the bearer token is written to `.env`
 before running Spark (Spark submission reads `WXD_SPARK_BEARER_TOKEN`).
 
 ```bash
-python scripts/get_token.py --export
+python scripts/00b_get_token.py --export
 ```
 
 If the API key is expired the script falls back to password login, regenerates a fresh key,
@@ -123,7 +123,7 @@ saves it to `.env`, and continues — no manual copy-paste needed.
 
 ```bash
 # Force password login + regenerate key (e.g. after a long break)
-python scripts/get_token.py --refresh-key --export
+python scripts/00b_get_token.py --refresh-key --export
 ```
 
 | Flag | Description |
@@ -140,12 +140,12 @@ python scripts/get_token.py --refresh-key --export
 
 ---
 
-### 1 · `bootstrap_watsonxdata.py` — create demo schemas
+### 1 · `01_bootstrap_watsonxdata.py` — create demo schemas
 
 **Run once on a fresh environment**, before dbt or Spark.
 
 ```bash
-python scripts/bootstrap_watsonxdata.py
+python scripts/01_bootstrap_watsonxdata.py
 ```
 
 Creates `dbt_demo_raw`, `dbt_demo_bronze`, `dbt_demo_silver`,
@@ -153,25 +153,25 @@ Creates `dbt_demo_raw`, `dbt_demo_bronze`, `dbt_demo_silver`,
 
 ---
 
-### 2 · `dbt_env.sh` — dbt with `.env` loaded
+### 2 · `02_dbt_env.sh` — dbt with `.env` loaded
 
 Wrapper that sources `.env` before calling dbt — use this instead of calling `dbt` directly.
 
 ```bash
-bash scripts/dbt_env.sh seed              # load CSV seeds → raw tables
-bash scripts/dbt_env.sh run               # build bronze → silver → gold
-bash scripts/dbt_env.sh test              # run data quality tests
+bash scripts/02_dbt_env.sh seed              # load CSV seeds → raw tables
+bash scripts/02_dbt_env.sh run               # build bronze → silver → gold
+bash scripts/02_dbt_env.sh test              # run data quality tests
 
-bash scripts/dbt_env.sh run --select silver_orders   # single model
-bash scripts/dbt_env.sh run --full-refresh            # force full rebuild
-bash scripts/dbt_env.sh docs generate && bash scripts/dbt_env.sh docs serve
+bash scripts/02_dbt_env.sh run --select silver_orders   # single model
+bash scripts/02_dbt_env.sh run --full-refresh            # force full rebuild
+bash scripts/02_dbt_env.sh docs generate && bash scripts/02_dbt_env.sh docs serve
 ```
 
 ---
 
 ### 3 · Spark path
 
-#### `upload_spark_assets.py` — push app + CSVs to MinIO
+#### `03a_upload_spark_assets.py` — push app + CSVs to MinIO
 
 Run **once** before submitting the Spark job. MinIO has no external route,
 so open a port-forward first (keep it open in a second terminal):
@@ -181,53 +181,53 @@ oc -n cpd-instance port-forward svc/ibm-lh-lakehouse-minio-svc 19000:9000
 ```
 
 ```bash
-python scripts/upload_spark_assets.py
+python scripts/03a_upload_spark_assets.py
 ```
 
 Uploads `spark/app/load_medallion_demo.py` and all seed CSVs to `s3a://iceberg-bucket/spark_demo/`.
 
 ---
 
-#### `submit_spark_application.py` — submit the Spark job
+#### `03b_submit_spark_application.py` — submit the Spark job
 
-Requires `WXD_SPARK_BEARER_TOKEN` in `.env` — run `get_token.py --export` first.
+Requires `WXD_SPARK_BEARER_TOKEN` in `.env` — run `scripts/00b_get_token.py --export` first.
 
 ```bash
 # Dry run (default) — prints request body, does not submit
-python scripts/submit_spark_application.py
+python scripts/03b_submit_spark_application.py
 
 # Real submission
-WXD_SPARK_DRY_RUN=false python scripts/submit_spark_application.py
+WXD_SPARK_DRY_RUN=false python scripts/03b_submit_spark_application.py
 ```
 
 Prints the application ID on success. Copy it to `.env` as `WXD_SPARK_APPLICATION_ID`.
 
 ---
 
-#### `spark_application_status.py` — check job status
+#### `03c_spark_application_status.py` — check job status
 
 ```bash
-python scripts/spark_application_status.py               # reads WXD_SPARK_APPLICATION_ID
-python scripts/spark_application_status.py <app-id>      # or pass directly
+python scripts/03c_spark_application_status.py               # reads WXD_SPARK_APPLICATION_ID
+python scripts/03c_spark_application_status.py <app-id>      # or pass directly
 ```
 
 Returns `running`, `finished`, or `failed`.
 
 ---
 
-### 4 · `ingest_with_cpdctl.py` — native CSV ingestion
+### 4 · `04_ingest_with_cpdctl.py` — native CSV ingestion
 
 Requires `cpdctl` installed and on `PATH`. You do **not** need to log cpdctl in by
 hand: every run validates `WXD_API_KEY` against CPD and re-syncs cpdctl's cached
 credentials from `.env` first, so the stale-cache
 `authenticate step: Unauthorized` error can't recur. If the key itself is rejected
-you get a clear 401 pointing you to `python scripts/get_token.py --refresh-key`.
+you get a clear 401 pointing you to `python scripts/00b_get_token.py --refresh-key`.
 
 ```bash
-python scripts/ingest_with_cpdctl.py                  # submit all four jobs
-python scripts/ingest_with_cpdctl.py --wait           # submit, then poll to completion
-python scripts/ingest_with_cpdctl.py --status --batch <id>         # check a prior run
-python scripts/ingest_with_cpdctl.py --status --batch <id> --wait  # poll a prior run
+python scripts/04_ingest_with_cpdctl.py                  # submit all four jobs
+python scripts/04_ingest_with_cpdctl.py --wait           # submit, then poll to completion
+python scripts/04_ingest_with_cpdctl.py --status --batch <id>         # check a prior run
+python scripts/04_ingest_with_cpdctl.py --status --batch <id> --wait  # poll a prior run
 ```
 
 Reads CSVs from `s3a://iceberg-bucket/spark_demo/raw/` and ingests them into
@@ -246,23 +246,23 @@ batch id — no state file. Status is read via `cpdctl wx-data ingestion get`.
 
 ---
 
-### 5 · `query_gold.py` — query the gold layer
+### 5 · `05_query_gold.py` — query the gold layer
 
 ```bash
-python scripts/query_gold.py              # all reports
-python scripts/query_gold.py daily_sales
-python scripts/query_gold.py customer_360
+python scripts/05_query_gold.py              # all reports
+python scripts/05_query_gold.py daily_sales
+python scripts/05_query_gold.py customer_360
 ```
 
 Connects to Presto and prints formatted tables. Requires a valid API key in `.env`
-(run `get_token.py --export` first if you haven't this session).
+(run `scripts/00b_get_token.py --export` first if you haven't this session).
 
 ---
 
-### 6 · `demo_time_travel.py` — Iceberg time travel
+### 6 · `06_demo_time_travel.py` — Iceberg time travel
 
 ```bash
-python scripts/demo_time_travel.py
+python scripts/06_demo_time_travel.py
 ```
 
 Shows snapshot history, partition metadata, and a time-travel query against the silver layer.
@@ -270,13 +270,13 @@ Requires the silver schema to exist (run dbt or Spark path first).
 
 ---
 
-### 6b · `provision_ikc_governance.py` — build the governance layer
+### 6b · `06b_provision_ikc_governance.py` — build the governance layer
 
 ```bash
-python scripts/provision_ikc_governance.py --dry-run     # show every write, perform none
-python scripts/provision_ikc_governance.py               # all stages, in dependency order
-python scripts/provision_ikc_governance.py --verify-only # what is published right now
-python scripts/provision_ikc_governance.py --stage terms # one stage (repeatable)
+python scripts/06b_provision_ikc_governance.py --dry-run     # show every write, perform none
+python scripts/06b_provision_ikc_governance.py               # all stages, in dependency order
+python scripts/06b_provision_ikc_governance.py --verify-only # what is published right now
+python scripts/06b_provision_ikc_governance.py --stage terms # one stage (repeatable)
 ```
 
 Applies `governance/ikc/` to IBM Knowledge Catalog on CPD / IBM Software Hub 5.3 in the only order
@@ -286,7 +286,7 @@ referenced (`GIM00015E`). Publishing is a workflow, not a flag: the script claim
 the approve value from the task's own form, and completes it with your token's `uid` as assignee.
 
 Authenticates as `WXD_CPD_USERNAME` (default `cpadmin`) via the same waterfall as
-[`get_token.py`](#0b-get_tokenpy-validate-auth-refresh-api-key): an existing bearer token in `.env`, then `WXD_API_KEY`, then a
+[`00b_get_token.py`](#0b-00b_get_tokenpy-validate-auth-refresh-api-key): an existing bearer token in `.env`, then `WXD_API_KEY`, then a
 `WXD_CPD_PASSWORD` login (prompting interactively if neither is set). No `oc` session needed.
 Safe to re-run — every import uses `merge_option=all`, which overwrites in place.
 
@@ -324,13 +324,13 @@ See [Governance layer](governance-ikc.md) for the artifact inventory and the man
 
 ### 7 · OpenMetadata artifacts
 
-#### `prepare_openmetadata_dbt_artifacts.py`
+#### `07a_prepare_openmetadata_dbt_artifacts.py`
 
 ```bash
-python scripts/prepare_openmetadata_dbt_artifacts.py            # full run: seed+run+test+docs
-python scripts/prepare_openmetadata_dbt_artifacts.py --docs-only # lineage only: docs generate + stage
-python scripts/prepare_openmetadata_dbt_artifacts.py --skip-dbt  # use existing target/*.json
-python scripts/prepare_openmetadata_dbt_artifacts.py --skip-seed # skip seed step only
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py            # full run: seed+run+test+docs
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py --docs-only # lineage only: docs generate + stage
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py --skip-dbt  # use existing target/*.json
+python scripts/07a_prepare_openmetadata_dbt_artifacts.py --skip-seed # skip seed step only
 ```
 
 By default the script runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and
@@ -347,15 +347,15 @@ into `openmetadata/dbt-artifacts/`.
 
 ---
 
-#### `generate_lineage_docs.sh`
+#### `07b_generate_lineage_docs.sh`
 
 ```bash
-scripts/generate_lineage_docs.sh                 # refresh lineage artifacts only
-scripts/generate_lineage_docs.sh --retries 3     # flags forwarded to the python stager
+scripts/07b_generate_lineage_docs.sh                 # refresh lineage artifacts only
+scripts/07b_generate_lineage_docs.sh --retries 3     # flags forwarded to the python stager
 ```
 
 A thin, lineage-only convenience wrapper around
-`prepare_openmetadata_dbt_artifacts.py --docs-only`. It runs **only**
+`scripts/07a_prepare_openmetadata_dbt_artifacts.py --docs-only`. It runs **only**
 `dbt docs generate` (no seed/run/test) and stages the three artifacts OpenMetadata
 reads. Use it when the medallion tables are already built and you just want fresh
 lineage/column metadata for the catalogue. All flags are forwarded verbatim to the
@@ -363,20 +363,20 @@ python stager (e.g. `--artifact-dir`, `--retries`); do not pass `--skip-dbt`.
 
 ---
 
-#### `upload_dbt_artifacts.py`
+#### `07c_upload_dbt_artifacts.py`
 
 ```bash
-python scripts/upload_dbt_artifacts.py
+python scripts/07c_upload_dbt_artifacts.py
 ```
 
 Pushes staged artifacts to `s3://iceberg-bucket/openmetadata/dbt-artifacts/dbt_demo/`
 so OpenMetadata can read them during ingestion.
 
-#### `apply_openmetadata_governance.py`
+#### `07d_apply_openmetadata_governance.py`
 
 ```bash
-python scripts/apply_openmetadata_governance.py --mode online
-python scripts/apply_openmetadata_governance.py --mode offline --strict
+python scripts/07d_apply_openmetadata_governance.py --mode online
+python scripts/07d_apply_openmetadata_governance.py --mode offline --strict
 ```
 
 Applies the OpenMetadata governance layer after table and dbt lineage ingestion:
@@ -445,7 +445,7 @@ picks **one** action; the default is `--all`. Global options `-y/--yes` (no prom
 | `--silver` | Run the Flink silver pipeline via three `watsonxdata`-profile one-shots: `confluent-schema-prep` (Phase A — create the `confluent_demo_silver` + `confluent_demo_gold` schemas in watsonx.data), `confluent-flink-runner` (submit the 9 jobs in `silver_jobs.sql`), and `confluent-prep` (Phase B — `register_table` the 5 silver tables). **Requires a reachable MinIO Route + `WXD_OBJECT_STORE_ENDPOINT` in `.env`** — run `expose_minio_route.sh` first. |
 | `--gold` | Build the `confluent_demo_gold` marts from silver. Uses `--engine` (`spark` default, or `datastage`); default comes from `CONFLUENT_GOLD_ENGINE`. |
 | `--status` | Read-only: service health, per-topic message counts (via the Kafbat API), UI URLs. Safe anytime. |
-| `--reset` | **Destructive.** Delegates to `scripts/reset_demo.sh --confluent`. |
+| `--reset` | **Destructive.** Delegates to `scripts/11_reset_demo.sh --confluent`. |
 | `--stop` | Stop the 7 containers, keep data/volumes. Restart with `--stack`. |
 
 UIs after start: Kafbat `:28080`, Flink Web `:28085`, SQL Gateway `:28083`, Schema Registry
@@ -543,7 +543,7 @@ python confluent/scripts/submit_confluent_gold.py --no-dry-run --wait
   submitter runs `scripts/create_gold_views.py --path confluent` to create the two VIEW marts via
   Presto — the dbt-parity materialisation.
 * **When:** after silver is registered, with the Spark engine running (`CONFLUENT_GOLD_ENGINE=spark`).
-  Reuses the same Spark machinery/credentials as `submit_spark_application.py`.
+  Reuses the same Spark machinery/credentials as `scripts/03b_submit_spark_application.py`.
 * **Key flags:** defaults to **dry-run**; `--no-dry-run` to actually submit; `--wait` to poll to a
   terminal state; `--no-views` to skip the Presto VIEWs (restores old table-only/wait behaviour).
   Default sizing 1 core / 2G driver + executor.
@@ -605,10 +605,10 @@ python scripts/reconcile_gold.py --paths dbt,confluent # any subset (min 2)
 
 ---
 
-### 8 · `cleanup_watsonxdata.py` — drop the schemas
+### 8 · `08_cleanup_watsonxdata.py` — drop the schemas
 
 ```bash
-python scripts/cleanup_watsonxdata.py
+python scripts/08_cleanup_watsonxdata.py
 ```
 
 Drops every demo schema and the tables/views inside them: `dbt_demo_{raw,bronze,silver,gold}`,
@@ -617,13 +617,13 @@ default `spark_demo_cpdctl_raw`).
 
 !!! danger "Destructive"
     Drops the catalog objects only. Iceberg **data files** may linger in object storage —
-    use `cleanup_minio.py` (or the all-in-one `reset_demo.sh` below) to delete those too.
+    use `scripts/09_cleanup_minio.py` (or the all-in-one `scripts/11_reset_demo.sh` below) to delete those too.
 
-### 9 · `cleanup_minio.py` — delete the demo's MinIO files
+### 9 · `09_cleanup_minio.py` — delete the demo's MinIO files
 
 ```bash
-python scripts/cleanup_minio.py --dry-run   # list what would be deleted
-python scripts/cleanup_minio.py             # delete
+python scripts/09_cleanup_minio.py --dry-run   # list what would be deleted
+python scripts/09_cleanup_minio.py             # delete
 ```
 
 Scoped deletion of only the demo's own prefixes inside `iceberg-bucket`: the medallion
@@ -631,7 +631,7 @@ schema folders (Iceberg table data at the bucket root), the `spark_demo/` asset 
 (uploaded Spark app + raw CSVs), and `openmetadata/dbt-artifacts/`. It never empties the
 whole bucket. Needs an `oc` session (MinIO has no external Route on this cluster).
 
-### 10 · `configure_ikc_reporting.sh` — IKC reporting settings (optional, CPD only)
+### 10 · `10_configure_ikc_reporting.sh` — IKC reporting settings (optional, CPD only)
 
 !!! info "Optional — requires CPD Enterprise + `oc` login"
     This script is only relevant when running against **IBM Software Hub (CPD)** with a
@@ -644,19 +644,19 @@ in one idempotent command:
 
 ```bash
 # Recommended for demos: default=true, enforce=false
-bash scripts/configure_ikc_reporting.sh
+bash scripts/10_configure_ikc_reporting.sh
 
 # Lock all reporting on (enforce=true, default=true)
-bash scripts/configure_ikc_reporting.sh --enforce
+bash scripts/10_configure_ikc_reporting.sh --enforce
 
 # Preview without changing anything
-bash scripts/configure_ikc_reporting.sh --enforce --dry-run
+bash scripts/10_configure_ikc_reporting.sh --enforce --dry-run
 
 # Patch only — skip pod restarts (pods already running)
-bash scripts/configure_ikc_reporting.sh --enforce --skip-restart
+bash scripts/10_configure_ikc_reporting.sh --enforce --skip-restart
 
 # Revert to IBM defaults (both false)
-bash scripts/configure_ikc_reporting.sh --disable
+bash scripts/10_configure_ikc_reporting.sh --disable
 ```
 
 | Flag | Effect |
@@ -667,7 +667,7 @@ bash scripts/configure_ikc_reporting.sh --disable
 | `--namespace NS` | CPD operands namespace (default: `cpd-instance`) |
 | `--dry-run` | Preview only — nothing is changed |
 
-### 10b · `provision_pg_reporting.sh` — the reporting PostgreSQL, end to end
+### 10b · `10b_provision_pg_reporting.sh` — the reporting PostgreSQL, end to end
 
 !!! info "Optional — requires `oc` login + the Crunchy Postgres operator"
     This provisions the **custom** reporting database (`ibmas_reporting`) that mirrors the gold
@@ -678,7 +678,7 @@ One command creates the Postgres cluster, the database/user/schema, the Kubernet
 CPD project (if missing), and the CPD connection:
 
 ```bash
-bash scripts/provision_pg_reporting.sh
+bash scripts/10b_provision_pg_reporting.sh
 ```
 
 It runs seven steps in dependency order, and each one is idempotent — re-running adopts what
@@ -708,7 +708,7 @@ of which produces a failure this script cannot fix and would otherwise be blamed
   Standard or Base the connection still registers, but IKC reporting fails with `IKCBI2019E`
   and no role grant will change that.
 - **`ccs-features-configmap`** → `enforceAuthorizeReporting` / `defaultAuthorizeReporting`.
-  Turn them on with `configure_ikc_reporting.sh --enforce` (§10 above).
+  Turn them on with `scripts/10_configure_ikc_reporting.sh --enforce` (§10 above).
 
 #### Two logins, in this order
 
@@ -723,7 +723,7 @@ source of confusing errors:
    A stale token in `.env` is probed and rejected up front rather than failing later:
 
 ```bash
-.venv/bin/python scripts/get_token.py --export
+.venv/bin/python scripts/00b_get_token.py --export
 ```
 
 #### Check the cluster before provisioning anything
@@ -732,7 +732,7 @@ source of confusing errors:
 as a pre-demo smoke test:
 
 ```bash
-bash scripts/provision_pg_reporting.sh --verify-only
+bash scripts/10b_provision_pg_reporting.sh --verify-only
 ```
 
 The operand CR names are **discovered** from the cluster's API groups rather than hardcoded,
@@ -771,16 +771,16 @@ Both exist because the wrong guess is expensive and hard to undo:
 
 ```bash
 # Preview everything; change nothing
-bash scripts/provision_pg_reporting.sh --dry-run
+bash scripts/10b_provision_pg_reporting.sh --dry-run
 
 # Also create the Data Source Definition, reachable from a workstation
-bash scripts/provision_pg_reporting.sh --dsd --external-url localhost:15432
+bash scripts/10b_provision_pg_reporting.sh --dsd --external-url localhost:15432
 
 # Target a project that already exists, and never create one
-bash scripts/provision_pg_reporting.sh --project-id <GUID> --no-create-project
+bash scripts/10b_provision_pg_reporting.sh --project-id <GUID> --no-create-project
 
 # Full trace of every API call and SQL statement
-bash scripts/provision_pg_reporting.sh --verbose
+bash scripts/10b_provision_pg_reporting.sh --verbose
 ```
 
 | Flag | Effect |
@@ -802,22 +802,22 @@ bash scripts/provision_pg_reporting.sh --verbose
     `port-forward`, because TLS terminates at PostgreSQL, not at the tunnel.  Setting
     `disable` produces *"no pg_hba.conf entry for host …, SSL off"*.
 
-### 11 · `reset_demo.sh` — full reset for a 100% clean rerun
+### 11 · `11_reset_demo.sh` — full reset for a 100% clean rerun
 
 One command that resets any combination of the three demo "surfaces":
 
 ```bash
-scripts/reset_demo.sh --all --dry-run     # preview a full wipe (changes nothing)
-scripts/reset_demo.sh --all               # Docker + schemas + MinIO
-scripts/reset_demo.sh --docker            # just the local containers/volumes/images
-scripts/reset_demo.sh --warehouse -y      # drop schemas + MinIO files, skip the prompt
+scripts/11_reset_demo.sh --all --dry-run     # preview a full wipe (changes nothing)
+scripts/11_reset_demo.sh --all               # Docker + schemas + MinIO
+scripts/11_reset_demo.sh --docker            # just the local containers/volumes/images
+scripts/11_reset_demo.sh --warehouse -y      # drop schemas + MinIO files, skip the prompt
 ```
 
 | Flag | What it resets |
 |---|---|
 | `--docker` | Stops & removes the Metabase, Airflow, OpenMetadata stacks — containers + named volumes + the demo's **own (locally built)** images. Shared public base images are kept by default. |
-| `--schemas` | Drops the watsonx.data schemas + tables/views (calls `cleanup_watsonxdata.py`). |
-| `--minio` | Deletes the demo's MinIO/S3 files (calls `cleanup_minio.py`; needs `oc`). |
+| `--schemas` | Drops the watsonx.data schemas + tables/views (calls `scripts/08_cleanup_watsonxdata.py`). |
+| `--minio` | Deletes the demo's MinIO/S3 files (calls `scripts/09_cleanup_minio.py`; needs `oc`). |
 | `--warehouse` | `--schemas` then `--minio` (the whole remote side). |
 | `--all` | `--docker` + `--schemas` + `--minio`. |
 | `--dry-run` | Show what would happen, change nothing. |
@@ -838,5 +838,5 @@ scripts/reset_demo.sh --warehouse -y      # drop schemas + MinIO files, skip the
       the bucket is never emptied.
 
 !!! danger "Still destructive — always `--dry-run` first"
-    `reset_demo.sh` permanently removes the selected resources. Run `--dry-run` first to see
+    `scripts/11_reset_demo.sh` permanently removes the selected resources. Run `--dry-run` first to see
     the exact containers, volumes, schemas, and object counts that will go.

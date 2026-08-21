@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  upload_dbt_artifacts.py — push staged dbt artifacts to S3 object storage for OpenMetadata
 #
-#  Location  : scripts/upload_dbt_artifacts.py
+#  Location  : scripts/07c_upload_dbt_artifacts.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark · Confluent medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
@@ -16,7 +16,7 @@
 
 This is the SECOND half of the OpenMetadata lineage workflow. It takes the dbt
 artifacts already staged on disk by
-``scripts/prepare_openmetadata_dbt_artifacts.py`` (``manifest.json`` plus the
+``scripts/07a_prepare_openmetadata_dbt_artifacts.py`` (``manifest.json`` plus the
 optional ``catalog.json`` and ``run_results.json``) and uploads them to the
 S3-compatible object store (MinIO / watsonx.data bucket) under a stable prefix.
 OpenMetadata's dbt ingestion connector then reads those objects from S3 to
@@ -35,7 +35,7 @@ WHAT it does:
    bounded retries so a stalled MinIO cannot hang the upload, then uploads each
    present artifact and prints the resulting ``s3://`` paths.
 
-WHEN to run it: AFTER ``scripts/prepare_openmetadata_dbt_artifacts.py`` has
+WHEN to run it: AFTER ``scripts/07a_prepare_openmetadata_dbt_artifacts.py`` has
 staged the artifacts locally, and before (or as part of) configuring the
 OpenMetadata dbt ingestion to point at the printed S3 paths.
 
@@ -60,7 +60,7 @@ reachable object-store endpoint (or a working ``kubectl`` context if a
 port-forward is needed), and the staged artifacts on disk.
 
 USAGE example:
- - ``python3 scripts/upload_dbt_artifacts.py``
+ - ``python3 scripts/07c_upload_dbt_artifacts.py``
 
 SIDE EFFECTS + EXIT: writes objects into the S3 bucket, may start and then
 terminate a port-forward subprocess, prints the uploaded ``s3://`` paths, and
@@ -79,12 +79,17 @@ try:
 except ImportError:
     load_dotenv = None
 
-from upload_spark_assets import (
-    ROOT,
-    _env,
-    _maybe_start_port_forward,
-    _object_store_credentials,
+import importlib.util
+
+_uploader_spec = importlib.util.spec_from_file_location(
+    "upload_spark_assets", Path(__file__).resolve().parent / "03a_upload_spark_assets.py"
 )
+_uploader = importlib.util.module_from_spec(_uploader_spec)
+_uploader_spec.loader.exec_module(_uploader)
+ROOT = _uploader.ROOT
+_env = _uploader._env
+_maybe_start_port_forward = _uploader._maybe_start_port_forward
+_object_store_credentials = _uploader._object_store_credentials
 
 
 REQUIRED_ARTIFACTS = ["manifest.json"]
@@ -125,7 +130,7 @@ def main() -> int:
         raise SystemExit(
             "Missing required staged dbt artifacts: "
             + ", ".join(missing_required)
-            + ". Run scripts/prepare_openmetadata_dbt_artifacts.py first."
+            + ". Run scripts/07a_prepare_openmetadata_dbt_artifacts.py first."
         )
     if missing_optional:
         print(

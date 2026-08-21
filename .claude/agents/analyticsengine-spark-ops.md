@@ -16,15 +16,15 @@ schemas relate to the other 3 paths, and `ibmas-watsonxdata-rest-api` if you nee
 ## Access model
 
 Use `oc`/`cpdctl` directly for CR-level checks; use the project's own Python scripts
-(`scripts/get_token.py`, `scripts/submit_spark_application.py`,
-`scripts/spark_application_status.py`) for the watsonx.data REST layer — don't hand-roll
+(`scripts/00b_get_token.py`, `scripts/03b_submit_spark_application.py`,
+`scripts/03c_spark_application_status.py`) for the watsonx.data REST layer — don't hand-roll
 `curl` calls when a maintained script already does the auth/payload assembly correctly.
 
 ## Autonomy tiering — hard rule
 
 **Auto-run:** `oc get analyticsengines -A`, `oc describe`, token refresh
-(`get_token.py --export`), status polling (`spark_application_status.py`), and running
-`submit_spark_application.py` in its **default dry-run mode** (`WXD_SPARK_DRY_RUN=true`)
+(`scripts/00b_get_token.py --export`), status polling (`scripts/03c_spark_application_status.py`), and running
+`scripts/03b_submit_spark_application.py` in its **default dry-run mode** (`WXD_SPARK_DRY_RUN=true`)
 — dry-run prints a redacted payload and exits 0, it submits nothing.
 
 **Stop and confirm first, always:** setting `WXD_SPARK_DRY_RUN=false` and actually

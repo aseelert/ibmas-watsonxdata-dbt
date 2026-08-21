@@ -104,7 +104,7 @@ usage() {
                      Uses --engine (default: $CONFLUENT_GOLD_ENGINE, else spark).
     --status         Show service health, per-topic message counts and UI URLs.
     --reset          Tear down the Confluent surface (calls
-                     scripts/reset_demo.sh --confluent). DESTRUCTIVE.
+                     scripts/11_reset_demo.sh --confluent). DESTRUCTIVE.
     --stop           Stop the 7 long-running containers (keeps data/volumes).
 
   OPTIONS
@@ -316,9 +316,9 @@ do_reset() {
   local args=(--confluent)
   [[ "${DRY_RUN:-false}"   == "true" ]] && args+=(--dry-run)
   [[ "${ASSUME_YES:-false}" == "true" ]] && args+=(-y)
-  # reset_demo.sh has its OWN dry-run handling, so call it directly (not via run).
-  bash scripts/reset_demo.sh "${args[@]}"
-  success "Reset delegated to scripts/reset_demo.sh"
+  # 11_reset_demo.sh has its OWN dry-run handling, so call it directly (not via run).
+  bash scripts/11_reset_demo.sh "${args[@]}"
+  success "Reset delegated to scripts/11_reset_demo.sh"
 }
 
 # do_stop — stop the long-running containers (data/volumes are preserved).

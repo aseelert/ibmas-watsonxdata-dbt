@@ -52,13 +52,13 @@ project verbatim — it shells out to the very same commands you run manually:
 
 ```text
 dag_dbt_medallion.py  (DAG: dbt_medallion_hourly)
-  bootstrap_schemas        → scripts/bootstrap_watsonxdata.py
+  bootstrap_schemas        → scripts/01_bootstrap_watsonxdata.py
   RAW    : dbt seed  --select raw_<x>     → dbt_demo_raw
   BRONZE : dbt run   --select bronze_<x>  → dbt_demo_bronze
   SILVER : dbt run   --select silver_<x>  → dbt_demo_silver
   GOLD   : dbt run   --select gold_<x>    → dbt_demo_gold
   dbt_test                                 (schema + data tests)
-  query_gold                               → scripts/query_gold.py
+  query_gold                               → scripts/05_query_gold.py
 ```
 
 The task dependencies are a **1:1 copy of the dbt `ref()` graph**, so Airflow runs models in true

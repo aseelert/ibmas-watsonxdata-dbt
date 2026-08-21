@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Upload Retail Medallion Lakehouse governance CSVs to IBM Knowledge Catalog.
 
-SUPERSEDED — use scripts/provision_ikc_governance.py instead.
+ARCHIVED 2026-08-21 — moved from governance/ikc/ to governance/ikc/_archive/. Confirmed
+via a live re-check of the CPD instance that this script left no residue (0 drafts,
+no duplicate/non-"RML "-prefixed artifacts) — safe reference-only history.
+
+SUPERSEDED — use scripts/06b_provision_ikc_governance.py instead.
   This script uploads CSVs but stops there: it never publishes the resulting
   drafts, and it imports data classes *before* business terms, which is the
   wrong order (a data class cannot resolve Related Terms against a term that is
@@ -9,8 +13,8 @@ SUPERSEDED — use scripts/provision_ikc_governance.py instead.
   CSVs" reference. The replacement does import → publish → verify per stage, in
   dependency order, and also creates the data protection rule:
 
-      python scripts/provision_ikc_governance.py --dry-run
-      python scripts/provision_ikc_governance.py
+      python scripts/06b_provision_ikc_governance.py --dry-run
+      python scripts/06b_provision_ikc_governance.py
 
 Steps performed:
   1. Authenticate with cpadmin credentials (WXD_CPD_PASSWORD from .env)
@@ -26,11 +30,10 @@ After running, all artifacts will be in DRAFT state. Publish them via:
 Once data classes are published, re-run this script with --terms-only to re-import
 business terms so that the data-class ↔ term relationships attach correctly.
 
-Usage:
-    cd governance/ikc
-    python upload_governance.py               # full upload
-    python upload_governance.py --dc-only     # data classes only
-    python upload_governance.py --terms-only  # business terms only (after DC publish)
+Usage (run from the repo root; CSVs are read from governance/ikc/, not this _archive/ dir):
+    python governance/ikc/_archive/upload_governance.py               # full upload
+    python governance/ikc/_archive/upload_governance.py --dc-only     # data classes only
+    python governance/ikc/_archive/upload_governance.py --terms-only  # business terms only (after DC publish)
 """
 from __future__ import annotations
 
@@ -51,7 +54,8 @@ except ImportError:
     raise SystemExit("pip install requests")
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+CSV_DIR = HERE.parent  # the CSVs stayed in governance/ikc/; only this script moved to _archive/
+ROOT = HERE.parents[2]
 ENV_FILE = ROOT / ".env"
 CATALOG_ID = "d742df95-bfe8-4402-a4f3-ce2d18b1c7fb"
 
@@ -135,7 +139,7 @@ def main() -> None:
     do_all = not any([args.dc_only, args.cls_only, args.terms_only, args.cats_only])
 
     print("=== Retail Medallion Lakehouse — IKC Governance Upload ===")
-    print("NOTE: superseded by scripts/provision_ikc_governance.py, which publishes")
+    print("NOTE: superseded by scripts/06b_provision_ikc_governance.py, which publishes")
     print("      each stage before importing the next one. This script leaves every")
     print("      artifact in draft, so data-class → term links will not resolve.")
     print()
@@ -149,7 +153,7 @@ def main() -> None:
         results["categories"] = import_csv(
             cpd_host, token,
             "/v3/governance_artifact_types/category/import",
-            HERE / "01_categories.csv",
+            CSV_DIR / "01_categories.csv",
             "01 — Categories (incl. Data Governance sub-cat)",
         )
 
@@ -158,7 +162,7 @@ def main() -> None:
         results["classifications"] = import_csv(
             cpd_host, token,
             "/v3/governance_artifact_types/classification/import",
-            HERE / "03_classifications.csv",
+            CSV_DIR / "03_classifications.csv",
             "03 — Classifications (Business Data / Personal Data)",
         )
 
@@ -167,7 +171,7 @@ def main() -> None:
         results["data_classes"] = import_csv(
             cpd_host, token,
             "/v3/governance_artifact_types/data_class/import",
-            HERE / "04_data_classes.csv",
+            CSV_DIR / "04_data_classes.csv",
             "04 — Data Classes (14 custom regex data classes)",
         )
 
@@ -176,7 +180,7 @@ def main() -> None:
         results["terms"] = import_csv(
             cpd_host, token,
             "/v3/governance_artifact_types/glossary_term/import",
-            HERE / "02_business_terms.csv",
+            CSV_DIR / "02_business_terms.csv",
             "02 — Business Terms (14 terms with DC links and related terms)",
         )
 

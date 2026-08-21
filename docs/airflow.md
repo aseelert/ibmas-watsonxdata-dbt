@@ -40,7 +40,7 @@ flowchart TB
     slv["silver: silver_* + silver_sales_enriched\n+ time_spine_daily  → dbt_demo_silver"]:::silver
     gld["gold: gold_daily_sales → gold_category_performance\ngold_customer_360  → dbt_demo_gold"]:::gold
     tst["dbt_test  (schema + data tests)"]:::ops
-    qg["query_gold  (scripts/query_gold.py)"]:::ops
+    qg["query_gold  (scripts/05_query_gold.py)"]:::ops
     boot --> seed --> brz --> slv --> gld --> tst --> qg
     boot --> slv
   end
@@ -59,7 +59,7 @@ flowchart TB
   end
 ```
 
-**dbt DAG** wires one Airflow task per dbt model, following the dbt `ref()` graph exactly: four independent `raw → bronze → silver` branches, then `silver_sales_enriched` (the join of all four), then the three gold marts, then `dbt_test`, then a real `query_gold.py` preview. **Spark DAG** submits the whole medallion as **one distributed job** (`spark/load_medallion_demo.py` writes bronze→silver→gold in a single application — that is how Spark works), then makes **each layer its own verification task** that counts rows via Presto, giving the same `bronze → silver → gold` shape honestly.
+**dbt DAG** wires one Airflow task per dbt model, following the dbt `ref()` graph exactly: four independent `raw → bronze → silver` branches, then `silver_sales_enriched` (the join of all four), then the three gold marts, then `dbt_test`, then a real `scripts/05_query_gold.py` preview. **Spark DAG** submits the whole medallion as **one distributed job** (`spark/load_medallion_demo.py` writes bronze→silver→gold in a single application — that is how Spark works), then makes **each layer its own verification task** that counts rows via Presto, giving the same `bronze → silver → gold` shape honestly.
 
 ---
 
@@ -69,7 +69,7 @@ flowchart TB
 | --- | --- |
 | `airflow/dags/dag_dbt_medallion.py` | DAG `dbt_medallion_hourly` — `@hourly`, one `BashOperator` per dbt model, mirroring the dbt `ref()` lineage. Builds `dbt_demo_{raw,bronze,silver,gold}`. |
 | `airflow/dags/dag_spark_medallion.py` | DAG `spark_medallion_hourly` — `@hourly`, submits one Spark job then verifies each layer. Builds `spark_demo_{bronze,silver,gold}`. |
-| `airflow/dags/common/wxd.py` | The single place auth / TLS / Presto / Spark-REST logic lives, mirroring the standalone scripts (`get_token.py`, `submit_spark_application.py`, `bootstrap_watsonxdata.py`, `query_gold.py`) so nothing is duplicated. |
+| `airflow/dags/common/wxd.py` | The single place auth / TLS / Presto / Spark-REST logic lives, mirroring the standalone scripts (`scripts/00b_get_token.py`, `scripts/03b_submit_spark_application.py`, `scripts/01_bootstrap_watsonxdata.py`, `scripts/05_query_gold.py`) so nothing is duplicated. |
 | `docker-compose.yml` | The local stack: `airflow-postgres` (metadata DB), one-shot `airflow-init`, `airflow-webserver` (api-server, UI on **8082**), `airflow-scheduler`, `airflow-dag-processor`, plus the optional Metabase/OpenMetadata services. |
 | `airflow/Dockerfile` | Pinned `apache/airflow:3.2.2` image plus the repo's dbt/Presto/boto3 dependencies. |
 

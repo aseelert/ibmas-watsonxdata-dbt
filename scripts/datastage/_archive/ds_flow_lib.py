@@ -2,10 +2,13 @@
 # -----------------------------------------------------------------------------
 #  ds_flow_lib.py — build IBM DataStage pipeline-flow (v3) JSON for the medallion demo
 #
-#  Location  : scripts/datastage/ds_flow_lib.py
+#  Location  : scripts/datastage/_archive/ds_flow_lib.py
 #  Project   : watsonx.data · dbt · Spark · Confluent · DataStage medallion demo
 #  Author    : Alexander Seelert — IBM Customer Success Engineer
 #  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  ARCHIVED 2026-08-21 — sole consumer was create_medallion_flows.py (v1, also
+#  archived alongside it). create_medallion_flows_v2.py does not use this module.
 #
 #  WHAT / WHY
 #  ----------

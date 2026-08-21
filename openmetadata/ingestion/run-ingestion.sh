@@ -34,8 +34,8 @@
 #  WHEN TO RUN IT
 #    AFTER (a) the local OpenMetadata Docker stack is up and healthy on
 #    localhost:8585 (see openmetadata/docker-compose.yml) and (b) the dbt
-#    artifacts exist + are staged — run scripts/generate_lineage_docs.sh (or
-#    scripts/prepare_openmetadata_dbt_artifacts.py) first. Re-running is safe:
+#    artifacts exist + are staged — run scripts/07b_generate_lineage_docs.sh (or
+#    scripts/07a_prepare_openmetadata_dbt_artifacts.py) first. Re-running is safe:
 #    every write is an idempotent create-or-update.
 #
 #  ENV VARS (read from <repo>/.env)
@@ -121,7 +121,7 @@ metadata ingest -c /tmp/dbt-ingestion-final.yaml
 
 # --- Pass 3: attach glossary, classifications, and description fallbacks ------
 echo "[ingest] Pass 3: applying glossary terms and auto-classifications..."
-if ! python "${repo_root}/scripts/apply_openmetadata_governance.py"; then
+if ! python "${repo_root}/scripts/07d_apply_openmetadata_governance.py"; then
   echo "[ingest] governance enrichment failed; lineage ingestion is still complete." >&2
 fi
 

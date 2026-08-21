@@ -11,7 +11,7 @@ catalog on MinIO, all queryable via the Presto SQL engine:
 
 - **Path A — dbt** (`models/`): full SQL pipeline via the `dbt-watsonx-presto` adapter → schemas `dbt_demo_raw/bronze/silver/gold`
 - **Path B — Spark** (`spark/load_medallion_demo.py`): PySpark on the watsonx.data Spark engine → `spark_demo_bronze/silver/gold`
-- **Path C — cpdctl** (`scripts/ingest_with_cpdctl.py`): native ingestion loader, raw only → `spark_demo_cpdctl_raw`
+- **Path C — cpdctl** (`scripts/04_ingest_with_cpdctl.py`): native ingestion loader, raw only → `spark_demo_cpdctl_raw`
 - **Streaming (newer)** — `confluent/`: Kafka → Flink → Iceberg, a self-contained Docker stack
 
 The audience is non-technical learners. **Docs are part of the product**: when changing
@@ -21,7 +21,7 @@ dbt **and** Spark paths should stay in parity.
 
 ## Common commands
 
-dbt is always invoked through `scripts/dbt_env.sh`, a wrapper that sources `.env` and uses
+dbt is always invoked through `scripts/02_dbt_env.sh`, a wrapper that sources `.env` and uses
 the `.venv` dbt binary. Don't call bare `dbt` — env vars from `.env` won't be loaded.
 
 ```bash
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 # Bootstrap .env from the Presto connection JSON exported from the watsonx.data UI
 # (save the export as watsonx_data/instance_details.json first):
-python3 scripts/prepare_watsonx_env.py
+python3 scripts/00a_prepare_watsonx_env.py
 #   → parses JSON → writes WXD_HOST, WXD_PORT, WXD_INSTANCE_ID, WXD_CPD_HOST, etc.
 #   → derives all URLs (WXD_CPD_AUTH_URL, WXD_OPENSHIFT_CONSOLE, Spark endpoints, MinIO, PG)
 #   → writes CA cert to certs/watsonxdata-ca.pem
@@ -46,21 +46,21 @@ python3 scripts/prepare_watsonx_env.py
 #   -v / --verbose          DEBUG logging
 #
 # After the script, two values usually still need attention:
-#   WXD_API_KEY             → auto-fetched by prepare_watsonx_env.py IF currently empty
+#   WXD_API_KEY             → auto-fetched by scripts/00a_prepare_watsonx_env.py IF currently empty
 #                              (never rotates an existing one); to force-rotate:
-#                              python3 scripts/get_token.py --refresh-key
+#                              python3 scripts/00b_get_token.py --refresh-key
 #                              or manually: Software Hub UI → Profile → API key
-#   WXD_SPARK_BEARER_TOKEN  → python3 scripts/get_token.py --export  (refresh per session)
+#   WXD_SPARK_BEARER_TOKEN  → python3 scripts/00b_get_token.py --export  (refresh per session)
 
 # dbt path (all go through the wrapper)
-bash scripts/dbt_env.sh debug
-bash scripts/dbt_env.sh seed              # load 4 CSVs into *_raw
-bash scripts/dbt_env.sh run               # build bronze → silver → gold
-bash scripts/dbt_env.sh test              # run schema tests
-bash scripts/dbt_env.sh run  --select bronze            # single layer (tags: bronze/silver/gold)
-bash scripts/dbt_env.sh run  --select silver_orders     # single model
-bash scripts/dbt_env.sh test --select silver+           # one model + downstream
-bash scripts/dbt_env.sh run  --threads 2                # if cluster is under load (avoids connection aborts)
+bash scripts/02_dbt_env.sh debug
+bash scripts/02_dbt_env.sh seed              # load 4 CSVs into *_raw
+bash scripts/02_dbt_env.sh run               # build bronze → silver → gold
+bash scripts/02_dbt_env.sh test              # run schema tests
+bash scripts/02_dbt_env.sh run  --select bronze            # single layer (tags: bronze/silver/gold)
+bash scripts/02_dbt_env.sh run  --select silver_orders     # single model
+bash scripts/02_dbt_env.sh test --select silver+           # one model + downstream
+bash scripts/02_dbt_env.sh run  --threads 2                # if cluster is under load (avoids connection aborts)
 
 # Docs site
 mkdocs serve                              # http://127.0.0.1:8000, live-reloads docs/
@@ -101,13 +101,13 @@ MetricFlow is not installed, so don't expect `dbt sl` / metric queries to run.
 
 **Auth.** Presto uses ZenApiKey via BasicAuth — user `ibmlhapikey_cpadmin`, password is the
 API key (`WXD_API_KEY`), plus an `LhInstanceId` HTTP header. TLS requires
-`certs/watsonxdata-ca.pem`. Re-run `python scripts/prepare_watsonx_env.py --overwrite` when
+`certs/watsonxdata-ca.pem`. Re-run `python scripts/00a_prepare_watsonx_env.py --overwrite` when
 the instance is re-provisioned or the token/cert changes.
 
 **Secrets.** `.env` is git-ignored and holds `WXD_API_KEY`. Never commit it. If a key leaks
 into a commit or chat, rotate it before any customer demo.
 
-**dbt reads `~/.dbt/profiles.yml`, not `profiles/profiles.yml` directly** — `scripts/dbt_env.sh`
+**dbt reads `~/.dbt/profiles.yml`, not `profiles/profiles.yml` directly** — `scripts/02_dbt_env.sh`
 pins `DBT_PROFILES_DIR` to the repo's `profiles/` directory so this repo's tracked file is
 always authoritative. If you ever invoke `dbt` directly (bypassing the wrapper), set
 `DBT_PROFILES_DIR` yourself or edits to `profiles/profiles.yml` won't take effect.

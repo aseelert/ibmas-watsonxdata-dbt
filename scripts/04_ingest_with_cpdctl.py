@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  ingest_with_cpdctl.py — Load demo CSVs into watsonx.data via the native cpdctl ingestion service
 #
-#  Location  : scripts/ingest_with_cpdctl.py
+#  Location  : scripts/04_ingest_with_cpdctl.py
 #  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
 #  Project   : watsonx.data · dbt · Spark medallion demo
 #  Author    : Alexander Seelert
@@ -16,15 +16,15 @@ ingestion job shows up in the watsonx.data console under
 **Data manager -> Ingestion (history)** as `ingestion-<id>`.
 
 It demonstrates the "CSV upload" path end to end: the CSVs already staged in object
-storage (see scripts/upload_spark_assets.py) are ingested into Iceberg tables in a
+storage (see scripts/03a_upload_spark_assets.py) are ingested into Iceberg tables in a
 dedicated schema.
 
 Usage
 -----
-    python scripts/ingest_with_cpdctl.py                  # submit all jobs
-    python scripts/ingest_with_cpdctl.py --wait           # submit, then poll to completion
-    python scripts/ingest_with_cpdctl.py --status --batch <id>         # check a prior run
-    python scripts/ingest_with_cpdctl.py --status --batch <id> --wait  # poll a prior run
+    python scripts/04_ingest_with_cpdctl.py                  # submit all jobs
+    python scripts/04_ingest_with_cpdctl.py --wait           # submit, then poll to completion
+    python scripts/04_ingest_with_cpdctl.py --status --batch <id>         # check a prior run
+    python scripts/04_ingest_with_cpdctl.py --status --batch <id> --wait  # poll a prior run
 
 Each submission prints its batch id; pass it back with --status to check all four
 jobs at once (via `cpdctl wx-data ingestion get`). Job ids are deterministic
@@ -43,11 +43,11 @@ Prerequisites
 
    If the .env key itself is rejected, refresh it first:
 
-       python scripts/get_token.py --refresh-key
+       python scripts/00b_get_token.py --refresh-key
 
 3. The demo CSVs already uploaded to object storage:
 
-       python scripts/upload_spark_assets.py
+       python scripts/03a_upload_spark_assets.py
 """
 
 from __future__ import annotations
@@ -258,7 +258,7 @@ def _validate_api_key() -> None:
         raise SystemExit(
             "WXD_API_KEY was rejected by CPD (401). The key is expired or revoked.\n"
             "  Refresh it, then re-run this script:\n"
-            "    python scripts/get_token.py --refresh-key"
+            "    python scripts/00b_get_token.py --refresh-key"
         )
     raise SystemExit(f"CPD auth check failed ({resp.status_code}): {resp.text}")
 

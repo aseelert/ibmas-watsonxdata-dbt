@@ -24,7 +24,7 @@
 #                        now writes ONLY spark_gold_daily_sales (table) and drops
 #                        any stale objects at the other two names; those two marts
 #                        are created as Presto VIEWS by scripts/create_gold_views.py
-#                        (run by scripts/submit_spark_application.py after FINISH),
+#                        (run by scripts/03b_submit_spark_application.py after FINISH),
 #                        because a Spark CREATE VIEW makes a Hive view watsonx
 #                        Presto cannot read.
 # -----------------------------------------------------------------------------
@@ -285,7 +285,7 @@ def main() -> None:
     # view that watsonx Presto refuses to read ("Hive views are not supported"),
     # so the views are created THROUGH PRESTO (dbt's exact dialect) by
     # scripts/create_gold_views.py --path spark, which the orchestrator
-    # (scripts/submit_spark_application.py) runs after this job FINISHES.
+    # (scripts/03b_submit_spark_application.py) runs after this job FINISHES.
     #
     # Clean any object a prior run left at those two names (an old physical table,
     # or a Hive view from a transitional run) so the Presto CREATE VIEW lands on a

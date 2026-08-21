@@ -8,9 +8,9 @@ description: "Use when writing or modifying dbt models for the bronze/silver/gol
 ## Always go through the wrapper
 
 ```bash
-bash scripts/dbt_env.sh run --select bronze        # never call bare `dbt` — .env won't load
-bash scripts/dbt_env.sh test --select silver+
-bash scripts/dbt_env.sh run --threads 2             # use 2 threads if cluster is under load
+bash scripts/02_dbt_env.sh run --select bronze        # never call bare `dbt` — .env won't load
+bash scripts/02_dbt_env.sh test --select silver+
+bash scripts/02_dbt_env.sh run --threads 2             # use 2 threads if cluster is under load
 ```
 
 ## Schema naming is env-driven and taken verbatim
