@@ -24,11 +24,19 @@
     "  trigger: [[\"$Asset.InferredClassification\", \"CONTAINS\", [\"$RML Customer Email\"]]]",
     "  action : redactDataClasses with dataclass_ids [\"RML Customer Email\"]",
     "",
-    "Set 'state' to 'draft' instead of 'active' to stage a rule without enforcing it."
+    "Set 'state' to 'draft' instead of 'active' to stage a rule without enforcing it.",
+    "",
+    "NAMING: the DPR 'name' field is validated server-side (WDPPS9019E) and rejects",
+    "punctuation confirmed live: '-', ':', '(', ')' all fail; plain alphanumeric +",
+    "spaces works. This is why the DPR name here ('RML Mask Customer Email PII') is",
+    "punctuation-free while the glossary rule artifact in 06_rules.csv keeps the",
+    "em-dash + parenthetical form ('RML — Mask Customer Email (PII)') — glossary",
+    "artifact names have no such restriction. They are two different artifacts (see",
+    "above) and do not need matching names."
   ],
   "rules": [
     {
-      "name": "RML — Mask Customer Email (PII)",
+      "name": "RML Mask Customer Email PII",
       "description": "Customer Email (email column) must be masked for all users. The email address is the only direct PII in the Retail Medallion Lakehouse seed data and is classified as Personal Data.",
       "governance_type_id": "Access",
       "state": "active",

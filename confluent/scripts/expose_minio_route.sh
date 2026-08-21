@@ -147,17 +147,18 @@ if oc "${CTX_ARGS[@]}" -n "${NAMESPACE}" get route "${ROUTE_NAME}" >/dev/null 2>
   info "Route '${ROUTE_NAME}' already exists in namespace '${NAMESPACE}' — skipping creation."
 else
   info "Creating Route '${ROUTE_NAME}' for svc/${SVC_NAME} in namespace '${NAMESPACE}'..."
+  # `oc expose service --overrides=...` does NOT reliably apply an arbitrary
+  # spec.tls override (confirmed live: the route came up with an EMPTY
+  # termination despite this override, on oc against CPD 5.3 / OCP 4.19) — the
+  # generator it uses for `expose` ignores fields outside what it already
+  # builds. A `patch` right after creation is the only call that reliably
+  # lands the TLS block.
   oc "${CTX_ARGS[@]}" -n "${NAMESPACE}" expose "svc/${SVC_NAME}" \
     --name="${ROUTE_NAME}" \
-    --port=9000 \
-    --overrides='{
-      "spec": {
-        "tls": {
-          "termination": "edge",
-          "insecureEdgeTerminationPolicy": "Redirect"
-        }
-      }
-    }'
+    --port=9000
+  oc "${CTX_ARGS[@]}" -n "${NAMESPACE}" patch route "${ROUTE_NAME}" --type=merge -p \
+    '{"spec":{"tls":{"termination":"edge","insecureEdgeTerminationPolicy":"Redirect"}}}' \
+    >/dev/null 2>&1 || warn "Could not patch TLS onto the route — will fall back to plain HTTP if needed."
   success "Route created."
 fi
 
@@ -176,7 +177,21 @@ if [[ -z "$MINIO_HOST" ]]; then
   exit 1
 fi
 
-MINIO_URL="https://${MINIO_HOST}"
+# Build the URL from what the route ACTUALLY has, not what we intended it to
+# have — the patch above can fail (e.g. the caller lacks patch permission on
+# routes, even with permission to expose/create one), and a scheme mismatch
+# produces a silent 503 with no useful error (confirmed live). An empty
+# termination means plain HTTP; "edge"/"reencrypt"/"passthrough" means HTTPS.
+ROUTE_TERMINATION=$(oc "${CTX_ARGS[@]}" -n "${NAMESPACE}" \
+  get route "${ROUTE_NAME}" \
+  -o jsonpath='{.spec.tls.termination}' 2>/dev/null || true)
+
+if [[ -n "$ROUTE_TERMINATION" ]]; then
+  MINIO_URL="https://${MINIO_HOST}"
+else
+  warn "Route '${ROUTE_NAME}' has no TLS termination set — using plain HTTP instead of HTTPS."
+  MINIO_URL="http://${MINIO_HOST}"
+fi
 info "Route hostname: ${MINIO_HOST}"
 
 # ---------------------------------------------------------------------------

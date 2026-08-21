@@ -56,10 +56,39 @@ DEPENDENCY ORDER (each stage is published before the next one runs)
   2. classifications   — must be live before terms/data classes reference them
   3. business terms    — must be live before data classes link to them
   4. data classes      — reference published terms via full '>>' paths
-  5. reference data    — sets, then their values
+  5. reference data    — sets, then their values. Skipped on this instance: the
+                         CSV-import contract this script uses for every other
+                         type (POST .../governance_artifact_types/{type}/import)
+                         genuinely does not recognise "reference_data_set" here
+                         (confirmed live: HTTP 400 WKCBG2133E "Unrecognized
+                         type"). There IS a working native endpoint though —
+                         POST /v3/reference_data accepts a body and requires a
+                         "type" field (confirmed live: without it, HTTP 400
+                         WKCBG3034E "Invalid type: null"). None of the obvious
+                         guesses (value_set, code_set, list, code_table,
+                         enumeration, mapping, simple, and their case variants)
+                         were accepted. Whoever picks this up next: the fix is
+                         almost certainly "find the right string for `type`",
+                         not "give up" — try IBM's InfoSphere/IGC reference-data
+                         terminology (e.g. representation types from the
+                         classic Information Governance Catalog reference data
+                         model) or capture a real create call via the browser's
+                         network tab while adding one through Governance >
+                         Reference data > Add in the UI.
   6. rules             — the glossary rule artifact (06_rules.csv), then the
                          data protection rule that enforces it
-                         (06_data_protection_rules.json)
+                         (06_data_protection_rules.json). The DPR is NOT
+                         SaaS-only despite appearances: the DSL->native
+                         transform (POST /v4/enforcement-transform/utility/
+                         json_to_rule) really is unavailable here (HTTP 405
+                         WDPPS9010E, confirmed live), but POST
+                         /v3/enforcement/rules accepts the friendly DSL body
+                         verbatim on this CPD 5.3 build — no transform needed.
+                         The one real constraint: DPR names reject punctuation
+                         (confirmed live: '-', ':', '(', ')' all HTTP 400
+                         WDPPS9019E "not a valid name" — plain alphanumeric +
+                         spaces works), unlike glossary artifact names, which
+                         have no such restriction.
 
 GLOSSARY RULE vs DATA PROTECTION RULE
   These are two different artifacts and both are created. 06_rules.csv imports a
@@ -69,11 +98,16 @@ GLOSSARY RULE vs DATA PROTECTION RULE
   governance/ikc/06_data_protection_rules.json using the friendly rule DSL.
 
   On SaaS that DSL is converted by POST /v4/enforcement-transform/utility/
-  json_to_rule. IBM's own client marks that transform as SaaS-only, so on
-  software it may not be routed. The script probes it and, when it is absent,
-  says so and points at the UI instead of POSTing a guessed body — use
-  --dpr-dump-existing to capture the native shape from a rule built once by hand,
-  then --dpr-native to replay it.
+  json_to_rule first. IBM's own client marks that transform as SaaS-only, and
+  on this software instance it is confirmed absent (live probe: HTTP 405
+  WDPPS9010E, not a bug here). But the transform turns out to be unnecessary
+  on CPD 5.3 software: POST /v3/enforcement/rules itself accepts the friendly
+  DSL shape verbatim — confirmed live by creating and deleting a probe rule
+  with exactly the 06_data_protection_rules.json shape (HTTP 201, no
+  transform). So the script tries the transform (in case a future/other
+  instance needs it), and when it is absent, POSTs the DSL directly instead
+  of giving up. --dpr-dump-existing / --dpr-native remain available as a
+  manual escape hatch if a future CPD version rejects the DSL shape outright.
 
 AUTH (software / on-prem — NOT SaaS)
   Everything is a bearer token in the end: Authorization: Bearer <jwt>. Three
@@ -1161,19 +1195,17 @@ def run_data_protection_rules(client: IKCClient, *, native_path: Path | None = N
             continue
         native = client.dpr_transform(dsl)
         if native is None:
-            hint = (
-                f"the DSL transform endpoint {DP_TRANSFORM_PATH}/json_to_rule is not "
-                f"available on this instance (IBM documents it as SaaS-only), so the "
-                f"native rule body cannot be derived automatically. Create the rule "
-                f"once in the UI — Governance > Rules > Add rule > Data protection rule "
-                f"— using {DPR_JSON.name} as the specification, then either leave it in "
-                f"place (this script will detect it by name from now on) or capture it "
-                f"with --dpr-dump-existing and replay it with --dpr-native."
-            )
-            print(f"     [ERR] {hint}")
-            summary["failures"].append(f"{name}: {hint}")
-            continue
-        rules.append(native or dsl)
+            # The DSL transform (POST /v4/enforcement-transform/utility/json_to_rule)
+            # is unavailable on this instance (confirmed live: HTTP 405 WDPPS9010E —
+            # a real platform gap, not a bug here). But POST /v3/enforcement/rules
+            # itself accepts the friendly DSL shape verbatim on this CPD 5.3 build —
+            # confirmed live: a probe rule created with 201 using exactly the DSL
+            # shape from 06_data_protection_rules.json, no transform step needed.
+            # So: skip the transform, POST the DSL as-is.
+            print("     transform endpoint unavailable — POSTing the DSL directly "
+                  "instead (confirmed native on this instance, no transform needed).")
+            native = dsl
+        rules.append(native)
 
     for payload in rules:
         name = client.dpr_name_of(payload) or "<unnamed>"

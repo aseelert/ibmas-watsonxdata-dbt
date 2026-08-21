@@ -79,6 +79,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import importlib.util
 import json
 import logging
 import os
@@ -334,6 +335,54 @@ def _ensure_gold_schema_via_presto() -> None:
         log.warning("Could not pre-create gold schema (%s); Spark may add a .db dir.", exc)
 
 
+def _upload_confluent_gold_app(application_uri: str) -> None:
+    """Stage confluent/spark/confluent_gold.py at its s3a:// application URI.
+
+    Unlike scripts/03b_submit_spark_application.py, this submitter had no
+    upload step at all — it POSTed a submission referencing an application
+    path that was never written anywhere, so every real (non-dry-run) submit
+    failed with the Spark engine unable to find its own driver script
+    (confirmed live: the app FAILED ~1 minute after STARTING, and the target
+    S3 prefix was empty). Fixed by reusing the same boto3 upload helpers
+    scripts/03a_upload_spark_assets.py already has for the Spark-medallion
+    path, loaded via importlib since that module's filename starts with a
+    digit and can't be a plain `import` target.
+    """
+    if not application_uri.startswith("s3a://"):
+        return  # a custom CONFLUENT_GOLD_APPLICATION pointing elsewhere is the caller's problem
+    _, _, rest = application_uri.partition("s3a://")
+    bucket, _, key = rest.partition("/")
+
+    try:
+        import boto3
+    except ImportError:
+        log.warning("boto3 not installed — cannot upload confluent_gold.py; submission will "
+                    "fail if it is not already staged.")
+        return
+
+    uploader_spec = importlib.util.spec_from_file_location(
+        "upload_spark_assets", ROOT / "scripts" / "03a_upload_spark_assets.py"
+    )
+    uploader = importlib.util.module_from_spec(uploader_spec)
+    uploader_spec.loader.exec_module(uploader)
+
+    endpoint = _env("WXD_OBJECT_STORE_ENDPOINT")
+    access_key, secret_key = uploader._object_store_credentials()
+    port_forward = uploader._maybe_start_port_forward(endpoint)
+    try:
+        s3 = boto3.client(
+            "s3", endpoint_url=endpoint, aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            verify=os.getenv("WXD_OBJECT_STORE_SSL_VERIFY", "false").lower() in ("1", "true", "yes"),
+        )
+        local_path = ROOT / "confluent" / "spark" / "confluent_gold.py"
+        s3.upload_file(str(local_path), bucket, key)
+        log.info("Staged %s -> s3a://%s/%s", local_path, bucket, key)
+    finally:
+        if port_forward is not None:
+            port_forward.terminate()
+
+
 def _status_endpoint(endpoint: str, app_id: str) -> str:
     return f"{endpoint.rstrip('/')}/{app_id}"
 
@@ -462,6 +511,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     _ensure_gold_schema_via_presto()
+    _upload_confluent_gold_app(payload["application_details"]["application"])
 
     response = requests.post(
         endpoint,
