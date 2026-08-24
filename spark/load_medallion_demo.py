@@ -27,6 +27,11 @@
 #                        (run by scripts/03b_submit_spark_application.py after FINISH),
 #                        because a Spark CREATE VIEW makes a Hive view watsonx
 #                        Presto cannot read.
+#    v1.3 (2026-06-27) — Spark 4.0 compatibility: removed all .using("iceberg") calls
+#                        from DataFrameWriterV2 (API removed in Spark 4.0; format is
+#                        implicit from the Iceberg-backed catalog). Replaced
+#                        F.months() → F.months_col() in all three partitionedBy()
+#                        calls (months() for partitioning renamed in Spark 4.0).
 # -----------------------------------------------------------------------------
 """PySpark job that writes the demo data as Iceberg tables in a medallion layout.
 
@@ -155,7 +160,7 @@ def main() -> None:
             .withColumn("_ingest_batch_id", F.lit(os.getenv("WXD_SPARK_INGEST_BATCH_ID", "spark_demo_batch")))
         )
         print(f"Writing bronze table {catalog}.{bronze_schema}.bronze_{table}")
-        df.writeTo(f"{catalog}.{bronze_schema}.bronze_{table}").using("iceberg").createOrReplace()
+        df.writeTo(f"{catalog}.{bronze_schema}.bronze_{table}").createOrReplace()
 
     customers = spark.table(f"{catalog}.{bronze_schema}.bronze_customers")
     products = spark.table(f"{catalog}.{bronze_schema}.bronze_products")
@@ -172,7 +177,6 @@ def main() -> None:
             F.upper(F.trim("country")).alias("country"),
         )
         .writeTo(f"{catalog}.{silver_schema}.spark_silver_customers")
-        .using("iceberg")
         .createOrReplace()
     )
     (
@@ -183,7 +187,6 @@ def main() -> None:
             F.col("unit_price").cast("decimal(12,2)").alias("unit_price"),
         )
         .writeTo(f"{catalog}.{silver_schema}.spark_silver_products")
-        .using("iceberg")
         .createOrReplace()
     )
     spark_silver_orders = orders.select(
@@ -197,8 +200,7 @@ def main() -> None:
     print(f"Writing partitioned silver orders table {catalog}.{silver_schema}.spark_silver_orders")
     (
         spark_silver_orders.writeTo(f"{catalog}.{silver_schema}.spark_silver_orders")
-        .using("iceberg")
-        .partitionedBy(F.months("order_date"))
+        .partitionedBy(F.months_col("order_date"))
         .createOrReplace()
     )
     (
@@ -210,7 +212,6 @@ def main() -> None:
             F.col("discount_pct").cast("decimal(5,2)").alias("discount_pct"),
         )
         .writeTo(f"{catalog}.{silver_schema}.spark_silver_order_items")
-        .using("iceberg")
         .createOrReplace()
     )
 
@@ -253,9 +254,8 @@ def main() -> None:
     print(f"Writing enriched silver fact {catalog}.{silver_schema}.spark_silver_sales_enriched")
     (
         sales_enriched.writeTo(f"{catalog}.{silver_schema}.spark_silver_sales_enriched")
-        .using("iceberg")
         .tableProperty("write.format.default", "parquet")
-        .partitionedBy(F.months("order_date"))
+        .partitionedBy(F.months_col("order_date"))
         .createOrReplace()
     )
 
@@ -274,9 +274,8 @@ def main() -> None:
     print(f"Writing partitioned gold daily sales table {catalog}.{gold_schema}.spark_gold_daily_sales")
     (
         daily_sales.writeTo(f"{catalog}.{gold_schema}.spark_gold_daily_sales")
-        .using("iceberg")
         .tableProperty("write.format.default", "parquet")
-        .partitionedBy(F.months("order_date"))
+        .partitionedBy(F.months_col("order_date"))
         .createOrReplace()
     )
 
