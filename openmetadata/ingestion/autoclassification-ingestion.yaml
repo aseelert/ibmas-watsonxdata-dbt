@@ -1,0 +1,71 @@
+# -----------------------------------------------------------------------------
+#  autoclassification-ingestion.yaml — real sample data + PII auto-tagging.
+#
+#  Location  : openmetadata/ingestion/autoclassification-ingestion.yaml
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  WHAT / WHY
+#    Populates each table's "Sample Data" tab with real rows AND auto-tags
+#    likely-PII columns with the `PII.Sensitive`/`PII.NonSensitive` tags,
+#    against the existing "watsonxdata-presto" DatabaseService.
+#
+#  WHY THIS IS A SEPARATE RECIPE FROM profiler-ingestion.yaml
+#    Verified by reading the installed 1.13.0.0 source directly
+#    (metadata/workflow/profiler.py vs metadata/workflow/classification.py):
+#    the plain Profiler workflow's steps are ONLY (ProfilerProcessor, Sink) —
+#    it computes column/table stats but never runs a Sampler step, so it
+#    NEVER writes sample data despite some public docs implying it does. Real
+#    sample-data storage only happens via this separate AutoClassification
+#    workflow's steps: (SamplerProcessor, [PiiProcessor], Sink). Run BOTH
+#    recipes if you want stats (profiler-ingestion.yaml) AND sample data +
+#    PII tags (this file) — they are not redundant with each other.
+#
+#  serviceConnection IS DELIBERATELY OMITTED — same mechanism as
+#  profiler-ingestion.yaml: resolved server-side from the already-registered
+#  "watsonxdata-presto" service. Run metadata-ingestion.yaml at least once
+#  first.
+#
+#  CLI — yet another distinct verb:
+#    metadata classify -c openmetadata/ingestion/autoclassification-ingestion.yaml
+#
+#  Placeholder substituted at run time by run-ingestion.sh (from .env):
+#    __JWT_TOKEN__    OpenMetadata ingestion-bot JWT (from get_om_token.py)
+# -----------------------------------------------------------------------------
+source:
+  type: presto
+  serviceName: watsonxdata-presto
+  sourceConfig:
+    config:
+      type: AutoClassification
+      schemaFilterPattern:
+        includes:
+          - "^dbt_demo_raw$"
+          - "^dbt_demo_bronze$"
+          - "^dbt_demo_silver$"
+          - "^dbt_demo_gold$"
+      includeViews: true
+      storeSampleData: true
+      sampleDataCount: 50
+      enableAutoClassification: true
+      confidence: 80
+processor:
+  # Required even though DatabaseServiceAutoClassificationPipeline's own
+  # schema never mentions "processor" — verified live: SamplerProcessor's
+  # __init__ (metadata/sampler/processor.py) unconditionally does
+  # self.config.processor.model_dump().get("config"), so an absent processor:
+  # key fails with "'NoneType' object has no attribute 'model_dump'" despite
+  # the schema not documenting this requirement anywhere.
+  type: "orm-profiler"
+  config: {}
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: __JWT_TOKEN__

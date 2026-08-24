@@ -12,6 +12,12 @@
 #  Changelog :
 #    v1.0 (2026-06-26) — Initial version. Applies the demo glossary,
 #      classifications, and descriptions to OpenMetadata tables.
+#    v1.1 (2026-08-24) — Column-level glossary term assignment. Previously only
+#      RevenueMetric was ever applied at column granularity; every other
+#      glossary term (Customer, Product, Order, OrderItem) was table-level
+#      only, unlike the classification tags which already went column-level.
+#      Added _glossary_terms_for_column() so e.g. customer_id now carries
+#      MedallionGlossary.Customer in addition to DemoDataDomain.Customer.
 # -----------------------------------------------------------------------------
 """Apply the demo glossary and classifications to OpenMetadata.
 
@@ -241,6 +247,21 @@ def _domain_tags_for_name(name: str) -> list[str]:
     return sorted(set(tags))
 
 
+def _glossary_terms_for_column(name: str) -> list[str]:
+    terms: list[str] = []
+    if "order_item" in name:
+        terms.append("OrderItem")
+    elif "order" in name or name in {"status", "payment_method"}:
+        terms.append("Order")
+    if "customer" in name or name in {"first_name", "last_name", "email", "country", "signup_date"}:
+        terms.append("Customer")
+    if "product" in name or name in {"category", "unit_price"}:
+        terms.append("Product")
+    if name in {"net_revenue", "total_revenue", "avg_revenue_per_unit", "lifetime_value", "gross_amount", "net_amount"}:
+        terms.append("RevenueMetric")
+    return sorted(set(terms))
+
+
 def _glossary_terms_for_table(table: str, layer: str) -> list[str]:
     terms = {
         "Raw": ["RawLanding"],
@@ -364,8 +385,10 @@ def _govern_table(client: OpenMetadataClient, service: str, mode: str, node: dic
             _tag_label(f"{DOMAIN_CLASSIFICATION}.{tag}", "Classification")
             for tag in _domain_tags_for_name(name)
         ]
-        if name in {"net_revenue", "total_revenue", "avg_revenue_per_unit", "lifetime_value", "gross_amount", "net_amount"}:
-            wanted_tags.append(_tag_label(f"{GLOSSARY}.RevenueMetric", "Glossary"))
+        wanted_tags.extend(
+            _tag_label(f"{GLOSSARY}.{term}", "Glossary")
+            for term in _glossary_terms_for_column(name)
+        )
         existing["tags"] = _merge_tags(existing.get("tags"), wanted_tags)
         columns.append(existing)
 

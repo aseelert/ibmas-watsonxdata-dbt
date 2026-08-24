@@ -71,6 +71,29 @@ To capture lineage as live OpenLineage events instead of (or alongside) dbt arti
 
 That upgrade would give you lineage across **all three engines at once**, including Spark — which dbt artifacts alone cannot capture, because dbt only knows about the dbt models.
 
+!!! note "Evaluated and deliberately skipped: OpenMetadata's own OpenLineage connector, wired via Airflow"
+    OpenMetadata ships its own OpenLineage *pipeline* connector (a Kafka consumer that turns
+    incoming OpenLineage events into Pipeline entities and lineage edges — distinct from the
+    generic OpenLineage spec above). Given this repo already has a working [Airflow](airflow.md)
+    instance running `dbt_medallion_hourly` / `spark_medallion_hourly`, wiring Airflow's
+    OpenLineage provider to emit into that connector looked like an easy way to close this page's
+    gap. It was evaluated by reading the installed connector source directly and rejected:
+
+    Both DAGs are built almost entirely of `BashOperator` tasks (calling `scripts/02_dbt_env.sh` /
+    a Spark submit curl). Airflow's own OpenLineage provider is explicit that `BashOperator`
+    "does not extract datasets" — it can report the job ran and for how long, but not what tables
+    it read or wrote. OpenMetadata's connector needs exactly that dataset information to build a
+    lineage edge; without it, all this wiring would produce is Airflow DAG runs showing up as
+    Pipeline entities with run history — which OpenMetadata's plain, already-simpler native
+    Airflow REST connector already gives you, with no Kafka network bridging across three
+    separate Docker Compose stacks required. So: real infrastructure work, for a payoff that
+    duplicates something simpler and delivers no new table lineage. Not done, on purpose.
+
+    If the goal is genuinely closing this gap, the two routes right above (`dbt-ol` for dbt,
+    `OpenLineageSparkListener` for Spark) remain the correct next steps — they instrument the
+    actual data-reading/writing code, not an orchestration layer that never touches the data
+    directly.
+
 ## Enterprise Pattern: IBM Governance and Manta
 
 OpenLineage is especially useful in larger IBM governance landscapes because it gives every execution engine a common lineage envelope before metadata is sent to a catalog or lineage product. For example, a production architecture could collect events from this demo's dbt, Spark, and Airflow paths and then feed the normalized metadata into IBM Knowledge Catalog / watsonx.data intelligence or a Manta lineage deployment, using whatever connector, API, export/import, or bridge is supported by that environment.

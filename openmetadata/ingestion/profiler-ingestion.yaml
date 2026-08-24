@@ -1,0 +1,84 @@
+# -----------------------------------------------------------------------------
+#  profiler-ingestion.yaml — sample data + column/table profiling stats.
+#
+#  Location  : openmetadata/ingestion/profiler-ingestion.yaml
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  WHAT / WHY
+#    Runs OpenMetadata's Profiler workflow against the "watsonxdata-presto"
+#    DatabaseService that Pass 1 (metadata-ingestion.yaml) already created.
+#    Populates each Table entity's "Profiler & Data Quality" tab
+#    (min/max/mean/nulls/distinct/etc. per column, rowCount per table) in the
+#    OpenMetadata UI. Does NOT create new entities — it only enriches tables
+#    Pass 1 already discovered.
+#
+#  THIS RECIPE DOES NOT PRODUCE SAMPLE DATA — verified against the installed
+#  1.13.0.0 source: ProfilerWorkflow's steps are only (ProfilerProcessor,
+#  Sink), with no Sampler step. For the "Sample Data" tab (and PII
+#  auto-tagging), run autoclassification-ingestion.yaml instead/as well —
+#  see its header comment for why these are two separate recipes.
+#
+#  serviceConnection IS DELIBERATELY OMITTED
+#    When source.serviceConnection is absent and a service named
+#    "watsonxdata-presto" already exists, OpenMetadata's ProfilerWorkflow
+#    fetches the connection (host/port/catalog/user/password/CA-cert) from the
+#    OpenMetadata server itself via the ingestion-bot JWT — so this recipe
+#    needs no __WXD_*__ secrets at all, only __JWT_TOKEN__. Run
+#    metadata-ingestion.yaml at least once first, or this fails loudly with an
+#    explicit "service not found" error (by design, not a bug).
+#
+#  CLI — different verb than every other recipe in this repo:
+#    metadata profile -c openmetadata/ingestion/profiler-ingestion.yaml
+#    (NOT `metadata ingest` — that runs the metadata/lineage/dashboard
+#    pipelineType, profiling is its own pipelineType with its own CLI verb.)
+#
+#  KNOWN CAVEAT — Presto/Iceberg has no TABLESAMPLE push-down
+#    Unlike OpenMetadata's Trino connector, the Presto connector has no
+#    storage-level sampling: profileSample below is applied as a row filter
+#    AFTER the data is read, so a profiler run costs close to a full scan
+#    regardless of the sample percentage. Table-level rowCount is still cheap
+#    (served from Iceberg's own SHOW STATS). Irrelevant at this demo's table
+#    sizes; would matter if this recipe were ever pointed at a large
+#    production-scale Iceberg table through Presto.
+#
+#  Placeholder substituted at run time by run-ingestion.sh (from .env):
+#    __JWT_TOKEN__    OpenMetadata ingestion-bot JWT (from get_om_token.py)
+# -----------------------------------------------------------------------------
+source:
+  type: presto
+  serviceName: watsonxdata-presto
+  sourceConfig:
+    config:
+      type: Profiler
+      schemaFilterPattern:
+        includes:
+          - "^dbt_demo_raw$"
+          - "^dbt_demo_bronze$"
+          - "^dbt_demo_silver$"
+          - "^dbt_demo_gold$"
+      includeViews: false
+      computeTableMetrics: true
+      computeColumnMetrics: true
+      profileSampleConfig:
+        sampleConfigType: STATIC
+        config:
+          profileSampleType: PERCENTAGE
+          profileSample: 25
+      randomizedSample: true
+      threadCount: 3
+      timeoutSeconds: 1800
+processor:
+  type: "orm-profiler"
+  config: {}
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: __JWT_TOKEN__

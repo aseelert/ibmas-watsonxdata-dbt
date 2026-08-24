@@ -18,8 +18,11 @@ OpenMetadata is the catalog layer for this workshop. It answers catalog and gove
 | What does this field mean? | Column descriptions imported from dbt `schema.yml`. |
 | Which layer is this table in? | `MedallionLayer.Raw`, `Bronze`, `Silver`, or `Gold` tags. |
 | Is this a customer, product, order, PII, or financial field? | `DemoDataDomain` tags and glossary terms. |
-| Which upstream tables feed this gold mart? | Lineage tab. |
+| Which upstream tables feed this gold mart? | Lineage tab (from dbt manifest **and** from Metabase chart SQL, if a chart queries that table). |
 | Did the dbt tests pass? | Data Quality tab from `run_results.json`. |
+| What does the actual data look like? | Sample Data tab — 50 real rows per table. |
+| What are the min/max/null%/distinct stats per column? | Profiler tab. |
+| Which columns look like PII? | Auto-applied `PII.Sensitive` / `PII.NonSensitive` tags. |
 
 OpenMetadata is separate from the data engine. Presto still queries the Iceberg tables; OpenMetadata records the meaning, relationships, and governance context around those tables.
 
@@ -131,7 +134,7 @@ cp target/manifest.json \
 
 ## Step 3: Run the Ingestion Script
 
-The ingestion script runs three passes: discover the real tables from Presto, fall back to offline dbt metadata if that fails, then attach dbt lineage and governance metadata.
+The ingestion script runs **six passes**: discover the real tables from Presto (falling back to offline dbt metadata if that fails), attach BI lineage from Metabase, compute profile stats, fetch real sample data + auto-tag PII columns, attach dbt lineage, then apply governance metadata.
 
 ```bash
 source .venv/bin/activate
@@ -140,12 +143,17 @@ bash openmetadata/ingestion/run-ingestion.sh
 
 The script does the following automatically:
 
-1. Installs `openmetadata-ingestion[dbt,presto]==1.13.0.0` into the virtual environment.
+1. Installs `openmetadata-ingestion[dbt,presto,pii-processor]==1.13.0.0` into the virtual environment (`pii-processor` pulls in Microsoft's `presidio-analyzer`, needed by Pass 4).
 2. Fetches a short-lived JWT token from the local OpenMetadata API.
-3. Renders `openmetadata/ingestion/metadata-ingestion.yaml` and tries a live Presto metadata scan.
-4. If the live scan fails or `WXD_OM_SKIP_LIVE=1` is set, runs `scripts/seed_openmetadata_tables.py` to create the table entities from staged `catalog.json`.
-5. Runs dbt ingestion from `openmetadata/ingestion/dbt-ingestion.yaml` to attach dbt models, lineage edges, descriptions, and test results.
-6. Runs `scripts/07d_apply_openmetadata_governance.py` to apply glossary terms, classifications, fallback descriptions, and the online/offline ingestion-mode tag.
+3. **Pass 1** — Renders `openmetadata/ingestion/metadata-ingestion.yaml` and tries a live Presto metadata scan. If the live scan fails or `WXD_OM_SKIP_LIVE=1` is set, runs `scripts/seed_openmetadata_tables.py` to create the table entities from staged `catalog.json` instead.
+4. **Pass 2** — Renders `openmetadata/ingestion/metabase-ingestion.yaml` and ingests the local Metabase instance as a Dashboard service, deriving lineage from each chart's query back to the Pass-1 Presto tables. Skipped (non-fatal) if Metabase isn't reachable at `localhost:3000`, or if Pass 1 fell back to the offline seed.
+5. **Pass 3** — Renders `openmetadata/ingestion/profiler-ingestion.yaml` and runs OpenMetadata's Profiler workflow, computing column/table stats (min/max/mean/nulls/distinct/rowCount) for every `dbt_demo_*` table. Skipped (non-fatal) if Pass 1 fell back to the offline seed.
+6. **Pass 4** — Renders `openmetadata/ingestion/autoclassification-ingestion.yaml` and runs OpenMetadata's separate AutoClassification workflow, which fetches real sample data (50 rows/table) and auto-tags likely-PII columns with `PII.Sensitive`/`PII.NonSensitive`. This is a genuinely different workflow from Pass 3 — see the note below. Skipped (non-fatal) if Pass 1 fell back to the offline seed.
+7. **Pass 5** — Runs dbt ingestion from `openmetadata/ingestion/dbt-ingestion.yaml` to attach dbt models, lineage edges, descriptions, and test results.
+8. **Pass 6** — Runs `scripts/07d_apply_openmetadata_governance.py` to apply glossary terms (table- **and** column-level), classifications, fallback descriptions, and the online/offline ingestion-mode tag.
+
+!!! note "Why sample data is a separate pass from profiling"
+    It's tempting to assume the Profiler workflow (Pass 3) also produces the "Sample Data" tab — some general OpenMetadata documentation implies this. Verified against the version this repo pins (1.13.0.0): the plain Profiler workflow's steps are only `(ProfilerProcessor, Sink)` — no sampler step at all, so it **never** writes sample data. Real sample-data storage (and PII auto-tagging) only happens through the separate AutoClassification workflow (Pass 4). Run both if you want stats and sample data and PII tags.
 
 See [OpenMetadata Glossary & Classification](openmetadata-governance.md) for the glossary terms, classifications, and auto-classification rules.
 
@@ -170,7 +178,11 @@ Follow these steps to reach the lineage graph:
 5. Click any node in the graph to jump to that model's detail page.
 6. Click a **column name** inside a model card to see the description you wrote in `schema.yml` — this is documentation-as-code made visible.
 7. Click the **Data Quality** tab to see which dbt tests passed (shown in green) or failed (shown in red) from the last run.
-8. Open the **Tags** and **Glossary Terms** sections on a table or column to see the auto-applied medallion layer, domain, ingestion-mode, and business glossary labels.
+8. Open the **Tags** and **Glossary Terms** sections on a table or column to see the auto-applied medallion layer, domain, ingestion-mode, and business glossary labels — glossary terms now go **column-level** too (e.g. `customer_id` carries `MedallionGlossary.Customer`), not just table-level.
+9. Click the **Sample Data** tab to see 50 real rows fetched straight from Presto.
+10. Click the **Profiler & Data Quality** tab's metric graphs (separate from the dbt test results in step 7) to see min/max/mean/null%/distinct stats per column.
+11. Look for `PII.Sensitive` / `PII.NonSensitive` tags on columns like `first_name` — these were auto-detected, not hand-authored.
+12. If you [provisioned Metabase](metabase.md) and built at least one chart, open a `dbt_demo_gold` table's **Lineage** tab and look for an edge into a Metabase dashboard/chart node — that's real BI lineage, derived by parsing the chart's SQL.
 
 !!! tip "See the full medallion chain at once"
     In the Lineage tab, click **Expand All** to see the complete Bronze → Silver → Gold chain with every intermediate model visible on screen at the same time.
@@ -211,17 +223,22 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
       serviceConnection:
         config:
           type: Presto
-          hostPort: ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
-          catalog: iceberg_data
-          username: ibmlhadmin
+          hostPort: __WXD_HOST__:__WXD_PORT__
+          catalog: __WXD_CATALOG__
+          username: __WXD_USER__
+          password: __WXD_API_KEY__
+          connectionArguments:
+            protocol: https
+            requests_kwargs:
+              verify: __WXD_CA_PEM__
       sourceConfig:
         config:
           type: DBT
           dbtConfigSource:
             dbtConfigType: local
-            dbtCatalogFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/catalog.json
-            dbtManifestFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/manifest.json
-            dbtRunResultsFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/run_results.json
+            dbtCatalogFilePath: __DBT_ARTIFACT_DIR__/catalog.json
+            dbtManifestFilePath: __DBT_ARTIFACT_DIR__/manifest.json
+            dbtRunResultsFilePath: __DBT_ARTIFACT_DIR__/run_results.json
     sink:
       type: metadata-rest
       config: {}
@@ -237,11 +254,91 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
     | --- | --- | --- |
     | `source` | `type: dbt` | Tells the ingestion CLI to use the dbt connector — not a direct database connector. |
     | `source` | `serviceName` | The name of the database service OpenMetadata groups these models under. Must match what the run script creates via the REST API. |
-    | `serviceConnection` | `type: Presto` | Associates dbt models with a Presto database service so lineage links to real warehouse tables. |
+    | `serviceConnection` | `type: Presto` | Associates dbt models with a Presto database service so lineage links to real warehouse tables. This is a **fallback only** — if the `watsonxdata-presto` service already exists (created by Pass 1), OpenMetadata resolves by `serviceName` and these values aren't used; they only matter on a fresh OpenMetadata instance with no such service yet. |
     | `dbtConfigSource` | `dbtConfigType: local` | Reads artifact files from the local filesystem instead of S3, GCS, or Azure Blob. |
     | `dbtConfigSource` | `dbt*FilePath` | Absolute paths to the three JSON files copied from `target/`. |
     | `workflowConfig` | `hostPort` | The OpenMetadata API endpoint — matches the Docker Compose default port. |
     | `workflowConfig` | `jwtToken` | A short-lived token fetched at runtime by `run-ingestion.sh` — the placeholder `__JWT_TOKEN__` is replaced by `sed` before the file is used. |
+
+    !!! warning "Every placeholder here is templated — none are hardcoded"
+        An earlier version of this file hardcoded a literal Presto hostname
+        instead of using `__WXD_HOST__`, and it went stale (the Presto
+        engine's pod-suffix hostname changed between two sessions:
+        `presto651` → `presto653`) without anyone noticing, because Pass 1
+        happened to mask it. If you ever add a new field to this file, template
+        it the same way `metadata-ingestion.yaml` does — never hardcode a
+        live value.
+
+??? note "openmetadata/ingestion/metabase-ingestion.yaml (Pass 2 — BI lineage)"
+
+    ```yaml
+    source:
+      type: metabase
+      serviceName: metabase-demo
+      serviceConnection:
+        config:
+          type: Metabase
+          hostPort: __MB_HOST__
+          username: __MB_EMAIL__
+          password: __MB_PASSWORD__
+      sourceConfig:
+        config:
+          type: DashboardMetadata
+          lineageInformation:
+            dbServicePrefixes:
+              - "watsonxdata-presto"
+          queryParserConfig:
+            type: Auto
+    ```
+
+    `dbServicePrefixes` scopes lineage-matching to the `watsonxdata-presto` DatabaseService that Pass 1 already created, so a Metabase chart's `SELECT ... FROM dbt_demo_gold.gold_daily_sales` resolves to that exact table. One real limitation, verified against the installed connector source: a GUI-built (query-builder) chart only resolves lineage to its single bound table — a join to a second table is not surfaced. **Native/SQL questions get full multi-table lineage; prefer them if you want complete lineage edges.** Tags and Data Models are never produced by this connector on any OpenMetadata version — it simply doesn't implement those particular hooks.
+
+??? note "openmetadata/ingestion/profiler-ingestion.yaml (Pass 3 — stats only, no sample data)"
+
+    ```yaml
+    source:
+      type: presto
+      serviceName: watsonxdata-presto
+      # serviceConnection intentionally omitted — resolved server-side from
+      # the existing watsonxdata-presto service (created by Pass 1).
+      sourceConfig:
+        config:
+          type: Profiler
+          includeViews: false
+          computeTableMetrics: true
+          computeColumnMetrics: true
+          profileSampleConfig:
+            sampleConfigType: STATIC
+            config:
+              profileSampleType: PERCENTAGE
+              profileSample: 25
+    processor:
+      type: "orm-profiler"
+      config: {}
+    ```
+
+    `includeViews: false` is deliberate: Presto's `SHOW STATS FOR` (the fast path OpenMetadata uses for table-level `rowCount`) fails with "table not found" on a VIEW — this repo's `gold_category_performance`/`gold_customer_360` are views, and profiling them here always logs 2 expected, non-fatal errors. Also worth knowing: unlike OpenMetadata's Trino connector, Presto has **no TABLESAMPLE push-down** — a "25% sample" here still costs close to a full scan, since sampling is a plain `RANDOM()`-based row filter applied after every row is read. Irrelevant at this demo's table sizes.
+
+??? note "openmetadata/ingestion/autoclassification-ingestion.yaml (Pass 4 — real sample data + PII)"
+
+    ```yaml
+    source:
+      type: presto
+      serviceName: watsonxdata-presto
+      sourceConfig:
+        config:
+          type: AutoClassification
+          includeViews: true
+          storeSampleData: true
+          sampleDataCount: 50
+          enableAutoClassification: true
+          confidence: 80
+    processor:
+      type: "orm-profiler"
+      config: {}
+    ```
+
+    The `processor:` stanza here is required for a non-obvious reason: `DatabaseServiceAutoClassificationPipeline`'s own schema never mentions a processor at all, but the installed `SamplerProcessor` class unconditionally reads `config.processor` internally — omit it and the run fails with `'NoneType' object has no attribute 'model_dump'` despite the schema not documenting the requirement anywhere. `storeSampleData: true` is what actually populates the Sample Data tab (Pass 3's Profiler workflow never does this — see the note above). `enableAutoClassification: true` additionally runs Microsoft Presidio's NER model over the sample rows and tags likely-PII columns — live-verified on this demo's data: `first_name`/`last_name` get `PII.Sensitive`, several date/metadata columns get `PII.NonSensitive`. Requires the `pii-processor` pip extra (pulls in `presidio-analyzer` + a spaCy language model), which `run-ingestion.sh` installs automatically.
 
 ??? note "openmetadata/ingestion/metadata-ingestion.yaml"
 

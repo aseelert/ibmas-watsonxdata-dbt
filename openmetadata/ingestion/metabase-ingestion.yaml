@@ -1,0 +1,78 @@
+# -----------------------------------------------------------------------------
+#  metabase-ingestion.yaml — attach Metabase dashboards/charts + BI lineage.
+#
+#  Location  : openmetadata/ingestion/metabase-ingestion.yaml
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  WHAT / WHY
+#    Ingests the local Metabase instance (docker-compose-metabase.yml, service
+#    "metabase", provisioned by metabase/provision.py) as an OpenMetadata
+#    Dashboard service, and derives lineage from each chart's underlying query
+#    back to the SAME Presto/Iceberg tables the dbt path already registered as
+#    the "watsonxdata-presto" DatabaseService (Pass 1 of run-ingestion.sh).
+#
+#  HOW LINEAGE RESOLUTION WORKS (read before changing dbServicePrefixes)
+#    For a native/SQL Metabase question, OpenMetadata parses the chart's SQL
+#    (sqlglot -> sqlfluff -> sqlparse fallback chain) to find source table
+#    names, then searches OpenMetadata's already-ingested Table entities for a
+#    match, scoped by dbServicePrefixes below. For a GUI query-builder chart,
+#    it resolves lineage via the chart's single bound table_id only — a join
+#    to a second table in a GUI-built question will NOT produce a second
+#    lineage edge (this is a real limitation in OpenMetadata's Metabase
+#    connector, not a misconfiguration here). Prefer native/SQL questions in
+#    Metabase over the GUI builder if you want full multi-table lineage.
+#
+#  ORDERING
+#    Must run AFTER Pass 1 (metadata-ingestion.yaml) has created the
+#    "watsonxdata-presto" Table entities in OpenMetadata — this recipe's
+#    lineage step only matches against tables that already exist. Independent
+#    of the dbt-lineage pass; does not need dbt artifacts.
+#
+#  KNOWN LIMITATION (OpenMetadata's Metabase connector, not this repo)
+#    Tags and Data Models are never produced by this connector — it does not
+#    implement the base class hooks for either, on any OpenMetadata version.
+#
+#  Placeholders substituted at run time by run-ingestion.sh (from .env):
+#    __JWT_TOKEN__      OpenMetadata ingestion-bot JWT (from get_om_token.py)
+#    __MB_HOST__        Metabase base URL (fixed http://localhost:3000 — see
+#                        docker-compose-metabase.yml; this script runs on the
+#                        host via .venv, not inside the Docker network)
+#    __MB_EMAIL__       Metabase admin login    (MB_SETUP_EMAIL, default admin@admin.com)
+#    __MB_PASSWORD__    Metabase admin password (MB_SETUP_PASSWORD, default admin12345)
+# -----------------------------------------------------------------------------
+source:
+  type: metabase
+  serviceName: metabase-demo
+  serviceConnection:
+    config:
+      type: Metabase
+      hostPort: __MB_HOST__
+      username: __MB_EMAIL__
+      password: __MB_PASSWORD__
+  sourceConfig:
+    config:
+      type: DashboardMetadata
+      lineageInformation:
+        dbServicePrefixes:
+          - "watsonxdata-presto"
+      queryParserConfig:
+        type: Auto
+      includeOwners: true
+      includeDraftDashboard: true
+      includeUsage: false
+      markDeletedDashboards: false
+      markDeletedCharts: false
+      dashboardFilterPattern: {}
+      chartFilterPattern: {}
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: __JWT_TOKEN__
