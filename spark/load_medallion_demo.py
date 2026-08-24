@@ -29,9 +29,15 @@
 #                        Presto cannot read.
 #    v1.3 (2026-06-27) — Spark 4.0 compatibility: removed all .using("iceberg") calls
 #                        from DataFrameWriterV2 (API removed in Spark 4.0; format is
-#                        implicit from the Iceberg-backed catalog). Replaced
-#                        F.months() → F.months_col() in all three partitionedBy()
-#                        calls (months() for partitioning renamed in Spark 4.0).
+#                        implicit from the Iceberg-backed catalog).
+#    v1.4 (2026-08-24) — v1.3 also swapped F.months() for F.months_col() in all
+#                        three partitionedBy() calls, claiming months() was
+#                        renamed in Spark 4.0. That was wrong on this cluster:
+#                        confirmed live, `AttributeError: module 'pyspark.sql.
+#                        functions' has no attribute 'months_col'` —
+#                        confluent/spark/confluent_gold.py's unchanged
+#                        F.months() call already proved months() still works
+#                        here. Reverted to F.months().
 # -----------------------------------------------------------------------------
 """PySpark job that writes the demo data as Iceberg tables in a medallion layout.
 
@@ -200,7 +206,7 @@ def main() -> None:
     print(f"Writing partitioned silver orders table {catalog}.{silver_schema}.spark_silver_orders")
     (
         spark_silver_orders.writeTo(f"{catalog}.{silver_schema}.spark_silver_orders")
-        .partitionedBy(F.months_col("order_date"))
+        .partitionedBy(F.months("order_date"))
         .createOrReplace()
     )
     (
@@ -255,7 +261,7 @@ def main() -> None:
     (
         sales_enriched.writeTo(f"{catalog}.{silver_schema}.spark_silver_sales_enriched")
         .tableProperty("write.format.default", "parquet")
-        .partitionedBy(F.months_col("order_date"))
+        .partitionedBy(F.months("order_date"))
         .createOrReplace()
     )
 
@@ -275,7 +281,7 @@ def main() -> None:
     (
         daily_sales.writeTo(f"{catalog}.{gold_schema}.spark_gold_daily_sales")
         .tableProperty("write.format.default", "parquet")
-        .partitionedBy(F.months_col("order_date"))
+        .partitionedBy(F.months("order_date"))
         .createOrReplace()
     )
 
