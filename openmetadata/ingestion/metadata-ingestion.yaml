@@ -15,9 +15,15 @@
 #    dbt's watsonx_presto adapter sends an `LhInstanceId` HTTP header, but
 #    OpenMetadata's Presto connector is pyhive-based and pyhive REFUSES custom
 #    request headers ("Cannot override requests argument headers"). The header is
-#    NOT required here because the Presto host already resolves to the single
-#    presto651 engine — so we authenticate with BasicAuth (API key) over TLS and
-#    omit the header. (Verified: CheckAccess / GetSchemas / GetTables all pass.)
+#    NOT required here because __WXD_HOST__ already resolves to a single Presto
+#    engine — so we authenticate with BasicAuth (API key) over TLS and omit the
+#    header. (Verified: CheckAccess / GetSchemas / GetTables all pass.)
+#
+#  SCOPE covers all 3 medallion paths, not dbt-only — dbt/Spark/Confluent/
+#  cpdctl all write into the SAME Presto/Iceberg catalog, just different
+#  schemas. This is what makes the Metabase-lineage, profiler, and
+#  sample-data/PII passes below apply uniformly to Spark and Confluent gold
+#  tables too, not only the dbt ones.
 #
 #  Placeholders substituted at run time by run-ingestion.sh (from .env):
 #    __JWT_TOKEN__    OpenMetadata ingestion-bot JWT (from get_om_token.py)
@@ -54,6 +60,12 @@ source:
           - "^dbt_demo_bronze$"
           - "^dbt_demo_silver$"
           - "^dbt_demo_gold$"
+          - "^spark_demo_bronze$"
+          - "^spark_demo_silver$"
+          - "^spark_demo_gold$"
+          - "^spark_demo_cpdctl_raw$"
+          - "^confluent_demo_silver$"
+          - "^confluent_demo_gold$"
 sink:
   type: metadata-rest
   config: {}

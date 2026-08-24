@@ -22,9 +22,18 @@ WHAT & WHY
     1. Creates the first admin user (MB_SETUP_EMAIL / MB_SETUP_PASSWORD).
     2. Adds the watsonx.data Presto data source so the `iceberg_data` catalog
        and its medallion schemas are browsable immediately.
+    3. Creates one native-SQL demo chart per medallion path (dbt/Spark/
+       Confluent gold_daily_sales) and puts them on a shared dashboard — this
+       is what makes OpenMetadata's Metabase lineage pass (see
+       openmetadata/ingestion/metabase-ingestion.yaml) have something REAL to
+       link back to the Presto tables. Without this step, Metabase's own
+       bundled sample e-commerce dataset is the only content it would find,
+       and the BI-lineage story is empty even though the connector works.
 
   It is fully IDEMPOTENT: if Metabase is already set up it just logs in and
-  ensures the Presto data source exists, so re-running it is always safe.
+  ensures the Presto data source + demo charts/dashboard exist, so re-running
+  it (e.g. after `scripts/11_reset_demo.sh --docker`) is always safe and
+  rebuilds the same BI lineage story from scratch.
 
 WHEN TO RUN (demo flow)
   Run once after Metabase is healthy — the `metabase-provision` service in
@@ -71,8 +80,9 @@ USAGE
       docker compose -f docker-compose-metabase.yml up -d
 
 SIDE EFFECTS & EXIT
-  Creates a Metabase admin user (first run) and registers a Presto data source
-  via the Metabase HTTP API. Exits 0 on success (or when nothing was needed);
+  Creates a Metabase admin user (first run), registers a Presto data source,
+  and creates 3 demo charts (one per medallion path) + a shared dashboard via
+  the Metabase HTTP API. Exits 0 on success (or when nothing was needed);
   calls sys.exit() with a diagnostic message if Metabase never becomes healthy,
   login fails, or the Presto data source could not be added before the deadline.
 """
@@ -89,6 +99,28 @@ EMAIL = os.environ.get("MB_SETUP_EMAIL", "admin@admin.com")
 PASSWORD = os.environ.get("MB_SETUP_PASSWORD", "admin12345")
 SITE_NAME = os.environ.get("MB_SITE_NAME", "watsonx.data medallion demo")
 DB_NAME = os.environ.get("MB_DB_NAME", "watsonx.data (Presto)")
+
+# One demo chart per medallion path — same gold_daily_sales column shape in
+# all three (order_date, category, net_revenue), proven identical by
+# scripts/reconcile_gold.py, so the same query pattern works unmodified.
+# These are native/SQL questions (not GUI query-builder ones) on purpose:
+# OpenMetadata's Metabase connector only derives full lineage from native
+# SQL text — a GUI-built question only resolves to its single bound table.
+DEMO_CHARTS = [
+    {
+        "name": "Daily Net Revenue by Category (dbt)",
+        "query": "SELECT order_date, category, net_revenue FROM dbt_demo_gold.gold_daily_sales ORDER BY order_date",
+    },
+    {
+        "name": "Daily Net Revenue by Category (Spark)",
+        "query": "SELECT order_date, category, net_revenue FROM spark_demo_gold.spark_gold_daily_sales ORDER BY order_date",
+    },
+    {
+        "name": "Daily Net Revenue by Category (Confluent)",
+        "query": "SELECT order_date, category, net_revenue FROM confluent_demo_gold.confluent_gold_daily_sales ORDER BY order_date",
+    },
+]
+DEMO_DASHBOARD_NAME = "watsonx.data Medallion Demo"
 
 
 def req(path, data=None, headers=None, method=None):
@@ -169,12 +201,85 @@ def database_exists(session):
     return any(db.get("name") == DB_NAME for db in databases)
 
 
+def get_database_id(session):
+    resp = req("/api/database", headers={"X-Metabase-Session": session})
+    databases = resp.get("data", resp) if isinstance(resp, dict) else resp
+    for db in databases:
+        if db.get("name") == DB_NAME:
+            return db["id"]
+    return None
+
+
+def ensure_demo_content(session, db_id):
+    """Create the demo charts + dashboard if they don't already exist.
+
+    Idempotent by NAME (Metabase has no natural-key constraint on card/
+    dashboard names, so a re-run must check first rather than rely on the API
+    to reject a duplicate). Card creation does not validate the SQL against
+    the live warehouse, so this succeeds even if a given medallion path
+    (Spark/Confluent) hasn't been built yet in this cycle — the chart just
+    won't return data until that path's tables exist. What matters for
+    OpenMetadata's lineage pass is the SQL TEXT, not that the query runs.
+    """
+    headers = {"X-Metabase-Session": session}
+    existing_cards = req("/api/card", headers=headers)
+    existing_names = {c.get("name") for c in existing_cards}
+
+    card_ids = []
+    for spec in DEMO_CHARTS:
+        existing = next((c for c in existing_cards if c.get("name") == spec["name"]), None)
+        if existing:
+            print(f"[provision] demo chart '{spec['name']}' already exists (id={existing['id']}) — skipping.")
+            card_ids.append(existing["id"])
+            continue
+        payload = {
+            "name": spec["name"],
+            "display": "bar",
+            "visualization_settings": {},
+            "dataset_query": {
+                "type": "native",
+                "native": {"query": spec["query"]},
+                "database": db_id,
+            },
+        }
+        try:
+            created = req("/api/card", payload, headers=headers)
+            print(f"[provision] created demo chart '{spec['name']}' (id={created['id']}).")
+            card_ids.append(created["id"])
+        except urllib.error.HTTPError as exc:
+            print(f"[provision] WARNING: could not create chart '{spec['name']}': {exc.read().decode()[:300]}")
+
+    dashboards = req("/api/dashboard", headers=headers)
+    dashboard = next((d for d in dashboards if d.get("name") == DEMO_DASHBOARD_NAME), None)
+    if dashboard is None:
+        dashboard = req("/api/dashboard", {"name": DEMO_DASHBOARD_NAME}, headers=headers)
+        print(f"[provision] created dashboard '{DEMO_DASHBOARD_NAME}' (id={dashboard['id']}).")
+    else:
+        print(f"[provision] dashboard '{DEMO_DASHBOARD_NAME}' already exists (id={dashboard['id']}).")
+
+    dash_detail = req(f"/api/dashboard/{dashboard['id']}", headers=headers)
+    already_on_dashboard = {
+        c.get("card_id") for c in dash_detail.get("dashcards", [])
+    }
+    new_cards = [cid for cid in card_ids if cid not in already_on_dashboard]
+    if not new_cards:
+        print(f"[provision] all demo charts already on dashboard '{DEMO_DASHBOARD_NAME}' — nothing to add.")
+        return
+    layout = [
+        {"id": -(i + 1), "card_id": cid, "row": 0, "col": i * 8, "size_x": 8, "size_y": 6}
+        for i, cid in enumerate(new_cards)
+    ]
+    req(f"/api/dashboard/{dashboard['id']}/cards", {"cards": layout}, headers=headers, method="PUT")
+    print(f"[provision] added {len(new_cards)} chart(s) to dashboard '{DEMO_DASHBOARD_NAME}'. [OK]")
+
+
 def main():
     wait_for_metabase()
     session = get_session()
 
     if database_exists(session):
-        print(f"[provision] data source '{DB_NAME}' already exists — nothing to do.")
+        print(f"[provision] data source '{DB_NAME}' already exists — checking demo content.")
+        ensure_demo_content(session, get_database_id(session))
         return
 
     # Build the Presto connection straight from the WXD_* env values.
@@ -235,11 +340,13 @@ def main():
                 f"'{details['catalog']}'. [OK]"
             )
             print("[provision] done — open http://localhost:3000")
+            ensure_demo_content(session, created["id"])
             return
         except urllib.error.HTTPError as exc:
             body = exc.read().decode()
             if database_exists(session):  # a previous attempt actually landed it
                 print(f"[provision] data source '{DB_NAME}' already created — done.")
+                ensure_demo_content(session, get_database_id(session))
                 return
             print(f"[provision] add attempt {attempt}/{attempts} failed: {body}")
             if time.time() >= db_add_deadline:

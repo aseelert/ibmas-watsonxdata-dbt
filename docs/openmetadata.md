@@ -1,10 +1,10 @@
-# OpenMetadata: dbt Lineage in a Local Docker UI
+# OpenMetadata: Unified Catalog & Lineage Across dbt, Spark, and Confluent
 
 !!! info "What OpenMetadata does"
-    OpenMetadata is a **metadata catalog** — think of it as a glossary and a map of your data all in one place. It answers three questions at a glance: **where** did each table come from (the lineage graph), **what** does each column mean (descriptions you wrote in `schema.yml`), and **whether** the data quality tests passed last time dbt ran. In this demo, OpenMetadata first tries a live Presto metadata scan so the catalog reflects the real watsonx.data tables. If that live connection fails, it falls back to the staged dbt artifacts and still builds the same catalog entities and lineage offline.
+    OpenMetadata is a **metadata catalog** — think of it as a glossary and a map of your data all in one place. It answers three questions at a glance: **where** did each table come from (the lineage graph), **what** does each column mean (descriptions you wrote in `schema.yml`), and **whether** the data quality tests passed last time dbt ran. All three medallion paths write into the SAME Presto/Iceberg catalog, so OpenMetadata's live Presto scan discovers **dbt, Spark, and Confluent tables alike** in one catalog — only the dbt-lineage pass (model/column edges from `manifest.json`) is dbt-specific, since Spark and Confluent don't produce an equivalent artifact. If the live Presto connection fails, OpenMetadata falls back to the staged dbt artifacts and still builds the dbt-path catalog entities and lineage offline.
 
 !!! warning "OpenMetadata is OPTIONAL in this demo"
-    The medallion pipeline runs fine without it. The [dbt](dbt-demo.md) and [Spark](spark-demo.md) paths build every gold table on their own. OpenMetadata is here only to *visualise the lineage* of what dbt already built. Skip it if you only want the pipeline; run it if you want to show where each number came from. For a live point-and-click BI view of the same gold tables, see [Metabase](metabase.md) instead — the two are complementary (Metabase queries the data; OpenMetadata maps where it came from).
+    The medallion pipeline runs fine without it. The [dbt](dbt-demo.md), [Spark](spark-demo.md), and [Confluent](confluent-demo.md) paths build every gold table on their own. OpenMetadata is here only to *visualise the lineage and add a catalog* on top of what those paths already built. Skip it if you only want the pipeline; run it if you want to show where each number came from — across any of the three paths, and into a BI report. For a live point-and-click BI view of the same gold tables, see [Metabase](metabase.md) instead — the two are complementary (Metabase queries the data; OpenMetadata maps where it came from, INCLUDING a lineage edge into the Metabase chart/dashboard that queried it).
 
 ![OpenMetadata lineage graph](assets/images/screenshots/openmetadata-lineage.png)
 
@@ -342,7 +342,7 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
 
 ??? note "openmetadata/ingestion/metadata-ingestion.yaml"
 
-    This is the live Presto metadata pass. It discovers the actual watsonx.data tables before dbt lineage is attached.
+    This is the live Presto metadata pass. It discovers the actual watsonx.data tables — across **all three** medallion paths, not just dbt's — before dbt lineage, Metabase lineage, profiling, and sample-data/PII tagging are attached in the later passes.
 
     ```yaml
     source:
@@ -371,7 +371,16 @@ The `-v` flag removes the Docker volumes that hold the MySQL database and Elasti
               - "^dbt_demo_bronze$"
               - "^dbt_demo_silver$"
               - "^dbt_demo_gold$"
+              - "^spark_demo_bronze$"
+              - "^spark_demo_silver$"
+              - "^spark_demo_gold$"
+              - "^spark_demo_cpdctl_raw$"
+              - "^confluent_demo_silver$"
+              - "^confluent_demo_gold$"
     ```
+
+    !!! note "Pass 5 (dbt lineage) still only covers dbt tables — that's correct, not a gap"
+        `dbt-ingestion.yaml` draws lineage edges from `manifest.json`, which only ever describes dbt models. Spark and Confluent tables get real Table entities from Pass 1, real BI lineage from Pass 2 (Metabase), and real stats/sample-data/PII from Passes 3–4 — but no bronze→silver→gold model-graph edges, because no dbt-equivalent build artifact exists for those two paths. This is an accurate reflection of what each path actually produces, not something worth "fixing."
 
     Set `WXD_OM_SKIP_LIVE=1` when you want to force the offline dbt-artifact path.
 

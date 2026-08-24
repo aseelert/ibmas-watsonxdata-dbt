@@ -46,6 +46,12 @@ source:
           - "^dbt_demo_bronze$"
           - "^dbt_demo_silver$"
           - "^dbt_demo_gold$"
+          - "^spark_demo_bronze$"
+          - "^spark_demo_silver$"
+          - "^spark_demo_gold$"
+          - "^spark_demo_cpdctl_raw$"
+          - "^confluent_demo_silver$"
+          - "^confluent_demo_gold$"
       includeViews: true
       storeSampleData: true
       sampleDataCount: 50
