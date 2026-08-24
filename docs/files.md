@@ -223,7 +223,7 @@ Macros are reusable Jinja/SQL functions that dbt calls during compilation. They 
 | File | What it does |
 |---|---|
 | `macros/generate_schema_name.sql` | Overrides dbt's default schema-naming behaviour so that schema names come directly from environment variables (e.g. `WXD_BRONZE_SCHEMA`) rather than being prefixed with the dbt target name. Without this macro, dbt would write to `dev_dbt_demo_bronze` instead of `dbt_demo_bronze`. |
-| `macros/create_medallion_schemas.sql` | Creates all four demo schemas (`_raw`, `_bronze`, `_silver`, `_gold`) in one call. Called by `scripts/01_bootstrap_watsonxdata.py` via `dbt run-operation`. |
+| `macros/create_medallion_schemas.sql` | Creates all four demo schemas (`_raw`, `_bronze`, `_silver`, `_gold`) in one call via `CREATE SCHEMA IF NOT EXISTS`. Documented as an `on-run-start` hook, but that hook is **not currently wired into `dbt_project.yml`** — this macro isn't invoked anywhere today. The schemas are actually created by `scripts/01_bootstrap_watsonxdata.py`, which opens its own Presto connection (`prestodb.dbapi.connect()`) and issues the same `CREATE SCHEMA` SQL directly, independent of dbt. |
 | `macros/materialized_view.sql` | Defines a custom `materialized_view` materialization for the `watsonx_presto` adapter. It issues `CREATE MATERIALIZED VIEW ... AS SELECT ...` followed by `REFRESH MATERIALIZED VIEW`. **Note:** the Presto Iceberg connector in the current watsonx.data version does not support materialized views — this macro is forward-looking and reserved for when that support lands. Use the standard `view` materialization today. |
 
 !!! warning "Materialized views are not yet usable"
