@@ -204,6 +204,12 @@ Work through the pages in this order. Each step builds on the last.
 !!! tip "In a hurry?"
     Every command in the workshop, in order, lives on one page: [Fast Track](fast-track.md).
 
+!!! tip "Something look stuck?"
+    The [Quick Health Check Reference](troubleshooting.md#quick-health-check-reference) at the top
+    of Troubleshooting has a one-line "is it up?" command or URL for every path (dbt, Spark,
+    cpdctl, Confluent) and every optional add-on (Airflow, Metabase, OpenMetadata, IKC, PG
+    reporting) — check it before assuming something is broken.
+
 !!! warning "Complete the setup page before running any path"
     Paths A, B, and C all require a working connection profile and Python environment. Skipping
     the setup page is the most common reason commands fail.

@@ -55,7 +55,7 @@ flowchart LR
 
 | Requirement | Detail |
 |---|---|
-| Silver layer built | `confluent_demo_silver` must already exist (run the [Confluent path](confluent-demo.md) with `--watsonxdata` first). |
+| Silver layer built | `confluent_demo_silver` must already exist (run the [Confluent path](confluent-demo.md) with `--silver` first). |
 | DataStage project | A Cloud Pak for Data project named **`ibmas-ingest-demo`** must exist. |
 | Project id | `WXD_DATASTAGE_PROJECT_ID=2d2415ea-71b5-4215-a7b6-b32a4889611e` |
 | Project name | `WXD_DATASTAGE_PROJECT_NAME=ibmas-ingest-demo` |

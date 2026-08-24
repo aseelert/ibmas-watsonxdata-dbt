@@ -8,6 +8,33 @@
 
 ---
 
+## Quick Health Check Reference
+
+"Is it actually running?" — before you dig into an error below, run the one-liner for the piece
+you're using. Every check here is read-only and safe to run anytime, mid-workshop.
+
+| What to check | Health check | What it tells you |
+|---|---|---|
+| dbt / Presto connection + auth | `bash scripts/02_dbt_env.sh debug` **or** `python scripts/00b_get_token.py --export` | Presto is reachable and the API key / bearer token is valid |
+| watsonx.data engines (Presto, Spark, Milvus) | watsonx.data console → **Infrastructure manager** | Live engine status, size, and restart controls |
+| Spark application state | `python scripts/03c_spark_application_status.py <application-id>` | `running` / `finished` / `failed`; the same status the console's **Infrastructure manager → Spark engine → Applications** tab shows (link printed by `03b_submit_spark_application.py` on submit) |
+| cpdctl ingestion job | `python scripts/04_ingest_with_cpdctl.py --status --batch <id>` | Per-table job state; also visible in the console under **Data manager → Ingestion → History** |
+| Confluent streaming stack (Kafka/Flink/Registry) | `bash confluent/start.sh --status` | Per-service health plus per-topic message counts |
+| Confluent UIs | Kafbat UI [:28080](http://localhost:28080) · Flink Web UI [:28085](http://localhost:28085) · SQL Gateway [:28083](http://localhost:28083) · Schema Registry [:28081](http://localhost:28081) · Iceberg REST [:28181](http://localhost:28181) | Topics/offsets, running Flink jobs, registered Avro subjects, catalog metadata |
+| `/etc/hosts` + cluster reachability | `python scripts/check_hosts.py` | Every required hostname resolves to the bastion and is TCP-reachable |
+| IKC governance publish state | `python scripts/06b_provision_ikc_governance.py --verify-only` | Published vs. draft count per governance artifact type |
+| CPD/OpenShift platform (pods, CRs, wxd/IKC license) | `bash scripts/10b_provision_pg_reporting.sh --verify-only` | Read-only pre-flight — Deployments/StatefulSets ready, no stuck pods, `wxd`/`wxdAddon` not shut down, IKC license, reporting config |
+| Whole-cluster CPD status (watsonx.data / WKC / DataStage) | `bash scripts/cpd_maintenance.sh status` (snapshot) or `bash scripts/cpd_maintenance.sh verify` (blocks until every workload is fully ready) | CRD + per-service pod state across all three operands |
+| Airflow (optional) | <http://localhost:8082> | DAG list, run history, per-task logs |
+| Metabase (optional) | <http://localhost:3000> | Live query against the `iceberg_data` catalog through Presto |
+| OpenMetadata (optional) | <http://localhost:8585> | Catalog + lineage graph from the staged dbt artifacts |
+
+!!! tip "See the full command reference"
+    Every script above has its own section with flags and examples on the [Scripts](scripts.md)
+    page; file-by-file details are on the [File Guide](files.md).
+
+---
+
 ## Common Setup Issues
 
 These errors appear during the initial environment setup, before you run any ingestion path.
@@ -47,6 +74,72 @@ If the command returns `command not found`, install Python 3.11 from
     Open every new terminal with `source .venv/bin/activate`. The `(.venv)` prefix in your prompt
     confirms the environment is active. If the prefix is absent, scripts will pick up the system
     Python instead, which will likely be the wrong version or missing packages.
+
+---
+
+### pip install fails but `python --version` looks right
+
+`pip install -r requirements.txt` (or a single `pip install <package>`) fails, and the error
+complains about a Python-version constraint — for example a package that "requires
+`python_version < "3.13"`" or has "no matching distribution" for your interpreter — even though
+`python --version` (or `python3.11 --version` with `.venv` active) correctly prints `Python
+3.11.x`.
+
+This happens when `.venv/bin/pip` and `.venv/bin/python` have quietly drifted apart. It is caused
+by running plain `python3 -m venv .venv` (without the `.11`) a second time on an **already
+existing** venv, when the system's default `python3` resolves to some other version (commonly a
+Homebrew-installed Python 3.14 that shadows `python3` on `PATH`). venv's repair pass rewrites
+`.venv/pyvenv.cfg` and **rebinds the shebang line inside `.venv/bin/pip`** to the new interpreter,
+but leaves the pre-existing `.venv/bin/python` / `.venv/bin/python3` symlinks untouched — so
+`python --version` keeps reporting 3.11 while `pip` silently runs under the other Python's
+dependency resolver.
+
+**Diagnose — compare what `pip` actually runs under to what the venv metadata claims:**
+
+```bash
+# pip's shebang line — the interpreter it will actually execute under
+head -1 .venv/bin/pip
+
+# what the venv metadata (and `python --version`) claims
+cat .venv/pyvenv.cfg
+python --version
+
+# any extra interpreter symlink that doesn't belong (e.g. python3.14) is the smoking gun
+ls -la .venv/bin/python*
+```
+
+If `head -1 .venv/bin/pip` shows a different Python version (or a different path) than
+`.venv/pyvenv.cfg`'s `version =` line, or than `python --version`, pip and python have drifted
+apart — proceed to the fix below.
+
+**Fix — rebind pip to the correct interpreter, repair the venv metadata, and remove the stray symlink:**
+
+```bash
+# 1. Force pip to reinstall itself under the interpreter this repo actually requires
+.venv/bin/python3.11 -m pip install --force-reinstall pip
+
+# 2. Confirm pip's shebang now points at 3.11
+head -1 .venv/bin/pip
+
+# 3. Hand-restore .venv/pyvenv.cfg if `home` / `version` / `executable` / `command` still
+#    reference the wrong Python — edit the file so all four fields point at your 3.11 install
+#    (find its path with: which python3.11)
+cat .venv/pyvenv.cfg
+
+# 4. Remove any interpreter symlink that doesn't match this repo's required version
+#    (e.g. a stray .venv/bin/python3.14 left behind by the accidental `venv` re-run)
+rm -f .venv/bin/python3.14   # match the actual stray filename you saw in `ls -la .venv/bin/python*`
+```
+
+Re-run `pip install -r requirements.txt` after the fix — it should now resolve normally.
+
+!!! danger "Prevent recurrence"
+    This is caused entirely by using bare `python3` to recreate a venv that already exists. Always
+    use the exact `python3.11` interpreter name for every venv command in this repo — see the
+    warning in [Setup Step 2](setup.md#step-2-create-python-311-virtual-environment). If you truly
+    need to rebuild the environment from scratch, delete `.venv` entirely first (`rm -rf .venv`)
+    and recreate it fresh with `python3.11 -m venv .venv`, rather than re-running venv creation on
+    top of an existing directory.
 
 ---
 
@@ -638,7 +731,7 @@ Resources) if the build dies with `no space left on device`.
 
 ### JobManager / SQL Gateway / iceberg-rest not healthy
 
-`confluent/start.sh --watsonxdata` hangs at:
+`confluent/start.sh --silver` hangs at:
 
 ```text
 JobManager not ready — sleeping 3s

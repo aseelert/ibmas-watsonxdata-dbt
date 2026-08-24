@@ -17,15 +17,22 @@ Before you start, confirm that each item below is in place. The "How to verify" 
 | Git | Cloning the repo | `git --version` | Any version is fine |
 | OpenShift CLI (`oc`) | **Spark + cpdctl paths only:** reads the MinIO secret and opens the port-forward to object storage. Not needed for the dbt path. Install in [Step 8](#step-8-install-command-line-tools-oc-cpdctl). | `oc version --client` | `Client Version: 4.x.x` |
 | IBM `cpdctl` | **cpdctl path only:** submits native ingestion jobs. Install in [Step 8](#step-8-install-command-line-tools-oc-cpdctl). | `cpdctl version` | `cpdctl version 1.x.x ...` |
-| Docker Desktop | Only needed for the OpenMetadata lineage demo | `docker --version` | Any version is fine |
+| Docker (or a compatible container runtime) | Needed for the **Confluent streaming path** (7 containers, started via `docker compose` by `confluent/start.sh`) and for the **optional** Airflow/Metabase/OpenMetadata stack. Not needed for dbt, Spark, or cpdctl. | `docker --version` | Any version is fine |
 | watsonx.data connection JSON | Contains Presto host, instance ID, and SSL certificate | `ls watsonx_data/instance_details.json` | File must exist |
 | watsonx.data Software Hub API key | Your personal authentication credential | Provided by your administrator | Keep this secret |
 
 !!! info "Which tools does each path need?"
-    - **dbt path** — Python 3.11 + the `.venv` packages only. No `oc`, no `cpdctl`.
+    - **dbt path** — Python 3.11 + the `.venv` packages only. No `oc`, no `cpdctl`, no Docker.
     - **Spark path** — also needs **`oc`** (to read the MinIO credentials secret and port-forward to object storage when uploading the PySpark app and CSVs).
     - **cpdctl path** — also needs **`oc`** and **`cpdctl`**.
-    - **OpenMetadata** — also needs **Docker**.
+    - **Confluent streaming path** — needs **Docker** (or a compatible runtime) to run the 7-container stack. See [Path C — Confluent](confluent-demo.md).
+    - **Optional Airflow/Metabase/OpenMetadata stack** — also needs **Docker**.
+
+!!! note "Container runtime compatibility (OrbStack / Podman)"
+    This project has only been tested with real **Docker / Docker Desktop**. Two alternatives exist, with different levels of confidence:
+
+    - **OrbStack** (macOS) — a drop-in Docker replacement. Its `docker` and `docker compose` CLIs work identically to Docker Desktop's, with no configuration changes needed. Nothing in this repo needs to change to use it.
+    - **Podman** — not verified against this repo. Two ways to make it work: (1) use `podman-compose`, a separate tool with some syntax differences from `docker compose`, or (2) run `podman machine` and export `DOCKER_HOST` so the standard `docker compose` CLI talks to Podman's Docker-API-compatible socket. Either path *should* work for the Confluent stack and the optional Airflow/Metabase/OpenMetadata stack, but treat it as unverified rather than confirmed.
 
 !!! warning "Python version matters"
     The `dbt-watsonx-presto` adapter has been tested against Python 3.11 only. Using 3.12 or 3.10 may produce dependency conflicts. If `python3.11 --version` fails, install Python 3.11 from [python.org](https://www.python.org/downloads/) before continuing.
@@ -81,17 +88,50 @@ A virtual environment is an isolated Python installation that keeps this worksho
 
 Your prompt will change to show `(.venv)` when the environment is active. You must activate it again (re-run the activate command) whenever you open a new terminal.
 
+!!! danger "Always spell out `python3.11` — never bare `python3` — for this repo's venv commands"
+    Re-running `python3.11 -m venv .venv` a **second** time on top of an existing venv is safe and
+    idempotent: it just refreshes the same 3.11 environment.
+
+    Re-running plain **`python3 -m venv .venv`** (without the `.11`) on an **existing** venv
+    directory is *not* safe if your system's default `python3` resolves to a different version —
+    for example a Homebrew-installed Python 3.14 that shadows `python3` on `PATH`. venv's "repair"
+    logic only partially rewrites an existing directory: it overwrites `.venv/pyvenv.cfg` and can
+    drop a stray `.venv/bin/python3.14`-style symlink, and it also **rebinds the shebang line
+    inside `.venv/bin/pip`** to the new interpreter — but it does *not* touch the pre-existing
+    `.venv/bin/python` / `.venv/bin/python3` symlinks, which keep pointing at the original 3.11.
+
+    The result is a confusing split-brain venv: `python --version` still correctly reports
+    `3.11.x` (because that symlink was untouched), yet `pip install` silently runs under 3.14's
+    resolver and starts rejecting packages that have no 3.14-compatible release. Nothing prints an
+    obvious error about a version mismatch — pip just fails as if the package itself is broken. See
+    [Troubleshooting → "pip install fails but python --version looks right"](troubleshooting.md#pip-install-fails-but-python-version-looks-right)
+    if this happens to you.
+
+    **The fix:** always type out the exact `python3.11` interpreter name — never bare `python3` —
+    for every venv command in this repo (creation, `pip install`, `-m pip`, etc.). If you already
+    have `(.venv)` active and just want to add packages, `pip install` alone is fine; only the
+    `-m venv .venv` invocation itself needs the exact version.
+
 The `requirements.txt` installs these packages:
 
-| Package | Version pinned | Plain-English role |
-|---|---|---|
-| `dbt-core` | >=1.8,<2.0 | The dbt engine that compiles and runs SQL models |
-| `dbt-watsonx-presto` | 0.1.2 | Adapter that translates dbt calls into Presto-compatible SQL |
-| `presto-python-client` | 0.8.4 | Low-level Python driver for talking to the Presto endpoint |
-| `boto3` | >=1.34,<2.0 | S3-compatible client for MinIO uploads |
-| `python-dotenv` | >=1.0,<2.0 | Loads `.env` into the environment for the scripts |
-| `requests` | >=2.31,<3.0 | REST calls (Spark submit, token auth) |
-| `mkdocs` + `mkdocs-material` | >=1.6 / >=9.5 | Builds this documentation site locally |
+| Package | Version pinned | Demo path | Plain-English role |
+|---|---|---|---|
+| `dbt-core` | >=1.8,<2.0 | dbt | The dbt engine that compiles and runs SQL models |
+| `dbt-watsonx-presto` | 0.1.2 | dbt | Adapter that translates dbt calls into Presto-compatible SQL |
+| `presto-python-client` | 0.8.4 | dbt | Low-level Python driver for talking to the Presto endpoint |
+| `boto3` | >=1.34,<2.0 | Spark / Confluent | S3-compatible client for MinIO uploads (Spark asset upload, Confluent MinIO writes) |
+| `python-dotenv` | >=1.0,<2.0 | all paths | Loads `.env` into the environment for every script |
+| `requests` | >=2.31,<3.0 | all paths | REST calls (Spark submit, token auth, Software Hub API) |
+| `mkdocs` | >=1.6,<2.0 | docs | Builds this documentation site locally |
+| `mkdocs-material` | >=9.5,<10.0 | docs | The Material theme this site uses |
+| `mkdocs-glightbox` | >=0.4,<1.0 | docs | Lightbox popup for screenshots/diagrams in the docs |
+| `confluent-kafka` | >=2.3,<3.0 | Confluent | Kafka producer/consumer client for the streaming path |
+| `fastavro` | >=1.9,<2.0 | Confluent | Avro encode/decode used by confluent-kafka's Avro (de)serializers |
+| `httpx` | >=0.26,<1.0 | Confluent | HTTP client the Schema Registry client uses to register/fetch Avro subjects |
+| `psycopg2-binary` | >=2.9,<3.0 | PG reporting | PostgreSQL driver for the reporting-database scripts |
+| `dbnd` | >=1.0,<2.0 | optional — Databand | Optional dbt-run tracking (`scripts/report_dbt_to_databand.py`); no-op unless `DBND__CORE__DATABAND_URL` is set |
+| `uv` | >=0.11,<1.0 | MCP server only | Fast Python package installer/runner used by `cpd-mcpserver/` — **not** part of any demo path |
+| `ibm-watsonxdata-dl-retrieval-mcp-server` | >=0.2.9,<1.0 | MCP server only | The watsonx.data MCP server package itself, used by `cpd-mcpserver/` — **not** part of any demo path |
 
 !!! note "pip install takes a minute"
     The total download is around 80 MB. This is normal — dbt pulls in a lot of SQL parsing libraries.
@@ -432,6 +472,12 @@ All checks passed!
 
 !!! warning "Connection refused or SSL error?"
     See the [Troubleshooting](troubleshooting.md) page. The most common causes are a missing `certs/watsonxdata-ca.pem` (re-run Step 5) or a wrong API key (check `.env`).
+
+!!! tip "Bookmark this for the rest of the workshop"
+    Once everything is running, the [Quick Health Check Reference](troubleshooting.md#quick-health-check-reference)
+    at the top of the Troubleshooting page has a one-line "is it up?" command or URL for every
+    path and optional service — use it instead of re-deriving a health check each time something
+    looks stuck.
 
 ---
 
