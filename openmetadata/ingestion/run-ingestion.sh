@@ -71,6 +71,11 @@ if [[ -f "${repo_root}/.env" ]]; then
   set -a; source "${repo_root}/.env"; set +a
 fi
 
+ca_abs=""
+if [[ -n "${WXD_SSL_VERIFY:-}" ]]; then
+  ca_abs="$(cd "$(dirname "${WXD_SSL_VERIFY}")" && pwd)/$(basename "${WXD_SSL_VERIFY}")"
+fi
+
 echo "[ingest] installing openmetadata-ingestion[dbt,presto]..."
 if ! pip install "openmetadata-ingestion[dbt,presto]==1.13.0.0" -q 2>&1 | tail -3; then
     echo "[ingest] pinned version failed, trying latest..." >&2
@@ -81,10 +86,6 @@ fi
 live_ok=0
 if [[ "${WXD_OM_SKIP_LIVE:-0}" != "1" && -n "${WXD_HOST:-}" && -n "${WXD_USER:-}" && -n "${WXD_API_KEY:-}" ]]; then
   echo "[ingest] Pass 1 (live): ingesting real Presto tables from watsonx.data..."
-  ca_abs=""
-  if [[ -n "${WXD_SSL_VERIFY:-}" ]]; then
-    ca_abs="$(cd "$(dirname "${WXD_SSL_VERIFY}")" && pwd)/$(basename "${WXD_SSL_VERIFY}")"
-  fi
   TOKEN=$(python "${ing_dir}/get_om_token.py")
   sed -e "s|__JWT_TOKEN__|${TOKEN}|g" \
       -e "s|__WXD_HOST__|${WXD_HOST}|g" \
@@ -115,7 +116,14 @@ fi
 # --- Pass 2: attach dbt model descriptions, tags, and lineage -----------------
 echo "[ingest] Pass 2: attaching dbt lineage..."
 TOKEN=$(python "${ing_dir}/get_om_token.py")
-sed "s|__JWT_TOKEN__|${TOKEN}|g" \
+sed -e "s|__JWT_TOKEN__|${TOKEN}|g" \
+    -e "s|__WXD_HOST__|${WXD_HOST:-}|g" \
+    -e "s|__WXD_PORT__|${WXD_PORT:-443}|g" \
+    -e "s|__WXD_USER__|${WXD_USER:-}|g" \
+    -e "s|__WXD_API_KEY__|${WXD_API_KEY:-}|g" \
+    -e "s|__WXD_CATALOG__|${WXD_CATALOG:-iceberg_data}|g" \
+    -e "s|__WXD_CA_PEM__|${ca_abs}|g" \
+    -e "s|__DBT_ARTIFACT_DIR__|${repo_root}/openmetadata/dbt-artifacts|g" \
     "${ing_dir}/dbt-ingestion.yaml" > /tmp/dbt-ingestion-final.yaml
 metadata ingest -c /tmp/dbt-ingestion-final.yaml
 

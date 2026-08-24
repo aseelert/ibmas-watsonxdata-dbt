@@ -1,20 +1,48 @@
+# -----------------------------------------------------------------------------
+#  dbt-ingestion.yaml — attach dbt model descriptions, tags, and lineage.
+#
+#  serviceConnection here is a fallback only: OpenMetadata resolves by
+#  `serviceName` first, and if the `watsonxdata-presto` service already exists
+#  (created by Pass 1's metadata-ingestion.yaml, which IS the live source of
+#  truth for this connection), these values are not used. They only matter if
+#  this pass runs against a fresh OpenMetadata instance with no such service
+#  yet — so they're templated identically to metadata-ingestion.yaml rather
+#  than hardcoded, so they can never silently drift from the real environment
+#  (the Presto engine's pod-suffix hostname changes across re-provisions —
+#  confirmed live: presto651 -> presto653 between two sessions).
+#
+#  Placeholders substituted at run time by run-ingestion.sh (from .env):
+#    __JWT_TOKEN__    OpenMetadata ingestion-bot JWT (from get_om_token.py)
+#    __WXD_HOST__     Presto host            (WXD_HOST)
+#    __WXD_PORT__     Presto port            (WXD_PORT, e.g. 443)
+#    __WXD_USER__     Presto username        (WXD_USER, e.g. ibmlhapikey_cpadmin)
+#    __WXD_API_KEY__  Presto password/APIkey (WXD_API_KEY)
+#    __WXD_CATALOG__  Iceberg catalog        (WXD_CATALOG, e.g. iceberg_data)
+#    __WXD_CA_PEM__   absolute path to the watsonx CA cert (from WXD_SSL_VERIFY)
+#    __DBT_ARTIFACT_DIR__  absolute path to openmetadata/dbt-artifacts/ (repo root)
+# -----------------------------------------------------------------------------
 source:
   type: dbt
   serviceName: watsonxdata-presto
   serviceConnection:
     config:
       type: Presto
-      hostPort: ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443
-      catalog: iceberg_data
-      username: ibmlhadmin
+      hostPort: __WXD_HOST__:__WXD_PORT__
+      catalog: __WXD_CATALOG__
+      username: __WXD_USER__
+      password: __WXD_API_KEY__
+      connectionArguments:
+        protocol: https
+        requests_kwargs:
+          verify: __WXD_CA_PEM__
   sourceConfig:
     config:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/catalog.json
-        dbtManifestFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/manifest.json
-        dbtRunResultsFilePath: /Users/aseelert/GitHub/ibmas-watsonxdata-dbt/openmetadata/dbt-artifacts/run_results.json
+        dbtCatalogFilePath: __DBT_ARTIFACT_DIR__/catalog.json
+        dbtManifestFilePath: __DBT_ARTIFACT_DIR__/manifest.json
+        dbtRunResultsFilePath: __DBT_ARTIFACT_DIR__/run_results.json
 sink:
   type: metadata-rest
   config: {}
