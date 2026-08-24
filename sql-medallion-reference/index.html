@@ -85,7 +85,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sql-reference-bronze-silver-gold-side-by-side" class="md-skip">
+        <a href="#sql-reference-bronze-silver-gold" class="md-skip">
           Skip to content
         </a>
       
@@ -1239,10 +1239,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#bronze" class="md-nav__link">
+  <a href="#bronze-land-it-as-is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bronze
+        Bronze — land it as-is
       
     </span>
   </a>
@@ -1250,10 +1250,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#silver" class="md-nav__link">
+  <a href="#silver-cast-clean-filter" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Silver
+        Silver — cast, clean, filter
       
     </span>
   </a>
@@ -1261,10 +1261,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gold" class="md-nav__link">
+  <a href="#gold-aggregate-into-a-table" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Gold
+        Gold — aggregate into a table
       
     </span>
   </a>
@@ -2223,10 +2223,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#bronze" class="md-nav__link">
+  <a href="#bronze-land-it-as-is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bronze
+        Bronze — land it as-is
       
     </span>
   </a>
@@ -2234,10 +2234,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#silver" class="md-nav__link">
+  <a href="#silver-cast-clean-filter" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Silver
+        Silver — cast, clean, filter
       
     </span>
   </a>
@@ -2245,10 +2245,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gold" class="md-nav__link">
+  <a href="#gold-aggregate-into-a-table" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Gold
+        Gold — aggregate into a table
       
     </span>
   </a>
@@ -2330,22 +2330,25 @@
   
 
 
-<h1 id="sql-reference-bronze-silver-gold-side-by-side">SQL Reference — Bronze → Silver → Gold, Side by Side</h1>
+<h1 id="sql-reference-bronze-silver-gold">SQL Reference — Bronze → Silver → Gold</h1>
 <div class="admonition abstract">
 <p class="admonition-title">What this page is</p>
 <p>A pure code reference — no walkthrough, no setup steps. Just the <strong>real SQL from this
-project's dbt models</strong>, laid out left to right so you can see exactly what changes at each
-medallion layer: Bronze lands the raw columns as-is, Silver casts types and cleans/joins,
-Gold aggregates into business-ready tables and views. Every query here is copy-pasted
-straight from <code>models/bronze/</code>, <code>models/silver/</code>, and <code>models/gold/</code> — nothing is simplified
-or invented for this page.</p>
+project's dbt models</strong>, one full-width block per layer so every line is actually readable —
+no squeezed columns, no horizontal-scroll code. Bronze lands the raw columns as-is, Silver
+casts types and cleans/joins, Gold aggregates into business-ready tables and views. Every
+query here is copy-pasted straight from <code>models/bronze/</code>, <code>models/silver/</code>, and
+<code>models/gold/</code> — nothing is simplified or invented for this page.</p>
 </div>
 <hr>
 <h2 id="orders-raw-cleaned-aggregated">Orders: raw → cleaned → aggregated</h2>
-<div class="sql-grid-3">
-<div>
-<h3 id="bronze"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 7v2h2v8h2V7zm2-5a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"></path></svg></span> Bronze</h3>
-<p><em><code>models/bronze/bronze_orders.sql</code></em></p>
+<div class="sql-stack">
+<div class="sql-step bronze">
+<div class="sql-step-head">
+<p><span class="step-badge">1</span></p>
+<h3 id="bronze-land-it-as-is">Bronze — land it as-is</h3>
+<p><span class="file-path">models/bronze/bronze_orders.sql</span></p>
+</div>
 <p>Raw columns, untouched. Only ingestion metadata is added — no casting, no cleaning yet.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">order_id</span><span class="p">,</span>
@@ -2359,9 +2362,12 @@ or invented for this page.</p>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'raw_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
 </code></pre></div>
 </div>
-<div>
-<h3 id="silver"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 7v2h4v2h-2a2 2 0 0 0-2 2v4h6v-2h-4v-2h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm3-5a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"></path></svg></span> Silver</h3>
-<p><em><code>models/silver/silver_orders.sql</code></em></p>
+<div class="sql-step silver">
+<div class="sql-step-head">
+<p><span class="step-badge">2</span></p>
+<h3 id="silver-cast-clean-filter">Silver — cast, clean, filter</h3>
+<p><span class="file-path">models/silver/silver_orders.sql</span></p>
+</div>
 <p>Types are cast, text is trimmed/lower-cased, bad rows are dropped.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="err">{{</span><span class="w"> </span><span class="n">config</span><span class="p">(</span><span class="n">properties</span><span class="o">=</span><span class="err">{</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="ss">"format"</span><span class="p">:</span><span class="w"> </span><span class="ss">"'PARQUET'"</span><span class="p">,</span>
@@ -2369,32 +2375,33 @@ or invented for this page.</p>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="err">}</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">select</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">order_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">integer</span><span class="p">)</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">order_id</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">customer_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">integer</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">)</span><span class="w">  </span><span class="k">as</span><span class="w"> </span><span class="n">order_ts</span><span class="p">,</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">cast</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">)</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">date</span><span class="p">)</span><span class="w">                </span><span class="k">as</span><span class="w"> </span><span class="n">order_date</span><span class="p">,</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="k">lower</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">status</span><span class="p">))</span><span class="w">          </span><span class="k">as</span><span class="w"> </span><span class="n">status</span><span class="p">,</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="k">lower</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">payment_method</span><span class="p">))</span><span class="w">  </span><span class="k">as</span><span class="w"> </span><span class="n">payment_method</span><span class="p">,</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="k">current_timestamp</span><span class="w">            </span><span class="k">as</span><span class="w"> </span><span class="n">transformed_at</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'bronze_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="k">where</span><span class="w"> </span><span class="n">order_id</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">order_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">integer</span><span class="p">)</span><span class="w">                 </span><span class="k">as</span><span class="w"> </span><span class="n">order_id</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">customer_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">integer</span><span class="p">)</span><span class="w">               </span><span class="k">as</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">)</span><span class="w">                </span><span class="k">as</span><span class="w"> </span><span class="n">order_ts</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">cast</span><span class="p">(</span><span class="n">order_ts</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">timestamp</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">date</span><span class="p">)</span><span class="w">  </span><span class="k">as</span><span class="w"> </span><span class="n">order_date</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="k">lower</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">status</span><span class="p">))</span><span class="w">                        </span><span class="k">as</span><span class="w"> </span><span class="n">status</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="k">lower</span><span class="p">(</span><span class="k">trim</span><span class="p">(</span><span class="n">payment_method</span><span class="p">))</span><span class="w">                </span><span class="k">as</span><span class="w"> </span><span class="n">payment_method</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="k">current_timestamp</span><span class="w">                          </span><span class="k">as</span><span class="w"> </span><span class="n">transformed_at</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'bronze_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="k">where</span><span class="w"> </span><span class="n">order_id</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
 </code></pre></div>
 </div>
-<div>
-<h3 id="gold"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 15v-1.5a1.5 1.5 0 0 0-1.5-1.5 1.5 1.5 0 0 0 1.5-1.5V9a2 2 0 0 0-2-2H9v2h4v2h-2v2h2v2H9v2h4a2 2 0 0 0 2-2M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"></path></svg></span> Gold</h3>
-<p><em><code>models/gold/gold_daily_sales.sql</code></em></p>
+<div class="sql-step gold">
+<div class="sql-step-head">
+<p><span class="step-badge">3</span></p>
+<h3 id="gold-aggregate-into-a-table">Gold — aggregate into a table</h3>
+<p><span class="file-path">models/gold/gold_daily_sales.sql</span></p>
+</div>
 <p>A physical <strong>table</strong>, aggregated straight off the enriched silver fact.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">select</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">order_date</span><span class="p">,</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">category</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="k">distinct</span><span class="w"> </span><span class="n">order_id</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">order_count</span><span class="p">,</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="w">            </span><span class="k">as</span><span class="w"> </span><span class="n">units_sold</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_amount</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">net_revenue</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_sales_enriched'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">where</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'completed'</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="k">distinct</span><span class="w"> </span><span class="n">order_id</span><span class="p">)</span><span class="w">                </span><span class="k">as</span><span class="w"> </span><span class="n">order_count</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="w">                            </span><span class="k">as</span><span class="w"> </span><span class="n">units_sold</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_amount</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">net_revenue</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_sales_enriched'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">where</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'completed'</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
 </code></pre></div>
 </div>
 </div>
@@ -2447,10 +2454,13 @@ or invented for this page.</p>
 <h2 id="silvers-second-job-enrichment-joining-not-just-cleaning">Silver's second job: enrichment (joining, not just cleaning)</h2>
 <p>Cleaning one table isn't the whole story — Silver also <strong>joins</strong> the four cleaned entities into one
 row-per-order-line fact that Gold reads from. This is the "enriched" step:</p>
-<div class="grid">
-<div>
-<h3 id="silver-the-join"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 7v2h5V7zm10 2v2H9v2h3v2l3-3zm5 0v6h5V9zM2 11v2h5v-2zm0 4v2h5v-2z"></path></svg></span> Silver — the join</h3>
-<p><em><code>models/silver/silver_sales_enriched.sql</code></em></p>
+<div class="sql-stack">
+<div class="sql-step silver">
+<div class="sql-step-head">
+<p><span class="step-badge"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 7v2h5V7zm10 2v2H9v2h3v2l3-3zm5 0v6h5V9zM2 11v2h5v-2zm0 4v2h5v-2z"></path></svg></span></span></p>
+<h3 id="silver-the-join">Silver — the join</h3>
+<p><span class="file-path">models/silver/silver_sales_enriched.sql</span></p>
+</div>
 <p>Four already-cleaned Silver tables are joined into one analytics-ready fact — this is what
 "enriched" means: not just clean, but carrying context from other tables (customer country,
 product category) plus computed columns (<code>gross_amount</code>, <code>net_amount</code>).</p>
@@ -2459,29 +2469,27 @@ product category) plus computed columns (<code>gross_amount</code>, <code>net_am
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">order_id</span><span class="p">,</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">o</span><span class="p">.</span><span class="n">order_date</span><span class="p">,</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">o</span><span class="p">.</span><span class="n">status</span><span class="p">,</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="k">c</span><span class="p">.</span><span class="n">country</span><span class="w">                 </span><span class="k">as</span><span class="w"> </span><span class="n">customer_country</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="k">c</span><span class="p">.</span><span class="n">country</span><span class="w">                                                    </span><span class="k">as</span><span class="w"> </span><span class="n">customer_country</span><span class="p">,</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">product_name</span><span class="p">,</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">category</span><span class="p">,</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="p">,</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span><span class="p">,</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="n">oi</span><span class="p">.</span><span class="n">discount_pct</span><span class="p">,</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">gross_amount</span><span class="p">,</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">       </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">discount_pct</span><span class="p">)</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">net_amount</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_order_items'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w"> </span><span class="n">oi</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w">    </span><span class="n">o</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">order_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">order_id</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_products'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w">  </span><span class="n">p</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">product_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">product_id</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_customers'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w"> </span><span class="k">c</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">customer_id</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">            </span><span class="k">as</span><span class="w"> </span><span class="n">gross_amount</span><span class="p">,</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="n">oi</span><span class="p">.</span><span class="n">quantity</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">unit_price</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">discount_pct</span><span class="p">)</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">                                       </span><span class="k">as</span><span class="w"> </span><span class="n">net_amount</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_order_items'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w"> </span><span class="n">oi</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_orders'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w">    </span><span class="n">o</span><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">order_id</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">order_id</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_products'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w">  </span><span class="n">p</span><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">oi</span><span class="p">.</span><span class="n">product_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">product_id</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="k">join</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'silver_customers'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span><span class="w"> </span><span class="k">c</span><span class="w">  </span><span class="k">on</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">customer_id</span>
 </code></pre></div>
 </div>
-<div>
-<h3 id="gold-a-pre-aggregated-view"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11h8V3H3m0 18h8v-8H3m10 8h8v-8h-8m0-10v8h8V3"></path></svg></span> Gold — a pre-aggregated view</h3>
-<p><em><code>models/gold/gold_category_performance.sql</code></em></p>
+<div class="sql-step gold">
+<div class="sql-step-head">
+<p><span class="step-badge"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11h8V3H3m0 18h8v-8H3m10 8h8v-8h-8m0-10v8h8V3"></path></svg></span></span></p>
+<h3 id="gold-a-pre-aggregated-view">Gold — a pre-aggregated view</h3>
+<p><span class="file-path">models/gold/gold_category_performance.sql</span></p>
+</div>
 <p>Gold isn't always a fresh aggregation from scratch — this one is a <strong>view</strong> that rolls up the
 already-aggregated <code>gold_daily_sales</code> <strong>table</strong> above. Cheap to query, always up to date, no
 extra storage.</p>
@@ -2489,15 +2497,13 @@ extra storage.</p>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">select</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">category</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">order_count</span><span class="p">)</span><span class="w">         </span><span class="k">as</span><span class="w"> </span><span class="n">total_orders</span><span class="p">,</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">units_sold</span><span class="p">)</span><span class="w">          </span><span class="k">as</span><span class="w"> </span><span class="n">total_units</span><span class="p">,</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_revenue</span><span class="p">)</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">total_revenue</span><span class="p">,</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_revenue</span><span class="p">)</span><span class="w"> </span><span class="o">/</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">       </span><span class="k">nullif</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">units_sold</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">   </span><span class="k">as</span><span class="w"> </span><span class="n">avg_revenue_per_unit</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'gold_daily_sales'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">order_count</span><span class="p">)</span><span class="w">                                             </span><span class="k">as</span><span class="w"> </span><span class="n">total_orders</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="k">sum</span><span class="p">(</span><span class="n">units_sold</span><span class="p">)</span><span class="w">                                               </span><span class="k">as</span><span class="w"> </span><span class="n">total_units</span><span class="p">,</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_revenue</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">                       </span><span class="k">as</span><span class="w"> </span><span class="n">total_revenue</span><span class="p">,</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="k">cast</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">net_revenue</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">nullif</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">units_sold</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">       </span><span class="k">as</span><span class="w"> </span><span class="nb">decimal</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w">                                        </span><span class="k">as</span><span class="w"> </span><span class="n">avg_revenue_per_unit</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">from</span><span class="w"> </span><span class="err">{{</span><span class="w"> </span><span class="k">ref</span><span class="p">(</span><span class="s1">'gold_daily_sales'</span><span class="p">)</span><span class="w"> </span><span class="err">}}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span>
 </code></pre></div>
 </div>
 </div>

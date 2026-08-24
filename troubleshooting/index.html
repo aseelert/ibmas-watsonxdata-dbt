@@ -3008,7 +3008,7 @@ against 3.11; using 3.12 or 3.10 often produces silent dependency conflicts.</p>
 <p>If the command returns <code>command not found</code>, install Python 3.11 from
 <a href="https://www.python.org/downloads/">python.org</a> before continuing.</p>
 <p><strong>Always use the virtual environment interpreter directly when activating fails:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>.venv/bin/python<span class="w"> </span>scripts/prepare_watsonx_env.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>.venv/bin/python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Activate before running scripts</p>
@@ -3021,7 +3021,7 @@ Python instead, which will likely be the wrong version or missing packages.</p>
 <p>Scripts exit immediately with errors such as <code>KeyError: 'WXD_API_KEY'</code> or
 <code>WXD_API_KEY is not set</code>.</p>
 <p>The <code>.env</code> file holds your API key and the connection values written by
-<code>prepare_watsonx_env.py</code>. Without it nothing can authenticate.</p>
+<code>scripts/00a_prepare_watsonx_env.py</code>. Without it nothing can authenticate.</p>
 <p><strong>Create it from the template:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
 </code></pre></div>
@@ -3030,7 +3030,7 @@ Python instead, which will likely be the wrong version or missing packages.</p>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">WXD_API_KEY</span><span class="o">=</span>&lt;your-software-hub-api-key&gt;
 </code></pre></div>
 <p>Then re-run the environment preparation so all other values are filled in automatically:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Never commit <code>.env</code></p>
@@ -3048,7 +3048,7 @@ Python instead, which will likely be the wrong version or missing packages.</p>
 <p>The certificate file is not committed to the repository — it is written to disk by the
 environment preparation script from the connection JSON.</p>
 <p><strong>Regenerate the file:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--overwrite
 </code></pre></div>
 <p><strong>Confirm it exists:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ls<span class="w"> </span>certs/watsonxdata-ca.pem
@@ -3057,7 +3057,7 @@ environment preparation script from the connection JSON.</p>
 certificate. See "Connection JSON not found" below.</p>
 <hr>
 <h3 id="connection-json-not-found">Connection JSON not found</h3>
-<p><code>prepare_watsonx_env.py</code> exits with:</p>
+<p><code>scripts/00a_prepare_watsonx_env.py</code> exits with:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>FileNotFoundError: watsonx_data/instance_details.json not found
 </code></pre></div>
 <p>The connection JSON is a file you export from the watsonx.data console. It contains the
@@ -3073,17 +3073,17 @@ Presto endpoint address, your instance ID, and the SSL certificate chain.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cp<span class="w"> </span>/path/to/presto-connection.json<span class="w"> </span>watsonx_data/instance_details.json
 </code></pre></div>
 <p>Then re-run setup step 5:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">One JSON per environment</p>
 <p>If the administrator rotates the certificate or the cluster changes, request a fresh JSON
-and run <code>prepare_watsonx_env.py --overwrite</code> to apply the new values.</p>
+and run <code>scripts/00a_prepare_watsonx_env.py --overwrite</code> to apply the new values.</p>
 </div>
 <hr>
 <h2 id="path-a-dbt-errors">Path A — dbt Errors</h2>
-<p>These errors occur while running the dbt path: <code>dbt_env.sh seed</code>, <code>dbt_env.sh run</code>,
-<code>dbt_env.sh test</code>, or <code>query_gold.py</code>.</p>
+<p>These errors occur while running the dbt path: <code>scripts/02_dbt_env.sh seed</code>, <code>scripts/02_dbt_env.sh run</code>,
+<code>scripts/02_dbt_env.sh test</code>, or <code>scripts/05_query_gold.py</code>.</p>
 <hr>
 <h3 id="remotedisconnected-connectionabortederror">RemoteDisconnected / ConnectionAbortedError</h3>
 <p>dbt exits with a message similar to:</p>
@@ -3095,13 +3095,13 @@ and run <code>prepare_watsonx_env.py --overwrite</code> to apply the new values.
 <p>Presto has a hard limit on concurrent open connections. When dbt runs too many threads in
 parallel, the cluster drops some of them mid-query.</p>
 <p><strong>Reduce thread count and retry:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span>
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Use <code>--select</code> to avoid re-running completed models</p>
 <p>If the error happened part-way through, use <code>--select</code> to restart only from the failed model
 rather than re-running the whole pipeline:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>silver_sales_enriched+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>silver_sales_enriched+
 </code></pre></div>
 <p>The <code>+</code> suffix tells dbt to also run all downstream dependencies.</p>
 </div>
@@ -3116,14 +3116,14 @@ rather than re-running the whole pipeline:</p>
 <p>The bearer token that dbt uses to authenticate against Presto has expired. Tokens are
 short-lived; you need to refresh them at the start of every session.</p>
 <p><strong>Refresh the token:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--overwrite
 </code></pre></div>
 <p>Then retry the dbt command that failed. The <code>--overwrite</code> flag forces the script to fetch a
 new token even if <code>.env</code> already has values.</p>
 <div class="admonition note">
 <p class="admonition-title">Token lifetime</p>
 <p>IBM Software Hub tokens typically expire after a few hours. If you started the workshop in
-the morning and return after lunch, run <code>prepare_watsonx_env.py --overwrite</code> before
+the morning and return after lunch, run <code>scripts/00a_prepare_watsonx_env.py --overwrite</code> before
 continuing.</p>
 </div>
 <hr>
@@ -3184,9 +3184,9 @@ Check the model file and correct it:</p>
 wait. This is most common when multiple workshop participants run the full pipeline at the
 same time.</p>
 <p><strong>Build one layer at a time with a reduced thread count:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:bronze
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:silver
-<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:gold
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:bronze
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:silver
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--threads<span class="w"> </span><span class="m">1</span><span class="w"> </span>--select<span class="w"> </span>tag:gold
 </code></pre></div>
 <p>This reduces the number of simultaneous Presto connections from however many models are in
 the graph down to one at a time. The run takes longer but is less likely to contend with
@@ -3199,11 +3199,11 @@ table from scratch rather than appending to a partial result.</p>
 </div>
 <hr>
 <h2 id="path-b-spark-errors">Path B — Spark Errors</h2>
-<p>These errors occur while running the Spark path: <code>upload_spark_assets.py</code>,
-<code>submit_spark_application.py</code>, or <code>spark_application_status.py</code>.</p>
+<p>These errors occur while running the Spark path: <code>scripts/03a_upload_spark_assets.py</code>,
+<code>scripts/03b_submit_spark_application.py</code>, or <code>scripts/03c_spark_application_status.py</code>.</p>
 <hr>
 <h3 id="upload-fails-connection-refused-on-minio">Upload fails / connection refused on MinIO</h3>
-<p><code>upload_spark_assets.py</code> exits with:</p>
+<p><code>scripts/03a_upload_spark_assets.py</code> exits with:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>ConnectionRefusedError: [Errno 111] Connection refused
 </code></pre></div>
 <p>or:</p>
@@ -3218,7 +3218,7 @@ script needs a port-forward to reach it.</p>
 <p><strong>In your working terminal, override the endpoint before uploading:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 <a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">WXD_OBJECT_STORE_ENDPOINT</span><span class="o">=</span>http://127.0.0.1:19000
-<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>python<span class="w"> </span>scripts/upload_spark_assets.py
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>python<span class="w"> </span>scripts/03a_upload_spark_assets.py
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Automatic port-forwarding</p>
@@ -3249,12 +3249,12 @@ left as the default).</p>
 </code></pre></div>
 <p><strong>Switch to the correct context, then re-run:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>oc<span class="w"> </span>config<span class="w"> </span>use-context<span class="w"> </span>&lt;watsonx-data-context&gt;
-<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>python<span class="w"> </span>scripts/upload_spark_assets.py
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>python<span class="w"> </span>scripts/03a_upload_spark_assets.py
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Pin the context so this can't recur</p>
 <p>Set <code>WXD_OPENSHIFT_CONTEXT=&lt;watsonx-data-context&gt;</code> in <code>.env</code>. The uploader and
-<code>cleanup_minio.py</code> then pass <code>--context</code> on every <code>oc</code> call, so they always target the
+<code>scripts/09_cleanup_minio.py</code> then pass <code>--context</code> on every <code>oc</code> call, so they always target the
 right cluster regardless of your default context.</p>
 </div>
 <hr>
@@ -3273,7 +3273,7 @@ engine may be misconfigured.</p>
 <li>Look at the <strong>Events</strong> or <strong>Logs</strong> tab for image pull errors or resource quota messages.</li>
 </ol>
 <p><strong>From the terminal, check the engine's current application list:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w"> </span>&lt;application-id&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>python<span class="w"> </span>scripts/03c_spark_application_status.py<span class="w"> </span>&lt;application-id&gt;
 </code></pre></div>
 <pre class="mermaid"><code>flowchart LR
     SUBMITTED["Submitted"] --&gt; STARTING["STARTING\n(image pull)"]
@@ -3316,12 +3316,12 @@ records the non-zero exit.</p>
 <tr>
 <td><code>Path does not exist: s3a://iceberg-bucket/spark_demo/raw/</code></td>
 <td>CSV files not uploaded</td>
-<td>Re-run <code>python scripts/upload_spark_assets.py</code></td>
+<td>Re-run <code>python scripts/03a_upload_spark_assets.py</code></td>
 </tr>
 <tr>
 <td><code>Schema iceberg_data.spark_demo_bronze not found</code></td>
 <td>Schema bootstrap skipped</td>
-<td>Run <code>python scripts/bootstrap_watsonxdata.py</code> first</td>
+<td>Run <code>python scripts/01_bootstrap_watsonxdata.py</code> first</td>
 </tr>
 <tr>
 <td><code>NoCredentialsError</code> / <code>Access Denied</code></td>
@@ -3365,7 +3365,7 @@ built-in ingestion service — jobs that begin with <code>ingestion-&lt;id&gt;</
 </table>
 <p>Find the job under <strong>Infrastructure manager → Spark → Applications</strong>, or check its status
 from the terminal:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w"> </span>&lt;application-id&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python<span class="w"> </span>scripts/03c_spark_application_status.py<span class="w"> </span>&lt;application-id&gt;
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">If you want a job that appears in Ingestion history, use Path C</p>
@@ -3685,18 +3685,18 @@ config, and runs <code>metadata ingest</code> with the fresh credentials.</p>
 <p><code>catalog.json</code> is only produced by <code>dbt docs generate</code>, not by <code>dbt run</code> or <code>dbt test</code>.
 It requires a live Presto connection because it queries the warehouse for column metadata.</p>
 <p><strong>Generate the artifacts and copy them:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>docs<span class="w"> </span>generate<span class="w"> </span>--no-compile
+<div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>docs<span class="w"> </span>generate<span class="w"> </span>--no-compile
 <a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>cp<span class="w"> </span>target/manifest.json<span class="w"> </span>target/catalog.json<span class="w"> </span>target/run_results.json<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="w">   </span>openmetadata/dbt-artifacts/
 </code></pre></div>
 <p><strong>If Presto is temporarily unavailable</strong>, you can still show lineage from <code>manifest.json</code>
 alone by skipping the catalog step:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py<span class="w"> </span>--skip-dbt
-<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>python<span class="w"> </span>scripts/07a_prepare_openmetadata_dbt_artifacts.py<span class="w"> </span>--skip-dbt
+<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>python<span class="w"> </span>scripts/07c_upload_dbt_artifacts.py
 </code></pre></div>
 <p>Then rerun the full artifact generation when Presto recovers:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
-<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>python<span class="w"> </span>scripts/upload_dbt_artifacts.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>python<span class="w"> </span>scripts/07a_prepare_openmetadata_dbt_artifacts.py
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>python<span class="w"> </span>scripts/07c_upload_dbt_artifacts.py
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title"><code>manifest.json</code> vs <code>catalog.json</code></p>
@@ -3754,7 +3754,7 @@ and pointed to by the right environment variable for each tool.</p>
 <a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>ls<span class="w"> </span>certs/watsonxdata-ca.pem
 <a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a>
 <a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a><span class="c1"># If missing, regenerate it</span>
-<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--overwrite
 </code></pre></div>
 <p><strong>For cpdctl (via <code>SSL_CERT_FILE</code> environment variable):</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem"</span>
@@ -3784,7 +3784,7 @@ engine's Applications tab.</p>
 <p>The dry-run flag is set to <code>true</code>, which prints the job payload without sending it to the
 cluster. This is intentional for verifying config — set the flag to <code>false</code> to submit for
 real:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/submit_spark_application.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/03b_submit_spark_application.py
 </code></pre></div>
 <p>Or set it permanently in <code>.env</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span>

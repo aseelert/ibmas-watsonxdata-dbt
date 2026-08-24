@@ -2387,7 +2387,7 @@
     slv["silver: silver_* + silver_sales_enriched\n+ time_spine_daily  → dbt_demo_silver"]:::silver
     gld["gold: gold_daily_sales → gold_category_performance\ngold_customer_360  → dbt_demo_gold"]:::gold
     tst["dbt_test  (schema + data tests)"]:::ops
-    qg["query_gold  (scripts/query_gold.py)"]:::ops
+    qg["query_gold  (scripts/05_query_gold.py)"]:::ops
     boot --&gt; seed --&gt; brz --&gt; slv --&gt; gld --&gt; tst --&gt; qg
     boot --&gt; slv
   end
@@ -2404,7 +2404,7 @@
     prep --&gt; sub
     tok --&gt; sub --&gt; vb --&gt; vs --&gt; vg --&gt; qgs
   end</code></pre>
-<p><strong>dbt DAG</strong> wires one Airflow task per dbt model, following the dbt <code>ref()</code> graph exactly: four independent <code>raw → bronze → silver</code> branches, then <code>silver_sales_enriched</code> (the join of all four), then the three gold marts, then <code>dbt_test</code>, then a real <code>query_gold.py</code> preview. <strong>Spark DAG</strong> submits the whole medallion as <strong>one distributed job</strong> (<code>spark/load_medallion_demo.py</code> writes bronze→silver→gold in a single application — that is how Spark works), then makes <strong>each layer its own verification task</strong> that counts rows via Presto, giving the same <code>bronze → silver → gold</code> shape honestly.</p>
+<p><strong>dbt DAG</strong> wires one Airflow task per dbt model, following the dbt <code>ref()</code> graph exactly: four independent <code>raw → bronze → silver</code> branches, then <code>silver_sales_enriched</code> (the join of all four), then the three gold marts, then <code>dbt_test</code>, then a real <code>scripts/05_query_gold.py</code> preview. <strong>Spark DAG</strong> submits the whole medallion as <strong>one distributed job</strong> (<code>spark/load_medallion_demo.py</code> writes bronze→silver→gold in a single application — that is how Spark works), then makes <strong>each layer its own verification task</strong> that counts rows via Presto, giving the same <code>bronze → silver → gold</code> shape honestly.</p>
 <hr>
 <h2 id="whats-in-this-repo">What's in this repo</h2>
 <table>
@@ -2425,7 +2425,7 @@
 </tr>
 <tr>
 <td><code>airflow/dags/common/wxd.py</code></td>
-<td>The single place auth / TLS / Presto / Spark-REST logic lives, mirroring the standalone scripts (<code>get_token.py</code>, <code>submit_spark_application.py</code>, <code>bootstrap_watsonxdata.py</code>, <code>query_gold.py</code>) so nothing is duplicated.</td>
+<td>The single place auth / TLS / Presto / Spark-REST logic lives, mirroring the standalone scripts (<code>scripts/00b_get_token.py</code>, <code>scripts/03b_submit_spark_application.py</code>, <code>scripts/01_bootstrap_watsonxdata.py</code>, <code>scripts/05_query_gold.py</code>) so nothing is duplicated.</td>
 </tr>
 <tr>
 <td><code>docker-compose.yml</code></td>

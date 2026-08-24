@@ -2361,7 +2361,7 @@ page that explains it. <strong>First time through? Use the full pages instead</s
 <div class="admonition warning">
 <p class="admonition-title">Run setup first</p>
 <p>Everything below assumes you completed <a href="../setup/">Setup</a>: Python 3.11 <code>.venv</code>, <code>.env</code>
-populated, dbt profile in place, and <code>bash scripts/dbt_env.sh debug</code> passing. Commands are
+populated, dbt profile in place, and <code>bash scripts/02_dbt_env.sh debug</code> passing. Commands are
 copy-paste for <strong>macOS/Linux (zsh/bash)</strong>.</p>
 </div>
 <hr>
@@ -2373,11 +2373,11 @@ copy-paste for <strong>macOS/Linux (zsh/bash)</strong>.</p>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env<span class="w">                     </span><span class="c1"># then edit .env — see Configuration reference</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w">    </span><span class="c1"># parses instance JSON → .env + certs/watsonxdata-ca.pem</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w">    </span><span class="c1"># parses instance JSON → .env + certs/watsonxdata-ca.pem</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/.dbt
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>cp<span class="w"> </span>profiles/profiles.example.yml<span class="w"> </span>~/.dbt/profiles.yml
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w">             </span><span class="c1"># smoke-test the Presto connection</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>debug<span class="w">            </span><span class="c1"># dbt sees the profile + connects</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>python<span class="w"> </span>scripts/05_query_gold.py<span class="w">             </span><span class="c1"># smoke-test the Presto connection</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>debug<span class="w">            </span><span class="c1"># dbt sees the profile + connects</span>
 </code></pre></div>
 <p>Optional CLI tools (only needed for Spark asset upload and cpdctl):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/.local/bin
@@ -2392,35 +2392,35 @@ copy-paste for <strong>macOS/Linux (zsh/bash)</strong>.</p>
 <h2 id="a-dbt-full-medallion-dbt-demomd">A · dbt — full medallion → <a href="../dbt-demo/">dbt-demo.md</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/aseelert/GitHub/ibmas-watsonxdata-dbt<span class="w">   </span><span class="c1"># your repo path</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py<span class="w">           </span><span class="c1"># create dbt_demo_{raw,bronze,silver,gold}</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh<span class="w">       </span><span class="c1"># load 4 CSVs → dbt_demo_raw</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w">                        </span><span class="c1"># build bronze → silver → gold</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span><span class="nb">test</span><span class="w">                       </span><span class="c1"># schema + data tests</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w">                        </span><span class="c1"># query the gold marts</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>python<span class="w"> </span>scripts/01_bootstrap_watsonxdata.py<span class="w">           </span><span class="c1"># create dbt_demo_{raw,bronze,silver,gold}</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh<span class="w">       </span><span class="c1"># load 4 CSVs → dbt_demo_raw</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w">                        </span><span class="c1"># build bronze → silver → gold</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span><span class="nb">test</span><span class="w">                       </span><span class="c1"># schema + data tests</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>python<span class="w"> </span>scripts/05_query_gold.py<span class="w">                        </span><span class="c1"># query the gold marts</span>
 </code></pre></div>
 <p>One-command alternative and per-layer selection:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>build<span class="w"> </span>--full-refresh<span class="w">        </span><span class="c1"># seed + run + test in one go</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:bronze
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:silver
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:gold
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>build<span class="w"> </span>--full-refresh<span class="w">        </span><span class="c1"># seed + run + test in one go</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:bronze
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:silver
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:gold
 </code></pre></div>
 <hr>
 <h2 id="b-spark-full-medallion-spark-demomd">B · Spark — full medallion → <a href="../spark-demo/">spark-demo.md</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/aseelert/GitHub/ibmas-watsonxdata-dbt
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>python<span class="w"> </span>scripts/upload_spark_assets.py<span class="w">               </span><span class="c1"># push job + CSVs to MinIO</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">true</span><span class="w">  </span>python<span class="w"> </span>scripts/submit_spark_application.py<span class="w">   </span><span class="c1"># preview</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/submit_spark_application.py<span class="w">   </span><span class="c1"># submit for real</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w"> </span>&lt;application-id&gt;<span class="w">          </span><span class="c1"># poll until finished</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>python<span class="w"> </span>scripts/03a_upload_spark_assets.py<span class="w">               </span><span class="c1"># push job + CSVs to MinIO</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">true</span><span class="w">  </span>python<span class="w"> </span>scripts/03b_submit_spark_application.py<span class="w">   </span><span class="c1"># preview</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">WXD_SPARK_DRY_RUN</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>python<span class="w"> </span>scripts/03b_submit_spark_application.py<span class="w">   </span><span class="c1"># submit for real</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>python<span class="w"> </span>scripts/03c_spark_application_status.py<span class="w"> </span>&lt;application-id&gt;<span class="w">          </span><span class="c1"># poll until finished</span>
 </code></pre></div>
 <hr>
 <h2 id="c-cpdctl-native-raw-ingest-ingestionmd">C · cpdctl — native raw ingest → <a href="../ingestion/">ingestion.md</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">set</span><span class="w"> </span>-a<span class="p">;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.env<span class="p">;</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>+a
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSL_CERT_FILE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/certs/watsonxdata-ca.pem"</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>python<span class="w"> </span>scripts/upload_spark_assets.py<span class="w">               </span><span class="c1"># stage CSVs in object storage</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w">                </span><span class="c1"># kick off the ingestion jobs</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--wait<span class="w">         </span><span class="c1"># or wait for completion</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>python<span class="w"> </span>scripts/03a_upload_spark_assets.py<span class="w">               </span><span class="c1"># stage CSVs in object storage</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>python<span class="w"> </span>scripts/04_ingest_with_cpdctl.py<span class="w">                </span><span class="c1"># kick off the ingestion jobs</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>python<span class="w"> </span>scripts/04_ingest_with_cpdctl.py<span class="w"> </span>--wait<span class="w">         </span><span class="c1"># or wait for completion</span>
 </code></pre></div>
 <p>cpdctl lands <strong>raw only</strong> in <code>spark_demo_cpdctl_raw</code>. Build a medallion on top with dbt or Spark
 afterward (see <a href="../choosing/">When to Use Which</a>).</p>
@@ -2440,7 +2440,7 @@ afterward (see <a href="../choosing/">When to Use Which</a>).</p>
 </code></pre></div>
 <hr>
 <h2 id="d-datastage-no-code-confluent-gold-datastage-demomd">D · DataStage — no-code Confluent gold → <a href="../datastage-demo/">datastage-demo.md</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/get_token.py<span class="w">                          </span><span class="c1"># sanity-check auth</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/00b_get_token.py<span class="w">                          </span><span class="c1"># sanity-check auth</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>confluent/scripts/create_datastage_flow.py<span class="w">    </span><span class="c1"># DRY RUN (default) — preview the request</span>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>python<span class="w"> </span>confluent/scripts/create_datastage_flow.py<span class="w"> </span>--apply<span class="w">        </span><span class="c1"># create the flow on the cluster</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>python<span class="w"> </span>confluent/scripts/create_datastage_flow.py<span class="w"> </span>--apply<span class="w"> </span>--run<span class="w">  </span><span class="c1"># create + compile + run</span>
@@ -2466,15 +2466,15 @@ It defaults to dry-run; nothing is sent until you pass <code>--apply</code>.</p>
 </code></pre></div>
 <hr>
 <h2 id="compare-reconcile-sql-demomd">Compare &amp; reconcile → <a href="../sql-demo/">sql-demo.md</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w">                          </span><span class="c1"># dbt gold marts</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>scripts/05_query_gold.py<span class="w">                          </span><span class="c1"># dbt gold marts</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>python<span class="w"> </span>scripts/reconcile_gold.py<span class="w">                      </span><span class="c1"># 3-way parity: dbt vs Spark vs Confluent</span>
 </code></pre></div>
 <p>Run the side-by-side SQL in the watsonx.data SQL editor — see <a href="../sql-demo/">the SQL page</a>.</p>
 <hr>
 <h2 id="reset-the-whole-demo-troubleshootingmd">Reset the whole demo → <a href="../troubleshooting/">troubleshooting.md</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>bash<span class="w"> </span>scripts/reset_demo.sh<span class="w"> </span>--warehouse<span class="w">               </span><span class="c1"># drop demo schemas / warehouse data</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>python<span class="w"> </span>scripts/cleanup_watsonxdata.py<span class="w">                </span><span class="c1"># drop watsonx.data demo schemas</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>python<span class="w"> </span>scripts/cleanup_minio.py<span class="w">                      </span><span class="c1"># clear MinIO demo objects</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>bash<span class="w"> </span>scripts/11_reset_demo.sh<span class="w"> </span>--warehouse<span class="w">               </span><span class="c1"># drop demo schemas / warehouse data</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>python<span class="w"> </span>scripts/08_cleanup_watsonxdata.py<span class="w">                </span><span class="c1"># drop watsonx.data demo schemas</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>python<span class="w"> </span>scripts/09_cleanup_minio.py<span class="w">                      </span><span class="c1"># clear MinIO demo objects</span>
 </code></pre></div>
 <hr>
 <h2 id="see-also">See also</h2>

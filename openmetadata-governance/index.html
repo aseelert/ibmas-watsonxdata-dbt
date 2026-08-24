@@ -2369,7 +2369,7 @@
 </tr>
 <tr>
 <td>What does each table/column mean?</td>
-<td>Descriptions from dbt <code>schema.yml</code>, with fallback descriptions from <code>scripts/apply_openmetadata_governance.py</code>.</td>
+<td>Descriptions from dbt <code>schema.yml</code>, with fallback descriptions from <code>scripts/07d_apply_openmetadata_governance.py</code>.</td>
 </tr>
 <tr>
 <td>Where did the data come from?</td>
@@ -2425,7 +2425,7 @@
 <ol>
 <li><strong>Live table discovery:</strong> OpenMetadata connects to Presto and discovers the real <code>iceberg_data.dbt_demo_*</code> tables.</li>
 <li><strong>Offline fallback:</strong> if the live Presto pass fails, <code>scripts/seed_openmetadata_tables.py</code> creates the same table entities from staged dbt <code>catalog.json</code>.</li>
-<li><strong>Governance enrichment:</strong> <code>scripts/apply_openmetadata_governance.py</code> creates glossary/classification objects and attaches them to the dbt tables and columns.</li>
+<li><strong>Governance enrichment:</strong> <code>scripts/07d_apply_openmetadata_governance.py</code> creates glossary/classification objects and attaches them to the dbt tables and columns.</li>
 </ol>
 <p>The governance pass is the same for online and offline runs. The only difference is the ingestion-mode tag:</p>
 <table>
@@ -2590,7 +2590,7 @@
 <td>dbt documentation-as-code. These descriptions appear in dbt docs and are included in dbt artifacts.</td>
 </tr>
 <tr>
-<td><code>scripts/apply_openmetadata_governance.py</code></td>
+<td><code>scripts/07d_apply_openmetadata_governance.py</code></td>
 <td>OpenMetadata fallback descriptions and classification rules. This keeps live Presto and offline dbt-artifact runs consistent.</td>
 </tr>
 </tbody>
@@ -2653,10 +2653,10 @@
 <h2 id="run-manually">Run Manually</h2>
 <p>Normally this runs automatically from <code>openmetadata/ingestion/run-ingestion.sh</code>. To re-apply only governance labels after an existing ingestion:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>scripts/apply_openmetadata_governance.py<span class="w"> </span>--mode<span class="w"> </span>online
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>scripts/07d_apply_openmetadata_governance.py<span class="w"> </span>--mode<span class="w"> </span>online
 </code></pre></div>
 <p>Force the offline classification tag:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>scripts/apply_openmetadata_governance.py<span class="w"> </span>--mode<span class="w"> </span>offline
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>scripts/07d_apply_openmetadata_governance.py<span class="w"> </span>--mode<span class="w"> </span>offline
 </code></pre></div>
 <p>Use <code>--strict</code> when you want the command to fail if the local OpenMetadata API rejects a glossary, tag, or table update.</p>
 

@@ -2245,7 +2245,7 @@
 <p class="admonition-title">What this page is</p>
 <p>A <strong>fourth, interchangeable way</strong> to build the whole medallion — after dbt (SQL),
 Spark (Python), and cpdctl (raw load). Here <strong>IBM DataStage</strong> builds <strong>bronze,
-silver, and gold</strong> as three visual ETL flows, but every transformation is the <em>exact</em>
+silver, silver enrich, and gold</strong> as ordered visual ETL flows, but every transformation is the <em>exact</em>
 dbt SQL <strong>pushed down to the watsonx.data Presto engine</strong> through <strong>one connection</strong>.
 DataStage orchestrates; Presto does the work; the numbers match dbt to the penny.</p>
 <blockquote>
@@ -2259,64 +2259,77 @@ medallion as a standalone path, into its own <code>datastage_demo_*</code> schem
 <h2 id="the-shape">The shape</h2>
 <pre class="mermaid"><code>flowchart LR
     RAW["iceberg_data.dbt_demo_raw\n(CSV already landed as Iceberg on MinIO)"]
-    B["ds_medallion_bronze\n→ datastage_demo_bronze"]
-    S["ds_medallion_silver\n→ datastage_demo_silver"]
-    G["ds_medallion_gold\n→ datastage_demo_gold"]
-    RAW --&gt; B --&gt; S --&gt; G</code></pre>
-<p>Each dbt model becomes <strong>one source → target connector pair</strong>, both using the
-<strong>IBM watsonx.data Presto</strong> connection (<code>ibmas-presto</code>):</p>
+    B["ds_medallion_bronze_v2\n→ datastage_demo_bronze_v2"]
+    S["ds_medallion_silver_clean_v2\n→ datastage_demo_silver_v2 clean tables"]
+    E["ds_medallion_silver_enrich_v2\n→ datastage_demo_silver_v2.silver_sales_enriched"]
+    GD["ds_medallion_gold_daily_v2\n→ datastage_demo_gold_v2.gold_daily_sales"]
+    GM["ds_medallion_gold_marts_v2\n→ datastage_demo_gold_v2 category/customer marts"]
+    RAW --&gt; B --&gt; S --&gt; E --&gt; GD --&gt; GM</code></pre>
+<p>Each flow uses the <strong>IBM watsonx.data Presto</strong> connection (<code>ibmas-presto</code>) for table
+reads and writes, with DataStage stages making the transformation visible:</p>
 <pre class="mermaid"><code>flowchart LR
-    SRC["watsonx.data Presto\nread_mode = select\nselect_statement = the dbt SQL"]
-    TGT["watsonx.data Presto\ntable_action = replace\nwrites the Iceberg table"]
-    SRC --&gt;|link| TGT</code></pre>
+    SRC["watsonx.data Presto\nsource table"]
+    XFM["DataStage Transformer / Join\ncast · trim · lower · join · compute"]
+    TGT["watsonx.data Presto\ntable_action = append\nwrites into the recreated Iceberg table"]
+    SRC --&gt; XFM --&gt; TGT</code></pre>
 <ul>
 <li><strong>Bronze</strong> (4 pairs) — raw passthrough + the 4 ingest-metadata columns.</li>
-<li><strong>Silver</strong> (5 pairs) — <code>cast</code> / <code>trim</code> / <code>lower</code> / <code>upper</code> / filter, plus
-  <code>silver_sales_enriched</code> (the three INNER joins).</li>
-<li><strong>Gold</strong> (3 pairs) — <code>gold_daily_sales</code>, <code>gold_category_performance</code>, <code>gold_customer_360</code>.</li>
+<li><strong>Silver clean</strong> (4 paths) — filters and type casts at source, then a Transformer performs
+  <code>trim</code> / <code>lower</code> / <code>upper</code> and adds <code>transformed_at</code>.</li>
+<li><strong>Silver enrich</strong> (1 path) — joins all four clean silver tables into <code>silver_sales_enriched</code>
+  with three DataStage join stages, then a Transformer projects the enriched fact and computes
+  <code>gross_amount</code>, <code>net_amount</code>, and <code>transformed_at</code>.</li>
+<li><strong>Gold daily</strong> (1 path) — <code>gold_daily_sales</code> from the enriched silver fact.</li>
+<li><strong>Gold marts</strong> (2 paths) — <code>gold_category_performance</code> from <code>gold_daily_sales</code> and
+  <code>gold_customer_360</code> from the enriched fact plus the silver customer dimension.</li>
 </ul>
 <hr>
 <h2 id="why-only-the-presto-connection">Why "only the Presto connection"?</h2>
 <p>The CSVs already live in the MinIO Iceberg bucket as the <code>dbt_demo_raw</code> tables. Presto
 reads those Iceberg tables and writes new Iceberg tables — so a <strong>single watsonx.data
 Presto connection</strong> covers both source and target. There is no second connector and no
-file staging: it is an ELT pattern where the transformation <em>is</em> SQL the Presto engine
-runs. That is also why parity with dbt is exact — it is literally the same SQL on the
-same engine.</p>
+file staging. Silver cleaning and enrichment are visual DataStage Transformer/Join stages;
+gold aggregations remain SQL because they are aggregate <code>GROUP BY</code> marts over the already
+enriched table.</p>
 <div class="admonition note">
-<p class="admonition-title">Two equivalence rewrites (so each flow runs in parallel)</p>
-<p>DataStage runs all stages in a flow at once, so a stage must not read a table another
-stage in the <em>same</em> flow is still writing. Two models are rewritten to read only the
-<strong>previous</strong> layer, with provably identical results:</p>
-<ul>
-<li><code>silver_sales_enriched</code> inlines the four cleaning CTEs over <strong>bronze</strong> instead of
-  reading the sibling silver tables.</li>
-<li><code>gold_category_performance</code> reads <code>silver_sales_enriched</code> directly instead of
-  <code>gold_daily_sales</code> (each order has one <code>order_date</code>, so the per-day distinct-order
-  counts sum to the per-category count).</li>
-</ul>
+<p class="admonition-title">Dependency-safe flow split</p>
+<p>DataStage can run independent branches in one flow concurrently, so dbt dependencies
+that read a table produced by another model are split into separate flow assets. The
+generated run order is:
+<code>bronze → silver_clean → silver_enrich → gold_daily → gold_marts</code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Recreate before load</p>
+<p>The <code>--create --run</code> path drops and recreates each target Iceberg table with Presto
+immediately before the corresponding DataStage job runs. The DataStage connector then
+uses append mode into an empty table, avoiding connector-side Iceberg REST replace
+failures while preserving recreate/empty-before-load semantics.</p>
 </div>
 <hr>
 <h2 id="build-it">Build it</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># 1) generate the version-controllable flow JSON</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows.py<span class="w"> </span>--build
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows_v2.py<span class="w"> </span>--build
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2) prove the SQL equals dbt (no DataStage runtime needed — runs on live Presto)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows.py<span class="w"> </span>--verify
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># 3) create the target schemas + the 3 flows in the ibmas-ingest-demo project</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows.py<span class="w"> </span>--create
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows_v2.py<span class="w"> </span>--verify
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># 3) create the target schemas + the ordered flows in the ibmas-ingest-demo project</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows_v2.py<span class="w"> </span>--create
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># 4) create, compile, reset/recreate targets, and run the flows in order</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>python<span class="w"> </span>scripts/datastage/create_medallion_flows_v2.py<span class="w"> </span>--create<span class="w"> </span>--run
 </code></pre></div>
 <p>Then open <strong>Projects → ibmas-ingest-demo → Assets → DataStage flows</strong> and you will see
-<code>ds_medallion_bronze</code>, <code>ds_medallion_silver</code>, <code>ds_medallion_gold</code>. Run them in order
-(or wrap each in a DataStage job and chain them).</p>
+<code>ds_medallion_bronze_v2</code>, <code>ds_medallion_silver_clean_v2</code>,
+<code>ds_medallion_silver_enrich_v2</code>, <code>ds_medallion_gold_daily_v2</code>, and
+<code>ds_medallion_gold_marts_v2</code>. Run them in that order, or let <code>--create --run</code> create
+jobs and run them in order.</p>
 <div class="admonition warning">
 <p class="admonition-title">Design-time vs runtime</p>
 <p>Creating the flows works today. <strong>Compiling/running</strong> them needs the DataStage
 <strong>px-runtime</strong> instance to be started — on this cluster the compile API currently
 returns <code>500</code> for <em>every</em> flow (including the pre-existing ones), meaning the runtime
 is scaled down, not that the flow is wrong. Start the DataStage instance in CPD, then
-compile and run bronze → silver → gold. Until then, <code>--verify</code> is the proof of
-correctness.</p>
+compile and run bronze → silver clean → silver enrich → gold daily → gold marts.
+Until then, <code>--verify</code> is the proof of correctness.</p>
 </div>
 <hr>
 <h2 id="parity-verified-against-dbt">Parity — verified against dbt</h2>

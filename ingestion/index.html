@@ -2633,7 +2633,7 @@ ingest step — the equivalent of <code>dbt seed</code> or Spark's raw CSV read.
 </tr>
 <tr>
 <td>B · Spark</td>
-<td><code>submit_spark_application.py</code></td>
+<td><code>scripts/03b_submit_spark_application.py</code></td>
 <td>Python</td>
 <td>Data engineers, ML engineers</td>
 <td>No — visible under Infrastructure manager → Spark → Applications</td>
@@ -2667,7 +2667,7 @@ produce transformed bronze/silver/gold tables, while cpdctl produces only <stron
 
     subgraph B["Path B — Spark"]
         direction TB
-        B1["submit_spark_application.py\n(PySpark job)"]
+        B1["scripts/03b_submit_spark_application.py\n(PySpark job)"]
         B2["spark_demo_bronze\nSilver / Gold"]
         B1 --&gt; B2
     end
@@ -3036,7 +3036,7 @@ TLS verification and is not safe in a workshop environment with real credentials
 inside the cluster). The CSV files need to be uploaded there before the ingestion job can read
 them.</p>
 <p>The Spark demo path already uploads these files — run the same upload script:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>scripts/upload_spark_assets.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>scripts/03a_upload_spark_assets.py
 </code></pre></div>
 <p>This uploads the four CSV files to <code>s3://iceberg-bucket/spark_demo/raw/</code> under the paths the
 ingestion script expects. If you already ran the Spark demo, the files are already there.</p>
@@ -3050,8 +3050,8 @@ The <code>s3://iceberg-bucket/</code> path maps to a bucket registered in the wa
 <h3 id="step-5-run-the-ingestion-script">Step 5 — Run the ingestion script</h3>
 <p>The ingestion script creates the target schema if it does not exist, then submits one ingestion
 job per CSV file.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w">            </span><span class="c1"># submit all four jobs</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--wait<span class="w">     </span><span class="c1"># submit, then poll until all jobs finish</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>scripts/04_ingest_with_cpdctl.py<span class="w">            </span><span class="c1"># submit all four jobs</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>scripts/04_ingest_with_cpdctl.py<span class="w"> </span>--wait<span class="w">     </span><span class="c1"># submit, then poll until all jobs finish</span>
 </code></pre></div>
 <div class="admonition success">
 <p class="admonition-title">Auth is self-healing — Step 2 is a one-time convenience, not a per-run requirement</p>
@@ -3063,7 +3063,7 @@ rotated key would otherwise fail mid-job with
 run makes that impossible. If the key itself is expired you get a clear 401 message:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>WXD_API_KEY was rejected by CPD (401). The key is expired or revoked.
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  Refresh it, then re-run this script:
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    python scripts/get_token.py --refresh-key
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    python scripts/00b_get_token.py --refresh-key
 </code></pre></div>
 </div>
 <p>Internally, for each CSV file the script calls <code>cpdctl wx-data ingestion create</code>. The equivalent
@@ -3095,7 +3095,7 @@ and prints each <code>job_id</code> and the console link to monitor progress.</p
 <a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>  job_id: ingest-orders-1781856578
 <a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>  job_id: ingest-order_items-1781856578
 <a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>
-<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>Check status anytime:  python ingest_with_cpdctl.py --status --batch 1781856578
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>Check status anytime:  python scripts/04_ingest_with_cpdctl.py --status --batch 1781856578
 <a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>==========================================================================
 </code></pre></div>
 <p>Each run stamps a <strong>batch id</strong> (the trailing number on every <code>job_id</code>). Note it — you pass it
@@ -3113,10 +3113,10 @@ storage that is <strong>not</strong> registered in the watsonx.data catalog.</p>
 <p>The simplest way is to let the script poll for you. Either submit and wait in one shot with
 <code>--wait</code>, or check a previous run with <code>--status --batch &lt;id&gt;</code> (the batch id printed in Step 5):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Check the status of all four jobs for a batch and exit</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span><span class="m">1781856578</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>scripts/04_ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span><span class="m">1781856578</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Poll every 20s until all jobs reach a terminal state (or --timeout, default 900s)</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>python<span class="w"> </span>scripts/ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span><span class="m">1781856578</span><span class="w"> </span>--wait
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>python<span class="w"> </span>scripts/04_ingest_with_cpdctl.py<span class="w"> </span>--status<span class="w"> </span>--batch<span class="w"> </span><span class="m">1781856578</span><span class="w"> </span>--wait
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Ingestion status:
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  finished     ingest-customers-1781856578

@@ -2549,7 +2549,7 @@
 <li>Run automated data quality tests against every model layer</li>
 <li>Query the Gold marts to see final analytics results</li>
 </ul>
-<p>The commands below run <code>scripts/dbt_env.sh seed --full-refresh</code>, then <code>run</code>, then <code>test</code>. On a clean run this loads 4 raw seed tables, builds 13 models (4 Bronze, 6 Silver, 3 Gold), and passes all 34 tests in roughly two minutes.</p>
+<p>The commands below run <code>scripts/02_dbt_env.sh seed --full-refresh</code>, then <code>run</code>, then <code>test</code>. On a clean run this loads 4 raw seed tables, builds 13 models (4 Bronze, 6 Silver, 3 Gold), and passes all 34 tests in roughly two minutes.</p>
 <p>Estimated time: approximately 20 minutes.</p>
 </div>
 <hr>
@@ -2647,7 +2647,7 @@
 <hr>
 <h3 id="step-2-import-connection-values">Step 2: Import Connection Values</h3>
 <p>Refresh the Presto authentication token from the watsonx.data connection JSON so all subsequent commands can reach the cluster.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">What this does</p>
@@ -2672,7 +2672,7 @@
 <hr>
 <h3 id="step-3-create-schemas">Step 3: Create Schemas</h3>
 <p>Bootstrap the four Iceberg schemas in the <code>iceberg_data</code> catalog so dbt has somewhere to write its tables.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>scripts/01_bootstrap_watsonxdata.py
 </code></pre></div>
 <p>Expected output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Connecting to ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org:443, catalog=iceberg_data
@@ -2692,12 +2692,12 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Run this once per environment</p>
-<p>If the schemas already exist, the script skips them safely. You only need to re-run this if you clean up with <code>cleanup_watsonxdata.py</code> or start on a fresh cluster.</p>
+<p>If the schemas already exist, the script skips them safely. You only need to re-run this if you clean up with <code>scripts/08_cleanup_watsonxdata.py</code> or start on a fresh cluster.</p>
 </div>
 <hr>
 <h3 id="step-4-load-raw-csv-data">Step 4: Load Raw CSV Data</h3>
 <p>dbt seed reads the four CSV files from <code>seeds/</code> and loads them into <code>dbt_demo_raw</code> as Iceberg tables.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">What <code>--full-refresh</code> does</p>
@@ -2742,7 +2742,7 @@
 <hr>
 <h3 id="step-5-build-models">Step 5: Build Models</h3>
 <p>dbt runs all SQL models in dependency order — Bronze first, then Silver, then Gold. Each model is a <code>.sql</code> file in <code>models/</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Dependency order</p>
@@ -2852,7 +2852,7 @@
 <hr>
 <h3 id="step-6-run-data-quality-tests">Step 6: Run Data Quality Tests</h3>
 <p>dbt tests check data quality rules defined in <code>schema.yml</code> files — rules like "every <code>order_id</code> must be unique" and "every order must reference a real customer".</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span><span class="nb">test</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span><span class="nb">test</span>
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Where the test rules live</p>
@@ -2915,11 +2915,11 @@
 <hr>
 <h3 id="step-7-query-the-gold-marts">Step 7: Query the Gold Marts</h3>
 <p>Run the query script to read results from the three Gold objects and display sample rows.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>scripts/query_gold.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>scripts/05_query_gold.py
 </code></pre></div>
 <p>You can also query a single mart by name:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w"> </span>daily_sales
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w"> </span>customer_360
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>scripts/05_query_gold.py<span class="w"> </span>daily_sales
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>python<span class="w"> </span>scripts/05_query_gold.py<span class="w"> </span>customer_360
 </code></pre></div>
 <div class="admonition example">
 <p class="admonition-title">Sample output: gold_daily_sales</p>
@@ -2961,7 +2961,7 @@
 <hr>
 <h2 id="one-command-alternative-dbt-build">One-command alternative: <code>dbt build</code></h2>
 <p><code>dbt build</code> is the modern single-command equivalent of seed + run + test. It executes everything in dependency order and runs tests right after each model is created — not as a separate step at the end.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>build<span class="w"> </span>--full-refresh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>build<span class="w"> </span>--full-refresh
 </code></pre></div>
 <p>The pipeline steps above (seed → run → test) are shown individually because they make it easier to explain what each phase does during a workshop. In day-to-day use <code>dbt build</code> is preferred.</p>
 <hr>
@@ -2970,13 +2970,13 @@
 <p class="admonition-title">Presenting slowly? Build one layer at a time.</p>
 <p>Instead of running the full pipeline in one command, use dbt's tag selector to build each layer in sequence. This lets you pause and explain what happened before moving to the next layer.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Build only Bronze models</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:bronze
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:bronze
 <a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
 <a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Build only Silver models (requires Bronze to exist)</span>
-<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:silver
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:silver
 <a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
 <a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># Build only Gold models (requires Silver to exist)</span>
-<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:gold
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>tag:gold
 </code></pre></div>
 <p>The tags are defined in <code>dbt_project.yml</code> under the <code>models:</code> section. Each layer has its own tag, so you can rebuild any single layer without touching the others.</p>
 </div>
@@ -2989,10 +2989,10 @@
 <a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>9999,1002,2026-01-11 09:00:00,pending,paypal
 </code></pre></div>
 <p>Save the file, then reload the seed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh
 </code></pre></div>
 <p><strong>Step 2 — Run only the tests (models already exist)</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--select<span class="w"> </span>raw_orders
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--select<span class="w"> </span>raw_orders
 </code></pre></div>
 <p>Expected failure output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>1 of 1 START test unique_raw_orders_order_id ..................................... [RUN]
@@ -3013,8 +3013,8 @@
 </code></pre></div>
 <p><strong>Step 4 — Fix and verify</strong></p>
 <p>Remove the duplicate row from <code>seeds/raw_orders.csv</code>, reload, and re-run the test:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh
-<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--select<span class="w"> </span>raw_orders
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>seed<span class="w"> </span>--full-refresh
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--select<span class="w"> </span>raw_orders
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>1 of 1 PASS unique_raw_orders_order_id .......................................... [PASS in X.XXs]
 <a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=1
@@ -3058,10 +3058,10 @@
 </ul>
 <p>To try it, save this as <code>models/silver/silver_orders_incremental.sql</code> and run:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># First run — full load</span>
-<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>silver_orders_incremental<span class="w"> </span>--full-refresh
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>silver_orders_incremental<span class="w"> </span>--full-refresh
 <a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
 <a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1"># Subsequent runs — incremental (only new rows)</span>
-<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>silver_orders_incremental
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>run<span class="w"> </span>--select<span class="w"> </span>silver_orders_incremental
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Adapter support</p>
@@ -3076,7 +3076,7 @@
 <p>Iceberg records every <code>dbt run</code> as an immutable snapshot. The time travel script connects directly to Presto, reads the <code>$snapshots</code>, <code>$history</code>, and <code>$partitions</code> metadata tables, and issues a <code>FOR VERSION AS OF</code> query so you can see what the table looked like at a past snapshot — without restoring a backup.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># load env then run</span>
 <a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="nb">set</span><span class="w"> </span>-a<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.env<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span>+a
-<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>python<span class="w"> </span>scripts/demo_time_travel.py
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>python<span class="w"> </span>scripts/06_demo_time_travel.py
 </code></pre></div>
 <p>Expected output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>------------------------------------------------------------
@@ -3128,7 +3128,7 @@
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">See diverging snapshots</p>
-<p>Run <code>bash scripts/dbt_env.sh run --full-refresh</code> then run the script again.
+<p>Run <code>bash scripts/02_dbt_env.sh run --full-refresh</code> then run the script again.
 Step 3 will show a different row count at the old snapshot vs. the current state,
 proving the old data is still accessible via <code>FOR VERSION AS OF</code>.</p>
 </div>

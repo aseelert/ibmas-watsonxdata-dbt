@@ -696,10 +696,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-5-import-connection-values" class="md-nav__link">
+  <a href="#step-5-bootstrap-the-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 5: Import connection values
+        Step 5: Bootstrap the environment
       
     </span>
   </a>
@@ -2377,10 +2377,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-5-import-connection-values" class="md-nav__link">
+  <a href="#step-5-bootstrap-the-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 5: Import connection values
+        Step 5: Bootstrap the environment
       
     </span>
   </a>
@@ -2696,7 +2696,7 @@
 <h3 id="what-is-in-env-and-why">What is in <code>.env</code> and why</h3>
 <p><code>.env</code> is the single place that holds your secret and your environment-specific values. The dbt
 profile and every script read from it, so you edit <em>one</em> file to point the whole workshop at your
-cluster. You provide just the <strong>API key</strong> by hand; <code>prepare_watsonx_env.py</code> (Step 5) fills in the
+cluster. You provide just the <strong>API key</strong> by hand; <code>scripts/00a_prepare_watsonx_env.py</code> (Step 5) fills in the
 rest from the connection JSON. Values below marked <strong>auto</strong> are written for you; <strong>manual</strong> values
 already have a working default in the template.</p>
 <details class="info">
@@ -2782,44 +2782,128 @@ decision). The actual upload is pure Python (boto3) either way.</p>
 <p>The administrator may give you a pre-exported JSON for the workshop cluster. If so, just copy it to <code>watsonx_data/instance_details.json</code> and skip the export steps above.</p>
 </div>
 <hr>
-<h2 id="step-5-import-connection-values">Step 5: Import connection values</h2>
-<p>The <code>prepare_watsonx_env.py</code> script reads <code>watsonx_data/instance_details.json</code>, extracts the non-secret values, writes the SSL certificate to disk, and updates your <code>.env</code> file automatically. You only need to run this once (or again if the JSON changes).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
+<h2 id="step-5-bootstrap-the-environment">Step 5: Bootstrap the environment</h2>
+<p><code>scripts/00a_prepare_watsonx_env.py</code> is a fully-automated bootstrap script — one command fills in all 40+ <code>.env</code>
+variables, writes the CA certificate to disk, logs into OpenShift, and fetches fresh API tokens.</p>
+<p>Both <code>--oc-login</code> and <code>--fetch-tokens</code> are <strong>on by default</strong>. Just run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
 </code></pre></div>
-<p>Expected output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Reading watsonx.data connection JSON: watsonx_data/instance_details.json
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  Parsed 9 connection field(s)  [OK]
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Loading existing env file: .env
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>Writing CA certificate chain: certs/watsonxdata-ca.pem
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  Certificate chain written  [OK]
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>Read connection details from: watsonx_data/instance_details.json
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>Wrote certificate chain to: certs/watsonxdata-ca.pem
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>Updated env file: .env
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>Imported values:
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>  WXD_INSTANCE_ID=&lt;your-instance-id&gt;
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>  WXD_HOST=ibm-lh-lakehouse-presto651-presto-svc.apps.watson.ibmas-zocp-techcluster.org
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>  WXD_PORT=443
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>  WXD_PRESTO_ENGINE_ID=presto651
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>  WXD_CPD_HOST=cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org
-<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>  WXD_CPD_AUTH_URL=https://cpd-cpd-instance.apps.watson.ibmas-zocp-techcluster.org/icp4d-api/v1/authorize
-<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>  WXD_SSL_VERIFY=certs/watsonxdata-ca.pem
-<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>  WXD_CATALOG=iceberg_data
-<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>  WXD_SCHEMA=dbt_demo
+<p>Expected output (abbreviated):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>INFO  Step 1/5  Reading Presto connection JSON: watsonx_data/instance_details.json
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>INFO            Parsed 10 connection field(s)
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>INFO  Step 2/5  Extracting CA certificate chain ...
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>INFO            Wrote certs/watsonxdata-ca.pem
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>INFO  Step 3/5  Deriving URLs and defaults ...
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>INFO            Namespace:  cpd-instance
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>INFO            App domain: apps.watson.ibmas-zocp-techcluster.org
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>INFO    [oc-login] oc login https://api.&lt;cluster&gt;:6443 -u kubeadmin ...
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>INFO    [oc-login] Logged in successfully.
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>INFO  Step 4/5  OpenShift discovery via oc ...
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>INFO            WXD_OPENSHIFT_API = https://api.&lt;cluster&gt;:6443
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>INFO            WXD_OBJECT_STORE_ACCESS_KEY  [read from secret]
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>INFO            WXD_OBJECT_STORE_SECRET_KEY  [read from secret]
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>INFO            PG_PASSWORD  [read from ibmas-reporting-creds]
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>INFO            WXD_CPD_PASSWORD  [read from platform-auth-idp-credentials]
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>INFO  Step 5/5  Reachability checks ...
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>INFO    ✓  cpd-cpd-instance.apps.&lt;cluster&gt;  [OK]
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>INFO    ✓  &lt;presto-host&gt;:443  [OK]
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>INFO  Step 6/6  Fetching tokens ...
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>INFO    [fetch-tokens] WXD_API_KEY  rotated
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>INFO    [fetch-tokens] WXD_SPARK_BEARER_TOKEN  written
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>INFO  Wrote .env  (42 values)
 </code></pre></div>
-<p>After this step two things will have changed on disk:</p>
+<p>After this step the following files will have been written or updated:</p>
 <ul>
-<li><code>certs/watsonxdata-ca.pem</code> — the CA certificate that both dbt and cpdctl use to verify the cluster's TLS certificate.</li>
-<li><code>.env</code> — now contains the Presto host, port, instance ID, and CPD host in addition to your API key.</li>
+<li><code>certs/watsonxdata-ca.pem</code> — CA certificate used by dbt, cpdctl, and the Spark driver for TLS verification.</li>
+<li><code>.env</code> — all 40+ connection values, API key, and bearer token.</li>
 </ul>
 <div class="admonition tip">
-<p class="admonition-title">JSON file in a different location?</p>
-<p>If your exported JSON lives somewhere else on your laptop, pass the path explicitly:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--connection-json<span class="w"> </span>/path/to/presto-connection.json
+<p class="admonition-title">Common one-liners</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Normal run (oc login + token fetch are both on by default)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Refresh tokens only — skip oc login if already logged in</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--no-oc-login
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># Dry run — show what would change without writing anything</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--dry-run
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="c1"># Overwrite non-secret values that are already in .env</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--overwrite
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="c1"># JSON lives in a custom location</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py<span class="w"> </span>--presto-json<span class="w"> </span>/path/to/presto-connection.json
 </code></pre></div>
-<p>If the JSON changed (for example, the administrator rotated the certificate) and you want to overwrite the values already in <code>.env</code>, add the <code>--overwrite</code> flag:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py<span class="w"> </span>--overwrite
+</div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--presto-json PATH</code></td>
+<td><code>watsonx_data/instance_details.json</code></td>
+<td>Presto connection JSON from the UI</td>
+</tr>
+<tr>
+<td><code>--spark-json PATH</code></td>
+<td>auto-detected</td>
+<td>Optional Spark connection JSON</td>
+</tr>
+<tr>
+<td><code>--env-file PATH</code></td>
+<td><code>.env</code></td>
+<td>Target env file</td>
+</tr>
+<tr>
+<td><code>--cert-file PATH</code></td>
+<td><code>certs/watsonxdata-ca.pem</code></td>
+<td>PEM output path</td>
+</tr>
+<tr>
+<td><code>--oc-login</code> / <code>--no-oc-login</code></td>
+<td><strong>on</strong></td>
+<td>Run <code>oc login</code> before discovery</td>
+</tr>
+<tr>
+<td><code>--fetch-tokens</code> / <code>--no-fetch-tokens</code></td>
+<td><strong>on</strong></td>
+<td>Rotate API key + fetch bearer token</td>
+</tr>
+<tr>
+<td><code>--no-oc</code></td>
+<td>off</td>
+<td>Skip all <code>oc</code>-based discovery entirely</td>
+</tr>
+<tr>
+<td><code>--overwrite</code></td>
+<td>off</td>
+<td>Re-import non-secret values even if already set</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>off</td>
+<td>Print proposed changes without writing</td>
+</tr>
+<tr>
+<td><code>--verbose</code></td>
+<td>off</td>
+<td>Enable DEBUG log output</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">What you must set manually</p>
+<p><code>WXD_OC_PASSWORD</code> (your kubeadmin password) is the only value that cannot be
+auto-discovered. Set it in <code>.env</code> once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>WXD_OC_PASSWORD=&lt;your-kubeadmin-password&gt;
 </code></pre></div>
+<p>All other secrets — <code>WXD_API_KEY</code>, <code>WXD_SPARK_BEARER_TOKEN</code>, <code>WXD_CPD_PASSWORD</code>,
+MinIO keys, and PostgreSQL password — are fetched automatically.</p>
 </div>
 <hr>
 <h2 id="step-6-create-the-dbt-profile">Step 6: Create the dbt profile</h2>
@@ -2909,7 +2993,7 @@ decision). The actual upload is pure Python (boto3) either way.</p>
 </tbody>
 </table>
 <p><strong>The key idea:</strong> the profile holds <strong>no literal secrets</strong> — every <code>{{ env_var('...') }}</code> reads from
-your <code>.env</code> at runtime (the <code>scripts/dbt_env.sh</code> wrapper loads <code>.env</code> before calling dbt). So you copy
+your <code>.env</code> at runtime (the <code>scripts/02_dbt_env.sh</code> wrapper loads <code>.env</code> before calling dbt). So you copy
 this template once and never edit it; to point dbt at a different cluster you change only <code>.env</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Why ~/.dbt and not the project folder?</p>
@@ -2917,10 +3001,10 @@ this template once and never edit it; to point dbt at a different cluster you ch
 </div>
 <h3 id="how-the-connection-json-env-and-the-profile-fit-together">How the connection JSON, <code>.env</code>, and the profile fit together</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>watsonx_data/instance_details.json     ← you export from the watsonx.data console (Step 4)
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>            │   python scripts/prepare_watsonx_env.py   (Step 5)
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>            │   python scripts/00a_prepare_watsonx_env.py   (Step 5)
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>            ▼
 <a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>.env   ← host, port, instance ID, cert path auto-filled; you paste WXD_API_KEY (Step 3)
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>            │   scripts/dbt_env.sh loads .env before calling dbt
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>            │   scripts/02_dbt_env.sh loads .env before calling dbt
 <a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>            ▼
 <a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>~/.dbt/profiles.yml   ← {{ env_var('WXD_*') }} reads the values (Step 6)
 <a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>            │
@@ -2935,10 +3019,10 @@ environments means changing only <code>.env</code> — never the profile or the 
 <p>Before running any dbt models, confirm that your laptop can actually reach the Presto engine. This catches typos in the API key, wrong certificate paths, or network firewall issues before they interrupt the main workshop flow.</p>
 <p>Run either of these two checks (they test the same connection from different angles):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Option A: run a small gold-layer query via Python</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>python<span class="w"> </span>scripts/query_gold.py
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>python<span class="w"> </span>scripts/05_query_gold.py
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Option B: ask dbt to verify its own profile</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bash<span class="w"> </span>scripts/dbt_env.sh<span class="w"> </span>debug
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bash<span class="w"> </span>scripts/02_dbt_env.sh<span class="w"> </span>debug
 </code></pre></div>
 <p>Successful output for Option A shows the gold mart tables (run it after completing the full pipeline in <a href="../dbt-demo/">Path A — dbt</a>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Daily Sales
@@ -3132,20 +3216,20 @@ the matching binary. Swap the asset name for your platform.</p>
 <p>Before moving on, confirm all four items below:</p>
 <ul>
 <li>[ ] <code>(.venv)</code> appears in your terminal prompt (virtual environment is active).</li>
-<li>[ ] <code>bash scripts/dbt_env.sh debug</code> ended with <code>All checks passed!</code> (Step 7, Option B).</li>
+<li>[ ] <code>bash scripts/02_dbt_env.sh debug</code> ended with <code>All checks passed!</code> (Step 7, Option B).</li>
 <li>[ ] <code>certs/watsonxdata-ca.pem</code> exists (run <code>ls certs/watsonxdata-ca.pem</code>).</li>
 <li>[ ] <code>.env</code> contains a real value for <code>WXD_API_KEY</code> (not the placeholder <code>replace-with-your-software-hub-api-key</code>).</li>
 </ul>
-<p>If every item above is checked, your laptop is fully configured. (<code>query_gold.py</code> only returns rows <em>after</em> you build the gold layer, which is the next page.)</p>
+<p>If every item above is checked, your laptop is fully configured. (<code>scripts/05_query_gold.py</code> only returns rows <em>after</em> you build the gold layer, which is the next page.)</p>
 <div class="admonition success">
 <p class="admonition-title">The happy path from here — Path A · dbt</p>
 <p>Setup is done. The actual medallion build runs on the next page, <a href="../dbt-demo/">Path A — dbt</a>, in this order:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py<span class="w">   </span><span class="c1"># create the 4 schemas (raw/bronze/silver/gold)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>python<span class="w"> </span>scripts/01_bootstrap_watsonxdata.py<span class="w">   </span><span class="c1"># create the 4 schemas (raw/bronze/silver/gold)</span>
 <a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>dbt<span class="w"> </span>deps<span class="w">                                  </span><span class="c1"># download the dbt-watsonx-presto adapter package</span>
 <a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>dbt<span class="w"> </span>seed<span class="w">                                  </span><span class="c1"># load 4 raw tables: 50 + 20 + 500 + 1,134 rows</span>
 <a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>dbt<span class="w"> </span>run<span class="w">                                   </span><span class="c1"># build 13 models: 4 bronze, 6 silver, 3 gold</span>
 <a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>dbt<span class="w"> </span><span class="nb">test</span><span class="w">                                  </span><span class="c1"># run the data-quality tests (all should pass)</span>
-<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a>python<span class="w"> </span>scripts/query_gold.py<span class="w">              </span><span class="c1"># see the gold marts — the business payoff</span>
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a>python<span class="w"> </span>scripts/05_query_gold.py<span class="w">              </span><span class="c1"># see the gold marts — the business payoff</span>
 </code></pre></div>
 <p>On a clean instance the whole dbt path finishes in roughly two minutes.</p>
 </div>

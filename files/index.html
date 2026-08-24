@@ -2851,7 +2851,7 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 </tr>
 <tr>
 <td><code>macros/create_medallion_schemas.sql</code></td>
-<td>Creates all four demo schemas (<code>_raw</code>, <code>_bronze</code>, <code>_silver</code>, <code>_gold</code>) in one call. Called by <code>scripts/bootstrap_watsonxdata.py</code> via <code>dbt run-operation</code>.</td>
+<td>Creates all four demo schemas (<code>_raw</code>, <code>_bronze</code>, <code>_silver</code>, <code>_gold</code>) in one call. Called by <code>scripts/01_bootstrap_watsonxdata.py</code> via <code>dbt run-operation</code>.</td>
 </tr>
 <tr>
 <td><code>macros/materialized_view.sql</code></td>
@@ -2885,9 +2885,9 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 <p>The two paths write to different schemas (<code>dbt_demo_*</code> for dbt, <code>spark_demo_*</code> for Spark) so you can query both in the same Presto session and compare the outputs side by side. The data is identical — the difference is the tooling and governance model.</p>
 </div>
 <p>To run the Spark path, use the helper scripts in order:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>scripts/upload_spark_assets.py<span class="w">    </span><span class="c1"># upload PySpark file + CSVs to MinIO</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python<span class="w"> </span>scripts/submit_spark_application.py<span class="w">  </span><span class="c1"># submit to Spark engine via REST</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>python<span class="w"> </span>scripts/spark_application_status.py<span class="w">  </span><span class="c1"># poll until FINISHED</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>scripts/03a_upload_spark_assets.py<span class="w">    </span><span class="c1"># upload PySpark file + CSVs to MinIO</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python<span class="w"> </span>scripts/03b_submit_spark_application.py<span class="w">  </span><span class="c1"># submit to Spark engine via REST</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>python<span class="w"> </span>scripts/03c_spark_application_status.py<span class="w">  </span><span class="c1"># poll until FINISHED</span>
 </code></pre></div>
 <hr>
 <h2 id="scripts-python-helper-scripts"><code>scripts/</code> — Python helper scripts</h2>
@@ -2903,72 +2903,72 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 </thead>
 <tbody>
 <tr>
-<td><code>prepare_watsonx_env.py</code></td>
+<td><code>00a_prepare_watsonx_env.py</code></td>
 <td>Once, at setup</td>
 <td>Reads the watsonx.data Presto connection JSON export (<code>watsonx_data/instance_details.json</code>), writes the TLS certificate to <code>certs/watsonxdata-ca.pem</code>, and populates <code>.env</code> with the host, port, catalog, and instance ID values</td>
 </tr>
 <tr>
-<td><code>bootstrap_watsonxdata.py</code></td>
+<td><code>01_bootstrap_watsonxdata.py</code></td>
 <td>Once, at setup</td>
-<td>Calls <code>dbt run-operation create_medallion_schemas</code> to create the four demo schemas in the <code>iceberg_data</code> catalog on watsonx.data; safe to re-run (<code>CREATE SCHEMA IF NOT EXISTS</code>)</td>
+<td>Opens a direct Presto connection and runs <code>CREATE SCHEMA IF NOT EXISTS</code> for the four demo schemas in the <code>iceberg_data</code> catalog; safe to re-run</td>
 </tr>
 <tr>
-<td><code>upload_spark_assets.py</code></td>
+<td><code>03a_upload_spark_assets.py</code></td>
 <td>Before Spark demo</td>
 <td>Uploads <code>spark/load_medallion_demo.py</code> and all four seed CSVs to MinIO via the S3 API; opens an <code>oc port-forward</code> to MinIO automatically if <code>WXD_OBJECT_STORE_AUTO_PORT_FORWARD=true</code></td>
 </tr>
 <tr>
-<td><code>submit_spark_application.py</code></td>
+<td><code>03b_submit_spark_application.py</code></td>
 <td>Spark demo step</td>
 <td>Submits <code>load_medallion_demo.py</code> to the watsonx.data Spark engine REST endpoint; prints the application ID you need for the status check</td>
 </tr>
 <tr>
-<td><code>spark_application_status.py</code></td>
+<td><code>03c_spark_application_status.py</code></td>
 <td>After submission</td>
-<td>Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by <code>submit_spark_application.py</code></td>
+<td>Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by <code>03b_submit_spark_application.py</code></td>
 </tr>
 <tr>
-<td><code>query_gold.py</code></td>
+<td><code>05_query_gold.py</code></td>
 <td>After any demo path</td>
 <td>Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI</td>
 </tr>
 <tr>
-<td><code>ingest_with_cpdctl.py</code></td>
+<td><code>04_ingest_with_cpdctl.py</code></td>
 <td>cpdctl demo path</td>
 <td>Uses <code>cpdctl wx-data ingestion create</code> to load the seed CSVs from MinIO into Iceberg tables in the <code>spark_demo_cpdctl_raw</code> schema; each job appears in the watsonx.data console under <strong>Data manager &gt; Ingestion (history)</strong>. It only LOADS raw CSV into <code>spark_demo_cpdctl_raw</code> (the analogue of <code>dbt seed</code>) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against <code>spark_demo_cpdctl_raw</code> as a post-action (cpdctl + dbt/Spark = full pipeline)</td>
 </tr>
 <tr>
-<td><code>prepare_openmetadata_dbt_artifacts.py</code></td>
+<td><code>07a_prepare_openmetadata_dbt_artifacts.py</code></td>
 <td>Before OpenMetadata demo</td>
 <td>By default runs <code>dbt seed --full-refresh</code>, <code>dbt run</code>, <code>dbt test</code>, and <code>dbt docs generate</code>, then copies <code>manifest.json</code>, <code>catalog.json</code>, and <code>run_results.json</code> from <code>target/</code> into <code>openmetadata/dbt-artifacts/</code>; those files are what OpenMetadata reads for lineage. Flags: <code>--docs-only</code> (lineage only — <code>dbt docs generate</code> + stage, no seed/run/test), <code>--skip-dbt</code> (copy existing <code>target/*.json</code> only), <code>--skip-seed</code> (skip the seed step), <code>--artifact-dir &lt;path&gt;</code> (override the staging directory), <code>--retries &lt;n&gt;</code> (retries per dbt command, default 1)</td>
 </tr>
 <tr>
-<td><code>generate_lineage_docs.sh</code></td>
+<td><code>07b_generate_lineage_docs.sh</code></td>
 <td>Refresh OpenMetadata lineage only</td>
-<td>Thin wrapper around <code>prepare_openmetadata_dbt_artifacts.py --docs-only</code>: runs <strong>only</strong> <code>dbt docs generate</code> (no seed/run/test) and stages the three artifacts into <code>openmetadata/dbt-artifacts/</code>. Use when the medallion tables already exist and you only need fresh lineage/column metadata. Flags are forwarded to the python stager</td>
+<td>Thin wrapper around <code>07a_prepare_openmetadata_dbt_artifacts.py --docs-only</code>: runs <strong>only</strong> <code>dbt docs generate</code> (no seed/run/test) and stages the three artifacts into <code>openmetadata/dbt-artifacts/</code>. Use when the medallion tables already exist and you only need fresh lineage/column metadata. Flags are forwarded to the python stager</td>
 </tr>
 <tr>
-<td><code>upload_dbt_artifacts.py</code></td>
+<td><code>07c_upload_dbt_artifacts.py</code></td>
 <td>OpenMetadata (S3 path)</td>
 <td>Uploads the staged dbt artifacts from <code>openmetadata/dbt-artifacts/</code> to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files</td>
 </tr>
 <tr>
-<td><code>cleanup_watsonxdata.py</code></td>
+<td><code>08_cleanup_watsonxdata.py</code></td>
 <td>Reset — schemas</td>
-<td>Drops all tables/views and the schemas themselves: <code>dbt_demo_{raw,bronze,silver,gold}</code>, <code>spark_demo_{bronze,silver,gold}</code>, and the cpdctl raw schema (<code>WXD_INGEST_SCHEMA</code>, default <code>spark_demo_cpdctl_raw</code>). Catalog objects only — Iceberg data files in MinIO are removed by <code>cleanup_minio.py</code></td>
+<td>Drops all tables/views and the schemas themselves: <code>dbt_demo_{raw,bronze,silver,gold}</code>, <code>spark_demo_{bronze,silver,gold}</code>, and the cpdctl raw schema (<code>WXD_INGEST_SCHEMA</code>, default <code>spark_demo_cpdctl_raw</code>). Catalog objects only — Iceberg data files in MinIO are removed by <code>09_cleanup_minio.py</code></td>
 </tr>
 <tr>
-<td><code>cleanup_minio.py</code></td>
+<td><code>09_cleanup_minio.py</code></td>
 <td>Reset — object storage</td>
 <td>Deletes only the demo's own prefixes inside <code>iceberg-bucket</code> (the medallion schema folders, the <code>spark_demo/</code> app+CSVs, and <code>openmetadata/dbt-artifacts/</code>); verifies the prefixes end empty and reports that the bucket itself is kept. <code>--dry-run</code> previews. Needs an <code>oc</code> session</td>
 </tr>
 <tr>
-<td><code>reset_demo.sh</code></td>
+<td><code>11_reset_demo.sh</code></td>
 <td>Reset — everything</td>
-<td>One command to get back to a clean rerun. Flags: <code>--docker</code> (tear down the Metabase/Airflow/OpenMetadata stacks — containers + volumes + the demo's own images), <code>--schemas</code>, <code>--minio</code>, <code>--warehouse</code> (= schemas + minio), <code>--all</code>; plus <code>--dry-run</code>, <code>--keep-images</code>, <code>--purge-base-images</code>, <code>-y</code>. Scoped to this demo only — see the <a href="../scripts/#11-reset_demosh-full-reset-for-a-100-clean-rerun">Scripts page</a></td>
+<td>One command to get back to a clean rerun. Flags: <code>--docker</code> (tear down the Metabase/Airflow/OpenMetadata stacks — containers + volumes + the demo's own images), <code>--schemas</code>, <code>--minio</code>, <code>--warehouse</code> (= schemas + minio), <code>--all</code>; plus <code>--dry-run</code>, <code>--keep-images</code>, <code>--purge-base-images</code>, <code>-y</code>. Scoped to this demo only — see the <a href="../scripts/#11-11_reset_demosh-full-reset-for-a-100-clean-rerun">Scripts page</a></td>
 </tr>
 <tr>
-<td><code>dbt_env.sh</code></td>
+<td><code>02_dbt_env.sh</code></td>
 <td>Shell convenience</td>
 <td>Sources <code>.env</code> and activates the virtual environment, then passes all remaining arguments to the <code>dbt</code> command; use this when your shell does not source <code>.env</code> automatically</td>
 </tr>
@@ -2976,18 +2976,18 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 </table>
 <div class="admonition example">
 <p class="admonition-title">Typical setup sequence (run once)</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/prepare_watsonx_env.py
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>scripts/bootstrap_watsonxdata.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>scripts/00a_prepare_watsonx_env.py
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>scripts/01_bootstrap_watsonxdata.py
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>dbt<span class="w"> </span>deps
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>dbt<span class="w"> </span>seed
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>dbt<span class="w"> </span>run
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>dbt<span class="w"> </span><span class="nb">test</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>python<span class="w"> </span>scripts/query_gold.py
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>python<span class="w"> </span>scripts/05_query_gold.py
 </code></pre></div>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">cpdctl prerequisite</p>
-<p><code>ingest_with_cpdctl.py</code> requires the <code>cpdctl</code> binary on your PATH. Download it from the IBM GitHub release page and configure a context for this CPD instance before running the script. The script prints the required <code>cpdctl config</code> commands if the binary is not found.</p>
+<p><code>04_ingest_with_cpdctl.py</code> requires the <code>cpdctl</code> binary on your PATH. Download it from the IBM GitHub release page and configure a context for this CPD instance before running the script. The script prints the required <code>cpdctl config</code> commands if the binary is not found.</p>
 </div>
 <hr>
 <h2 id="openmetadata-openmetadata-integration"><code>openmetadata/</code> — OpenMetadata integration</h2>
@@ -3020,7 +3020,7 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 </table>
 <div class="admonition note">
 <p class="admonition-title">OpenMetadata is local only</p>
-<p>The Docker Compose stack runs entirely on your laptop. It does not connect to the OpenShift cluster; it reads the dbt artifact JSON files from disk at <code>openmetadata/dbt-artifacts/</code>. Run <code>prepare_openmetadata_dbt_artifacts.py</code> before starting ingestion to ensure the artifacts are current.</p>
+<p>The Docker Compose stack runs entirely on your laptop. It does not connect to the OpenShift cluster; it reads the dbt artifact JSON files from disk at <code>openmetadata/dbt-artifacts/</code>. Run <code>07a_prepare_openmetadata_dbt_artifacts.py</code> before starting ingestion to ensure the artifacts are current.</p>
 </div>
 <div class="admonition example">
 <p class="admonition-title">Start OpenMetadata and run ingestion</p>
@@ -3031,7 +3031,7 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 <a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Open http://localhost:8585 — login: admin / admin</span>
 <a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
 <a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># 3. Stage current dbt artifacts</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>python<span class="w"> </span>scripts/prepare_openmetadata_dbt_artifacts.py
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>python<span class="w"> </span>scripts/07a_prepare_openmetadata_dbt_artifacts.py
 <a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
 <a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># 4. Run the dbt ingestion</span>
 <a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>bash<span class="w"> </span>openmetadata/ingestion/run-ingestion.sh
@@ -3052,7 +3052,7 @@ Then open <code>.env</code> and replace the placeholder values with the credenti
 <tr>
 <td><code>certs/watsonxdata-ca.pem</code></td>
 <td>PEM-encoded TLS certificate chain for the watsonx.data Presto endpoint</td>
-<td>Generated automatically by <code>scripts/prepare_watsonx_env.py</code> from the certificate field inside <code>watsonx_data/instance_details.json</code>. You should not need to create or edit this file manually.</td>
+<td>Generated automatically by <code>scripts/00a_prepare_watsonx_env.py</code> from the certificate field inside <code>watsonx_data/instance_details.json</code>. You should not need to create or edit this file manually.</td>
 </tr>
 </tbody>
 </table>
@@ -3123,7 +3123,7 @@ This prints a connection test result for every field in <code>profiles.yml</code
 </tr>
 <tr>
 <td><code>openmetadata/dbt-artifacts/</code></td>
-<td><code>prepare_openmetadata_dbt_artifacts.py</code></td>
+<td><code>07a_prepare_openmetadata_dbt_artifacts.py</code></td>
 <td>Staged copies of <code>manifest.json</code>, <code>catalog.json</code>, <code>run_results.json</code> for OpenMetadata ingestion</td>
 </tr>
 <tr>
@@ -3203,21 +3203,21 @@ the <code>iceberg_data</code> catalog.</p>
 </tr>
 <tr>
 <td><code>openmetadata/dbt-artifacts/dbt_demo/</code></td>
-<td><code>prepare_openmetadata_dbt_artifacts.py</code></td>
+<td><code>07a_prepare_openmetadata_dbt_artifacts.py</code></td>
 <td>OpenMetadata ingestion (lineage)</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition info">
 <p class="admonition-title">Resetting these prefixes for a clean rerun</p>
-<p><code>scripts/cleanup_minio.py</code> deletes <strong>exactly these demo prefixes</strong> (and nothing else) so a
+<p><code>scripts/09_cleanup_minio.py</code> deletes <strong>exactly these demo prefixes</strong> (and nothing else) so a
 rerun starts clean. The <code>iceberg-bucket</code> bucket itself is always kept, and any non-demo
 folders in it (e.g. another project's data) are left untouched — the script lists the
 bucket's top-level folders at the end and labels which are demo vs. not. Run
-<code>python scripts/cleanup_minio.py --dry-run</code> to preview, or use the all-in-one
-<code>scripts/reset_demo.sh</code> (see the <a href="../scripts/#9-cleanup_miniopy-delete-the-demos-minio-files">Scripts page</a>).
-Recommended order: drop the schemas first (<code>cleanup_watsonxdata.py</code>), then sweep MinIO —
-<code>reset_demo.sh --warehouse</code> does both in that order.</p>
+<code>python scripts/09_cleanup_minio.py --dry-run</code> to preview, or use the all-in-one
+<code>scripts/11_reset_demo.sh</code> (see the <a href="../scripts/#9-09_cleanup_miniopy-delete-the-demos-minio-files">Scripts page</a>).
+Recommended order: drop the schemas first (<code>08_cleanup_watsonxdata.py</code>), then sweep MinIO —
+<code>11_reset_demo.sh --warehouse</code> does both in that order.</p>
 </div>
 
 

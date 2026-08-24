@@ -2980,7 +2980,7 @@ That single sentence is the entire promise of this repository.</p>
 <h2 id="reset-the-streaming-stack">Reset the streaming stack</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--stop<span class="w">                 </span><span class="c1"># stop the 7 containers, keep data/volumes</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>bash<span class="w"> </span>confluent/start.sh<span class="w"> </span>--reset<span class="w"> </span>-y<span class="w">             </span><span class="c1"># DESTRUCTIVE — remove containers/volumes/images</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>scripts/reset_demo.sh<span class="w"> </span>--warehouse<span class="w">              </span><span class="c1"># drop the confluent_demo_* schemas + MinIO files</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>scripts/11_reset_demo.sh<span class="w"> </span>--warehouse<span class="w">              </span><span class="c1"># drop the confluent_demo_* schemas + MinIO files</span>
 </code></pre></div>
 <p>To replay from scratch without re-ingesting: drop <code>confluent_demo_silver</code>, then re-run
 <code>bash confluent/start.sh --silver</code> — the raw topics still hold every original row.</p>

@@ -2612,7 +2612,7 @@ Intelligence Enterprise</strong>, this is the door to the <code>generate_reporti
 </div>
 <hr>
 <h2 id="what-the-script-does">What the script does</h2>
-<p><code>scripts/configure_ikc_reporting.sh</code> automates the full
+<p><code>scripts/10_configure_ikc_reporting.sh</code> automates the full
 IBM docs procedure end-to-end:</p>
 <table>
 <thead>
@@ -2698,20 +2698,20 @@ project, catalog, and category.</p>
 <h2 id="running-the-script">Running the script</h2>
 <h3 id="recommended-enforcefalse-defaulttrue">Recommended: enforce=false, default=true</h3>
 <p>New projects/catalogs report by default but collaborators can opt out.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh
 </code></pre></div>
 <h3 id="lock-all-reporting-on-enforcetrue-defaulttrue">Lock all reporting on (enforce=true, default=true)</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh<span class="w"> </span>--enforce
 </code></pre></div>
 <h3 id="preview-without-changing-anything">Preview without changing anything</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--dry-run
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--dry-run
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh<span class="w"> </span>--dry-run
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--dry-run
 </code></pre></div>
 <h3 id="patch-only-skip-pod-restarts-pods-already-running">Patch only — skip pod restarts (pods already running)</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--skip-restart
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--skip-restart
 </code></pre></div>
 <h3 id="revert-to-ibm-defaults-both-false">Revert to IBM defaults (both false)</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--disable
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh<span class="w"> </span>--disable
 </code></pre></div>
 <h3 id="full-option-reference">Full option reference</h3>
 <table>
@@ -2794,36 +2794,70 @@ Trigger it via <strong>CPD UI → Knowledge Catalog → Administration → Repor
 <code>wkc-bi-data-service</code> to fully restart after the script completes and try again.</p>
 <h3 id="ikcbi2019e-permission-check"><code>IKCBI2019E: Permission check …</code></h3>
 <p>The <code>manage_reporting</code> permission is not in the user's session cache.  Grant the role and restart
-the service so the cache is flushed:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Grant role (replace cpadmin with the affected user)</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">CPD_HOST</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>grep<span class="w"> </span>WXD_CPD_HOST<span class="w"> </span>.env<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="o">=</span><span class="w"> </span>-f2<span class="k">)</span><span class="s2">"</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>.venv/bin/python<span class="w"> </span>scripts/get_token.py<span class="k">)</span><span class="s2">"</span>
+the service so the cache is flushed.</p>
+<div class="admonition danger">
+<p class="admonition-title"><code>PUT user_roles</code> replaces the whole list — never send a hand-written one</p>
+<p>That endpoint is a <strong>full replacement</strong>, not an append. If <code>cpadmin</code> is the only
+administrator on the cluster (the usual case) and the body omits
+<code>zen_administrator_role</code>, you remove your own admin rights and lose the UI you would
+need to put them back. Always <strong>read the current roles first</strong> and add to them.</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">CPD_HOST</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>grep<span class="w"> </span>WXD_CPD_HOST<span class="w"> </span>.env<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="o">=</span><span class="w"> </span>-f2<span class="k">)</span><span class="s2">"</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>.venv/bin/python<span class="w"> </span>scripts/00b_get_token.py<span class="k">)</span><span class="s2">"</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">CPD_USER</span><span class="o">=</span>cpadmin<span class="w">      </span><span class="c1"># the affected user</span>
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>curl<span class="w"> </span>-sk<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span><span class="s2">"https://</span><span class="si">${</span><span class="nv">CPD_HOST</span><span class="si">}</span><span class="s2">/icp4d-api/v1/users/cpadmin"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"user_roles":["zen_administrator_role","wkc_reporting_administrator"]}'</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"status|message"</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c1"># Restart the service to flush its permission cache</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-instance<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deployment/wkc-bi-data-service
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-instance<span class="w"> </span>rollout<span class="w"> </span>status<span class="w">  </span>deployment/wkc-bi-data-service<span class="w"> </span>--timeout<span class="o">=</span>180s
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># 1. Read what the user has today</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>curl<span class="w"> </span>-sk<span class="w"> </span><span class="s2">"https://</span><span class="si">${</span><span class="nv">CPD_HOST</span><span class="si">}</span><span class="s2">/icp4d-api/v1/users/</span><span class="si">${</span><span class="nv">CPD_USER</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A6<span class="w"> </span>user_roles
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="c1"># 2. Send that list PLUS the reporting role — nothing removed</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="nv">ROLES</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>curl<span class="w"> </span>-sk<span class="w"> </span><span class="s2">"https://</span><span class="si">${</span><span class="nv">CPD_HOST</span><span class="si">}</span><span class="s2">/icp4d-api/v1/users/</span><span class="si">${</span><span class="nv">CPD_USER</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">'import sys,json</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="s1">u=json.load(sys.stdin).get("UserInfo",{})</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="s1">r=u.get("user_roles") or []</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="s1">if "wkc_reporting_administrator" not in r: r.append("wkc_reporting_administrator")</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="s1">print(json.dumps(r))'</span><span class="k">)</span><span class="s2">"</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Sending: </span><span class="si">${</span><span class="nv">ROLES</span><span class="si">}</span><span class="s2">"</span><span class="w">     </span><span class="c1"># sanity-check before the write</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>curl<span class="w"> </span>-sk<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span><span class="s2">"https://</span><span class="si">${</span><span class="nv">CPD_HOST</span><span class="si">}</span><span class="s2">/icp4d-api/v1/users/</span><span class="si">${</span><span class="nv">CPD_USER</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"{\"user_roles\": </span><span class="si">${</span><span class="nv">ROLES</span><span class="si">}</span><span class="s2">}"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"status|message"</span>
 </code></pre></div>
+<p>Then make it take effect. A role is invisible to any token minted <strong>before</strong> the grant —
+CPD carries permissions inside the JWT — so a fresh token is as necessary as the restart:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>.venv/bin/python<span class="w"> </span>scripts/00b_get_token.py<span class="w"> </span>--export<span class="w">        </span><span class="c1"># new token, now carries manage_reporting</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-instance<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deployment/wkc-bi-data-service
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-instance<span class="w"> </span>rollout<span class="w"> </span>status<span class="w">  </span>deployment/wkc-bi-data-service<span class="w"> </span>--timeout<span class="o">=</span>180s
+</code></pre></div>
+<p>A safer alternative that cannot remove anything, because it is additive by construction —
+grant through a user group instead of on the user record:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>curl<span class="w"> </span>-sk<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"https://</span><span class="si">${</span><span class="nv">CPD_HOST</span><span class="si">}</span><span class="s2">/usermgmt/v2/groups"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"name":"ikc-reporting-admins","description":"IKC reporting",</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="s1">       "role_identifiers":["wkc_reporting_administrator"]}'</span>
+</code></pre></div>
+<p><code>scripts/10b_provision_pg_reporting.sh</code> does all of the above for you — it reports the user's
+roles by default and only writes with <code>--grant-role</code>, read-modify-write.  Its <code>--verify-only</code>
+mode checks the cluster-side prerequisites (including whether the IKC licence is Enterprise)
+without changing anything.</p>
 <h3 id="ccs-cr-stuck-in-inprogress-never-completed"><code>ccs-cr</code> stuck in <code>InProgress</code> / never <code>Completed</code></h3>
 <p>The CCS operator reconciliation can take several minutes.  Poll manually:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="s2">"oc -n cpd-instance get ccs ccs-cr"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="s2">"oc -n cpd-instance get ccs ccs-cr"</span>
 </code></pre></div>
 <p>If it stays <code>InProgress</code> for more than 15 minutes, check the CCS operator logs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-operators<span class="w"> </span>logs<span class="w"> </span>deployment/ibm-cpd-ccs-operator<span class="w"> </span>--since<span class="o">=</span>20m<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-40
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>oc<span class="w"> </span>-n<span class="w"> </span>cpd-operators<span class="w"> </span>logs<span class="w"> </span>deployment/ibm-cpd-ccs-operator<span class="w"> </span>--since<span class="o">=</span>20m<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-40
 </code></pre></div>
 <h3 id="ngp-projects-api-still-shows-enforce_authorize_reportingfalse-after-restart"><code>ngp-projects-api</code> still shows <code>ENFORCE_AUTHORIZE_REPORTING=False</code> after restart</h3>
 <p>The deployment may have hardcoded literals instead of a <code>configMapKeyRef</code>.  Run the script
 with <code>--skip-restart</code> to re-trigger the step-10 env-var check and patch:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>bash<span class="w"> </span>scripts/configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--skip-restart
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>bash<span class="w"> </span>scripts/10_configure_ikc_reporting.sh<span class="w"> </span>--enforce<span class="w"> </span>--skip-restart
 </code></pre></div>
 <h3 id="volume-warnings-on-catalog-api">Volume warnings on <code>catalog-api</code></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Warning: volume "wdp-certs" (Projected) has no sources provided
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Warning: volume "wdp-certs" (Projected): overlapping paths …
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Warning: volume "wdp-certs" (Projected) has no sources provided
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>Warning: volume "wdp-certs" (Projected): overlapping paths …
 </code></pre></div>
 <p>These are pre-existing Projected volume warnings in the <code>catalog-api</code> deployment spec and are
 <strong>harmless</strong> — the pod starts and serves requests normally.  They appear on every <code>rollout restart</code>
@@ -2836,8 +2870,8 @@ of <code>catalog-api</code> and are unrelated to reporting configuration.</p>
 profiling scores, classifications) — not the gold table data — and pushes it to its own internal
 EDB PostgreSQL data mart (<code>ikcdb</code> in the <code>ikc-dp-dps-bidata-mde-mdi-postgres</code> EDB cluster).</p>
 <p>The PostgreSQL reporting database provisioned by
-<code>scripts/provision_pg_reporting.sh</code> and queried by
-<code>scripts/pg_reporting.py</code> is a <strong>separate, custom</strong> reporting
+<code>scripts/10b_provision_pg_reporting.sh</code> and queried by
+<code>scripts/10c_pg_reporting.py</code> is a <strong>separate, custom</strong> reporting
 schema (<code>ibmas_reporting</code>) that mirrors the gold mart data — it is not the IKC data mart.</p>
 <pre class="mermaid"><code>flowchart LR
     subgraph WatsonxData["watsonx.data (Presto)"]
@@ -2849,10 +2883,10 @@ schema (<code>ibmas_reporting</code>) that mirrors the gold mart data — it is 
         IKCDB["ikc-dp-dps-bidata-\nmde-mdi-postgres\n(ikcdb — IKC data mart)"]
         IKC --&gt; BI --&gt; IKCDB
     end
-    subgraph PG["Standalone PostgreSQL\n(postgresql DC)"]
+    subgraph PG["Standalone PostgreSQL\n(Crunchy PostgresCluster\nibmas-reporting)"]
         RPT["ibmas_reporting\n(gold mirror — custom)"]
     end
-    G --&gt;|"pg_reporting.py refresh"| RPT
+    G --&gt;|"10c_pg_reporting.py refresh"| RPT
     G --&gt;|"asset metadata\n(terms, DQ scores)"| IKC
     style IKCDB fill:#e8f4fd,stroke:#3b82d4
     style RPT fill:#f0fdf4,stroke:#22c55e</code></pre>

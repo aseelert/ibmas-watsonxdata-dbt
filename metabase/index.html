@@ -2415,7 +2415,7 @@
 <p>This stack is <strong>self-provisioning</strong>: a one-shot container creates the admin login and wires up the Presto connection for you on first boot, using the same <code>.env</code> values the rest of the demo uses. No setup wizard, no manual SSL fiddling.</p>
 <div class="admonition warning">
 <p class="admonition-title">Metabase is OPTIONAL in this demo</p>
-<p>Nothing in the medallion pipeline needs Metabase. The <a href="../dbt-demo/">dbt</a> and <a href="../spark-demo/">Spark</a> paths build every <code>raw → bronze → silver → gold</code> table on their own, and you can query the results with <code>python scripts/query_gold.py</code> or the <a href="../sql-demo/">SQL comparison demo</a>. Metabase is here purely so you can <em>see and chart</em> those gold tables in a friendly browser UI. Skip it if you only want the pipeline; run it if you want a BI front end.</p>
+<p>Nothing in the medallion pipeline needs Metabase. The <a href="../dbt-demo/">dbt</a> and <a href="../spark-demo/">Spark</a> paths build every <code>raw → bronze → silver → gold</code> table on their own, and you can query the results with <code>python scripts/05_query_gold.py</code> or the <a href="../sql-demo/">SQL comparison demo</a>. Metabase is here purely so you can <em>see and chart</em> those gold tables in a friendly browser UI. Skip it if you only want the pipeline; run it if you want a BI front end.</p>
 </div>
 <h2 id="architecture">Architecture</h2>
 <pre class="mermaid"><code>flowchart LR

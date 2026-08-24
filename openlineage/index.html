@@ -2299,7 +2299,7 @@
 <p>What actually produces the lineage graph you see in the <a href="../openmetadata/">OpenMetadata page</a>:</p>
 <ol>
 <li>dbt runs against Presto and <code>dbt docs generate</code> writes three JSON artifacts — <code>manifest.json</code> (the full model/<code>ref()</code> graph), <code>catalog.json</code> (column names + types), and <code>run_results.json</code> (which tests passed).</li>
-<li>Those artifacts are prepared by the repo's helper scripts (<code>scripts/prepare_openmetadata_dbt_artifacts.py</code> for a full build, or <code>scripts/generate_lineage_docs.sh</code> to refresh lineage only) and ingested by <code>openmetadata/ingestion/run-ingestion.sh</code>.</li>
+<li>Those artifacts are prepared by the repo's helper scripts (<code>scripts/07a_prepare_openmetadata_dbt_artifacts.py</code> for a full build, or <code>scripts/07b_generate_lineage_docs.sh</code> to refresh lineage only) and ingested by <code>openmetadata/ingestion/run-ingestion.sh</code>.</li>
 <li>OpenMetadata first tries to discover the real tables through live Presto metadata ingestion. If that fails, it seeds the same table entities from <code>catalog.json</code>.</li>
 <li>OpenMetadata reads <code>manifest.json</code> to draw the <strong>model and column lineage</strong> — <code>raw CSV → bronze → silver_sales_enriched → gold_daily_sales</code> — and the governance pass applies glossary terms and auto-classification tags. The full column-by-column trace is documented on the <a href="../lineage/">Architecture &amp; Lineage page</a>.</li>
 </ol>
