@@ -1,0 +1,133 @@
+# =============================================================================
+#  openlineage-marquez/docker-compose.yml — Marquez OpenLineage collector + web UI
+# -----------------------------------------------------------------------------
+#  Location  : openlineage-marquez/docker-compose.yml
+#  Repository: https://github.com/aseelert/ibmas-watsonxdata-dbt
+#  Project   : watsonx.data · dbt · Spark medallion demo
+#  Author    : Alexander Seelert
+#  Copyright : (c) 2026 Alexander Seelert — demo asset, provided as-is.
+#
+#  ╔══════════════════════════════════════════════════════════════════════════╗
+#  ║  MAC / LOCAL DOCKER ONLY  ─  do NOT run on OpenShift / cpd-instance    ║
+#  ║  For Spark lineage on OCP see: openlineage-marquez/ocp/                ║
+#  ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#  WHAT / WHY
+#    Marquez is the reference OpenLineage collector — it receives OpenLineage
+#    events from `dbt-ol` (the openlineage-dbt wrapper that scripts/02_dbt_env.sh
+#    activates when OPENLINEAGE_URL is set) and stores them in a Postgres
+#    database. The Marquez web UI lets you browse the resulting lineage graph
+#    (namespaces → jobs → datasets → run history) in a browser.
+#
+#    This file runs on YOUR LAPTOP via Docker / OrbStack.
+#    It is used exclusively for dbt lineage (OPENLINEAGE_URL=http://localhost:5010).
+#    Spark lineage on OpenShift uses the in-cluster K8s service instead:
+#      OPENLINEAGE_SPARK_URL=http://marquez.cpd-instance.svc.cluster.local:5000
+#    (deployed via openlineage-marquez/ocp/install-marquez-ocp.sh — Helm + EDB PG).
+#
+#    This file is INCLUDED by the root docker-compose.yml (via `include:`), so
+#    you can start it with the same `docker compose` command as Airflow, Metabase,
+#    and OpenMetadata. It lives in openlineage-marquez/ to keep the repo root
+#    tidy — all Marquez-related files live together in this subfolder.
+#
+#  ENDPOINTS (once running)
+#    Marquez API  : http://localhost:5010    ← OPENLINEAGE_URL base
+#    Marquez Admin: http://localhost:5012    ← healthcheck / metrics (internal)
+#    Marquez Web  : http://localhost:3001    ← lineage diagram browser
+#    Postgres     : internal only (not exposed on the host)
+#
+#  NOTE on port 3001 for the web UI
+#    Marquez's default web port is 3000, which conflicts with Metabase (also
+#    3000) that is already in this compose project. The web UI is remapped to
+#    3001 here.
+#
+#  NOTE on ports 5010/5012 (not 5000/5001)
+#    macOS ControlCenter (AirPlay) listens on 5000; OrbStack holds 5001, 5003,
+#    5011 on Apple Silicon hosts. Marquez API → 5010, admin → 5012.
+#
+#  QUICK START
+#    # 1. Start Marquez (already started if you ran `docker compose up -d`)
+#    docker compose up -d marquez-api marquez-web
+#
+#    # 2. In .env, set:
+#    OPENLINEAGE_URL=http://localhost:5010
+#
+#    # 3. Run dbt via the wrapper — lineage emits automatically:
+#    bash scripts/02_dbt_env.sh run --select bronze
+#    bash scripts/02_dbt_env.sh run
+#
+#    # 4. Open the lineage UI:
+#    open http://localhost:3001
+#    # → Namespaces → dbt_demo → Jobs → any model → Lineage tab
+#
+#  Ports: Marquez API 5010 · Marquez Admin 5012 · Marquez Web 3001
+#         (no host-port clashes with Metabase 3000 · Airflow 8082 ·
+#          OpenMetadata 8585 · macOS AirPlay 5000 · OrbStack 5001/5011).
+# =============================================================================
+
+services:
+  marquez-db:
+    image: postgres:16
+    platform: linux/arm64
+    environment:
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez
+      POSTGRES_DB: marquez
+    volumes:
+      - marquez-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "marquez"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  marquez-api:
+    image: marquezproject/marquez:latest
+    platform: linux/amd64
+    depends_on:
+      marquez-db:
+        condition: service_healthy
+    # marquez.dev.yml (baked into the image) resolves all settings via env vars.
+    # MARQUEZ_PORT / MARQUEZ_ADMIN_PORT override the built-in 5000/5001 defaults.
+    # Port 5010/5012 avoids conflicts with macOS AirPlay (5000) and OrbStack (5001/5011).
+    environment:
+      MARQUEZ_PORT: "5010"
+      MARQUEZ_ADMIN_PORT: "5012"
+      POSTGRES_HOST: marquez-db
+      POSTGRES_PORT: "5432"
+    ports:
+      - "5010:5010"
+      - "5012:5012"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5010/api/v1/namespaces"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 45s
+    restart: unless-stopped
+
+  marquez-web:
+    image: marquezproject/marquez-web:latest
+    platform: linux/amd64
+    depends_on:
+      marquez-api:
+        condition: service_healthy
+    environment:
+      # MARQUEZ_HOST/MARQUEZ_PORT control the server-side Node proxy
+      # (used when the web container proxies /api/* to the API service).
+      # This MUST be the container-internal hostname, not localhost.
+      MARQUEZ_HOST: marquez-api
+      MARQUEZ_PORT: "5010"
+      # WEB_PORT is the port the Node server inside the container listens on.
+      # We keep it at the default 3000 and remap the host port to 3001 below
+      # to avoid conflicting with Metabase which also uses host port 3000.
+      WEB_PORT: "3000"
+    ports:
+      # Remapped to 3001 to avoid conflict with Metabase on 3000.
+      - "3001:3000"
+    restart: unless-stopped
+
+volumes:
+  marquez-db-data:

@@ -16,6 +16,15 @@ fastavro>=1.9,<2.0
 httpx>=0.26,<1.0
 psycopg2-binary>=2.9,<3.0
 
+# Optional: OpenLineage dbt integration — after every successful dbt
+# seed/run/test/build/snapshot scripts/02_dbt_env.sh calls
+# scripts/emit_openlineage_events.py which patches the Adapter enum at
+# runtime to recognise watsonx_presto and then emits lineage events to the
+# Marquez collector (OPENLINEAGE_URL).  No-ops unless OPENLINEAGE_URL is set.
+# NOTE: the dbt-ol CLI wrapper is NOT used (it doesn't support watsonx_presto).
+# Pin to the same major as dbt-core (<2.0) to avoid adapter breakage.
+openlineage-dbt>=1.18,<2.0
+
 # Optional: Databand (IBM Data Observability) dbt-run tracking, see
 # scripts/report_dbt_to_databand.py and airflow/README.md "Optional: Databand
 # tracking". Core package only — no Airflow dependency, so no version risk

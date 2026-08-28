@@ -1,0 +1,112 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Marquez — dedicated EDB PostgreSQL 16 cluster in cpd-instance
+#
+# Why EDB, not a plain StatefulSet:
+#   The postgresql-operator-controller-manager in cpd-operators watches
+#   WATCH_NAMESPACE=cpd-operators,cpd-instance — the EDB operator IS available
+#   here. We use the same ibm-entitlement-key pull secret and
+#   cp.icr.io/cpopen/edb/postgresql:16.13-5.31.1 image used by every other
+#   CPD service (ikc-activity-lineage-postgres, zen-metastore-edb, etc.).
+#
+# Sizing: 1 instance, 10Gi — Marquez metadata is small; bump to 2 instances
+# and 20Gi for production use.
+#
+# After apply the operator creates:
+#   Service  marquez-postgres-rw   (read/write — use this in values)
+#   Service  marquez-postgres-r    (read replica)
+#   Service  marquez-postgres-ro   (read-only)
+#   Secret   marquez-postgres-app  (CNPG-managed, key: uri / user / password)
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: postgresql.k8s.enterprisedb.io/v1
+kind: Cluster
+metadata:
+  name: marquez-postgres
+  namespace: cpd-instance
+  labels:
+    app.kubernetes.io/name: marquez
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openlineage-stack
+spec:
+  # Same PG 16 image used by IKC / WKC in this cluster
+  imageName: cp.icr.io/cpopen/edb/postgresql:16.13-5.31.1@sha256:c632b5ef78ab6686939e8f76543c08dac8cb77e7b30578b21eb0a0c8d3b0b020
+  imagePullSecrets:
+    - name: ibm-entitlement-key
+
+  instances: 1     # increase to 2 for HA
+
+  postgresql:
+    parameters:
+      # Minimal tuning — Marquez is not write-heavy
+      max_connections: "100"
+      shared_buffers: "256MB"
+      wal_keep_size: "512MB"
+      log_filename: "postgres"
+      log_rotation_size: "0"
+      password_encryption: "scram-sha-256"
+      ssl_min_protocol_version: "TLSv1.2"
+      ssl_max_protocol_version: "TLSv1.3"
+
+  bootstrap:
+    initdb:
+      dataChecksums: true
+      database: marquez
+      owner: marquez
+      encoding: UTF8
+      localeCollate: C
+      localeCType: C
+      postInitApplicationSQL:
+        - "GRANT CONNECT ON DATABASE \"marquez\" TO public"
+        - "GRANT ALL PRIVILEGES ON DATABASE \"marquez\" TO \"marquez\""
+        - "ALTER USER marquez WITH LOGIN CREATEDB"
+
+  storage:
+    size: 10Gi
+    storageClass: managed-nfs-storage
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+  monitoring:
+    enablePodMonitor: false   # set true if Prometheus is installed
+
+  # Let EDB manage the app-user secret automatically
+  # Secret name will be: marquez-postgres-app
+  # Keys: username, password, uri, pgpass, dbname, host, port
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# NetworkPolicy — allow Marquez API pods to reach marquez-postgres on 5432
+#
+# The Helm chart deploys pods with label:
+#   app.kubernetes.io/name=marquez  AND  app.kubernetes.io/component=marquez
+# The EDB Cluster pods carry:
+#   cnpg.io/cluster=marquez-postgres
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: marquez-postgres-network-policy
+  namespace: cpd-instance
+  labels:
+    app.kubernetes.io/name: marquez
+    app.kubernetes.io/component: database
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: marquez-postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Marquez API and web pods in same namespace
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: marquez
+      ports:
+        - protocol: TCP
+          port: 5432

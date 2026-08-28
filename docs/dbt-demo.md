@@ -292,6 +292,49 @@ Done. PASS=13 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=13
 
 ---
 
+### Optional: Send Live Lineage to Marquez
+
+!!! tip "Skip this step if you just want to build the models"
+    This step is entirely optional. The pipeline runs identically with or without it. Enable it if you want to see a **visual lineage diagram** of every dbt model run in the Marquez web UI.
+
+**What this does:** when `OPENLINEAGE_URL` is set, the `scripts/02_dbt_env.sh` wrapper automatically substitutes `dbt-ol` for `dbt`. Every model build emits OpenLineage events (START, COMPLETE, FAIL) to a local Marquez collector, which renders an interactive job/dataset graph at `http://localhost:3001`.
+
+```mermaid
+flowchart LR
+  A["bash scripts/02_dbt_env.sh run"]
+  B["dbt-ol\n(auto-detected wrapper)"]
+  C["Marquez API\nlocalhost:5000"]
+  D["Marquez Web UI\nlocalhost:3001"]
+  A --> B --> C --> D
+```
+
+**Step 1 — start Marquez:**
+
+```bash
+docker compose up -d marquez-db marquez-api marquez-web
+```
+
+**Step 2 — add to your `.env`** (uncomment if already present):
+
+```bash
+OPENLINEAGE_URL=http://localhost:5000
+OPENLINEAGE_NAMESPACE=dbt_demo
+```
+
+**Step 3 — re-run any dbt command** (e.g. `run`, `seed`, `test`, or `build`). The wrapper logs:
+
+```text
+[OpenLineage] dbt-ol detected at .venv/bin/dbt-ol → using dbt-ol for OpenLineage emission
+```
+
+**Step 4 — open `http://localhost:3001`**, choose the `dbt_demo` namespace, and explore the lineage graph. Each bronze/silver/gold model appears as a **Job**; every source and output table appears as a **Dataset**.
+
+See the [OpenLineage page](openlineage.md) for full details and troubleshooting.
+
+---
+
+
+
 ### Step 6: Run Data Quality Tests
 
 dbt tests check data quality rules defined in `schema.yml` files — rules like "every `order_id` must be unique" and "every order must reference a real customer".

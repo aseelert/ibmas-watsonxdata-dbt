@@ -267,6 +267,7 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 | `03c_spark_application_status.py` | After submission | Polls the watsonx.data Spark engine REST API for the application state and prints a summary; pass the application ID printed by `03b_submit_spark_application.py` |
 | `05_query_gold.py` | After any demo path | Connects to Presto via the dbt adapter and queries the three gold models; prints formatted tables to the terminal so you can verify results without opening the watsonx.data UI |
 | `04_ingest_with_cpdctl.py` | cpdctl demo path | Uses `cpdctl wx-data ingestion create` to load the seed CSVs from MinIO into Iceberg tables in the `spark_demo_cpdctl_raw` schema; each job appears in the watsonx.data console under **Data manager > Ingestion (history)**. It only LOADS raw CSV into `spark_demo_cpdctl_raw` (the analogue of `dbt seed`) and produces no bronze/silver/gold — to build a medallion you run the dbt models or the Spark job against `spark_demo_cpdctl_raw` as a post-action (cpdctl + dbt/Spark = full pipeline) |
+| `emit_openlineage_events.py` | Called automatically by `02_dbt_env.sh` | Reads the compiled dbt artifacts in `target/` and emits OpenLineage START + COMPLETE events for every model to the Marquez collector at `OPENLINEAGE_URL`. Uses a three-part runtime patch to teach the `openlineage-dbt` library about the `watsonx_presto` adapter: (1) extends the internal `Adapter` enum with `WATSONX_PRESTO`, (2) adds a `TRINO` fallback to `extract_adapter_type`, and (3) overrides `extract_namespace` to return `trino://<host>:<port>`. Run by hand with `python3 scripts/emit_openlineage_events.py [--target-path ./target]` to re-emit events from the last dbt run without re-running dbt. Requires `OPENLINEAGE_URL` in `.env`. |
 | `07a_prepare_openmetadata_dbt_artifacts.py` | Before OpenMetadata demo | By default runs `dbt seed --full-refresh`, `dbt run`, `dbt test`, and `dbt docs generate`, then copies `manifest.json`, `catalog.json`, and `run_results.json` from `target/` into `openmetadata/dbt-artifacts/`; those files are what OpenMetadata reads for lineage. Flags: `--docs-only` (lineage only — `dbt docs generate` + stage, no seed/run/test), `--skip-dbt` (copy existing `target/*.json` only), `--skip-seed` (skip the seed step), `--artifact-dir <path>` (override the staging directory), `--retries <n>` (retries per dbt command, default 1) |
 | `07b_generate_lineage_docs.sh` | Refresh OpenMetadata lineage only | Thin wrapper around `07a_prepare_openmetadata_dbt_artifacts.py --docs-only`: runs **only** `dbt docs generate` (no seed/run/test) and stages the three artifacts into `openmetadata/dbt-artifacts/`. Use when the medallion tables already exist and you only need fresh lineage/column metadata. Flags are forwarded to the python stager |
 | `07c_upload_dbt_artifacts.py` | OpenMetadata (S3 path) | Uploads the staged dbt artifacts from `openmetadata/dbt-artifacts/` to MinIO so that a remote OpenMetadata instance can fetch them over S3 instead of reading local files |
@@ -288,6 +289,31 @@ All scripts read environment variables from `.env` via `python-dotenv`. Run them
 
 !!! tip "cpdctl prerequisite"
     `04_ingest_with_cpdctl.py` requires the `cpdctl` binary on your PATH. Download it from the IBM GitHub release page and configure a context for this CPD instance before running the script. The script prints the required `cpdctl config` commands if the binary is not found.
+
+---
+
+## `openlineage-marquez/` — Marquez OpenLineage collector
+
+Marquez is the reference OpenLineage collector. When `OPENLINEAGE_URL` is set in `.env`, `scripts/02_dbt_env.sh` wraps every `dbt` call with `dbt-ol`, which streams per-run lineage events to Marquez. The visual lineage graph is then available at `http://localhost:3001`.
+
+| File | What it does |
+|---|---|
+| `openlineage-marquez/docker-compose.yml` | Defines three Docker services: `marquez-db` (Postgres 16 — stores the lineage graph), `marquez-api` (the Marquez collector jar, exposed on port **5010**; admin port 5012), and `marquez-web` (the React lineage UI, exposed on port **3001**). Included in the root `docker-compose.yml` via `include:`. Start with `docker compose up -d marquez-db marquez-api marquez-web`. |
+
+!!! example "Start Marquez and verify"
+    ```bash
+    # 1. Start the stack
+    docker compose up -d marquez-db marquez-api marquez-web
+
+    # 2. Wait ~30-45 s for the JVM to boot, then check
+    curl -sf http://localhost:5010/api/v1/namespaces | python3 -m json.tool
+
+    # 3. Run dbt — lineage events emit automatically when OPENLINEAGE_URL is set
+    bash scripts/02_dbt_env.sh run
+
+    # 4. Open the lineage graph
+    open http://localhost:3001   # → top-left dropdown → dbt_demo → Jobs
+    ```
 
 ---
 

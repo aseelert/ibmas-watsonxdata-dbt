@@ -292,7 +292,94 @@ def _payload() -> dict[str, Any]:
         for key, value in app_env.items():
             conf[f"{prefix}.{key}"] = value
 
+    _inject_openlineage_conf(conf, job_name="watsonxdata-confluent-gold")
+
     return {"application_details": {"application": application, "conf": conf}}
+
+
+def _inject_openlineage_conf(conf: dict[str, Any], job_name: str) -> None:
+    """Append OpenLineage/Marquez conf keys to *conf* when OPENLINEAGE_SPARK_URL
+    (or OPENLINEAGE_URL) is set.  Mirrors the same function in
+    scripts/03b_submit_spark_application.py — Option A (per-job injection) from
+    openlineage-marquez/ocp/04-spark-openlineage-integration.yaml.
+
+    Keys injected (no-op when OPENLINEAGE_SPARK_ENABLED=false or both URL vars unset):
+      spark.jars.packages          — downloads openlineage-spark JAR from Maven Central
+      spark.extraListeners         — registers the OpenLineage Spark listener
+      spark.openlineage.transport.type / .url / .endpoint
+      spark.openlineage.namespace
+      spark.openlineage.parentJobName
+
+    URL resolution (Spark executor pods run INSIDE cpd-instance):
+      Priority 1 — OPENLINEAGE_SPARK_URL  (explicit in-cluster override)
+      Priority 2 — OPENLINEAGE_URL        (if already set to the in-cluster svc URL)
+      Auto-fallback — if OPENLINEAGE_URL is the HTTPS OCP Route, silently substitute
+                      http://marquez.cpd-instance.svc.cluster.local:5000
+
+    Namespace resolution:
+      Priority 1 — OPENLINEAGE_SPARK_NAMESPACE  (e.g. "watsonxdata-spark")
+      Priority 2 — OPENLINEAGE_NAMESPACE        (shared fallback)
+      Default    — "watsonxdata-spark"
+    """
+    spark_url = os.getenv("OPENLINEAGE_SPARK_URL", "").strip()
+    fallback_url = os.getenv("OPENLINEAGE_URL", "").strip()
+
+    if spark_url:
+        ol_url = spark_url
+        url_source = "OPENLINEAGE_SPARK_URL"
+    elif fallback_url:
+        ol_url = fallback_url
+        url_source = "OPENLINEAGE_URL"
+    else:
+        return  # feature disabled — neither URL var is set
+
+    enabled = os.getenv("OPENLINEAGE_SPARK_ENABLED", "true").lower()
+    if enabled in {"0", "false", "no"}:
+        log.info("OpenLineage disabled via OPENLINEAGE_SPARK_ENABLED=false — skipping")
+        return
+
+    jar_version = os.getenv("OPENLINEAGE_SPARK_JAR_VERSION", "1.32.0")
+
+    namespace = (
+        os.getenv("OPENLINEAGE_SPARK_NAMESPACE", "").strip()
+        or os.getenv("OPENLINEAGE_NAMESPACE", "").strip()
+        or "watsonxdata-spark"
+    )
+
+    base_url = ol_url.rstrip("/")
+    if base_url.endswith("/api/v1/lineage"):
+        base_url = base_url[: -len("/api/v1/lineage")]
+
+    _INCLUSTER_URL = "http://marquez.cpd-instance.svc.cluster.local:5000"
+    if url_source == "OPENLINEAGE_URL" and base_url.startswith("https://"):
+        log.info(
+            "OPENLINEAGE_URL is an HTTPS route (%s) — "
+            "auto-substituting in-cluster service URL for Spark executor pods.", base_url
+        )
+        base_url = _INCLUSTER_URL
+        url_source += " → auto-substituted to in-cluster svc"
+
+    existing_jars = conf.get("spark.jars.packages", "")
+    ol_jar = f"io.openlineage:openlineage-spark_2.12:{jar_version}"
+    conf["spark.jars.packages"] = f"{existing_jars},{ol_jar}" if existing_jars else ol_jar
+
+    existing_listeners = conf.get("spark.extraListeners", "")
+    ol_listener = "io.openlineage.spark.agent.OpenLineageSparkListener"
+    if existing_listeners and ol_listener not in existing_listeners:
+        conf["spark.extraListeners"] = f"{existing_listeners},{ol_listener}"
+    elif not existing_listeners:
+        conf["spark.extraListeners"] = ol_listener
+
+    conf["spark.openlineage.transport.type"] = "http"
+    conf["spark.openlineage.transport.url"] = base_url
+    conf["spark.openlineage.transport.endpoint"] = "/api/v1/lineage"
+    conf["spark.openlineage.namespace"] = namespace
+    conf["spark.openlineage.parentJobName"] = job_name
+
+    log.info(
+        "OpenLineage enabled → %s/api/v1/lineage  (namespace=%s, jar=%s, src=%s)",
+        base_url, namespace, jar_version, url_source,
+    )
 
 
 def _redacted_payload(payload: dict[str, Any]) -> dict[str, Any]:

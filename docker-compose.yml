@@ -27,7 +27,8 @@
 #    without any of them (see docs/dbt-demo.md and docs/spark-demo.md). Bringing
 #    all three up at once is heavy — start only what you need on a small machine.
 #
-#  Ports: Metabase 3000 · Airflow 8082 · OpenMetadata 8585 (no host-port clashes).
+#  Ports: Metabase 3000 · Airflow 8082 · OpenMetadata 8585 · Marquez API 5010
+#         Marquez Web 3001 (no host-port clashes).
 # =============================================================================
 name: ibmas-watsonxdata-dbt
 
@@ -135,5 +136,6 @@ volumes:
 
 include:
   - docker-compose-metabase.yml
+  - openlineage-marquez/docker-compose.yml
   - openmetadata/docker-compose.yml
   - confluent/docker-compose.yml

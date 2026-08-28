@@ -1,0 +1,59 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Marquez — OpenShift Routes
+#
+# OpenShift does not use Kubernetes Ingress; it uses Routes.
+# We create two:
+#   1. marquez-api   → marquez:5000  (REST API + OpenLineage endpoint)
+#   2. marquez-web   → marquez-web:3000  (browser UI)
+#
+# Both use edge TLS termination (HTTPS at the router, HTTP inside the cluster).
+# App domain: apps.watson.ibmas-zocp-techcluster.org
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: marquez-api
+  namespace: cpd-instance
+  labels:
+    app.kubernetes.io/name: marquez
+    app.kubernetes.io/component: marquez
+    app.kubernetes.io/part-of: openlineage-stack
+  annotations:
+    # Allow the OpenLineage HTTP client to post large event payloads
+    haproxy.router.openshift.io/timeout: 120s
+    haproxy.router.openshift.io/request-buffer: 512k
+spec:
+  host: marquez-api.apps.watson.ibmas-zocp-techcluster.org
+  to:
+    kind: Service
+    name: marquez           # Helm creates service named after release = "marquez"
+    weight: 100
+  port:
+    targetPort: http        # matches Service port named "http" → 5000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: marquez-web
+  namespace: cpd-instance
+  labels:
+    app.kubernetes.io/name: marquez
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: openlineage-stack
+spec:
+  host: marquez-web.apps.watson.ibmas-zocp-techcluster.org
+  to:
+    kind: Service
+    name: marquez-web       # Helm creates service named "<release>-web"
+    weight: 100
+  port:
+    targetPort: http        # matches Service port named "http" → 3000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

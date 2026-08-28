@@ -16,6 +16,12 @@
 #      job now writes only the daily_sales table; a Spark view is a Hive view
 #      Presto cannot read). View creation polls to a terminal state first; disable
 #      with WXD_SPARK_CREATE_VIEWS=false.
+#    v1.2 (2026-08-20) — OpenLineage / Marquez integration (Option A: per-job).
+#      When OPENLINEAGE_URL is set in .env the five openlineage-spark conf keys
+#      (spark.jars.packages, spark.extraListeners, transport.type/url/endpoint,
+#      namespace, parentJobName) are automatically appended to the submission
+#      payload. No-op when OPENLINEAGE_URL is unset. Set
+#      OPENLINEAGE_SPARK_ENABLED=false to disable while keeping the URL.
 # -----------------------------------------------------------------------------
 """Submit the Spark medallion demo to the watsonx.data Spark engine.
 
@@ -47,17 +53,21 @@ WHEN TO RUN (demo flow)
 
 ENV VARS (read)
  - Endpoint/instance : WXD_SPARK_APPLICATIONS_ENDPOINT, WXD_INSTANCE_ID,
-   WXD_SPARK_ENGINE_ID, WXD_CPD_HOST, WXD_CONSOLE_URL, WXD_CONSOLE_VIEW
+    WXD_SPARK_ENGINE_ID, WXD_CPD_HOST, WXD_CONSOLE_URL, WXD_CONSOLE_VIEW
  - Payload           : WXD_SPARK_APPLICATION, WXD_SPARK_INPUT_BASE,
-   WXD_SPARK_CATALOG, WXD_SPARK_SCHEMA, WXD_SPARK_INGEST_BATCH_ID
+    WXD_SPARK_CATALOG, WXD_SPARK_SCHEMA, WXD_SPARK_INGEST_BATCH_ID
  - Spark sizing      : WXD_SPARK_EXECUTOR_CORES, WXD_SPARK_EXECUTOR_MEMORY,
-   WXD_SPARK_DRIVER_CORES, WXD_SPARK_DRIVER_MEMORY
+    WXD_SPARK_DRIVER_CORES, WXD_SPARK_DRIVER_MEMORY
  - Auth (any one)    : WXD_SPARK_BEARER_TOKEN, WXD_ZEN_API_KEY,
-   WXD_CPD_USERNAME/WXD_USER + WXD_CPD_API_KEY/WXD_API_KEY,
-   WXD_CPD_PASSWORD, WXD_CPD_AUTH_URL, WXD_SPARK_WXD_APIKEY
+    WXD_CPD_USERNAME/WXD_USER + WXD_CPD_API_KEY/WXD_API_KEY,
+    WXD_CPD_PASSWORD, WXD_CPD_AUTH_URL, WXD_SPARK_WXD_APIKEY
  - Presto pre-create : WXD_HOST, WXD_PORT, WXD_USER, WXD_API_KEY,
-   WXD_SPARK_BRONZE_SCHEMA, WXD_SPARK_SILVER_SCHEMA, WXD_SPARK_GOLD_SCHEMA
+    WXD_SPARK_BRONZE_SCHEMA, WXD_SPARK_SILVER_SCHEMA, WXD_SPARK_GOLD_SCHEMA
  - TLS / control     : WXD_SSL_VERIFY, WXD_SPARK_DRY_RUN
+ - OpenLineage       : OPENLINEAGE_URL (enables auto-injection when set),
+    OPENLINEAGE_NAMESPACE (default "watsonxdata-spark"),
+    OPENLINEAGE_SPARK_JAR_VERSION (default "1.32.0"),
+    OPENLINEAGE_SPARK_ENABLED (set "false" to disable while keeping URL)
 
 PREREQUISITES
  - Python deps from ``requirements.txt`` (``requests``; ``prestodb`` optional
@@ -273,7 +283,110 @@ def _payload() -> dict[str, Any]:
         for key, value in app_env.items():
             conf[f"{prefix}.{key}"] = value
 
+    _inject_openlineage_conf(conf, job_name="watsonxdata-medallion-spark-demo")
+
     return {"application_details": {"application": application, "conf": conf}}
+
+
+def _inject_openlineage_conf(conf: dict[str, Any], job_name: str) -> None:
+    """Append OpenLineage/Marquez conf keys to *conf* when OPENLINEAGE_URL is set.
+
+    This implements Option A (per-job) from
+    openlineage-marquez/ocp/04-spark-openlineage-integration.yaml.
+
+    Keys injected (no-op when OPENLINEAGE_URL is unset or OPENLINEAGE_SPARK_ENABLED=false):
+      spark.jars.packages          — downloads openlineage-spark JAR from Maven Central
+      spark.extraListeners         — registers the OpenLineage Spark listener
+      spark.openlineage.transport.type
+      spark.openlineage.transport.url
+      spark.openlineage.transport.endpoint
+      spark.openlineage.namespace
+      spark.openlineage.parentJobName
+
+    URL resolution (Spark executor pods run INSIDE cpd-instance):
+      Priority 1 — OPENLINEAGE_SPARK_URL  (explicit in-cluster override)
+      Priority 2 — OPENLINEAGE_URL        (if already set to the in-cluster svc URL)
+      Auto-fallback — if OPENLINEAGE_URL is the HTTPS OCP Route, silently substitute
+                      http://marquez.cpd-instance.svc.cluster.local:5000
+
+    Namespace resolution (Spark should appear under its own namespace in Marquez):
+      Priority 1 — OPENLINEAGE_SPARK_NAMESPACE  (Spark-specific, e.g. "watsonxdata-spark")
+      Priority 2 — OPENLINEAGE_NAMESPACE        (shared fallback)
+      Default    — "watsonxdata-spark"
+    """
+    # --- URL resolution ---
+    spark_url = os.getenv("OPENLINEAGE_SPARK_URL", "").strip()
+    fallback_url = os.getenv("OPENLINEAGE_URL", "").strip()
+
+    if spark_url:
+        # Explicit Spark URL — use as-is (supports both in-cluster and route overrides).
+        ol_url = spark_url
+        url_source = "OPENLINEAGE_SPARK_URL"
+    elif fallback_url:
+        ol_url = fallback_url
+        url_source = "OPENLINEAGE_URL"
+    else:
+        return  # feature disabled — neither URL var is set
+
+    enabled = os.getenv("OPENLINEAGE_SPARK_ENABLED", "true").lower()
+    if enabled in {"0", "false", "no"}:
+        print("  (OpenLineage disabled via OPENLINEAGE_SPARK_ENABLED=false — skipping)")
+        return
+
+    jar_version = os.getenv("OPENLINEAGE_SPARK_JAR_VERSION", "1.32.0")
+
+    # --- Namespace resolution ---
+    namespace = (
+        os.getenv("OPENLINEAGE_SPARK_NAMESPACE", "").strip()
+        or os.getenv("OPENLINEAGE_NAMESPACE", "").strip()
+        or "watsonxdata-spark"
+    )
+
+    # Strip any trailing /api/v1/lineage from the URL — transport.url must be
+    # just the base (e.g. http://marquez.cpd-instance.svc.cluster.local:5000).
+    base_url = ol_url.rstrip("/")
+    if base_url.endswith("/api/v1/lineage"):
+        base_url = base_url[: -len("/api/v1/lineage")]
+
+    # Auto-substitute: if the URL is an HTTPS OCP Route (i.e. the dbt workstation URL)
+    # and no explicit OPENLINEAGE_SPARK_URL was set, replace it with the in-cluster
+    # ClusterIP service.  Spark executor pods run inside cpd-instance — they should
+    # POST directly to the K8s service, not through the router (no TLS, no external hop).
+    _INCLUSTER_URL = "http://marquez.cpd-instance.svc.cluster.local:5000"
+    if url_source == "OPENLINEAGE_URL" and base_url.startswith("https://"):
+        print(
+            f"  [OpenLineage] OPENLINEAGE_URL is an HTTPS route ({base_url}) — "
+            f"auto-substituting in-cluster service URL for Spark executor pods."
+        )
+        base_url = _INCLUSTER_URL
+        url_source += " → auto-substituted to in-cluster svc"
+
+    # Merge into existing spark.jars.packages if already set (e.g. by a caller).
+    existing_jars = conf.get("spark.jars.packages", "")
+    ol_jar = f"io.openlineage:openlineage-spark_2.12:{jar_version}"
+    if existing_jars:
+        conf["spark.jars.packages"] = f"{existing_jars},{ol_jar}"
+    else:
+        conf["spark.jars.packages"] = ol_jar
+
+    # Merge into spark.extraListeners if already set.
+    existing_listeners = conf.get("spark.extraListeners", "")
+    ol_listener = "io.openlineage.spark.agent.OpenLineageSparkListener"
+    if existing_listeners and ol_listener not in existing_listeners:
+        conf["spark.extraListeners"] = f"{existing_listeners},{ol_listener}"
+    elif not existing_listeners:
+        conf["spark.extraListeners"] = ol_listener
+
+    conf["spark.openlineage.transport.type"] = "http"
+    conf["spark.openlineage.transport.url"] = base_url
+    conf["spark.openlineage.transport.endpoint"] = "/api/v1/lineage"
+    conf["spark.openlineage.namespace"] = namespace
+    conf["spark.openlineage.parentJobName"] = job_name
+
+    print(
+        f"  OpenLineage enabled → {base_url}/api/v1/lineage  "
+        f"(namespace={namespace}, jar={jar_version}, src={url_source})"
+    )
 
 
 def _redacted_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -282,6 +395,7 @@ def _redacted_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if "spark.hadoop.wxd.apiKey" in conf:
         conf["spark.hadoop.wxd.apiKey"] = "<redacted>"
     return safe
+
 
 
 def _ensure_spark_schemas_via_presto() -> None:
@@ -297,27 +411,43 @@ def _ensure_spark_schemas_via_presto() -> None:
     except ImportError:
         print("  (prestodb not installed — skipping schema pre-create; Spark may add .db)")
         return
-    base = _env("WXD_SPARK_SCHEMA", "spark_demo")
-    schemas = [
-        os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{base}_bronze"),
-        os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{base}_silver"),
-        os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{base}_gold"),
-    ]
-    user = _env("WXD_USER", "ibmlhapikey_cpadmin")
+
+    # All _env() calls raise SystemExit (BaseException) when a var is unset.
+    # Wrap the entire setup in BaseException so a missing var doesn't kill the
+    # submission — it just prints a warning and continues.
     try:
+        presto_host = os.getenv("WXD_HOST", "").strip()
+        if not presto_host:
+            print("  (WXD_HOST not set — skipping Presto schema pre-create)")
+            return
+        base = os.getenv("WXD_SPARK_SCHEMA", "spark_demo")
+        schemas = [
+            os.getenv("WXD_SPARK_BRONZE_SCHEMA", f"{base}_bronze"),
+            os.getenv("WXD_SPARK_SILVER_SCHEMA", f"{base}_silver"),
+            os.getenv("WXD_SPARK_GOLD_SCHEMA", f"{base}_gold"),
+        ]
+        user = os.getenv("WXD_USER", "ibmlhapikey_cpadmin")
+        api_key = os.getenv("WXD_API_KEY", "")
+        instance_id = os.getenv("WXD_INSTANCE_ID", "")
+        catalog = os.getenv("WXD_SPARK_CATALOG", "iceberg_data")
+        port = int(os.getenv("WXD_PORT", "443"))
+
         conn = prestodb.dbapi.connect(
-            host=_env("WXD_HOST"), port=int(os.getenv("WXD_PORT", "443")), user=user,
-            catalog=_env("WXD_SPARK_CATALOG", "iceberg_data"), http_scheme="https",
-            http_headers={"LhInstanceId": _env("WXD_INSTANCE_ID")},
-            auth=prestodb.auth.BasicAuthentication(user, _env("WXD_API_KEY")),
+            host=presto_host, port=port, user=user,
+            catalog=catalog, http_scheme="https",
+            http_headers={"LhInstanceId": instance_id},
+            auth=prestodb.auth.BasicAuthentication(user, api_key),
         )
+        # Cap TCP connect so a slow/unreachable Presto never blocks the submit.
         conn._http_session.verify = _ssl_verify()
+        conn._http_session.timeout = 15  # seconds — connect + read
+
         cur = conn.cursor()
         for schema in schemas:
             cur.execute(f"create schema if not exists iceberg_data.{schema}")
             cur.fetchall()
         print(f"  Pre-created Spark namespaces via Presto (no .db): {', '.join(schemas)}")
-    except Exception as exc:  # noqa: BLE001 — best-effort, never block submission
+    except BaseException as exc:  # noqa: BLE001 — best-effort, never block submission
         print(f"  WARNING: could not pre-create Spark schemas ({exc}); Spark may add .db dirs.")
 
 

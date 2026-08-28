@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OpenLineage → watsonx.data Spark (AnalyticsEngine) integration
+#
+# How it works:
+#   Spark jobs submit OpenLineage events via the openlineage-spark JAR.
+#   The JAR reads transport config from spark conf properties prefixed
+#   spark.openlineage.*  (or env vars OPENLINEAGE_URL etc.).
+#   Marquez exposes a compatible OpenLineage HTTP endpoint at:
+#     http://marquez.cpd-instance.svc.cluster.local:5000/api/v1/lineage
+#
+# There are two ways to inject this into watsonx.data Spark jobs:
+#   A) Per-job: pass spark conf in the job submission payload (recommended)
+#   B) Cluster-wide: patch the AnalyticsEngine CR defaultConfig (affects all jobs)
+#
+# This file documents BOTH. Use A for targeted lineage capture; use B only
+# if you want every Spark job to emit lineage automatically.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Option A: Per-job spark conf (recommended) ────────────────────────────────
+#
+# When submitting a Spark application via the watsonx.data Spark REST API
+# (POST /lakehouse/api/v3/spark_engines/{engine_id}/applications), include:
+#
+#   "conf": {
+#     "spark.jars.packages": "io.openlineage:openlineage-spark_2.12:1.32.0",
+#     "spark.extraListeners": "io.openlineage.spark.agent.OpenLineageSparkListener",
+#     "spark.openlineage.transport.type": "http",
+#     "spark.openlineage.transport.url": "http://marquez.cpd-instance.svc.cluster.local:5000",
+#     "spark.openlineage.transport.endpoint": "/api/v1/lineage",
+#     "spark.openlineage.namespace": "watsonxdata-spark",
+#     "spark.openlineage.parentJobName": "<your-job-name>"
+#   }
+#
+# The openlineage-spark JAR is downloaded from Maven Central by Spark at
+# job start. If the Spark engine has no internet access, mirror the JAR to
+# an internal Maven proxy or add it to the engine's home bucket and reference
+# it as: spark.jars = s3a://<bucket>/jars/openlineage-spark_2.12-1.32.0.jar
+#
+# Latest openlineage-spark version:
+#   https://search.maven.org/artifact/io.openlineage/openlineage-spark_2.12
+
+# ── Option B: AnalyticsEngine CR patch (cluster-wide, all jobs) ──────────────
+#
+# CONFIRM WITH USER BEFORE APPLYING — this restarts all Spark jobs.
+#
+# oc patch analyticsengine analyticsengine-sample -n cpd-instance \
+#   --type merge \
+#   --patch '{
+#     "spec": {
+#       "customizationConfig": {
+#         "spark": {
+#           "configuration": {
+#             "spark.jars.packages": "io.openlineage:openlineage-spark_2.12:1.32.0",
+#             "spark.extraListeners": "io.openlineage.spark.agent.OpenLineageSparkListener",
+#             "spark.openlineage.transport.type": "http",
+#             "spark.openlineage.transport.url": "http://marquez.cpd-instance.svc.cluster.local:5000",
+#             "spark.openlineage.transport.endpoint": "/api/v1/lineage",
+#             "spark.openlineage.namespace": "watsonxdata-spark"
+#           }
+#         }
+#       }
+#     }
+#   }'
+#
+# Verify the patch:
+#   oc get analyticsengine analyticsengine-sample -n cpd-instance \
+#     -o jsonpath='{.spec.customizationConfig.spark.configuration}'
+
+# ── Marquez API endpoints used by OpenLineage ─────────────────────────────────
+#
+# POST /api/v1/lineage          ← OpenLineage event receiver
+# GET  /api/v1/namespaces       ← list namespaces
+# GET  /api/v1/jobs             ← list jobs
+# GET  /api/v1/lineage?nodeId=  ← lineage graph for a node
+#
+# From inside the cluster (any pod in cpd-instance):
+#   curl http://marquez.cpd-instance.svc.cluster.local:5000/api/v1/namespaces
+#
+# From outside (via Route):
+#   curl https://marquez-api.apps.watson.ibmas-zocp-techcluster.org/api/v1/namespaces
+
+# ── Python / dbt OpenLineage integration ─────────────────────────────────────
+#
+# The script scripts/emit_openlineage_events.py already exists in this repo.
+# Update its MARQUEZ_URL to use the in-cluster service when run from a pod:
+#
+#   MARQUEZ_URL=http://marquez.cpd-instance.svc.cluster.local:5000
+#
+# Or the Route URL when run from a workstation:
+#
+#   MARQUEZ_URL=https://marquez-api.apps.watson.ibmas-zocp-techcluster.org

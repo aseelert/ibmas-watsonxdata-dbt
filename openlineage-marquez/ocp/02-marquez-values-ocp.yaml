@@ -1,0 +1,102 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Marquez Helm values — OpenShift / cpd-instance
+#
+# Chart: https://github.com/MarquezProject/marquez/tree/main/chart
+# Chart version: 0.51.1  (appVersion: 1.0 — tracks main branch images)
+# Image tag: 0.51.1 (latest as of 2024-10-24; update by changing both tags)
+#
+# PostgreSQL: we use the dedicated EDB Cluster "marquez-postgres" already
+# deployed in cpd-instance (01-marquez-postgres-edb.yaml).
+# The EDB operator creates secret "marquez-postgres-app" with key "password"
+# and "username". We reference that secret via existingSecretName so
+# credentials never appear in values.yaml.
+#
+# Routes (not Ingress) are created separately in 03-routes.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+marquez:
+  serviceAccount: "default"    # cpd-instance default SA is fine; no special RBAC needed
+  replicaCount: 1
+
+  image:
+    registry: docker.io
+    repository: marquezproject/marquez
+    # Keep tag in sync with web.image.tag below
+    tag: "0.51.1"
+    pullPolicy: IfNotPresent
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  # The EDB operator creates "marquez-postgres-app" with key "password".
+  # The Helm chart (postgresql.enabled=false) expects key "marquez-db-password".
+  # install-marquez-ocp.sh creates a thin wrapper secret "marquez-db-secret"
+  # that remaps the EDB key to what the chart template needs.
+  existingSecretName: marquez-db-secret
+
+  # These are only used when existingSecretName is NOT set; kept for reference.
+  db:
+    host: marquez-postgres-rw          # EDB rw service in cpd-instance
+    port: 5432
+    name: marquez
+    user: marquez
+    password: ""                        # overridden by existingSecretName
+
+  migrateOnStartup: true               # Flyway runs on first pod start
+
+  hostname: "0.0.0.0"                  # bind all interfaces inside pod
+  port: 5000
+  adminPort: 5001
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+  # ── OpenShift securityContext ─────────────────────────────────────────────
+  # The Helm chart has NO securityContext in its deployment template, so
+  # OpenShift restricted-v2 SCC applies automatically (random UID from ns
+  # range, no privilege escalation). Nothing extra needed here.
+
+  podAnnotations: {}
+  extraContainers: []
+
+# ── Web UI ────────────────────────────────────────────────────────────────────
+web:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    registry: docker.io
+    repository: marquezproject/marquez-web
+    tag: "0.51.1"
+    pullPolicy: IfNotPresent
+
+  port: 3000
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# ── Bundled PostgreSQL — DISABLED (we use EDB) ────────────────────────────────
+postgresql:
+  enabled: false
+
+# ── Ingress — DISABLED (we use OpenShift Routes in 03-routes.yaml) ───────────
+ingress:
+  enabled: false
+
+# ── Service ───────────────────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  port: 5000          # Marquez API; Routes target this
+
+# ── Common labels applied to all resources ───────────────────────────────────
+commonLabels:
+  app.kubernetes.io/part-of: openlineage-stack
+  ibm.com/cpd-adjacent: "true"

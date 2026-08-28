@@ -5,7 +5,7 @@
 
 ## What OpenLineage is (the technical version)
 
-OpenLineage is an **open specification** plus a set of integrations. As a pipeline runs, an OpenLineage *integration* emits **events** describing each **run** of a **job** and the input/output **datasets** it touched (with optional schema and column-level facets). Those events are sent to a **collector** — commonly [Marquez](https://marquezproject.io/) (the reference implementation) or [OpenMetadata](openmetadata.md), both of which can consume OpenLineage events. Ready-made integrations exist for **Spark** (a listener jar on the Spark session), **Airflow** (a built-in listener that emits an event per task), and **dbt** (`dbt-ol`, which wraps a dbt run). The payoff is consistent, automatically-collected lineage across tools that were never designed to talk to each other.
+OpenLineage is an **open specification** plus a set of integrations. As a pipeline runs, an OpenLineage *integration* emits **events** describing each **run** of a **job** and the input/output **datasets** it touched (with optional schema and column-level facets). Those events are sent to a **collector** — commonly [Marquez](https://marquezproject.io/) (the reference implementation) or [OpenMetadata](openmetadata.md), both of which can consume OpenLineage events. Ready-made integrations exist for **Spark** (a listener jar on the Spark session), **Airflow** (a built-in listener that emits an event per task), and **dbt** (`openlineage-dbt`, which reads dbt's compiled artifacts). The payoff is consistent, automatically-collected lineage across tools that were never designed to talk to each other.
 
 OpenLineage is **not** a catalog by itself. It is the event format. You still need something to receive, store, search, and display those events. That receiver might be Marquez, OpenMetadata, or an enterprise governance platform that supports a compatible ingestion path.
 
@@ -21,33 +21,120 @@ OpenLineage is **not** a catalog by itself. It is the event format. You still ne
 
 ## How lineage works in THIS demo today
 
-!!! abstract "Honest status: OpenLineage is not wired in this repo"
-    This repo does **not** currently emit OpenLineage events — there is no OpenLineage listener on Spark, no `dbt-ol` wrapper, and no Marquez collector. OpenLineage is included here as the **concept and standard** you would reach for to unify lineage across tools. Lineage in this demo is captured a different (and perfectly valid) way: from **dbt's build artifacts**, ingested into OpenMetadata.
+!!! success "dbt OpenLineage is live in this repo"
+    This repo **does** emit OpenLineage events from dbt. When `OPENLINEAGE_URL` is set in `.env`, the `scripts/02_dbt_env.sh` wrapper automatically calls `scripts/emit_openlineage_events.py` after every successful `dbt run/seed/test/build/snapshot`. That script reads the compiled dbt artifacts in `target/` and streams per-model START + COMPLETE events to the Marquez collector. The lineage graph is then immediately browsable at `http://localhost:3001`.
 
-What actually produces the lineage graph you see in the [OpenMetadata page](openmetadata.md):
+    The artifact-based path (dbt JSON → OpenMetadata) continues to work in parallel — OpenLineage events and dbt artifacts are complementary, not mutually exclusive.
 
-1. dbt runs against Presto and `dbt docs generate` writes three JSON artifacts — `manifest.json` (the full model/`ref()` graph), `catalog.json` (column names + types), and `run_results.json` (which tests passed).
-2. Those artifacts are prepared by the repo's helper scripts (`scripts/07a_prepare_openmetadata_dbt_artifacts.py` for a full build, or `scripts/07b_generate_lineage_docs.sh` to refresh lineage only) and ingested by `openmetadata/ingestion/run-ingestion.sh`.
-3. OpenMetadata first tries to discover the real tables through live Presto metadata ingestion. If that fails, it seeds the same table entities from `catalog.json`.
-4. OpenMetadata reads `manifest.json` to draw the **model and column lineage** — `raw CSV → bronze → silver_sales_enriched → gold_daily_sales` — and the governance pass applies glossary terms and auto-classification tags. The full column-by-column trace is documented on the [Architecture & Lineage page](lineage.md).
+Two paths produce lineage in this repo:
+
+1. **Live OpenLineage events** — `scripts/emit_openlineage_events.py` reads `target/manifest.json` + `target/run_results.json` after dbt finishes and emits per-run events to Marquez. Marquez stores the graph and renders it in its web UI instantly, with no post-processing step. This captures *runtime* lineage: which models actually ran, which were skipped, and what their run status was.
+
+2. **dbt artifact ingestion (existing)** — `dbt docs generate` writes `manifest.json` / `catalog.json` / `run_results.json`, which are prepared by `scripts/07a_prepare_openmetadata_dbt_artifacts.py` and ingested into OpenMetadata. This path gives you column-level lineage, glossary terms, and test results — richer governance metadata that Marquez does not store.
 
 ```mermaid
 flowchart LR
   classDef have fill:#defbe6,stroke:#198038,color:#161616;
-  classDef would fill:#f6f2ff,stroke:#6929c4,color:#161616,stroke-dasharray:4 3;
+  classDef parallel fill:#edf5ff,stroke:#0043ce,color:#161616;
 
-  dbt["dbt run + dbt docs generate"]:::have
-  art["manifest.json / catalog.json /\nrun_results.json"]:::have
-  om["OpenMetadata\nlineage + tests UI"]:::have
+  dbt["bash scripts/02_dbt_env.sh run"]:::have
+  emitter["scripts/emit_openlineage_events.py\n(reads target/ artifacts, patches adapter)"]:::have
+  marquez["Marquez collector\nlocalhost:5010"]:::have
+  ui["Marquez Web UI\nlocalhost:3001"]:::have
+  art["manifest.json / catalog.json /\nrun_results.json"]:::parallel
+  om["OpenMetadata\nlineage + governance UI"]:::parallel
+
+  dbt --> emitter --> marquez --> ui
   dbt --> art --> om
-
-  spark["Spark / Airflow\nOpenLineage listener"]:::would
-  col["OpenLineage collector\n(Marquez / OpenMetadata)"]:::would
-  spark -. "events (not wired today)" .-> col
-  col -. "unified lineage" .-> om
 ```
 
-The solid path is what runs in this repo today. The dashed path is how OpenLineage **would** plug in.
+The **green path** (Marquez) runs automatically after every dbt command when `OPENLINEAGE_URL` is present. The **blue path** (OpenMetadata) runs when you execute the artifact ingestion scripts. Both can run at the same time.
+
+---
+
+## Quickstart: Start Marquez and see live lineage
+
+### 1. Start the Marquez stack
+
+```bash
+docker compose up -d marquez-db marquez-api marquez-web
+```
+
+Wait ~30–45 seconds for `marquez-api` to initialize (JVM start-up). Check readiness:
+
+```bash
+curl -sf http://localhost:5010/api/v1/namespaces | python3 -m json.tool
+```
+
+You should see a JSON list of namespaces (empty initially).
+
+### 2. Enable OpenLineage in your `.env`
+
+Add these two lines (uncomment them if they are already there):
+
+```bash
+OPENLINEAGE_URL=http://localhost:5010
+OPENLINEAGE_NAMESPACE=dbt_demo
+```
+
+### 3. Run dbt
+
+```bash
+bash scripts/02_dbt_env.sh run
+```
+
+After dbt finishes, the wrapper calls `scripts/emit_openlineage_events.py`. You will see output like:
+
+```text
+[dbt_env] OPENLINEAGE_URL=http://localhost:5010 — lineage events will be emitted after run
+...
+[dbt_env] emitting OpenLineage events to http://localhost:5010
+[INFO] openlineage.emit - Patched Adapter enum: WATSONX_PRESTO added
+[INFO] openlineage.emit - Patched DbtArtifactProcessor: extract_adapter_type + extract_namespace
+[INFO] openlineage.emit - Resolved namespace: trino://<your-host>:443
+```
+
+### 4. Open the Marquez UI
+
+Open **`http://localhost:3001`** in your browser. Select the `dbt_demo` namespace in the top-left dropdown. You will see:
+
+- **Jobs** — one entry per dbt model (e.g. `dbt-run-watsonxdata_medallion_demo.bronze_orders`)
+- **Datasets** — one entry per input or output table touched
+- **Lineage graph** — click any job or dataset for an interactive upstream/downstream graph
+
+!!! tip "Namespace not showing?"
+    Marquez creates the namespace automatically on the first event. If you do not see `dbt_demo`, refresh the page or wait a few seconds and try again.
+
+---
+
+## The `watsonx_presto` adapter patch
+
+!!! warning "Why `dbt-ol` is not used directly"
+    The `openlineage-dbt` package ships a CLI wrapper called `dbt-ol` that calls `dbt` and emits events simultaneously. It works for all adapters listed in its internal `Adapter` enum — but `watsonx_presto` is **not** on that list. Calling `dbt-ol` directly raises `NotImplementedError` in two places inside `DbtArtifactProcessor`:
+
+    1. `extract_adapter_type` — unknown adapter type
+    2. `extract_namespace` — no namespace constructor for the type
+
+`scripts/emit_openlineage_events.py` solves this by monkey-patching the library at runtime before calling `consume_local_artifacts`. Three patches are applied in order:
+
+| Patch | What it does |
+|---|---|
+| **Enum extension** | Adds `WATSONX_PRESTO = "watsonx_presto"` to the `Adapter` enum so the library can parse the profile type without crashing. |
+| **`extract_adapter_type`** | Wraps the original method with a `try/except`; on `NotImplementedError`, sets `self.adapter_type = Adapter.TRINO` (Presto/Trino family — semantically correct). |
+| **`extract_namespace`** | Pre-checks whether `adapter_type._value_ == "watsonx_presto"` and, if so, returns `trino://<host>:<port>` from the profile's `host` and `port` fields — the URI format Marquez uses to identify the Presto cluster. All other adapters are handled by the original method. |
+
+The `watsonx_presto` profile already has both `host` and `port` fields (port `443` for the TLS endpoint), so the Trino URI format works without any profile changes.
+
+After patching, `consume_local_artifacts(args=["send-events"])` is called — this is the same code path `dbt-ol` uses internally, but it reads the already-built `target/` artifacts instead of re-running dbt. The result is 28 events emitted per full medallion run (one START + one COMPLETE per model, across bronze + silver + gold + seeds).
+
+!!! note "Column-lineage parse warning is harmless"
+    The `time_spine_daily` model uses `UNNEST(sequence(...))` which the OpenLineage SQL parser does not understand. You will see:
+    ```
+    WARNING: Failed to parse column lineage for model time_spine_daily
+    ```
+    This is non-fatal — the job and dataset nodes are still emitted correctly; only the column-level facet for that one model is absent in Marquez.
+
+---
 
 ## OpenMetadata vs OpenLineage
 
@@ -57,19 +144,11 @@ OpenMetadata and OpenLineage complement each other:
 | --- | --- | --- |
 | OpenMetadata | Catalog, governance model, and UI. | Searchable tables, columns, tags, glossary terms, owners, tests, and lineage views. |
 | OpenLineage | Open runtime lineage event standard. | A common way for dbt, Spark, Airflow, and other tools to report what they read and wrote while jobs execute. |
+| Marquez | Reference OpenLineage collector. | Receives and stores OpenLineage events; provides a visual lineage graph for jobs and datasets. |
 
-In this repo, OpenMetadata is the working UI and catalog. OpenLineage is the future-facing standard you would use when lineage should be emitted by every runtime system, not only reconstructed from dbt artifacts.
+In this repo, **Marquez** is the live runtime lineage view and **OpenMetadata** is the governance catalog. They are not redundant: Marquez captures what ran and when; OpenMetadata captures column-level schema, glossary enrichment, and test history.
 
-### How OpenLineage would be added
-
-To capture lineage as live OpenLineage events instead of (or alongside) dbt artifacts, you would:
-
-- **Spark:** add the OpenLineage Spark listener jar to `spark/load_medallion_demo.py`'s session config (`spark.extraListeners=io.openlineage.spark.agent.OpenLineageSparkListener`) pointing at a collector URL — every read/write becomes a lineage event.
-- **Airflow:** enable the OpenLineage provider so each task in `dbt_medallion_hourly` / `spark_medallion_hourly` (see the [Airflow page](airflow.md)) emits run events automatically.
-- **dbt:** wrap runs with `dbt-ol run` to emit events from the dbt model graph.
-- **Collector:** stand up Marquez (or point the events at OpenMetadata) to view the merged graph.
-
-That upgrade would give you lineage across **all three engines at once**, including Spark — which dbt artifacts alone cannot capture, because dbt only knows about the dbt models.
+### What is NOT yet wired
 
 !!! note "Evaluated and deliberately skipped: OpenMetadata's own OpenLineage connector, wired via Airflow"
     OpenMetadata ships its own OpenLineage *pipeline* connector (a Kafka consumer that turns
@@ -89,33 +168,46 @@ That upgrade would give you lineage across **all three engines at once**, includ
     separate Docker Compose stacks required. So: real infrastructure work, for a payoff that
     duplicates something simpler and delivers no new table lineage. Not done, on purpose.
 
-    If the goal is genuinely closing this gap, the two routes right above (`dbt-ol` for dbt,
-    `OpenLineageSparkListener` for Spark) remain the correct next steps — they instrument the
-    actual data-reading/writing code, not an orchestration layer that never touches the data
-    directly.
+    The two routes that do give real dataset lineage are `emit_openlineage_events.py` (now done) and the
+    `OpenLineageSparkListener` jar (future work — requires the Spark session config change
+    described below).
+
+### Extending to Spark
+
+To also capture Spark lineage events, add the OpenLineage listener to `spark/load_medallion_demo.py`:
+
+```python
+.config("spark.extraListeners", "io.openlineage.spark.agent.OpenLineageSparkListener")
+.config("spark.openlineage.transport.url", os.environ["OPENLINEAGE_URL"])
+.config("spark.openlineage.namespace", os.environ.get("OPENLINEAGE_NAMESPACE", "spark_demo"))
+```
+
+Every Spark read/write will then emit events to the same Marquez collector, merging the dbt and Spark lineage graphs into one view.
+
+---
 
 ## Enterprise Pattern: IBM Governance and Manta
 
 OpenLineage is especially useful in larger IBM governance landscapes because it gives every execution engine a common lineage envelope before metadata is sent to a catalog or lineage product. For example, a production architecture could collect events from this demo's dbt, Spark, and Airflow paths and then feed the normalized metadata into IBM Knowledge Catalog / watsonx.data intelligence or a Manta lineage deployment, using whatever connector, API, export/import, or bridge is supported by that environment.
 
-This is deliberately described as an **integration pattern**, not as something this repo already performs:
-
 ```mermaid
 flowchart LR
-  dbt["dbt runs"] --> ol["OpenLineage events"]
-  spark["Spark jobs"] --> ol
-  airflow["Airflow tasks"] --> ol
-  ol --> collector["Collector / bridge"]
-  collector --> om["OpenMetadata\nlocal catalog"]
-  collector -. "enterprise ingestion path" .-> ikc["IBM Knowledge Catalog /\nwatsonx.data intelligence"]
-  collector -. "enterprise lineage path" .-> manta["Manta lineage"]
+  dbt["dbt runs\n(emit_openlineage_events.py — live in this repo)"] --> ol["OpenLineage events"]
+  spark["Spark jobs\n(listener jar — future work)"] --> ol
+  airflow["Airflow tasks\n(BashOperator — dataset-blind)"] --> ol
+  ol --> marquez["Marquez\n(local collector)"]
+  marquez --> ui["Marquez Web UI\nlocalhost:3001"]
+  marquez -. "enterprise ingestion path" .-> ikc["IBM Knowledge Catalog /\nwatsonx.data intelligence"]
+  marquez -. "enterprise lineage path" .-> manta["Manta lineage"]
+  dbt --> art["dbt artifacts"]
+  art --> om["OpenMetadata\nlocal catalog"]
 ```
 
-The local workshop uses OpenMetadata because it is fast to run in Docker and easy to inspect. In a client production estate, OpenLineage can become the shared event format that helps dbt, Spark, Airflow, IBM catalog services, and lineage tools speak the same lineage language.
+The local workshop uses Marquez (live lineage) and OpenMetadata (governance catalog) together. In a client production estate, OpenLineage can become the shared event format that helps dbt, Spark, Airflow, IBM catalog services, and lineage tools speak the same lineage language.
 
-!!! note "📸 Screenshot: the lineage graph"
-    Capture the OpenMetadata **Lineage** tab for `gold_daily_sales` showing the `raw → bronze → silver → gold` chain (this is the lineage this repo produces today), then save it to `docs/assets/images/screenshots/lineage-graph.png` and replace this note with the image.
+!!! note "📸 Screenshot: the Marquez lineage graph"
+    Capture the Marquez **`http://localhost:3001`** lineage graph for the `dbt_demo` namespace showing the `raw → bronze → silver → gold` model chain, then save it to `docs/assets/images/screenshots/marquez-lineage-graph.png` and replace this note with the image.
 
 ---
 
-See the [OpenMetadata page](openmetadata.md) for the working lineage UI and the [Architecture & Lineage page](lineage.md) for the full column-by-column trace.
+See the [OpenMetadata page](openmetadata.md) for the governance catalog and the [Architecture & Lineage page](lineage.md) for the full column-by-column trace.

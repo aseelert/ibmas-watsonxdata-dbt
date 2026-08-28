@@ -34,7 +34,7 @@
 #    every assignment in that file is exported to the dbt child process). The
 #    actual variable names live in `.env` (e.g. WXD_HOST, WXD_PORT, WXD_USER,
 #    WXD_PASSWORD, WXD_CATALOG, WXD_SCHEMA, WXD_SSL_VERIFY, and optionally
-#    DBND__CORE__DATABAND_URL / DBND__CORE__DATABAND_ACCESS_TOKEN — see below).
+#    OPENLINEAGE_URL / DBND__CORE__DATABAND_URL — see below).
 #
 #  PREREQUISITES
 #    None hard. If `<repo>/.env` is absent it is silently skipped (dbt then
@@ -49,10 +49,20 @@
 #  SIDE EFFECTS / EXIT
 #    dbt's own exit code is always returned verbatim to the caller (0 on
 #    success, non-zero on dbt errors) — this wrapper never masks it, even when
-#    the Databand reporting step below fails.
+#    the optional post-run steps below fail.
 #
-#    For `seed`, `run`, `test`, `build`, and `snapshot` ONLY: if
-#    DBND__CORE__DATABAND_URL is set (via .env), this script automatically
+#  OPENLINEAGE (optional — run/build/seed/test/snapshot only):
+#    If OPENLINEAGE_URL is set in .env (e.g. http://localhost:5010), dbt runs
+#    normally and then scripts/emit_openlineage_events.py reads the target/
+#    artifacts and emits OpenLineage events to Marquez.
+#    This two-step approach is used instead of dbt-ol because openlineage-dbt
+#    does not natively support the watsonx_presto adapter; the helper script
+#    patches the Adapter enum at runtime to treat watsonx_presto as trino.
+#    Unset OPENLINEAGE_URL (or comment it out in .env) for zero overhead.
+#    Marquez UI: http://localhost:3001  |  API: http://localhost:5010
+#
+#  DATABAND (optional — seed/run/test/build/snapshot only):
+#    If DBND__CORE__DATABAND_URL is set (via .env), this script automatically
 #    calls `scripts/report_dbt_to_databand.py` after dbt finishes, reporting
 #    the run to Databand. This is entirely optional — unset
 #    DBND__CORE__DATABAND_URL and nothing changes from a pure dbt passthrough.
@@ -85,12 +95,28 @@ if [[ -z "${DBT_PROFILES_DIR:-}" ]]; then
   echo "[dbt_env] DBT_PROFILES_DIR=${DBT_PROFILES_DIR}" >&2
 fi
 
+# ---------------------------------------------------------------------------
+# Resolve the dbt binary — prefer the virtualenv, then fall back to PATH.
+# ---------------------------------------------------------------------------
 if [[ -x "${repo_root}/.venv/bin/dbt" ]]; then
   dbt_bin="${repo_root}/.venv/bin/dbt"
-  echo "[dbt_env] using virtualenv dbt: ${dbt_bin} $*" >&2
 else
   dbt_bin="dbt"
-  echo "[dbt_env] virtualenv dbt not found — falling back to dbt on PATH: dbt $*" >&2
+fi
+
+# ---------------------------------------------------------------------------
+# OpenLineage: if OPENLINEAGE_URL is set, a post-run Python emitter
+# (scripts/emit_openlineage_events.py) is called after every successful
+# seed/run/test/build/snapshot. It patches the openlineage-dbt adapter enum
+# at runtime to recognise watsonx_presto (mapped to trino), then reads the
+# dbt manifest/run_results and sends lineage events to the Marquez collector.
+# NOTE: dbt-ol wrapper is NOT used — it hard-codes ["dbt"] as the subprocess
+# and does not support the watsonx_presto adapter.
+# ---------------------------------------------------------------------------
+if [[ -n "${OPENLINEAGE_URL:-}" ]]; then
+  echo "[dbt_env] OPENLINEAGE_URL=${OPENLINEAGE_URL} — lineage events will be emitted after run" >&2
+else
+  echo "[dbt_env] OPENLINEAGE_URL not set — running plain dbt: ${dbt_bin} $*" >&2
 fi
 
 if "${dbt_bin}" "$@"; then
@@ -99,12 +125,27 @@ else
   dbt_exit=$?
 fi
 
+# ---------------------------------------------------------------------------
+# Post-run hooks (only for commands that produce dbt artifacts)
+# ---------------------------------------------------------------------------
 case "${1:-}" in
   seed|run|test|build|snapshot)
+    python_bin="${repo_root}/.venv/bin/python3"
+    [[ -x "${python_bin}" ]] || python_bin="python3"
+
+    # OpenLineage: emit events to Marquez after a successful dbt run.
+    # Uses scripts/emit_openlineage_events.py which patches the Adapter enum
+    # to recognise watsonx_presto (treated as trino for URI generation).
+    if [[ -n "${OPENLINEAGE_URL:-}" ]] && [[ "${dbt_exit}" -eq 0 ]]; then
+      echo "[dbt_env] emitting OpenLineage events to ${OPENLINEAGE_URL}" >&2
+      if ! "${python_bin}" "${repo_root}/scripts/emit_openlineage_events.py"; then
+        echo "[dbt_env] WARNING: OpenLineage event emission failed (non-fatal; dbt exit code preserved)" >&2
+      fi
+    fi
+
+    # Databand: optional run reporting.
     if [[ -n "${DBND__CORE__DATABAND_URL:-}" ]]; then
       echo "[dbt_env] DBND__CORE__DATABAND_URL is set — reporting this run to Databand" >&2
-      python_bin="${repo_root}/.venv/bin/python3"
-      [[ -x "${python_bin}" ]] || python_bin="python3"
       if ! "${python_bin}" "${repo_root}/scripts/report_dbt_to_databand.py"; then
         echo "[dbt_env] WARNING: Databand reporting failed (non-fatal; dbt's own exit code is preserved)" >&2
       fi

@@ -185,6 +185,10 @@ _SECTION_MAP: dict[str, list[str]] = {
         "WXD_INGEST_SCHEMA",
         "WXD_GOLD_MATERIALIZED",
     ],
+    "# -- OpenLineage (local Marquez) ---------------------------------------------": [
+        "OPENLINEAGE_URL",
+        "OPENLINEAGE_NAMESPACE",
+    ],
     "# -- PostgreSQL (local Docker) -----------------------------------------------": [
         "PG_HOST",
         "PG_PORT",
@@ -252,6 +256,9 @@ _KEY_COMMENTS: dict[str, str] = {
     "WXD_SCHEMA":                      "default: dbt_demo — dbt target schema",
     "WXD_INGEST_SCHEMA":               "default: spark_demo_cpdctl_raw — raw ingestion schema",
     "WXD_GOLD_MATERIALIZED":           "default: view; alternative: table (materialises gold layer)",
+    # OpenLineage
+    "OPENLINEAGE_URL":                 "default: http://localhost:5010 — Marquez collector endpoint (5010 avoids macOS AirPlay on 5000)",
+    "OPENLINEAGE_NAMESPACE":           "default: dbt_demo — namespace shown in Marquez UI",
     # PostgreSQL
     "PG_HOST":                         "auto-derived: postgresql.<namespace>.svc.cluster.local",
     "PG_PORT":                         "default: 5432",
@@ -1545,13 +1552,16 @@ def main() -> int:
         _set(proposed, key, value, ow)
 
     # ── Direct fields from Presto JSON ──────────────────────────────────
-    S("WXD_INSTANCE_ID",       presto.get("instance_id"))
-    S("WXD_HOST",              presto.get("engine_host"))
-    S("WXD_PORT",              presto.get("engine_port") or presto.get("port"))
-    S("WXD_PRESTO_ENGINE_ID",  presto.get("engine_id"))
+    # These are always sourced from the JSON — use _set with overwrite=True
+    # so that a cluster reprovision (new instance_id / engine host) is picked
+    # up immediately without requiring --overwrite on the command line.
+    _set(proposed, "WXD_INSTANCE_ID",      presto.get("instance_id"),                          True)
+    _set(proposed, "WXD_HOST",             presto.get("engine_host"),                           True)
+    _set(proposed, "WXD_PORT",             presto.get("engine_port") or presto.get("port"),     True)
+    _set(proposed, "WXD_PRESTO_ENGINE_ID", presto.get("engine_id"),                             True)
 
     cpd_host = presto.get("host", "")
-    S("WXD_CPD_HOST", cpd_host)
+    _set(proposed, "WXD_CPD_HOST", cpd_host, True)
 
     # ── Namespace + app domain ───────────────────────────────────────────
     namespace, app_domain = ("", "")
@@ -1622,6 +1632,8 @@ def main() -> int:
     S("WXD_SCHEMA",               "dbt_demo")
     S("WXD_INGEST_SCHEMA",        "spark_demo_cpdctl_raw")
     S("WXD_GOLD_MATERIALIZED",    "view")
+    S("OPENLINEAGE_URL",          "http://localhost:5010")
+    S("OPENLINEAGE_NAMESPACE",    "dbt_demo")
     S("WXD_SPARK_CATALOG",        "iceberg_data")
     S("WXD_SPARK_SCHEMA",         "spark_demo")
 
