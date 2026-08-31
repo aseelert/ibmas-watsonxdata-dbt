@@ -229,6 +229,11 @@ curl -sk "https://marquez-api.apps.watson.ibmas-zocp-techcluster.org/api/v1/name
 The Web UI (https://marquez-web.apps.watson.ibmas-zocp-techcluster.org) provides a
 visual lineage graph — no login required.
 
+![Marquez Spark lineage graph — watsonxdata-spark namespace](assets/images/screenshots/marquez-spark-lineage.png)
+/// caption
+Marquez `watsonxdata-spark` namespace after a full Spark medallion run. Mode: **Table Level**, Depth: **2**. Purple nodes = datasets (bronze/silver/gold tables with visible column schemas); teal gear nodes = Spark write jobs; arrows = data flow direction. The job name prefix `watsonxdata_medallion_demo.atomic_replac…` reflects the Spark job name configured via `spark.openlineage.parentJobName`.
+///
+
 ---
 
 ## Known quirks & decisions

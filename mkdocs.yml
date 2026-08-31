@@ -110,6 +110,7 @@ nav:
     - "Lineage UI (OpenMetadata)": openmetadata.md
     - "Glossary & Classification (OpenMetadata)": openmetadata-governance.md
     - "Lineage Standard (OpenLineage)": openlineage.md
+    - "Marquez on OpenShift (OCP deployment)": openlineage-marquez-ocp.md
     - "BI & Dashboards (Metabase)": metabase.md
     - "Semantic Models": semantic-models.md
   - Enterprise (watsonx.data Intelligence & Integration):

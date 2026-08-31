@@ -205,9 +205,26 @@ flowchart LR
 
 The local workshop uses Marquez (live lineage) and OpenMetadata (governance catalog) together. In a client production estate, OpenLineage can become the shared event format that helps dbt, Spark, Airflow, IBM catalog services, and lineage tools speak the same lineage language.
 
-!!! note "📸 Screenshot: the Marquez lineage graph"
-    Capture the Marquez **`http://localhost:3001`** lineage graph for the `dbt_demo` namespace showing the `raw → bronze → silver → gold` model chain, then save it to `docs/assets/images/screenshots/marquez-lineage-graph.png` and replace this note with the image.
+### Marquez lineage graph — Spark medallion pipeline
+
+The screenshot below shows the Marquez Web UI after a full Spark medallion run in the
+`watsonxdata-spark` namespace on OpenShift. Each purple node is a **DATASET** (bronze,
+silver, or gold table), each teal gear node is a **JOB** (one Spark write operation), and
+the teal arrows show the dataset flow from `spark_demo_bronze_*` → `spark_demo_silver_*`
+→ `spark_demo_gold_*`. Column-level schema is visible in each dataset card.
+
+![Marquez lineage graph — Spark medallion pipeline (watsonxdata-spark namespace)](assets/images/screenshots/marquez-spark-lineage.png)
+/// caption
+Marquez `watsonxdata-spark` namespace — bronze → silver → gold lineage graph after a Spark medallion run. Mode: **Table Level**, Depth: **2**. Purple nodes = datasets with schema; teal gear nodes = Spark write jobs.
+///
+
+The same view is available for dbt runs in the `dbt_demo` namespace at
+**`http://localhost:3001`** (local Docker Compose) or the OCP Web UI — same graph
+structure, one node per dbt model instead of per Spark job.
 
 ---
 
-See the [OpenMetadata page](openmetadata.md) for the governance catalog and the [Architecture & Lineage page](lineage.md) for the full column-by-column trace.
+See the [OpenMetadata page](openmetadata.md) for the governance catalog,
+the [Architecture & Lineage page](lineage.md) for the full column-by-column trace,
+and the [Marquez on OpenShift guide](openlineage-marquez-ocp.md) for the production
+OCP deployment.
