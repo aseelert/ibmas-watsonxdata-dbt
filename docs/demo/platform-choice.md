@@ -19,6 +19,86 @@ an assertion that one product replaces every component.
 | Catalog and governance | OpenMetadata plus local processes | watsonx.data intelligence 2.4.0 and IBM Knowledge Catalog capabilities |
 | Data quality | dbt tests and separately composed validation | watsonx.data intelligence quality capabilities; DataStage Enterprise Plus quality functions where entitled |
 
+## Streaming, compared the same way
+
+The comparison above is a lakehouse comparison. The workshop's streaming path
+(Kafka + Flink, see [Event alternative](streaming.md)) has its own open-source
+composition and its own IBM options, and it does not map cleanly onto the
+lakehouse row above — Event Streams is a Kafka product, not a lakehouse
+product, so it belongs in its own table rather than forced into the
+"Streaming integration" row above.
+
+| Concern | Open-source workshop composition | Confluent Platform / Confluent Cloud | IBM Event Streams |
+| --- | --- | --- | --- |
+| Event backbone | Apache Kafka, self-managed (this repo runs Confluent Platform's community-licensed images, not plain Apache Kafka — see [Event alternative](streaming.md)) | Confluent-packaged Kafka + Schema Registry + ksqlDB, self-managed (Platform) or fully managed (Cloud) | IBM-managed Kafka on IBM Cloud, or on your own infrastructure via Cloud Pak for Integration |
+| Stream processing | Self-managed Apache Flink, hand-built jobs | Self-managed Flink (Platform) or fully managed, SQL/Table-API-only Flink billed by CFU (Cloud) — see [Confluent, Flink, and the managed alternative](enterprise/confluent-vs-flink.md) | Not a documented IBM capability in this research pass — see the caveat below |
+| Topic-to-table materialization | Hand-built Flink Iceberg sink | Tableflow (Confluent Cloud) | Not applicable — would compose separately with watsonx.data |
+| Licensing | Apache License 2.0 throughout | Mixed: Apache 2.0 core plus the Confluent Community License and the commercial Confluent Enterprise License, by component | IBM Cloud subscription (Lite/Standard/Enterprise plans) or a Cloud Pak for Integration license |
+| Support | Community only | Included in the subscription or license | IBM support included, with a documented SLA on IBM Cloud |
+
+!!! warning "Verify with IBM"
+    IBM Event Streams' current relationship to Cloud Pak for Integration,
+    IBM Event Automation, and watsonx.data integration — and whether it
+    remains under that name in the current release — could not be confirmed
+    against `ibm.com/docs` in this research pass; those pages returned
+    access-restricted responses. The IBM Cloud catalog page for Event
+    Streams was reachable and describes a managed Kafka service with
+    Schema Registry, mirroring, an Admin REST API, and IAM-based auth, but
+    says nothing about an IBM-branded Flink equivalent. Confirm current
+    branding, on-prem availability, and any stream-processing story with IBM
+    before presenting this row to a customer.
+
+This table intentionally does not repeat the fuller cloud/platform/open-source
+breakdown already written out for both the lakehouse and Kafka layers — see
+[Cloud vs. platform vs. open source](enterprise/cloud-platform-opensource.md)
+for that decision checklist, and
+[Confluent, Flink, and the managed alternative](enterprise/confluent-vs-flink.md)
+for the Flink-specific deep dive (self-managed Flink versus Confluent's own
+managed Flink service — a distinct question from "Kafka: cloud vs. platform
+vs. open source," since Confluent does not govern Apache Flink the way it
+governs its own Kafka ecosystem tools).
+
+## Same contract, different operating model
+
+Whichever option a customer picks, the *contract* each layer promises does
+not change — only who operates it does. The lakehouse layer always promises
+"an Iceberg table, queryable through Presto/Spark, backed by object storage."
+The streaming layer always promises "an ordered, replayable event log,
+speaking the Kafka wire protocol." Swapping the open-source composition for
+watsonx.data, or plain Kafka for Confluent/Event Streams, changes who patches,
+scales, and supports the system — it does not change what a consumer of that
+contract can rely on.
+
+```mermaid
+flowchart TB
+    subgraph Lakehouse["Lakehouse contract: an Iceberg table on object storage, queryable via Presto/Spark"]
+        L1["Open source\nPresto + Iceberg + MinIO\n(this workshop)"]
+        L2["Platform\nwatsonx.data on Software Hub"]
+        L3["Cloud\nwatsonx.data SaaS"]
+    end
+    subgraph Streaming["Streaming contract: an ordered, replayable Kafka-protocol event log"]
+        S1["Open source\nApache Kafka + Apache Flink\n(what this workshop composes)"]
+        S2["Platform\nConfluent Platform, or IBM Event Streams\non Cloud Pak for Integration"]
+        S3["Cloud\nConfluent Cloud, or IBM Event Streams\non IBM Cloud"]
+    end
+
+    L1 -. "same Iceberg table contract" .- L2 -. "same Iceberg table contract" .- L3
+    S1 -. "same Kafka wire protocol" .- S2 -. "same Kafka wire protocol" .- S3
+
+    style L1 fill:#fdf2e3,stroke:#b26a00
+    style S1 fill:#fdf2e3,stroke:#b26a00
+    style L2 fill:#eef2fb,stroke:#3f51b5
+    style S2 fill:#eef2fb,stroke:#3f51b5
+    style L3 fill:#e8f4ea,stroke:#2e7d32
+    style S3 fill:#e8f4ea,stroke:#2e7d32
+```
+
+That is the same cloud/platform/open-source axis
+[Cloud vs. platform vs. open source](enterprise/cloud-platform-opensource.md)
+walks through in more depth — it applies identically whether the contract in
+question is a lakehouse table or a Kafka topic; only the specific products
+in each box change.
+
 ## Product boundaries
 
 watsonx.data is the open lakehouse/data layer. watsonx.data integration is a
@@ -40,4 +120,6 @@ References: [watsonx.data](https://www.ibm.com/docs/en/software-hub/5.4.x?topic=
 [watsonx.data intelligence](https://www.ibm.com/docs/en/software-hub/5.4.x?topic=services-watsonxdata-intelligence),
 [DataStage](https://www.ibm.com/docs/en/software-hub/5.4.x?topic=services-datastage),
 [Manta Data Lineage](https://www.ibm.com/docs/en/software-hub/5.4.x?topic=services-manta-data-lineage),
-and [IBM Knowledge Catalog](https://www.ibm.com/docs/en/software-hub/5.4.x?topic=services-knowledge-catalog).
+[IBM Knowledge Catalog](https://www.ibm.com/docs/en/software-hub/5.4.x?topic=services-knowledge-catalog),
+[IBM Event Streams on IBM Cloud](https://cloud.ibm.com/docs/EventStreams),
+and [Confluent Cloud for Apache Flink](https://www.confluent.io/product/flink/).

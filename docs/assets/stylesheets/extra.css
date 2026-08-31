@@ -1,30 +1,30 @@
-/* Professional workshop presentation: IBM Plex, clear hierarchy, purple accent. */
+/* Professional workshop presentation: IBM Plex, clear hierarchy, IBM Carbon blue. */
 :root {
-  --md-primary-fg-color: #3d246c;
-  --md-primary-fg-color--light: #6929c4;
-  --md-primary-fg-color--dark: #241a3e;
-  --md-accent-fg-color: #6929c4;
+  --md-primary-fg-color: #0f62fe;
+  --md-primary-fg-color--light: #4589ff;
+  --md-primary-fg-color--dark: #002d9c;
+  --md-accent-fg-color: #0043ce;
   --md-text-font-family: "IBM Plex Sans";
   --md-code-font-family: "IBM Plex Mono";
-  --ink: #1f1f24;
-  --muted: #52525e;
-  --line: #ded9e8;
+  --ink: #161616;
+  --muted: #525252;
+  --line: #d0d6e4;
   --surface: #ffffff;
-  --surface-soft: #f7f5fb;
-  --purple: #6929c4;
-  --purple-dark: #3d246c;
-  --purple-soft: #efe9fb;
+  --surface-soft: #f2f6fc;
+  --blue: #0f62fe;
+  --blue-dark: #002d9c;
+  --blue-soft: #edf5ff;
 }
 
 [data-md-color-scheme="slate"] {
-  --md-primary-fg-color: #25163f;
-  --md-accent-fg-color: #be95ff;
-  --ink: #f4f2f8;
-  --muted: #c6c3cd;
-  --line: #504a5d;
-  --surface: #211d27;
-  --surface-soft: #2a2531;
-  --purple-soft: #34274d;
+  --md-primary-fg-color: #001d6c;
+  --md-accent-fg-color: #78a9ff;
+  --ink: #f2f4f8;
+  --muted: #c1c7d0;
+  --line: #33415c;
+  --surface: #10182b;
+  --surface-soft: #161f38;
+  --blue-soft: #0f1f42;
 }
 
 body {
@@ -39,12 +39,12 @@ body,
 
 .md-header,
 .md-tabs {
-  background: linear-gradient(90deg, #241a3e 0%, #3d246c 52%, #54298b 100%);
+  background: linear-gradient(90deg, #001141 0%, #0043ce 52%, #0f62fe 100%);
 }
 
 .md-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 2px 10px rgba(36, 26, 62, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 17, 65, 0.22);
 }
 
 .md-header__title {
@@ -63,7 +63,7 @@ body,
 
 /* Use the available browser width for workshop diagrams and comparisons. */
 .md-grid {
-  max-width: min(1800px, 100%);
+  max-width: min(2000px, 100%);
 }
 
 .md-main__inner {
@@ -95,7 +95,7 @@ body,
 /* Top-level groups are the workshop chapters; their children are the steps. */
 .md-nav--primary > .md-nav__list > .md-nav__item--nested > label,
 .md-nav--primary > .md-nav__list > .md-nav__item--nested > .md-nav__link {
-  color: var(--purple-dark);
+  color: var(--blue-dark);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.035em;
@@ -104,12 +104,12 @@ body,
 
 [data-md-color-scheme="slate"] .md-nav--primary > .md-nav__list > .md-nav__item--nested > label,
 [data-md-color-scheme="slate"] .md-nav--primary > .md-nav__list > .md-nav__item--nested > .md-nav__link {
-  color: #d8c5ff;
+  color: #a6c8ff;
 }
 
 .md-nav__link--active,
 .md-nav__link:hover {
-  color: var(--purple);
+  color: var(--blue);
 }
 
 .md-content {
@@ -159,13 +159,13 @@ body,
 .md-typeset table:not([class]) {
   border: 1px solid var(--line);
   border-radius: 0.45rem;
-  box-shadow: 0 4px 16px rgba(42, 26, 67, 0.06);
+  box-shadow: 0 4px 16px rgba(15, 40, 90, 0.06);
   font-size: 0.82rem;
   overflow: hidden;
 }
 
 .md-typeset table:not([class]) th {
-  background: var(--purple-soft);
+  background: var(--blue-soft);
   color: var(--ink);
   font-weight: 700;
 }
@@ -191,7 +191,7 @@ body,
 }
 
 .md-typeset a {
-  color: var(--purple);
+  color: var(--blue);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.16em;
 }
@@ -199,7 +199,7 @@ body,
 .md-typeset img {
   border: 1px solid var(--line);
   border-radius: 0.45rem;
-  box-shadow: 0 6px 18px rgba(42, 26, 67, 0.1);
+  box-shadow: 0 6px 18px rgba(15, 40, 90, 0.1);
 }
 
 .md-typeset .mermaid {
@@ -214,7 +214,7 @@ body,
 .mermaid-zoom-overlay {
   align-items: center;
   backdrop-filter: blur(4px);
-  background: rgba(20, 13, 34, 0.88);
+  background: rgba(6, 12, 30, 0.88);
   cursor: zoom-out;
   display: flex;
   inset: 0;
@@ -232,17 +232,19 @@ body,
   max-width: 92vw;
 }
 
+/* Full-bleed banner: extends past the content padding to touch both edges of
+   the content column, giving section-opener pages a "full screen" feel even
+   though the theme stays inside stock mkdocs-material (no custom templates). */
 .workshop-hero {
-  background: linear-gradient(125deg, #28164a 0%, #4e2884 58%, #6929c4 100%);
-  border-radius: 0.7rem;
-  box-shadow: 0 14px 32px rgba(54, 31, 97, 0.23);
-  color: #f8f7fc;
-  margin: -0.8rem 0 2.6rem;
-  padding: 2.8rem 3rem 2.6rem;
+  background: linear-gradient(125deg, #001141 0%, #002d9c 55%, #0f62fe 100%);
+  box-shadow: 0 14px 32px rgba(0, 17, 65, 0.25);
+  color: #f5f8ff;
+  margin: -2.4rem -3.2rem 2.6rem;
+  padding: 2.8rem 3.2rem 2.6rem;
 }
 
 .workshop-hero .eyebrow {
-  color: #d8c5ff;
+  color: #a6c8ff;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -256,29 +258,46 @@ body,
 }
 
 .workshop-hero p {
-  color: #f0ebfa;
+  color: #eef3ff;
   font-size: 1rem;
   margin-bottom: 0;
   max-width: 980px;
 }
 
 .workshop-path {
-  border-left: 4px solid var(--purple);
+  border-left: 4px solid var(--blue);
   margin: 1.8rem 0;
   padding: 0.2rem 0 0.2rem 1.2rem;
 }
 
 .workshop-path strong {
-  color: var(--purple-dark);
+  color: var(--blue-dark);
+}
+
+/* Enterprise deep-dive pages use a distinct badge so readers know they have
+   left the hands-on workshop track and are reading a positioning page. */
+.enterprise-badge {
+  background: var(--blue-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--blue-dark);
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.9rem;
+  padding: 0.3rem 0.85rem;
+  text-transform: uppercase;
 }
 
 @media screen and (max-width: 1219px) {
   .md-main__inner { grid-template-columns: 16rem minmax(0, 1fr); }
   .md-sidebar--secondary { display: none; }
   .md-content__inner { padding: 2.2rem 2.4rem 3rem; }
+  .workshop-hero { margin: -2.2rem -2.4rem 2rem; padding: 2.4rem 2.4rem 2.2rem; }
 }
 
 @media screen and (max-width: 76.1875em) {
   .md-content__inner { padding: 1.6rem 1.1rem 2.5rem; }
-  .workshop-hero { border-radius: 0; margin: -1.6rem -1.1rem 2rem; padding: 2rem 1.1rem; }
+  .workshop-hero { margin: -1.6rem -1.1rem 2rem; padding: 2rem 1.1rem; }
 }

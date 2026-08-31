@@ -1,151 +1,263 @@
-# Event alternative: Kafka, Flink, Confluent, and Tableflow
+# Event alternative — Kafka, Flink, Confluent, Tableflow
 
-Streaming is a different clock, not a more complicated spelling of batch.
-Batch asks, “what has accumulated since the last run?” Streaming asks, “what
-should happen when the next event arrives?” Both can produce governed Iceberg
-tables and the same business measures.
+Every other path in this workshop asks "what changed since the last run?"
+This one asks "what should happen the instant this event arrives?" Batch
+(`bin/demo dbt build`, `03-spark/spark/load_medallion_demo.py`) reads a
+snapshot of files or seeds on a schedule. This path reads Kafka topics
+continuously through always-on Flink jobs and lands the same medallion
+shape — Bronze, Silver, Gold — in the same `iceberg_data` Iceberg catalog.
+This page walks through the real containers and SQL in
+`04-confluent-streaming/confluent/` so every claim traces to code you can
+open yourself.
 
 ![Kafka, Flink, and Iceberg path](../assets/images/infographics/wxd-infographic-04-kafka-flink-iceberg.png)
 
-## Start with the distinction
+## 1. Why a stream instead of a batch, and when to pick it
 
-| Name | What it is | What it is not |
+| Decision factor | Batch (dbt / Spark) | This streaming path |
 | --- | --- | --- |
-| **Apache Kafka** | A durable, ordered event log. Producers publish events; multiple consumers read independently and can replay them. | A lakehouse table or BI database |
-| **Schema Registry** | A registry for event schemas and compatibility rules, commonly with Avro, Protobuf, or JSON Schema. | A catalog or data-quality program |
-| **Apache Flink** | A stream-processing engine that transforms, joins, and maintains state over events continuously. | Kafka itself or an Iceberg catalog |
-| **Confluent** | A streaming platform and product ecosystem around Kafka, connectors, governance, Flink, and services such as Tableflow. | A synonym for every Kafka deployment |
-| **Tableflow** | A Confluent capability that materializes selected Kafka topics as Iceberg or Delta tables in object storage. | The self-managed Flink Iceberg sink used in this repository |
-| **Apache Iceberg** | The open table format used after data is materialized in object storage. | The event transport layer |
+| Trigger | A scheduled run or a manual command reads whatever is there | A Flink job reacts to each Kafka message as it arrives |
+| Freshness | Minutes to a day, whatever the schedule is | Continuous, bounded mainly by the 30-second checkpoint interval below |
+| What "recovery" means | Re-run from the retained raw seed/source | Replay a Kafka topic from an offset, or restore Flink from its last checkpoint |
+| Always-on cost | Compute runs only while the job runs | Nine containers stay up (`bash 04-confluent-streaming/confluent/start.sh --status` lists them) whether or not new events arrive |
+| Operating discipline this path adds | Tests and schedules | All of that, plus a schema contract (Avro + Schema Registry), topic retention, consumer offsets, and Flink checkpoint state |
 
-## Event backbone to open table
-
-```mermaid
-flowchart LR
-  source["Application · CDC connector · device\nor this demo's CSV producer"] --> kafka["Kafka topic\nreplayable event backbone"]
-  kafka --> flink["Flink\nfilter · normalize · join · state"]
-  flink --> consumers["Apps · alerts · APIs\nindependent consumers"]
-  flink --> materialize["Flink Iceberg sink\nor Confluent Tableflow"]
-  materialize --> iceberg["Iceberg table\nParquet + metadata in object storage"]
-  iceberg --> presto["Presto / BI"]
-  iceberg --> spark["Spark / ML / batch Gold"]
-```
-
-An event is published once to Kafka. A customer-facing application, an alert,
-a fraud model, and an analytics pipeline may consume it independently at their
-own pace. The lakehouse path becomes available when a processor or Tableflow
-materializes the relevant topic into an open table.
-
-!!! note "A Kafka topic is not an Iceberg table"
-    Kafka retains ordered events and consumer offsets. Iceberg represents a
-    queryable table snapshot over files in object storage. Tableflow—or the
-    Flink Iceberg sink in this repository—bridges those two worlds. Presto and
-    Spark query the Iceberg table through a compatible catalog; they do not
-    query Kafka as if it were a relational table.
-
-## What this repository actually runs
-
-The workshop runs a local Confluent Platform-style composition: Kafka, Schema
-Registry, Kafbat UI, and self-managed Apache Flink SQL. It serializes the
-retail CSV fixtures as Avro events, uses Flink to build Silver, and writes
-Iceberg tables through the local pipeline. Those tables are registered into the
-watsonx.data/Presto view of the catalog; managed Spark or DataStage can then
-build Gold.
-
-```mermaid
-flowchart TB
-  csv["4 retail CSV fixtures"] --> producer["ingest_csv_to_kafka.py\nAvro producer"]
-  producer --> raw["raw_* Kafka topics\nreplayable source boundary"]
-  registry["Schema Registry\nAvro contracts"] -. "validates compatibility" .-> raw
-  raw --> flink["Flink SQL jobs\nclean, cast, enrich"]
-  flink --> silver_topics["silver_* Kafka topics"]
-  silver_topics --> sink["Flink Iceberg sink"]
-  sink --> silver_tables["confluent_demo_silver\nIceberg tables"]
-  silver_tables --> register["watsonx.data catalog\nboundary"]
-  register --> gold["Managed Spark or DataStage\nGold marts"]
-  gold --> compare["reconcile_gold.py\ncompares with dbt baseline"]
-```
-
-This is deliberately different from claiming that the repository is a
-Confluent Cloud/Tableflow implementation. Tableflow belongs to Confluent’s
-product portfolio and may be selected in a real architecture. The local
-workshop uses Flink SQL plus an Iceberg sink because that behavior is runnable
-and inspectable from source.
-
-## Bronze, Silver, and Gold in a stream
-
-| Medallion intent | Batch dbt/Spark example | Streaming example in this repository | Tableflow-oriented option |
-| --- | --- | --- | --- |
-| **Raw/Bronze** | Raw files or a source-shaped Iceberg table | `raw_*` topic retains original events and can be replayed | Materialize a source-shaped topic to an Iceberg Bronze table |
-| **Silver** | Typed, cleaned, joined tables | Flink normalizes events and writes Silver topics/tables | Materialize a cleaned topic, or process before/after landing |
-| **Gold** | Business mart at an explicit grain | Spark or DataStage aggregates the streaming Silver tables | Build in the lakehouse with SQL/Spark/DataStage, or stream it only where freshness requires it |
-
-There is no universal rule that Tableflow must create Bronze or Silver. The
-landing layer is an architectural decision: preserve topic-shaped records for
-replay and audit, or materialize a curated stream once upstream controls are
-established. The team must document the chosen data contract and ownership.
-
-## Where Confluent Tableflow fits
-
-Tableflow is useful when the desired contract is “a governed Kafka topic should
-also be available as an open table.” It manages the topic-to-table
-materialization pattern.
+Choose this path when the business question genuinely needs seconds-level
+freshness or many independent consumers reading the same event once — fraud
+scoring, an operational dashboard, a downstream service reacting to a new
+order. For ordinary daily/weekly reporting, the dbt path is simpler to run,
+debug, and staff; see [Delivery-path decision](delivery-options.md) for the
+fuller comparison across all four authoring paths in this repository.
 
 ```mermaid
 flowchart LR
-  cdc["Db2 / Oracle / HANA / SaaS\nCDC or source connector"] --> topic["Kafka topic + Schema Registry"]
-  topic --> apps["Operational consumers"]
-  topic --> tableflow["Confluent Tableflow\nmaterialize topic"]
-  tableflow --> lake["Iceberg or Delta table\nin object storage"]
-  lake --> wxd["watsonx.data\nPresto, Spark, governance, BI"]
+  batch["Batch: dbt seed / Spark read\nruns on a schedule, reads a snapshot"] -.compare.- stream["Streaming: Kafka producer\nruns continuously, reacts per event"]
+  stream --> flink["Flink SQL jobs\n(always-on containers)"]
+  flink --> iceberg["Same iceberg_data catalog\nsame Bronze/Silver/Gold shape"]
+  batch --> iceberg
 ```
 
-Tableflow, Kafka, connectors, and Confluent streaming governance are
-Confluent components. watsonx.data provides the lakehouse compute and
-governance services selected for that environment. They are separate platforms
-with separate deployment, entitlement, sizing, identity, and operations.
+## 2. Bronze, Silver, and Gold when data never stops arriving
 
-### About MDS and “one endpoint” expectations
+**Bronze here is the Kafka topic itself, not a table.** `raw_customers`,
+`raw_products`, `raw_orders`, and `raw_order_items` are the four "raw" Kafka
+topics that `04-confluent-streaming/confluent/scripts/ingest_csv_to_kafka.py`
+produces the seed CSVs into, one Avro message per row. A Kafka topic already
+does what a Bronze table does in the batch paths — it retains the original
+event so it can be replayed — so this repository does not additionally
+materialize a Bronze Iceberg table for the streaming path. `create-topics.sh`
+creates these topics up front, on purpose:
 
-Confluent Metadata Service (MDS) is a Confluent control-plane capability that
-is commonly associated with metadata, RBAC, and authorization. It is not a
-generic SQL endpoint that makes Iceberg tables queryable by every application.
-To read a materialized Iceberg table, a consumer needs a compatible
-catalog/table access path plus authorization to the catalog and object store.
-To read events, it needs Kafka connectivity and topic authorization. Keep the
-stream and table access models explicit in the design.
+```bash
+# 04-confluent-streaming/confluent/scripts/create-topics.sh
+RAW_TOPICS=(raw_customers raw_products raw_orders raw_order_items)
+SILVER_TOPICS=(silver_customers silver_products silver_orders silver_order_items)
+```
 
-## How to run the local demonstration
+The comment above that block explains why: "the broker has AUTO topic
+creation turned OFF on purpose, so every topic must be created up front."
+That is a deliberate operational choice, not an oversight — an unplanned
+topic silently appearing because a producer mistyped a name is exactly the
+kind of surprise a real streaming platform is configured to prevent.
+
+**Silver is where the actual streaming-specific logic lives**, in
+`04-confluent-streaming/confluent/flink/sql/silver_jobs.sql`. It runs in two
+stages: Stage 1 reads each `raw_*` topic, casts and cleans it, and writes a
+`silver_*` topic (still Kafka, still Avro); Stage 2 reads those `silver_*`
+topics back and writes Iceberg tables. Four of the Stage-1 jobs mirror the
+dbt Silver models column-for-column — for example, customers:
+
+```sql
+SET 'pipeline.name' = 'kafka-raw-to-silver :: customers';
+INSERT INTO kafka_silver_customers
+SELECT
+  customer_id,
+  TRIM(first_name),
+  TRIM(last_name),
+  LOWER(TRIM(email)),
+  CAST(CAST(signup_date AS DATE) AS STRING),
+  UPPER(TRIM(country)),
+  CAST(CURRENT_TIMESTAMP AS STRING)
+FROM src_customers
+WHERE email IS NOT NULL AND TRIM(email) <> '';
+```
+
+That is the same `TRIM`/`LOWER`/`UPPER` normalization as
+[`silver_customers.sql`](dbt.md) in the dbt path, for the same business
+reason: an email with stray casing or whitespace should never look like a
+different customer to a downstream join. The ninth job,
+`confluent_silver_sales_enriched`, is a **stream-stream join** across all four
+silver topics — Flink holds each side of the join in state and matches rows
+as they arrive from either side, rather than joining two finished tables the
+way Presto or Spark would:
+
+```sql
+FROM      silver_src_order_items  AS oi
+JOIN      silver_src_orders       AS o  ON oi.order_id   = o.order_id
+JOIN      silver_src_products     AS p  ON oi.product_id = p.product_id
+JOIN      silver_src_customers    AS c  ON o.customer_id = c.customer_id;
+```
+
+!!! note "This pipeline does not window or watermark"
+    Read the SQL file and there is no `WATERMARK FOR`, no `TUMBLE`/`HOP`
+    window, and no late-data handling — a real streaming-analytics job that
+    computed "revenue per 5-minute window" would need those, but that is not
+    what this pipeline does. Instead, every Iceberg sink table declares a
+    `PRIMARY KEY ... NOT ENFORCED` plus `'write.upsert.enabled' = 'true'`, so
+    each event **upserts** its row by key rather than appending a duplicate.
+    Re-running the pipeline, or a message arriving twice, converges to the
+    same row instead of double-counting it. The daily/category/customer
+    roll-ups that would need windowing are pushed downstream to the Gold
+    step (Spark or DataStage), which aggregates the accumulated Iceberg
+    table in one pass — closer to a micro-batch than continuous windowed
+    stream analytics.
+
+Two more settings in the same file set the freshness/durability trade-off
+directly:
+
+```sql
+SET 'execution.checkpointing.interval'    = '30000';   -- 30s
+SET 'execution.checkpointing.mode'        = 'EXACTLY_ONCE';
+SET 'table.exec.source.idle-timeout'      = '10000';   -- 10s
+```
+
+`EXACTLY_ONCE` checkpointing means Flink periodically snapshots the state of
+every running job so it can resume without reprocessing or dropping
+messages after a restart — the trade a business makes for that guarantee is
+that a table's data can lag up to one checkpoint interval (here, 30 seconds)
+behind the topic. The `idle-timeout` tells Flink not to let one quiet source
+topic hold back the event-time clock of a join against three others that are
+still producing — relevant to the `sales_enriched` job's four-way join.
+
+**Gold is built by a second, separate engine** — Spark or DataStage — reading
+the Flink-written `confluent_demo_silver` tables, exactly the same split
+already described for [DataStage](../demo/enterprise/integration.md) as an
+alternative authoring surface. `04-confluent-streaming/confluent/NAMING.md`
+states the contract: "Same 4 CSVs → same 3 gold marts... whether the path is
+dbt, Spark, or Confluent." `CONFLUENT_GOLD_ENGINE` picks which engine runs:
+
+| `CONFLUENT_GOLD_ENGINE` | Script | What it does |
+| --- | --- | --- |
+| `spark` (default) | `04-confluent-streaming/confluent/scripts/submit_confluent_gold.py` | Submits `confluent/spark/confluent_gold.py` to the watsonx.data Spark engine |
+| `datastage` | `04-confluent-streaming/confluent/scripts/create_datastage_flow.py` | POSTs a parameterized flow template to the CP4D DataStage flows API, and can compile + run it with `--apply --run` |
+
+The DataStage script defaults to `--dry-run` — it prints the exact JSON
+request instead of sending it — because, as its own docstring puts it, "the
+DataStage flows API only exists on a CP4D cluster with the DataStage
+cartridge installed. There is no way to validate the POST offline." Both
+engines write the same `confluent_gold_daily_sales`,
+`confluent_gold_category_performance`, and `confluent_gold_customer_360`
+marts, so `scripts/reconcile_gold.py --paths dbt,confluent` can compare either
+one against the dbt baseline.
+
+## 3. Confluent's pieces versus plain open-source Kafka
+
+The containers this repository runs are Confluent Platform's
+community-licensed images (`confluentinc/cp-kafka:7.7.1`,
+`confluentinc/cp-schema-registry:7.7.1` — see
+`04-confluent-streaming/confluent/docker-compose.yml`), not the plain Apache
+Kafka distribution, and not Confluent Cloud. The two pieces that make this
+meaningfully different from a bare Apache Kafka broker:
+
+- **Schema Registry.** `ingest_csv_to_kafka.py`'s docstring is direct about
+  why: "A real streaming platform never ships 'naked' JSON — every message
+  carries a CONTRACT (an Avro schema) so producers and consumers can never
+  disagree about the shape of the data." Each `.avsc` file in
+  `04-confluent-streaming/confluent/schemas/` is the contract for one topic;
+  the first message produced to a topic auto-registers the subject
+  `<topic>-value`, and every consumer — including the Flink SQL jobs, via
+  `format = 'avro-confluent'` — resolves that same registered schema instead
+  of guessing at field names and types.
+- **A UI for the operational picture.** Kafbat UI (`ghcr.io/kafbat/kafka-ui`)
+  gives a workshop attendee a place to see topics, partitions, consumer
+  groups, and message counts without a CLI — this is an open-source Kafka UI
+  project, not Confluent's own commercial Control Center.
+
+What this repository does **not** run: Confluent Cloud, Confluent's managed
+Flink service, or Tableflow. The Flink here is self-managed — a custom image
+(`wxd-flink:1.20`, built from plain `flink:1.20-scala_2.12` plus the Kafka,
+Iceberg, and S3A connector jars, see
+`04-confluent-streaming/confluent/flink/Dockerfile`) running as ordinary
+containers this workshop starts, checkpoints, and restarts by hand. See
+[Confluent, Flink, and the managed alternative](enterprise/confluent-vs-flink.md)
+for how that self-managed choice compares to Confluent's own managed Flink
+service and to Tableflow specifically.
+
+```mermaid
+flowchart LR
+  csv["4 seed CSVs\n01-dbt/seeds/"] --> producer["ingest_csv_to_kafka.py\nAvro producer"]
+  registry["Schema Registry\n.avsc contracts"] -. registers/validates .-> producer
+  producer --> raw["raw_* topics\n(4, auto-create off)"]
+  raw --> stage1["Flink Stage 1\ncast · trim · filter"]
+  stage1 --> silvertopics["silver_* topics\n(4, Avro)"]
+  silvertopics --> stage2["Flink Stage 2\nstream-stream join"]
+  stage2 --> iceberg["confluent_demo_silver\nIceberg tables, upsert by PK"]
+  iceberg --> gold["Spark or DataStage\nconfluent_demo_gold"]
+  gold --> reconcile["reconcile_gold.py\ncompares to dbt baseline"]
+```
+
+## 4. Running it
 
 ```bash
 bin/demo streaming
-bash 04-confluent-streaming/confluent/scripts/expose_minio_route.sh
-bash 04-confluent-streaming/confluent/start.sh --silver --yes
-bash 04-confluent-streaming/confluent/start.sh --gold --engine spark --yes
+```
+
+That single command is `bash 04-confluent-streaming/confluent/start.sh --all`
+— it creates the Python virtualenv if missing, builds the `wxd-flink:1.20`
+image if it isn't already built, starts the seven long-running containers,
+waits for Kafka to report healthy, creates the eight topics, and produces the
+1,704 seed rows (50 + 20 + 500 + 1,134) into the four `raw_*` topics. It does
+**not** build Silver or Gold — those are separate, deliberately manual steps
+because they need a reachable MinIO endpoint first:
+
+```bash
+bash 04-confluent-streaming/confluent/scripts/expose_minio_route.sh   # once: exposes MinIO via an OpenShift Route
+# paste the printed WXD_OBJECT_STORE_ENDPOINT into .env, then:
+bash 04-confluent-streaming/confluent/start.sh --silver               # Flink silver pipeline → confluent_demo_silver
+bash 04-confluent-streaming/confluent/start.sh --gold --engine spark  # or --engine datastage
 python3 scripts/reconcile_gold.py --paths dbt,confluent
 ```
 
-The first run builds or starts local containers. Inspect the Kafka UI, Flink UI,
-and Schema Registry endpoints listed in [Access and interfaces](access.md) to
-make the flow visible in a workshop. The command starts services and can write
-event/table data; it is not a read-only validation.
+Other actions worth knowing: `--stack` starts only the containers (no topics,
+no seeding); `--status` is read-only and prints per-topic message counts plus
+every UI URL; `--stop` stops the seven containers but keeps their data;
+`--reset` is destructive and delegates to `scripts/11_reset_demo.sh
+--confluent`. Run `bash 04-confluent-streaming/confluent/start.sh --help` for
+the full option reference, or see [Access and interfaces](access.md) for the
+Kafbat UI, Flink Web UI, Schema Registry, and Iceberg REST catalog URLs, and
+[Scripts and automation](scripts.md) for where this fits among the other
+`bin/demo` commands.
 
-## Choosing batch or streaming
+## 5. Where this fits next to the other three paths
 
-| Decision factor | dbt / Spark batch | Kafka + Flink / Confluent streaming |
-| --- | --- | --- |
-| Freshness | Minutes, hours, or daily | Seconds to near-real-time, depending on design |
-| Input shape | Files, extracts, scheduled reads | Continuous events or CDC changes |
-| Recovery | Re-run from retained Raw/source | Replay topics and restore state according to the stream design |
-| Cost profile | Compute runs when jobs run | Always-on services and state management |
-| Strength | Simpler delivery for most analytics workloads | Parallel event consumers and continuous processing |
-| Discipline | Tests, schedules, table contracts | Contracts, compatibility, ordering, state, checkpoints, retention |
+```mermaid
+flowchart TB
+  subgraph Streaming["This page — Kafka + Flink"]
+    K["raw_* Kafka topics"] --> F["Flink SQL"] --> SI["confluent_demo_silver"]
+  end
+  subgraph Batch["Other paths"]
+    D["dbt — dbt_demo_*"]
+    S["Spark — spark_demo_*"]
+  end
+  SI --> G["confluent_demo_gold\n(Spark or DataStage)"]
+  D --> R["reconcile_gold.py"]
+  S --> R
+  G --> R
+  R --> Verdict["Same numbers across all paths,\nor the demo has a bug"]
+```
 
-For most business reporting, begin with the dbt reference path. Use streaming
-when the value of freshness or parallel event consumption clearly exceeds the
-additional operating complexity.
+This path exists to make one point concrete for a workshop audience: the
+same four CSVs, run through a fundamentally different execution model — an
+always-on event pipeline instead of a scheduled read — still land in the
+same catalog with the same gold numbers. See
+[Delivery-path decision](delivery-options.md) for how all four authoring
+paths (dbt, Spark, this streaming stack, and DataStage) are framed as
+alternatives that reconcile to one contract, and
+[Confluent, Flink, and the managed alternative](enterprise/confluent-vs-flink.md)
+for what a customer would actually be signing up for if they replaced this
+self-managed stack with Confluent's commercial platform.
 
 References: [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html),
-[Tableflow](https://docs.confluent.io/cloud/current/topics/tableflow/overview.html),
 [Flink Kafka SQL connector](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/table/kafka/),
-and [Flink checkpointing](https://nightlies.apache.org/flink/flink-docs-stable/docs/concepts/stateful-stream-processing/).
+[Flink checkpointing](https://nightlies.apache.org/flink/flink-docs-stable/docs/concepts/stateful-stream-processing/),
+and [Flink's Iceberg connector](https://iceberg.apache.org/docs/latest/flink/).

@@ -4,6 +4,7 @@ repo_url: https://github.com/aseelert/ibmas-watsonxdata-dbt
 repo_name: aseelert/ibmas-watsonxdata-dbt
 theme:
   name: material
+  logo: assets/images/logo.svg
   favicon: assets/images/logo.svg
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -39,10 +40,15 @@ theme:
 extra_css:
   # A revision query prevents GitHub Pages/browser caches from retaining an
   # earlier workshop theme after deployment.
-  - assets/stylesheets/extra.css?revision=20260831-2
+  - assets/stylesheets/extra.css?revision=20260831-3
 extra_javascript:
   - https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js
-  - assets/javascripts/mermaid-zoom.js?revision=20260831-2
+  - assets/javascripts/mermaid-zoom.js?revision=20260831-3
+copyright: >
+  Independent technical workshop for IBM watsonx.data, built and maintained outside
+  IBM's official documentation channels. Product names, logos, and trademarks belong
+  to their respective owners. Verify capabilities, editions, and entitlements with
+  IBM before making customer commitments.
 plugins:
   # Listing plugins disables the implicit default, so search must be named here.
   - search
@@ -91,6 +97,15 @@ nav:
     - Lineage methods — dbt, OpenLineage, Marquez, Manta: demo/lineage.md
     - Catalog, quality, and governance: demo/catalog-governance.md
     - Open source and IBM platform: demo/platform-choice.md
+  - Enterprise:
+    - What IBM's packaged products add: demo/enterprise/overview.md
+    - watsonx.data Intelligence: demo/enterprise/intelligence.md
+    - watsonx.data Integration: demo/enterprise/integration.md
+    - Manta Data Lineage: demo/enterprise/manta-lineage.md
+    - Data Product Hub: demo/enterprise/data-product-hub.md
+    - Data quality and SLAs: demo/enterprise/data-quality-slas.md
+    - Confluent, Flink, and the managed alternative: demo/enterprise/confluent-vs-flink.md
+    - Cloud vs. platform vs. open source: demo/enterprise/cloud-platform-opensource.md
   - Reference:
     - Access and interfaces: demo/access.md
     - Environment setup: demo/environment.md
