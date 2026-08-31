@@ -10,6 +10,12 @@ Use [Environment setup](environment.md) to create the virtual environment,
 prepare the watsonx.data certificate, and configure `.env`. Ensure the
 watsonx.data connection is available before proceeding.
 
+The first `bin/demo dbt ...` invocation creates the ignored local dbt profile
+from `01-dbt/profiles/profiles.example.yml`. The template contains only
+environment-variable references; credentials stay in `.env` and are never
+committed. Set `DBT_PROFILES_DIR` only when deliberately using a separate
+profile location.
+
 ## Run and validate
 
 ```bash

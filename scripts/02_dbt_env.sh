@@ -96,6 +96,20 @@ if [[ -z "${DBT_PROFILES_DIR:-}" ]]; then
   echo "[dbt_env] DBT_PROFILES_DIR=${DBT_PROFILES_DIR}" >&2
 fi
 
+# profiles.yml contains no secrets: it resolves connection values from .env.
+# Create the ignored local copy on first use so `bin/demo setup` / `bin/demo
+# dbt ...` has no undocumented manual profile-copy step. An explicitly supplied
+# DBT_PROFILES_DIR remains fully user-owned and is never modified.
+if [[ "${DBT_PROFILES_DIR}" == "${project_dir}/profiles" && ! -f "${DBT_PROFILES_DIR}/profiles.yml" ]]; then
+  profile_example="${project_dir}/profiles/profiles.example.yml"
+  if [[ ! -f "${profile_example}" ]]; then
+    echo "[dbt_env] missing profile template: ${profile_example}" >&2
+    exit 2
+  fi
+  cp "${profile_example}" "${DBT_PROFILES_DIR}/profiles.yml"
+  echo "[dbt_env] created ${DBT_PROFILES_DIR}/profiles.yml from the tracked template" >&2
+fi
+
 if [[ -z "${DBT_TARGET_PATH:-}" ]]; then
   export DBT_TARGET_PATH="${repo_root}/target"
 fi
