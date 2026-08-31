@@ -182,25 +182,54 @@ reset_docker() {
   fi
 
   if [ -f "$REPO/docker-compose.yml" ]; then
-    # Unified project (docker-compose.yml owns Airflow and includes the optional
-    # companion stacks) — a single `down` removes everything together.
-    # --remove-orphans is safe here because it IS one project.
-    echo "    -- unified project (docker-compose.yml): Metabase + Airflow + OpenMetadata"
+    # Unified project (docker-compose.yml `include:`s the companion stacks) — a
+    # single `down` removes everything IF every stack was started as part of
+    # this one project. In practice `bin/demo metabase` / `lineage` / `catalog`
+    # each start their stack with its own standalone
+    # `docker compose -f <file> up -d`, which Compose scopes to a project named
+    # after that file's own directory (e.g. "02-metabase", not this repo's
+    # unified project) — so the unified `down` below silently finds nothing to
+    # remove for them. Confirmed live 2026-08-31: a unified-project `down`
+    # left Metabase and Marquez running, at their original uptime, untouched.
+    # The per-file `down` loop after it is the actual fix, not a "just in
+    # case" safety net — it is the ONLY thing that tears down a stack started
+    # the way `bin/demo` starts it.
+    echo "    -- unified project (docker-compose.yml): Airflow (+ anything actually started as part of this project)"
     if $DRY_RUN; then
       echo "    DRY: (cd $REPO && docker compose down --volumes --remove-orphans ${rmi[*]})"
-      echo "    DRY: (cd $REPO && docker compose -f 07-openmetadata/openmetadata/docker-compose.yml down --volumes --remove-orphans)  # legacy OM project safety"
     else
       ( cd "$REPO" && docker compose down --volumes --remove-orphans "${rmi[@]}" ) \
         || echo "    (warning: unified teardown reported issues; continuing)"
-      # Safety: also tear down OpenMetadata under its legacy standalone project
-      # name, in case it was started the old way (docker compose -f openmetadata/...).
-      ( cd "$REPO" && docker compose -f 07-openmetadata/openmetadata/docker-compose.yml down --volumes --remove-orphans 2>/dev/null ) || true
     fi
+
+    # Per-file teardown: tears down each companion stack under ITS OWN project
+    # name, matching how `bin/demo metabase`/`lineage`/`catalog` actually start
+    # them. Confluent is deliberately NOT included here — `--confluent` (below)
+    # already tears it down by exact container name, which is more precise and
+    # must not race with a second, compose-project-scoped `down` of the same
+    # containers.
+    local companion_stacks=(
+      "Metabase|02-metabase/compose.yaml"
+      "Marquez|06-openlineage-marquez/openlineage-marquez/docker-compose.yml"
+      "OpenMetadata|07-openmetadata/openmetadata/docker-compose.yml"
+    )
+    local cs cname cfile
+    for cs in "${companion_stacks[@]}"; do
+      IFS='|' read -r cname cfile <<< "$cs"
+      [ -f "$REPO/$cfile" ] || continue
+      if $DRY_RUN; then
+        echo "    DRY: (cd $REPO && docker compose -f $cfile down --volumes --remove-orphans)  # $cname, own project"
+      else
+        echo "    -- $cname (own project: $cfile)"
+        ( cd "$REPO" && docker compose -f "$cfile" down --volumes --remove-orphans 2>/dev/null ) || true
+      fi
+    done
   else
-    # Legacy fallback: tear down each stack file separately. OpenMetadata is its
-    # own project.
+    # Legacy fallback (no root docker-compose.yml): tear down each stack file
+    # separately — every one of these is its own compose project.
     local stacks=(
       "Metabase|02-metabase/compose.yaml|"
+      "Marquez|06-openlineage-marquez/openlineage-marquez/docker-compose.yml|--remove-orphans"
       "OpenMetadata|07-openmetadata/openmetadata/docker-compose.yml|--remove-orphans"
     )
     local s name file extra

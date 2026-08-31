@@ -37,16 +37,25 @@ and shields attendees from folder details until they need to inspect them.
 
 | Command | What it does | Changes data or services? |
 | --- | --- | --- |
-| `bin/demo setup` | Prepares `.env`, certificates, endpoints, and discovery prerequisites | Yes; writes local configuration and may use `oc` |
+| `bin/demo setup` | Refreshes `.env`: CPD login, API key, bearer token, derived endpoints/certs | Yes; writes local configuration and may use `oc`. **Run this first, every session** — the bearer token and login are short-lived, so `setup` is designed to be safe and cheap to re-run before anything else |
 | `bin/demo dbt build` | Runs the dbt reference transformation and tests | Yes; creates/updates Iceberg relations |
+| `bin/demo spark` | Uploads assets, then submits the Spark medallion job, waits for `FINISHED`, and builds the two Gold Presto views | Yes, **if** `WXD_SPARK_DRY_RUN=false` in `.env` (the checked-in `.env.example` defaults it to `true`, i.e. preview-only, until you flip it). Pass `--dry-run` or `--validate-config` on the command to force a preview regardless of `.env` |
+| `bin/demo ingest` | Runs the cpdctl native-ingestion path (raw only, no bronze/silver/gold) | Yes; writes raw Iceberg tables. Pass `--wait` to block until the batch finishes |
+| `bin/demo streaming` | Confluent (Kafka/Flink/Iceberg) stack. No args = full bring-up (`--all`); pass `--silver` / `--gold` / `--status` / `--reset` / `--stop` to target one stage | Depends on the stage — see [Confluent streaming](#confluent-streaming) below |
+| `bin/demo query` | Reads the dbt Gold marts | No; read-only queries |
+| `bin/demo validate` | Compares available Gold outputs across dbt/Spark/Confluent; skips (does not fail) any path that hasn't been built yet | No; read-only queries |
+| `bin/demo reset --dry-run` | Shows what a reset would remove | No |
 | `bin/demo metabase` | Starts the local Metabase compose stack | Yes; starts containers |
-| `bin/demo spark` | Validates the Spark submission payload by default | No; dry-run unless configured otherwise |
-| `bin/demo streaming` | Starts the local Kafka/Flink demonstration stack | Yes; starts containers and can seed events |
 | `bin/demo airflow` | Starts the Airflow stack | Yes; starts containers |
 | `bin/demo lineage` | Starts Marquez | Yes; starts containers |
 | `bin/demo catalog` | Starts OpenMetadata and runs catalog ingestion | Yes; starts containers and writes metadata |
-| `bin/demo validate` | Compares available Gold outputs | No; read-only queries |
-| `bin/demo reset --dry-run` | Shows what a reset would remove | No |
+
+`bin/demo setup`, `spark`, `ingest`, `streaming`, `query`, `validate`, and
+`reset` all forward any extra arguments to the underlying script — e.g.
+`bin/demo streaming --gold --engine spark` or `bin/demo validate --paths
+dbt,spark` — so the raw `scripts/03b_...`, `04-confluent-streaming/...`, or
+`scripts/reconcile_gold.py` invocations below are rarely needed directly;
+reach for `bin/demo` first.
 
 ## Environment and authentication
 

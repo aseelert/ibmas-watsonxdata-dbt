@@ -380,25 +380,32 @@ def _set(
     key: str,
     value: str | None,
     overwrite: bool,
+    force: bool = False,
 ) -> str | None:
-    """Set key=value if allowed.  Returns the value actually stored, or None."""
+    """Set key=value if allowed.  Returns the value actually stored, or None.
+
+    ``force`` bypasses the protected-secrets guard below. It exists for
+    exactly one caller: Step 6 (--fetch-tokens), which already authenticated
+    over the network and holds a credential it just verified works *right
+    now* — that supersedes whatever stale value is sitting in .env. Without
+    it, this function silently discards the freshly fetched key/token
+    whenever .env already had a non-placeholder value (even an expired one),
+    which defeats the whole point of --fetch-tokens: it would report success
+    while leaving the broken credential in place.
+    """
     if not value:
         return None
     existing = values.get(key, "")
-    if key in _PROTECTED_SECRETS:
+    if key in _PROTECTED_SECRETS and not force:
         # Protected secrets are never clobbered once a REAL value already
-        # exists — that's the whole point of the set, so --overwrite / manual
+        # exists — that's the whole point of the guard, so --overwrite / manual
         # edits can't accidentally blow away a working credential. But an
-        # empty/placeholder field is fair game: this is the only thing that
-        # lets --fetch-tokens actually persist what it just fetched, instead
-        # of fetching a valid key over the network and then silently
-        # discarding it (see Step 6's docstring, which already claims this
-        # write happens).
+        # empty/placeholder field is fair game.
         if existing and not _is_placeholder(existing):
             return None
         values[key] = value
         return value
-    if overwrite or not existing or _is_placeholder(existing):
+    if force or overwrite or not existing or _is_placeholder(existing):
         values[key] = value
         return value
     return None
@@ -1940,11 +1947,15 @@ def main() -> int:
             # A full failure (both None) should still show the missing-secrets warning.
             if _ft_api_key or _ft_bearer:
                 tokens_fetched = True
-                # Mirror token values into `proposed` so the summary shows them.
+                # force=True: these are freshly authenticated, verified-live
+                # values — write them even if .env already has a (possibly
+                # stale/expired) value. S() can't be used here: it calls
+                # _set() without force, which would silently no-op exactly
+                # this write (see _set()'s docstring).
                 if _ft_api_key:
-                    S("WXD_API_KEY", _ft_api_key)
+                    _set(proposed, "WXD_API_KEY", _ft_api_key, ow, force=True)
                 if _ft_bearer:
-                    S("WXD_SPARK_BEARER_TOKEN", _ft_bearer)
+                    _set(proposed, "WXD_SPARK_BEARER_TOKEN", _ft_bearer, ow, force=True)
 
             # Retry Spark engine discovery now that we have a fresh bearer token.
             # Only a bearer token can authenticate the lakehouse REST API — the raw

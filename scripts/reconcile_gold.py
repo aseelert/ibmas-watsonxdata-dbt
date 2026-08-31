@@ -206,6 +206,23 @@ def _scalar(cur: Any, sql: str) -> int:
     return int(row[0]) if row and row[0] is not None else 0
 
 
+def _path_is_built(cur: Any, catalog: str, path_cfg: dict[str, str]) -> bool:
+    """Cheap existence probe: has this path's gold mart been built at all?
+
+    Used to tell "not built yet" apart from "built and diverged" — a path
+    whose gold schema/tables don't exist yet is not a reconciliation FAILURE,
+    it just hasn't run. Probes the first canonical mart only; if that table is
+    missing the schema itself is almost certainly missing too.
+    """
+    probe_fqn = _fqn(catalog, path_cfg, next(iter(MARTS)))
+    try:
+        cur.execute(f"select 1 from {probe_fqn} limit 1")
+        cur.fetchall()
+        return True
+    except Exception:
+        return False
+
+
 def _except_count(cur: Any, cols: str, left_fqn: str, right_fqn: str) -> int:
     """Rows present in left_fqn but NOT in right_fqn (set difference)."""
     sql = (
@@ -288,9 +305,6 @@ def _select_paths(raw: str) -> list[str]:
 def main() -> int:
     args = _parse_args()
     selected = _select_paths(args.paths)
-    # dbt is the source of truth — use it as the reference whenever it is selected.
-    reference = "dbt" if "dbt" in selected else selected[0]
-    others = [p for p in selected if p != reference]
 
     if load_dotenv is not None:
         load_dotenv()
@@ -325,6 +339,26 @@ def main() -> int:
     )
     conn._http_session.verify = _ssl_verify()
     cur = conn.cursor()
+
+    # Skip (never FAIL/ERROR) any selected path whose gold mart hasn't been
+    # built yet — "not run" is not a reconciliation problem. Only paths that
+    # ARE built get compared.
+    built = {p: _path_is_built(cur, catalog, resolved[p]) for p in selected}
+    for p in selected:
+        if not built[p]:
+            log.info("SKIP %s: gold mart not found yet (e.g. %s) — this path "
+                      "hasn't been built.", p, _fqn(catalog, resolved[p], next(iter(MARTS))))
+    selected = [p for p in selected if built[p]]
+
+    if len(selected) < 2:
+        built_desc = ", ".join(selected) if selected else "none"
+        log.info("Only %s path(s) built (%s) — nothing to reconcile yet. "
+                  "Build the rest, then re-run.", len(selected), built_desc)
+        return 0
+
+    reference = "dbt" if "dbt" in selected else selected[0]
+    others = [p for p in selected if p != reference]
+
     log.info("Connected. Reconciling %d mart(s) for: %s (reference=%s)",
              len(MARTS), ", ".join(selected), reference)
 

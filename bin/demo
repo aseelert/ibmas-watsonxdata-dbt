@@ -7,32 +7,57 @@ cd "$ROOT"
 
 usage() {
   cat <<'EOF'
-Usage: bin/demo <command>
+Usage: bin/demo <command> [args...]
 
 Commands:
-  setup             Prepare the local watsonx.data environment
-  dbt <args...>     Run dbt (for example: dbt build)
-  metabase          Start the Metabase BI stack
-  spark             Validate the Spark medallion submission payload
-  streaming         Start the Confluent streaming demo
-  airflow           Start the Airflow stack
-  lineage           Start the Marquez stack
-  catalog           Start OpenMetadata and ingest catalog metadata
-  validate          Compare available Gold outputs
-  reset [args...]   Safely reset demo resources (use --dry-run first)
+  setup                Refresh .env: login, API key, bearer token, derived
+                        endpoints/certs. Safe to re-run any time — run it
+                        first, every session (credentials expire).
+  dbt <args...>         Run dbt (for example: dbt build, dbt seed)
+  spark [args...]       Upload + submit the Spark medallion job for real
+                        (submits, waits for FINISHED, builds gold views).
+                        Pass --dry-run or --validate-config to only preview.
+  ingest [args...]      Run the cpdctl native-ingestion path (raw only).
+                        Add --wait to block until the batch finishes.
+  streaming [args...]   Confluent (Kafka/Flink/Iceberg) stack. No args starts
+                        everything (--all); pass --silver / --gold / --status
+                        / --reset / --stop to target one stage.
+  query [args...]       Read the dbt Gold marts (default: all reports).
+  validate [args...]    Compare Gold outputs across dbt/Spark/Confluent;
+                        skips (not fails) any path not built yet.
+  reset [args...]       Safely reset demo resources (use --dry-run first)
+  metabase              Start the Metabase BI stack
+  airflow               Start the Airflow stack
+  lineage               Start the Marquez stack
+  catalog                Start OpenMetadata and ingest catalog metadata
+
+Examples:
+  bin/demo setup
+  bin/demo dbt build
+  bin/demo spark
+  bin/demo ingest --wait
+  bin/demo streaming --silver
+  bin/demo streaming --gold --engine spark
+  bin/demo validate
 EOF
 }
 
 case "${1:-}" in
-  setup) python3 scripts/00a_prepare_watsonx_env.py ;;
+  setup) shift; exec python3 scripts/00a_prepare_watsonx_env.py "$@" ;;
   dbt) shift; exec bash scripts/02_dbt_env.sh "$@" ;;
   metabase) docker compose -f 02-metabase/compose.yaml up -d ;;
-  spark) python3 scripts/03b_submit_spark_application.py --validate-config ;;
-  streaming) bash 04-confluent-streaming/confluent/start.sh --all ;;
+  spark)
+    shift
+    python3 scripts/03a_upload_spark_assets.py
+    exec python3 scripts/03b_submit_spark_application.py "$@"
+    ;;
+  ingest) shift; exec python3 scripts/04_ingest_with_cpdctl.py "$@" ;;
+  query) shift; exec python3 scripts/05_query_gold.py "$@" ;;
+  streaming) shift; exec bash 04-confluent-streaming/confluent/start.sh "$@" ;;
   airflow) docker compose up -d airflow-init && docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor ;;
   lineage) docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml up -d ;;
   catalog) docker compose -f 07-openmetadata/openmetadata/docker-compose.yml up -d && bash 07-openmetadata/openmetadata/ingestion/run-ingestion.sh ;;
-  validate) python3 scripts/reconcile_gold.py ;;
+  validate) shift; exec python3 scripts/reconcile_gold.py "$@" ;;
   reset) shift; exec bash scripts/11_reset_demo.sh "$@" ;;
   -h|--help|help|'') usage ;;
   *) echo "Unknown command: $1" >&2; usage >&2; exit 2 ;;
