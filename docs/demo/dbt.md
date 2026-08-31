@@ -1,13 +1,31 @@
-# 2. dbt: CSV to trusted Gold
+# Reference path — dbt and Presto
 
-dbt loads the seed CSVs, creates Bronze, Silver, and Gold Iceberg objects via
-Presto, and tests the resulting business model.
+dbt is the workshop reference implementation for business SQL. Models are
+declared as `SELECT` statements, but dbt materializations determine whether the
+adapter creates a table, view, or incremental object. Here the Presto adapter
+executes those statements against watsonx.data Iceberg schemas.
 
-```bash
-bin/demo dbt seed
-bin/demo dbt run
-bin/demo dbt test
+```text
+CSV → dbt seed → Raw → Bronze models → Silver models → Gold marts → tests
 ```
 
-This is the reference implementation. Spark and streaming outputs are compared
-with it, rather than becoming competing sources of business truth.
+```bash
+bin/demo dbt build
+```
+
+## What dbt contributes
+
+| Concern | dbt contribution |
+| --- | --- |
+| Transformation | Versioned SQL models and materializations |
+| Trust | Tests, source declarations, and model documentation |
+| Dependency view | Declared model DAG and compiled artifacts |
+| Execution | Submits SQL through the configured Presto adapter |
+
+The result is the canonical business contract. The Spark and streaming paths
+are compared to it; they do not become competing definitions of Gold.
+
+References: [dbt SQL models](https://docs.getdbt.com/docs/build/sql-models),
+[materializations](https://docs.getdbt.com/docs/build/materializations),
+[seeds](https://docs.getdbt.com/docs/build/seeds), and
+[`dbt build`](https://docs.getdbt.com/reference/commands/build).

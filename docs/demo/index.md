@@ -1,19 +1,35 @@
-# watsonx.data Lakehouse demo
+# watsonx.data lakehouse workshop
 
-This demo tells one story: land four retail CSV datasets once, create governed
-Iceberg tables, and show how SQL, Spark, streaming, orchestration, lineage,
-and cataloging consume the same business data.
+This workshop uses one retail data contract and three implementation paths to
+show an open Iceberg lakehouse in practice. The baseline completes first; the
+Spark and event paths are independently runnable alternatives whose Gold
+outputs are reconciled to that baseline.
 
-Start with dbt. It is the shortest complete path from CSV to tested Gold
-tables. Spark and Confluent demonstrate alternative processing styles, not
-extra prerequisites.
+## Workshop outcome
+
+At the end, the audience can explain where data is stored, how it becomes a
+trusted Gold mart, who consumes it, and which form of lineage answers which
+question.
+
+| Stage | Primary outcome | Demonstrated with |
+| --- | --- | --- |
+| Foundation | Open tables in object storage | Apache Iceberg and watsonx.data |
+| Baseline | Tested retail marts | dbt + Presto |
+| Consumption | Business dashboard | Metabase |
+| Alternatives | Batch and event implementations | Spark; Kafka + Flink |
+| Trust | Execution, technical, and business context | OpenLineage/Marquez, OpenMetadata, IBM options |
+
+## Recommended 20-minute route
 
 ```bash
 bin/demo setup
 bin/demo dbt build
 bin/demo metabase
+bin/demo validate
 ```
 
-All public commands run from the repository root through `bin/demo`.
+Then use the Spark and event pages to choose the implementation appropriate to
+the workload. They are not mandatory sequential steps.
 
-For all end-user UIs, service APIs, and ports, see [Access: URLs and ports](access.md).
+All public commands run from the repository root through `bin/demo`. See
+[Access and interfaces](access.md) for the business and operator URLs.

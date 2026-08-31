@@ -26,7 +26,6 @@ theme:
   features:
     - navigation.sections
     - navigation.top
-    - navigation.tabs
     - navigation.footer
     - toc.follow
     - content.code.copy
@@ -45,15 +44,24 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
 nav:
-  - Demo flow:
-    - Welcome: demo/index.md
-    - "Access and URLs": demo/access.md
-    - "1 · Prepare": demo/setup.md
-    - "2 · dbt to Gold": demo/dbt.md
-    - "3 · Metabase": demo/metabase.md
-    - "4 · Spark and Confluent": demo/processing.md
-    - "5 · Airflow": demo/airflow.md
-    - "6 · Runtime Lineage": demo/lineage.md
-    - "7 · Catalog and Governance": demo/catalog-governance.md
-    - "Platform decision": demo/platform-choice.md
-    - "Operations and validation": demo/operations.md
+  - Workshop:
+    - Overview and outcomes: demo/index.md
+    - Lakehouse and medallion: demo/foundations.md
+    - Delivery-path decision: demo/delivery-options.md
+    - Baseline workshop: demo/setup.md
+  - Ingest and transform:
+    - Ingest to Bronze: demo/ingestion.md
+    - Reference path — dbt and Presto: demo/dbt.md
+    - Batch alternative — Spark: demo/spark.md
+    - Event alternative — Kafka and Flink: demo/streaming.md
+  - Consume and operate:
+    - Serve Gold in Metabase: demo/metabase.md
+    - Orchestrate with Airflow: demo/airflow.md
+    - Validate and reconcile: demo/operations.md
+  - Lineage and governance:
+    - Lineage methods — dbt, OpenLineage, Marquez, Manta: demo/lineage.md
+    - Catalog, quality, and governance: demo/catalog-governance.md
+    - Open source and IBM platform: demo/platform-choice.md
+  - Reference:
+    - Access and interfaces: demo/access.md
+    - Environment setup: demo/environment.md

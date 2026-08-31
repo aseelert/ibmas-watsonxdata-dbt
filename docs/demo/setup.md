@@ -1,15 +1,30 @@
-# 1. Prepare
+# Baseline workshop
 
-Copy `.env.example` to `.env`, provide watsonx.data connection details, and
-save the exported connection JSON under `watsonx_data/`.
+The baseline is the shortest complete story: source fixtures become tested
+Iceberg Gold marts and a business dashboard. Run it before discussing optional
+batch, event, or enterprise alternatives.
+
+## Prerequisites
+
+Use [Environment setup](environment.md) to create the virtual environment,
+prepare the watsonx.data certificate, and configure `.env`. Ensure the
+watsonx.data connection is available before proceeding.
+
+## Run and validate
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
 bin/demo setup
+bin/demo dbt debug
+bin/demo dbt build
+bin/demo metabase
 ```
 
-`setup` prepares the certificate and environment. It does not create remote
-schemas or start containers. Review destructive actions separately with
-`bin/demo reset --dry-run`.
+Validation point: dbt completes its models and tests, and Metabase opens the
+Gold dashboard at [http://localhost:3000](http://localhost:3000).
+
+```bash
+bin/demo validate
+```
+
+The Spark and Kafka/Flink paths can now be demonstrated as independent
+implementations of the same Gold contract.
