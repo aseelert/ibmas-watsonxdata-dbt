@@ -24,11 +24,21 @@ an assertion that one product replaces every component.
 The comparison above is a lakehouse comparison. The workshop's streaming path
 (Kafka + Flink, see [Event alternative](streaming.md)) has its own open-source
 composition and its own IBM options, and it does not map cleanly onto the
-lakehouse row above — Event Streams is a Kafka product, not a lakehouse
-product, so it belongs in its own table rather than forced into the
-"Streaming integration" row above.
+lakehouse row above — event streaming is not a lakehouse product, so it
+belongs in its own table rather than forced into the "Streaming integration"
+row above.
 
-| Concern | Open-source workshop composition | Confluent Platform / Confluent Cloud | IBM Event Streams |
+**IBM now owns Confluent.** IBM announced its acquisition of Confluent on
+2025-12-08 and the deal closed on 2026-03-17 at an approximately $11 billion
+valuation; Confluent delisted from Nasdaq and is now an IBM subsidiary. That
+changes the shape of this comparison: Confluent Cloud, Confluent Platform,
+Confluent's Flink offering, and Tableflow are no longer a competitor's
+products sitting next to IBM's — they are IBM's own portfolio, alongside IBM
+Event Streams, IBM's pre-acquisition managed-Kafka product on Cloud Pak for
+Integration. The open question for a customer conversation is no longer
+"Confluent or IBM," it is "which of IBM's two Kafka platforms."
+
+| Concern | Open-source workshop composition | Confluent Platform / Confluent Cloud (IBM, since 2026-03-17) | IBM Event Streams (IBM's pre-acquisition Kafka product) |
 | --- | --- | --- | --- |
 | Event backbone | Apache Kafka, self-managed (this repo runs Confluent Platform's community-licensed images, not plain Apache Kafka — see [Event alternative](streaming.md)) | Confluent-packaged Kafka + Schema Registry + ksqlDB, self-managed (Platform) or fully managed (Cloud) | IBM-managed Kafka on IBM Cloud, or on your own infrastructure via Cloud Pak for Integration |
 | Stream processing | Self-managed Apache Flink, hand-built jobs | Self-managed Flink (Platform) or fully managed, SQL/Table-API-only Flink billed by CFU (Cloud) — see [Confluent, Flink, and the managed alternative](enterprise/confluent-vs-flink.md) | Not a documented IBM capability in this research pass — see the caveat below |
@@ -37,16 +47,20 @@ product, so it belongs in its own table rather than forced into the
 | Support | Community only | Included in the subscription or license | IBM support included, with a documented SLA on IBM Cloud |
 
 !!! warning "Verify with IBM"
+    Whether IBM plans to consolidate Event Streams customers onto Confluent,
+    run both side by side for different segments, or retire Event Streams
+    outright was not confirmed in this research pass — IBM's post-acquisition
+    roadmap statements on this were not reachable via `ibm.com/docs` (access-
+    restricted responses). Given IBM now owns a mature, widely-adopted
+    commercial Kafka platform in Confluent, a customer should not assume
+    Event Streams is the safer or more strategic long-term pick without
+    asking IBM directly which platform it is steering new commitments toward.
     IBM Event Streams' current relationship to Cloud Pak for Integration,
-    IBM Event Automation, and watsonx.data integration — and whether it
-    remains under that name in the current release — could not be confirmed
-    against `ibm.com/docs` in this research pass; those pages returned
-    access-restricted responses. The IBM Cloud catalog page for Event
-    Streams was reachable and describes a managed Kafka service with
-    Schema Registry, mirroring, an Admin REST API, and IAM-based auth, but
-    says nothing about an IBM-branded Flink equivalent. Confirm current
-    branding, on-prem availability, and any stream-processing story with IBM
-    before presenting this row to a customer.
+    IBM Event Automation, and watsonx.data integration was likewise not
+    independently confirmed. The IBM Cloud catalog page for Event Streams was
+    reachable and describes a managed Kafka service with Schema Registry,
+    mirroring, an Admin REST API, and IAM-based auth, but says nothing about
+    an IBM-branded Flink equivalent — Confluent supplies that now.
 
 This table intentionally does not repeat the fuller cloud/platform/open-source
 breakdown already written out for both the lakehouse and Kafka layers — see
@@ -55,8 +69,9 @@ for that decision checklist, and
 [Confluent, Flink, and the managed alternative](enterprise/confluent-vs-flink.md)
 for the Flink-specific deep dive (self-managed Flink versus Confluent's own
 managed Flink service — a distinct question from "Kafka: cloud vs. platform
-vs. open source," since Confluent does not govern Apache Flink the way it
-governs its own Kafka ecosystem tools).
+vs. open source," since even under IBM ownership, Confluent does not govern
+the open-source Apache Flink project itself, only the commercial services
+built on top of it).
 
 ## Same contract, different operating model
 

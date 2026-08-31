@@ -35,6 +35,17 @@ projects genuinely intersect: Confluent packages, operates, and bills for
 Flink, but it does not govern the open-source project the way it partly
 shapes licensing on some of its own Kafka ecosystem tools.
 
+**Confluent is now an IBM subsidiary.** IBM announced its acquisition of
+Confluent on 2025-12-08, and the deal closed on 2026-03-17 at an
+approximately $11 billion valuation; Confluent delisted from Nasdaq. That
+means Confluent's Flink offering — described in the table below — is, as of
+this workshop's last update, an IBM-owned product, not an independent
+vendor's. It does not change the ASF-governance point above: Apache Flink
+itself remains a top-level Apache Software Foundation project, owned by no
+company, IBM included. Confluent (and now IBM, through Confluent) packages,
+operates, and bills for Flink; it still does not govern the open-source
+project.
+
 Confluent is not the only company that sells Flink expertise, either — this
 is worth being precise about so "Confluent" and "Flink" don't collapse into
 one brand in a customer's head. Ververica (formerly "data Artisans," a
@@ -43,18 +54,18 @@ Alibaba) is an independent commercial Flink platform vendor with no
 Confluent or IBM ownership.
 
 !!! warning "Verify with IBM"
-    IBM does not currently market a Flink-branded product comparable to
-    Confluent Cloud for Apache Flink. The nearest IBM-branded processing
-    layers in this workshop's world are watsonx.data integration's DataStage
-    real-time flows and StreamSets (see [watsonx.data integration](integration.md)),
-    but whether either one uses Flink underneath, wraps it, or is unrelated
-    to it was not confirmed in this research pass — ibm.com/docs pages on
-    this topic returned access-restricted responses. Do not tell a customer
-    IBM has "a Flink offering" without checking this directly with IBM first.
+    Whether IBM plans to keep selling Confluent Cloud for Apache Flink under
+    the Confluent brand, rebrand it as an IBM/watsonx.data product, or fold
+    it into watsonx.data integration's DataStage real-time flows / StreamSets
+    story (see [watsonx.data integration](integration.md)) was not confirmed
+    in this research pass — ibm.com/docs pages on this topic returned
+    access-restricted responses, and the acquisition only closed on
+    2026-03-17. Do not tell a customer how IBM plans to position this
+    product without checking directly with IBM first.
 
 ## Three ways to run Flink
 
-| Concern | Self-managed Apache Flink (this workshop) | Confluent Platform's Flink integration (self-managed, Confluent-supported) | Confluent Cloud for Apache Flink (fully managed) |
+| Concern | Self-managed Apache Flink (this workshop) | Confluent Platform's Flink integration (self-managed, IBM/Confluent-supported) | Confluent Cloud for Apache Flink (fully managed, IBM/Confluent) |
 | --- | --- | --- | --- |
 | Who installs/operates it | This repository — a custom `wxd-flink:1.20` image, started, checkpointed, and restarted as ordinary containers (`04-confluent-streaming/confluent/flink/Dockerfile`) | You, packaged and supported as part of a Confluent Platform license | Confluent — described as a "fully managed, serverless" service with elastic autoscaling |
 | APIs available | Full Flink SQL, Table API, and DataStream/ProcessFunction Java APIs — whatever upstream Flink ships | Broader source flexibility than the cloud offering — Confluent states Confluent Platform "enables use of Flink with a variety of sources outside Apache Kafka" | SQL and Table API (Python, Java) via browser workspaces, CLI, or a VS Code extension; the DataStream API is not exposed |
@@ -88,9 +99,9 @@ flowchart TB
         Flink["Apache Flink\ngeneral-purpose batch + streaming engine"]
     end
 
-    subgraph Vendors["Independent commercial vendors — sell/operate Flink, don't govern it"]
-        ConfluentFlink["Confluent Cloud for Apache Flink\nfully managed, SQL/Table API only, CFU-billed"]
-        ConfluentPlatformFlink["Confluent Platform's Flink integration\nself-managed, Confluent-supported"]
+    subgraph Vendors["Commercial vendors — sell/operate Flink, don't govern it"]
+        ConfluentFlink["Confluent Cloud for Apache Flink\nIBM, since 2026-03-17 — fully managed, SQL/Table API only, CFU-billed"]
+        ConfluentPlatformFlink["Confluent Platform's Flink integration\nIBM, since 2026-03-17 — self-managed"]
         Ververica["Ververica Platform\nindependent Flink vendor, no Confluent/IBM tie"]
     end
 
@@ -124,7 +135,10 @@ workshop's streaming path actually runs.
 
 1. **Don't let "Confluent" and "Flink" become synonyms in the room.** Confluent
    sells and operates a Kafka platform, and now a Flink service on top of it;
-   it does not own or govern Apache Flink.
+   it does not own or govern Apache Flink. Also don't assume "IBM" and
+   "Confluent" mean identical things yet — Confluent became an IBM subsidiary
+   on 2026-03-17, but how deeply its products integrate into the rest of the
+   IBM/watsonx.data portfolio is still an open question.
 2. **The managed Flink tier trades API surface for operational simplicity.**
    A team relying on Flink's DataStream/ProcessFunction API for custom
    stateful logic — not just SQL — cannot move to Confluent Cloud for Apache

@@ -37,11 +37,11 @@ source axis specifically, not about which IBM service maps to which OSS tool.
 flowchart LR
     subgraph Cloud["Cloud (SaaS)"]
         C1["watsonx.data SaaS"]
-        C2["Confluent Cloud"]
+        C2["Confluent Cloud\n(IBM, since 2026-03-17)"]
     end
     subgraph Platform["Platform (self-managed, vendor packaged)"]
         P1["watsonx.data on\nIBM Software Hub"]
-        P2["Confluent Platform"]
+        P2["Confluent Platform\n(IBM, since 2026-03-17)"]
     end
     subgraph OSS["Open source (self-managed, self-assembled)"]
         O1["Presto/Trino + Iceberg\n+ MinIO/S3 + a catalog"]
@@ -87,24 +87,32 @@ this workshop's dbt and Spark paths do by hand.
 
 ## Streaming stack: Confluent Cloud vs. Confluent Platform vs. plain Apache Kafka
 
-The same three-way split shows up on the Kafka side, and it is worth being
-precise here: **Confluent is an independent company, not an IBM product or
-acquisition.** IBM does not resell or own Confluent. This workshop's
-[04-confluent-streaming/](../streaming.md) stack self-manages Confluent
-Platform's community-licensed Kafka and Schema Registry container images
-(`confluentinc/cp-kafka`, `confluentinc/cp-schema-registry`) via Docker,
-plus a self-built Apache Flink image — it is not running Confluent Cloud,
-Confluent's managed Flink service, or Tableflow, and it is not plain
+The same three-way split shows up on the Kafka side, but a fact that changed
+this comparison needs to be stated up front: **Confluent is now an IBM
+subsidiary.** IBM announced its acquisition of Confluent on 2025-12-08, and
+the deal closed on 2026-03-17 at an approximately $11 billion valuation;
+Confluent delisted from Nasdaq. Confluent Cloud and Confluent Platform are no
+longer a third-party vendor's products sitting outside IBM's portfolio — they
+are IBM's, alongside IBM Event Streams, IBM's pre-acquisition managed-Kafka
+product. See [Streaming, compared the same way](../platform-choice.md#streaming-compared-the-same-way)
+for how that reframes the Confluent-vs.-Event-Streams question.
+
+This workshop's [04-confluent-streaming/](../streaming.md) stack self-manages
+Confluent Platform's community-licensed Kafka and Schema Registry container
+images (`confluentinc/cp-kafka`, `confluentinc/cp-schema-registry`) via
+Docker, plus a self-built Apache Flink image — it is not running Confluent
+Cloud, Confluent's managed Flink service, or Tableflow, and it is not plain
 upstream Apache Kafka either. That middle position (self-managed, using
 Confluent's own images, without a Confluent license or support contract) is
 itself a useful example for the "platform vs. open source" line: it shows
 that even the "open source" column below is rarely 100% pure in practice.
-The comparison below is useful for a customer who is choosing among all
-three for a real deployment.
+The comparison below is useful for a customer choosing among all three for a
+real deployment — it is now an "IBM cloud offering vs. IBM platform offering
+vs. build it yourself" decision rather than a cross-vendor one.
 
-| Concern | Cloud — Confluent Cloud | Platform — Confluent Platform (self-managed) | Open source — plain Apache Kafka (this workshop's stack) |
+| Concern | Cloud — Confluent Cloud (IBM) | Platform — Confluent Platform (IBM, self-managed) | Open source — plain Apache Kafka (this workshop's stack) |
 | --- | --- | --- | --- |
-| Who installs/patches it | Confluent (fully managed, built on their "Kora" engine) | You, via ZIP/TAR, RPM/DEB, Docker, Ansible, or Confluent for Kubernetes | You — this workshop's `04-confluent-streaming/start.sh` brings up plain Kafka + Flink in Docker |
+| Who installs/patches it | Confluent/IBM (fully managed, built on their "Kora" engine) | You, via ZIP/TAR, RPM/DEB, Docker, Ansible, or Confluent for Kubernetes | You — this workshop's `04-confluent-streaming/start.sh` brings up plain Kafka + Flink in Docker |
 | Scaling | Automatic, elastic (billed in "eCKUs") | Manual — you plan and resize brokers/partitions | Manual |
 | Schema Registry, ksqlDB | Included | Included, under the Confluent Community License (source-available, not Apache 2.0) | Not included — core Kafka has no schema registry |
 | RBAC, Tiered Storage, Cluster Linking, Control Center | Included | Included, under the separate commercial Confluent Enterprise License | Not available — you would build or buy equivalents separately |
@@ -115,10 +123,11 @@ three for a real deployment.
 !!! warning "Verify with IBM"
     Confluent Cloud's exact eCKU rates and tier starting prices are a live
     pricing-page snapshot, not a stable published price list — re-check
-    confluent.io's pricing page before quoting a number to a customer. This
-    is a Confluent pricing question, not an IBM one, but customers often ask
-    it in the same conversation as watsonx.data licensing, so flag it the
-    same way.
+    confluent.io's pricing page before quoting a number to a customer. Also
+    unconfirmed in this research pass: whether IBM plans to fold Confluent's
+    pricing/packaging into IBM's own subscription and licensing systems, or
+    keep it running as-is under the Confluent brand — check with IBM before
+    presenting either as settled.
 
 ## Decision checklist
 

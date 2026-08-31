@@ -11,7 +11,7 @@ repository, not a universal rule for every lakehouse implementation.
 | **Avro** | A compact, typed event serialization format | Kafka messages are produced under Avro schemas |
 | **Bronze** | The first controlled, auditable data layer | dbt/Spark create tables with ingestion context; streaming uses replayable raw topics as the analogous boundary |
 | **Catalog** | The namespace and metadata service used to find tables | `iceberg_data` is the catalog used in workshop examples |
-| **Confluent** | A commercial data-streaming platform built around Kafka and related products | The repository uses a local Confluent Platform-style stack; Tableflow is explained as a separate Confluent capability |
+| **Confluent** | A commercial data-streaming platform built around Kafka and related products; acquired by IBM (announced 2025-12-08, closed 2026-03-17) | The repository uses a local Confluent Platform-style stack; Tableflow is explained as a separate Confluent capability |
 | **dbt** | Data build tool: versioned SQL transformations with dependencies, tests, and documentation artifacts | The SQL-first reference implementation that submits SQL through Presto |
 | **Flink checkpoint** | A coordinated saved processing state used for recovery in a streaming job | Relevant to delivery guarantees, but not a substitute for source/sink design validation |
 | **Gold** | A business-ready table or view at a clear reporting grain | Daily sales, category performance, and customer 360 |
