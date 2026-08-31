@@ -1,5 +1,18 @@
 # Validate and reconcile
 
+Validation is the point at which a “multi-tool architecture” becomes a
+credible demo. Every path can be technically successful and still produce a
+different business number. The reference path, expected Gold grain, and
+comparison checks make drift visible.
+
+```mermaid
+flowchart LR
+  dbt["dbt / Presto\nreference Gold"] --> compare["reconcile_gold.py\nsymmetric comparison"]
+  spark["Spark Gold"] --> compare
+  streaming["Flink Silver +\nSpark/DataStage Gold"] --> compare
+  compare --> result["same Gold contract\nor actionable difference"]
+```
+
 Validation is the proof that the alternatives implement one business contract.
 
 | Stage | Check | Expected result |

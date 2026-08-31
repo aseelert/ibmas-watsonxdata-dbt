@@ -24,39 +24,65 @@ theme:
     text: IBM Plex Sans
     code: IBM Plex Mono
   features:
+    - navigation.instant
+    - navigation.tracking
     - navigation.sections
     - navigation.expand
     - navigation.top
     - navigation.footer
     - toc.follow
     - content.code.copy
+    - content.code.select
+    - content.tooltips
     - search.highlight
     - search.suggest
 extra_css:
   # A revision query prevents GitHub Pages/browser caches from retaining an
   # earlier workshop theme after deployment.
-  - assets/stylesheets/extra.css?revision=55fb731
+  - assets/stylesheets/extra.css?revision=20260831-2
+extra_javascript:
+  - https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js
+  - assets/javascripts/mermaid-zoom.js?revision=20260831-2
 plugins:
   # Listing plugins disables the implicit default, so search must be named here.
   - search
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      zoomable: true
+      draggable: true
+      skip_classes:
+        - mermaid
 markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
   - tables
+  - footnotes
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
 nav:
   - Workshop:
     - Overview and outcomes: index.md
     - Lakehouse and medallion: demo/foundations.md
+    - From database to lakehouse: demo/lakehouse-basics.md
+    - "Open tables: Iceberg and Parquet": demo/open-tables.md
     - Delivery-path decision: demo/delivery-options.md
     - Baseline workshop: demo/setup.md
   - Ingest and transform:
     - Ingest to Bronze: demo/ingestion.md
     - Reference path — dbt and Presto: demo/dbt.md
     - Batch alternative — Spark: demo/spark.md
-    - Event alternative — Kafka and Flink: demo/streaming.md
+    - Event alternative — Kafka, Flink, Confluent, Tableflow: demo/streaming.md
   - Consume and operate:
     - Serve Gold in Metabase: demo/metabase.md
     - Orchestrate with Airflow: demo/airflow.md
@@ -68,3 +94,5 @@ nav:
   - Reference:
     - Access and interfaces: demo/access.md
     - Environment setup: demo/environment.md
+    - Scripts and automation: demo/scripts.md
+    - Glossary: demo/glossary.md

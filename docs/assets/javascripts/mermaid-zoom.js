@@ -29,7 +29,27 @@
     document.body.appendChild(overlay);
   }
 
-  function bind() {
+  async function bind() {
+    if (window.mermaid && !window.__workshopMermaidStarted) {
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: "base",
+        securityLevel: "loose",
+        themeVariables: {
+          primaryColor: "#efe9fb",
+          primaryBorderColor: "#6929c4",
+          primaryTextColor: "#1f1f24",
+          lineColor: "#54298b",
+          secondaryColor: "#f7f5fb",
+          tertiaryColor: "#ffffff",
+          fontFamily: "IBM Plex Sans"
+        }
+      });
+      window.__workshopMermaidStarted = true;
+    }
+    if (window.mermaid) {
+      await window.mermaid.run({ querySelector: ".md-typeset .mermaid" });
+    }
     var diagrams = document.querySelectorAll(".md-typeset .mermaid svg");
     diagrams.forEach(function (svg) {
       if (svg.dataset.zoomBound) return;
