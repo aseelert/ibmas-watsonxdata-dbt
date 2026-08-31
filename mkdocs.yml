@@ -25,6 +25,7 @@ theme:
     code: IBM Plex Mono
   features:
     - navigation.sections
+    - navigation.expand
     - navigation.top
     - navigation.footer
     - toc.follow
