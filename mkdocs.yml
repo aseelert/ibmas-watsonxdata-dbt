@@ -33,7 +33,9 @@ theme:
     - search.highlight
     - search.suggest
 extra_css:
-  - assets/stylesheets/extra.css
+  # A revision query prevents GitHub Pages/browser caches from retaining an
+  # earlier workshop theme after deployment.
+  - assets/stylesheets/extra.css?revision=55fb731
 plugins:
   # Listing plugins disables the implicit default, so search must be named here.
   - search
