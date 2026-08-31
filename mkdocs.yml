@@ -45,7 +45,7 @@ markdown_extensions:
       anchor_linenums: true
 nav:
   - Workshop:
-    - Overview and outcomes: demo/index.md
+    - Overview and outcomes: index.md
     - Lakehouse and medallion: demo/foundations.md
     - Delivery-path decision: demo/delivery-options.md
     - Baseline workshop: demo/setup.md

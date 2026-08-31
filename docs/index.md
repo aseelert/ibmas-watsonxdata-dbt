@@ -32,4 +32,4 @@ Then use the Spark and event pages to choose the implementation appropriate to
 the workload. They are not mandatory sequential steps.
 
 All public commands run from the repository root through `bin/demo`. See
-[Access and interfaces](access.md) for the business and operator URLs.
+[Access and interfaces](demo/access.md) for the business and operator URLs.
