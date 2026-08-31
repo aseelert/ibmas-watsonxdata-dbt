@@ -12,8 +12,13 @@ Confluent paths write to. This page walks through the real model files in
 bin/demo dbt build
 ```
 
-```text
-CSV seeds → dbt seed → raw → Bronze models → Silver models → Gold marts → tests
+```mermaid
+flowchart LR
+  A[CSV seeds\n01-dbt/seeds/] -->|dbt seed| B[iceberg_data.dbt_demo_raw]
+  B -->|Bronze models| C[iceberg_data.dbt_demo_bronze]
+  C -->|Silver models| D[iceberg_data.dbt_demo_silver]
+  D -->|Gold models| E[iceberg_data.dbt_demo_gold]
+  E -->|dbt test| F[schema tests]
 ```
 
 The four seed files are small on purpose — this is a teaching fixture, not a

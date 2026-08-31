@@ -8,9 +8,10 @@ typed columns and ingestion metadata. This is suitable for a controlled demo
 fixture; it is not a claim that dbt is a general-purpose source-ingestion
 platform.
 
-```text
-CSV fixtures → dbt seed → iceberg_data.dbt_demo_raw
-             → dbt Bronze SQL → iceberg_data.dbt_demo_bronze
+```mermaid
+flowchart LR
+  A[CSV fixtures\n01-dbt/seeds/] -->|dbt seed| B[iceberg_data.dbt_demo_raw]
+  B -->|dbt Bronze SQL| C[iceberg_data.dbt_demo_bronze]
 ```
 
 ## Loading is not transformation
