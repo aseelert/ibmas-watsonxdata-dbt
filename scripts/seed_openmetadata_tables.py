@@ -72,7 +72,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 OM_BASE = os.getenv("OM_BASE", "http://localhost:8585")
-GET_TOKEN = ROOT / "openmetadata" / "ingestion" / "get_om_token.py"
+GET_TOKEN = ROOT / "07-openmetadata" / "openmetadata" / "ingestion" / "get_om_token.py"
 
 # dbt/Presto column type -> (OpenMetadata dataType, extra fields builder)
 # OM requires dataLength for VARCHAR/CHAR and precision/scale for DECIMAL.
@@ -156,7 +156,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    artifact_dir = os.getenv("WXD_DBT_ARTIFACT_DIR", "openmetadata/dbt-artifacts")
+    artifact_dir = os.getenv("WXD_DBT_ARTIFACT_DIR", "07-openmetadata/openmetadata/dbt-artifacts")
     catalog_path = (
         Path(args.catalog_file).expanduser()
         if args.catalog_file

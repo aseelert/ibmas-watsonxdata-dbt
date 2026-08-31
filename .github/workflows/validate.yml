@@ -1,0 +1,50 @@
+name: Validate demo structure
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      WXD_API_KEY: ci-placeholder
+      WXD_DBT_ARTIFACT_DIR: 07-openmetadata/openmetadata/dbt-artifacts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate Python and shell syntax
+        run: |
+          python -m compileall -q scripts 03-spark 04-confluent-streaming 05-airflow 07-openmetadata 08-governance 09-agent-tools
+          find scripts 04-confluent-streaming 07-openmetadata -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+
+      - name: Validate dbt project and public commands
+        run: |
+          bash scripts/02_dbt_env.sh parse --no-version-check
+          python scripts/03b_submit_spark_application.py --validate-config
+          bash scripts/11_reset_demo.sh --docker --dry-run
+
+      - name: Validate documentation and Compose
+        run: |
+          cp .env.example .env
+          mkdocs build --strict
+          docker compose config -q
+          docker compose -f 02-metabase/compose.yaml config -q
+          docker compose -f 04-confluent-streaming/confluent/docker-compose.yml config -q
+          docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml config -q
+          docker compose -f 07-openmetadata/openmetadata/docker-compose.yml config -q
+
+      - name: Check patch whitespace
+        run: git diff --check HEAD

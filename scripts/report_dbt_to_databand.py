@@ -102,8 +102,13 @@ def main() -> int:
     )
     parser.add_argument(
         "--dbt-project-path",
-        default=str(ROOT),
-        help="Path containing target/, dbt_project.yml, logs/ (default: repo root).",
+        default=str(ROOT / "01-dbt"),
+        help="Path containing dbt_project.yml (default: 01-dbt).",
+    )
+    parser.add_argument(
+        "--dbt-target-path",
+        default=str(ROOT / "target"),
+        help="Path containing dbt artifacts (default: target).",
     )
     args = parser.parse_args()
 
@@ -111,6 +116,7 @@ def main() -> int:
         load_dotenv(ROOT / ".env")
 
     dbt_project_path = Path(args.dbt_project_path).expanduser().resolve()
+    dbt_target_path = Path(args.dbt_target_path).expanduser().resolve()
     print("== report dbt run to Databand ==")
     print(f"dbt project path: {dbt_project_path}")
     print(f"dry-run: {args.dry_run}")
@@ -118,7 +124,7 @@ def main() -> int:
     missing = [
         name
         for name in REQUIRED_ARTIFACTS
-        if not (dbt_project_path / "target" / name).exists()
+        if not (dbt_target_path / name).exists()
     ]
     if missing:
         raise SystemExit(
@@ -133,8 +139,8 @@ def main() -> int:
     # Parsed directly from JSON (not dbnd's _load_dbt_core_assets(), which
     # unconditionally reads+rotates logs/dbt.log as a side effect — see the
     # module docstring). Safe to do in every mode, including --dry-run.
-    manifest = json.loads((dbt_project_path / "target" / "manifest.json").read_text())
-    run_results = json.loads((dbt_project_path / "target" / "run_results.json").read_text())
+    manifest = json.loads((dbt_target_path / "manifest.json").read_text())
+    run_results = json.loads((dbt_target_path / "run_results.json").read_text())
     project_name = manifest.get("metadata", {}).get("project_name")
     invocation_id = run_results.get("metadata", {}).get("invocation_id")
     print(f"dbt project name: {project_name}")

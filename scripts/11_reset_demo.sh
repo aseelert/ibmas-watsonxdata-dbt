@@ -188,20 +188,20 @@ reset_docker() {
     echo "    -- unified project (docker-compose.yml): Metabase + Airflow + OpenMetadata"
     if $DRY_RUN; then
       echo "    DRY: (cd $REPO && docker compose down --volumes --remove-orphans ${rmi[*]})"
-      echo "    DRY: (cd $REPO && docker compose -f openmetadata/docker-compose.yml down --volumes --remove-orphans)  # legacy OM project safety"
+      echo "    DRY: (cd $REPO && docker compose -f 07-openmetadata/openmetadata/docker-compose.yml down --volumes --remove-orphans)  # legacy OM project safety"
     else
       ( cd "$REPO" && docker compose down --volumes --remove-orphans "${rmi[@]}" ) \
         || echo "    (warning: unified teardown reported issues; continuing)"
       # Safety: also tear down OpenMetadata under its legacy standalone project
       # name, in case it was started the old way (docker compose -f openmetadata/...).
-      ( cd "$REPO" && docker compose -f openmetadata/docker-compose.yml down --volumes --remove-orphans 2>/dev/null ) || true
+      ( cd "$REPO" && docker compose -f 07-openmetadata/openmetadata/docker-compose.yml down --volumes --remove-orphans 2>/dev/null ) || true
     fi
   else
     # Legacy fallback: tear down each stack file separately. OpenMetadata is its
     # own project.
     local stacks=(
-      "Metabase|docker-compose-metabase.yml|"
-      "OpenMetadata|openmetadata/docker-compose.yml|--remove-orphans"
+      "Metabase|02-metabase/compose.yaml|"
+      "OpenMetadata|07-openmetadata/openmetadata/docker-compose.yml|--remove-orphans"
     )
     local s name file extra
     for s in "${stacks[@]}"; do
@@ -241,9 +241,9 @@ reset_docker() {
   # sweep above never touch it. Stale data left here can crash mysql on the next
   # start (InnoDB on an incompatible/half-written datadir), so clear it for a
   # truly clean rerun.
-  if [ -d "$REPO/openmetadata/docker-volume" ]; then
-    echo "    -- clearing OpenMetadata bind-mount data (openmetadata/docker-volume)"
-    run rm -rf "$REPO/openmetadata/docker-volume"
+  if [ -d "$REPO/07-openmetadata/openmetadata/docker-volume" ]; then
+    echo "    -- clearing OpenMetadata bind-mount data (07-openmetadata/openmetadata/docker-volume)"
+    run rm -rf "$REPO/07-openmetadata/openmetadata/docker-volume"
   fi
 }
 

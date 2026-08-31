@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Stable, customer-facing entry point for the watsonx.data lakehouse demo.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+usage() {
+  cat <<'EOF'
+Usage: bin/demo <command>
+
+Commands:
+  setup             Prepare the local watsonx.data environment
+  dbt <args...>     Run dbt (for example: dbt build)
+  metabase          Start the Metabase BI stack
+  spark             Validate the Spark medallion submission payload
+  streaming         Start the Confluent streaming demo
+  airflow           Start the Airflow stack
+  lineage           Start the Marquez stack
+  catalog           Start OpenMetadata and ingest catalog metadata
+  validate          Compare available Gold outputs
+  reset [args...]   Safely reset demo resources (use --dry-run first)
+EOF
+}
+
+case "${1:-}" in
+  setup) python3 scripts/00a_prepare_watsonx_env.py ;;
+  dbt) shift; exec bash scripts/02_dbt_env.sh "$@" ;;
+  metabase) docker compose -f 02-metabase/compose.yaml up -d ;;
+  spark) python3 scripts/03b_submit_spark_application.py --validate-config ;;
+  streaming) bash 04-confluent-streaming/confluent/start.sh --all ;;
+  airflow) docker compose up -d airflow-init && docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor ;;
+  lineage) docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml up -d ;;
+  catalog) docker compose -f 07-openmetadata/openmetadata/docker-compose.yml up -d && bash 07-openmetadata/openmetadata/ingestion/run-ingestion.sh ;;
+  validate) python3 scripts/reconcile_gold.py ;;
+  reset) shift; exec bash scripts/11_reset_demo.sh "$@" ;;
+  -h|--help|help|'') usage ;;
+  *) echo "Unknown command: $1" >&2; usage >&2; exit 2 ;;
+esac

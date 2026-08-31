@@ -1,5 +1,5 @@
 site_name: watsonx.data · dbt · Spark Medallion Demo
-site_description: A beginner-friendly customer demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.
+site_description: A concise technical demo for dbt, Spark, Iceberg, and the medallion lakehouse on IBM watsonx.data.
 repo_url: https://github.com/aseelert/ibmas-watsonxdata-dbt
 repo_name: aseelert/ibmas-watsonxdata-dbt
 theme:
@@ -24,106 +24,36 @@ theme:
     text: IBM Plex Sans
     code: IBM Plex Mono
   features:
-    - navigation.instant
-    - navigation.tracking
     - navigation.sections
     - navigation.top
     - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.indexes
     - navigation.footer
     - toc.follow
     - content.code.copy
-    - content.code.select
-    - content.tooltips
     - search.highlight
     - search.suggest
 extra_css:
   - assets/stylesheets/extra.css
-extra_javascript:
-  - assets/javascripts/mermaid-zoom.js
 plugins:
   # Listing plugins disables the implicit default, so search must be named here.
   - search
-  # Click-to-zoom lightbox for raster images (e.g. the medallion infographic).
-  - glightbox:
-      touchNavigation: true
-      loop: false
-      effect: zoom
-      zoomable: true
-      draggable: true
-      # Mermaid diagrams are SVG, not <img>; they use the custom zoom script instead.
-      skip_classes:
-        - mermaid
 markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
   - tables
-  - footnotes
-  - pymdownx.details
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.caret
-  - pymdownx.tilde
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 nav:
-  - Workshop:
-    - Welcome: index.md
-    - "Customer Presentation (visual deck)": presentation.md
-    - "1 · Prepare Your Machine": setup.md
-    - "Fast Track — All Commands": fast-track.md
-  - Understand:
-    - "Architecture & Data Flow": lineage.md
-    - "Table Formats — Iceberg vs Parquet vs Delta": table-formats.md
-    - "Streaming Medallion Explained": streaming-medallion.md
-    - "When to Use Which (dbt · Spark · Confluent · DataStage · cpdctl)": choosing.md
-    - Glossary: glossary.md
-  - Build a Medallion (dbt · Spark · Confluent):
-    - "A · dbt — SQL Governance (full pipeline)": dbt-demo.md
-    - "B · Spark — Python ETL (full pipeline)": spark-demo.md
-    - "C · Confluent — Streaming (Kafka→Flink→Iceberg)": confluent-demo.md
-    - "C · Confluent — How It Works (deep dive)": confluent-internals.md
-    - "D · DataStage — No-Code Gold (Confluent path)": datastage-demo.md
-    - "E · DataStage — Full Medallion (bronze→silver→gold)": datastage-medallion.md
-  - Ingest & Compare:
-    - "Ingestion Paths (cpdctl · Kafka · DataStage)": ingestion.md
-    - "SQL Reference — Bronze → Silver → Gold": sql-medallion-reference.md
-    - "SQL — Compare dbt vs Spark vs Confluent Gold": sql-demo.md
-  - Orchestrate:
-    - "dbt vs DAG — What Orchestrates What": orchestrate.md
-    - "Airflow — Schedule the Pipeline": airflow.md
-  - Governance (open source):
-    - "Lineage UI (OpenMetadata)": openmetadata.md
-    - "Glossary & Classification (OpenMetadata)": openmetadata-governance.md
-    - "Lineage Standard (OpenLineage)": openlineage.md
-    - "Marquez on OpenShift (OCP deployment)": openlineage-marquez-ocp.md
-    - "BI & Dashboards (Metabase)": metabase.md
-    - "Semantic Models": semantic-models.md
-  - Enterprise (watsonx.data Intelligence & Integration):
-    - "Why Upgrade — Open Source vs Enterprise": enterprise/overview.md
-    - "watsonx.data Intelligence (IKC · Manta · DPH)": enterprise/intelligence.md
-    - "watsonx.data Integration (DataStage · StreamSets · UDI · Databand)": enterprise/integration.md
-    - "End-to-End Lineage (source → DataStage → Cognos)": enterprise/lineage-e2e.md
-    - "Performance & Editions (Prestissimo · Gluten · GPU · RU)": enterprise/performance-editions.md
-    - "IKC Reporting — Optional CPD Setup": ikc-reporting.md
-    - "IKC Governance — Glossary, Data Classes & Rules": governance-ikc.md
-    - "Summary — Strengths & Weaknesses": enterprise/summary.md
-  - Reference:
-    - "Configuration & .env Reference": configuration.md
-    - "File Guide": files.md
-    - "Scripts": scripts.md
-    - Troubleshooting: troubleshooting.md
+  - Demo flow:
+    - Welcome: demo/index.md
+    - "Access and URLs": demo/access.md
+    - "1 · Prepare": demo/setup.md
+    - "2 · dbt to Gold": demo/dbt.md
+    - "3 · Metabase": demo/metabase.md
+    - "4 · Spark and Confluent": demo/processing.md
+    - "5 · Airflow": demo/airflow.md
+    - "6 · Runtime Lineage": demo/lineage.md
+    - "7 · Catalog and Governance": demo/catalog-governance.md
+    - "Platform decision": demo/platform-choice.md
+    - "Operations and validation": demo/operations.md

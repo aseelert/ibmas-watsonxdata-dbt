@@ -13,8 +13,8 @@ venv/
 logs/
 target/
 site/
-openmetadata/dbt-artifacts/
-openmetadata/docker-volume/
+07-openmetadata/openmetadata/dbt-artifacts/
+07-openmetadata/openmetadata/docker-volume/
 dbt_packages/
 profiles.yml
 **/profiles.yml
@@ -40,6 +40,7 @@ oc.zip
 certs/*.pem
 certs/*.crt
 certs/*.key
+**/truststore.jks
 
 # Connection-export JSON (same cluster-specific cert-chain/hostname payload as the
 # watsonx_data/*.json rule above, just saved under certs/ by some export flows).

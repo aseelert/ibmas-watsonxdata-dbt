@@ -314,11 +314,11 @@ def main() -> int:
         )
 
         uploads = [
-            (ROOT / "spark" / "load_medallion_demo.py", f"{prefix}/app/load_medallion_demo.py"),
+            (ROOT / "03-spark" / "spark" / "load_medallion_demo.py", f"{prefix}/app/load_medallion_demo.py"),
         ]
         uploads.extend(
             (path, f"{prefix}/raw/{path.name}")
-            for path in sorted((ROOT / "seeds").glob("raw_*.csv"))
+            for path in sorted((ROOT / "01-dbt" / "seeds").glob("raw_*.csv"))
         )
 
         print(f"Uploading {len(uploads)} files for Spark demo (existing objects are overwritten)")

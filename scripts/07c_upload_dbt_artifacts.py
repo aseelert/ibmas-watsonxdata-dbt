@@ -98,7 +98,7 @@ ARTIFACTS = REQUIRED_ARTIFACTS + OPTIONAL_ARTIFACTS
 
 
 def _artifact_dir() -> Path:
-    value = os.getenv("WXD_DBT_ARTIFACT_DIR", "openmetadata/dbt-artifacts")
+    value = os.getenv("WXD_DBT_ARTIFACT_DIR", "07-openmetadata/openmetadata/dbt-artifacts")
     path = Path(value).expanduser()
     if not path.is_absolute():
         path = ROOT / path

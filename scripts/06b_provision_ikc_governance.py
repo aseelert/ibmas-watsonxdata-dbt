@@ -208,7 +208,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"
-IKC_DIR = ROOT / "governance" / "ikc"
+IKC_DIR = ROOT / "08-governance" / "governance" / "ikc"
 
 # --- Endpoints -------------------------------------------------------------
 # Source: ibm-watsonx-data-intelligence-mcp-server, app/services/constants.py

@@ -192,7 +192,7 @@ def main() -> int:
     target_dir = (
         Path(args.artifact_dir).expanduser()
         if args.artifact_dir
-        else _env_path("WXD_DBT_ARTIFACT_DIR", "openmetadata/dbt-artifacts")
+        else _env_path("WXD_DBT_ARTIFACT_DIR", "07-openmetadata/openmetadata/dbt-artifacts")
     )
     if not target_dir.is_absolute():
         target_dir = ROOT / target_dir

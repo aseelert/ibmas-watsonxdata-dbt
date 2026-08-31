@@ -89,6 +89,7 @@ SIDE EFFECTS / EXIT
 from __future__ import annotations
 
 import base64
+import argparse
 import json
 import os
 import subprocess
@@ -499,8 +500,26 @@ def _create_spark_gold_views() -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Submit the Spark medallion application to watsonx.data."
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the redacted submission payload without contacting watsonx.data.",
+    )
+    parser.add_argument(
+        "--validate-config",
+        action="store_true",
+        help="Validate the local Spark application path and print the payload without submitting.",
+    )
+    args = parser.parse_args()
+
     if load_dotenv is not None:
         load_dotenv(ROOT / ".env")
+
+    if args.dry_run:
+        os.environ["WXD_SPARK_DRY_RUN"] = "true"
 
     try:
         import requests
@@ -516,10 +535,16 @@ def main() -> int:
     instance_id = _env("WXD_INSTANCE_ID", "1781163689818519")
     payload = _payload()
 
+    if args.validate_config:
+        application_path = ROOT / "03-spark" / "spark" / "load_medallion_demo.py"
+        if not application_path.is_file():
+            raise SystemExit(f"Spark application not found: {application_path}")
+        print(f"[OK] local Spark application: {application_path}")
+
     print(f"Submitting to: {endpoint}")
     print(f"LhInstanceId: {instance_id}")
     print(json.dumps(_redacted_payload(payload), indent=2))
-    if os.getenv("WXD_SPARK_DRY_RUN", "true").lower() in {"1", "true", "yes"}:
+    if args.validate_config or os.getenv("WXD_SPARK_DRY_RUN", "true").lower() in {"1", "true", "yes"}:
         print("Dry run only; set WXD_SPARK_DRY_RUN=false to submit.")
         return 0
 

@@ -74,6 +74,7 @@
 set -uo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+project_dir="${repo_root}/01-dbt"
 
 if [[ -f "${repo_root}/.env" ]]; then
   echo "[dbt_env] loading environment from ${repo_root}/.env" >&2
@@ -91,8 +92,12 @@ if [[ -z "${DBT_PROFILES_DIR:-}" ]]; then
   # repo's profiles/profiles.yml (confirmed byte-identical but already 3 days
   # stale from a manual sync on 2026-08-20). Pinning it here means editing the
   # tracked file always takes effect, with no copy step and no drift risk.
-  export DBT_PROFILES_DIR="${repo_root}/profiles"
+  export DBT_PROFILES_DIR="${project_dir}/profiles"
   echo "[dbt_env] DBT_PROFILES_DIR=${DBT_PROFILES_DIR}" >&2
+fi
+
+if [[ -z "${DBT_TARGET_PATH:-}" ]]; then
+  export DBT_TARGET_PATH="${repo_root}/target"
 fi
 
 # ---------------------------------------------------------------------------
@@ -119,7 +124,7 @@ else
   echo "[dbt_env] OPENLINEAGE_URL not set — running plain dbt: ${dbt_bin} $*" >&2
 fi
 
-if "${dbt_bin}" "$@"; then
+if "${dbt_bin}" "$@" --project-dir "${project_dir}"; then
   dbt_exit=0
 else
   dbt_exit=$?
@@ -138,7 +143,7 @@ case "${1:-}" in
     # to recognise watsonx_presto (treated as trino for URI generation).
     if [[ -n "${OPENLINEAGE_URL:-}" ]] && [[ "${dbt_exit}" -eq 0 ]]; then
       echo "[dbt_env] emitting OpenLineage events to ${OPENLINEAGE_URL}" >&2
-      if ! "${python_bin}" "${repo_root}/scripts/emit_openlineage_events.py"; then
+      if ! "${python_bin}" "${repo_root}/scripts/emit_openlineage_events.py" --project-dir "${project_dir}" --target-path "${repo_root}/target"; then
         echo "[dbt_env] WARNING: OpenLineage event emission failed (non-fatal; dbt exit code preserved)" >&2
       fi
     fi
@@ -146,7 +151,7 @@ case "${1:-}" in
     # Databand: optional run reporting.
     if [[ -n "${DBND__CORE__DATABAND_URL:-}" ]]; then
       echo "[dbt_env] DBND__CORE__DATABAND_URL is set — reporting this run to Databand" >&2
-      if ! "${python_bin}" "${repo_root}/scripts/report_dbt_to_databand.py"; then
+      if ! "${python_bin}" "${repo_root}/scripts/report_dbt_to_databand.py" --dbt-project-path "${project_dir}" --dbt-target-path "${repo_root}/target"; then
         echo "[dbt_env] WARNING: Databand reporting failed (non-fatal; dbt's own exit code is preserved)" >&2
       fi
     fi

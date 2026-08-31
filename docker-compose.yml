@@ -35,7 +35,7 @@ name: ibmas-watsonxdata-dbt
 x-airflow-common: &airflow-common
   build:
     context: .
-    dockerfile: airflow/Dockerfile
+    dockerfile: 05-airflow/airflow/Dockerfile
   env_file:
     - .env
   environment:
@@ -51,7 +51,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__API__BASE_URL: "http://airflow-webserver:8080"
     AIRFLOW__API_AUTH__JWT_SECRET: "wxd-medallion-demo-shared-jwt-secret-change-me"
     AIRFLOW__API__SECRET_KEY: "wxd-medallion-demo-shared-flask-secret-change-me"
-    DBT_PROFILES_DIR: /opt/airflow/project/profiles
+    DBT_PROFILES_DIR: /opt/airflow/project/01-dbt/profiles
     DBT_TARGET_PATH: /opt/airflow/logs/dbt-runtime/target
     DBT_LOG_PATH: /opt/airflow/logs/dbt-runtime/logs
     WXD_OBJECT_STORE_LOG_DIR: /opt/airflow/logs
@@ -61,7 +61,7 @@ x-airflow-common: &airflow-common
     WXD_OBJECT_STORE_ENDPOINT: http://host.docker.internal:19000
     WXD_OBJECT_STORE_AUTO_PORT_FORWARD: "false"
   volumes:
-    - ./airflow/dags:/opt/airflow/dags
+    - ./05-airflow/airflow/dags:/opt/airflow/dags
     - airflow-logs:/opt/airflow/logs
     - airflow-plugins:/opt/airflow/plugins
     - .:/opt/airflow/project:ro
@@ -135,7 +135,7 @@ volumes:
   airflow-plugins:
 
 include:
-  - docker-compose-metabase.yml
-  - openlineage-marquez/docker-compose.yml
-  - openmetadata/docker-compose.yml
-  - confluent/docker-compose.yml
+  - 02-metabase/compose.yaml
+  - 06-openlineage-marquez/openlineage-marquez/docker-compose.yml
+  - 07-openmetadata/openmetadata/docker-compose.yml
+  - 04-confluent-streaming/confluent/docker-compose.yml
