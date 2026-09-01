@@ -5,6 +5,13 @@ Compose stacks and managed through `bin/demo` or directly with `docker compose`.
 Two services require a custom image that must be **built before the first
 `docker compose up`**; the rest pull pre-built images from Docker Hub.
 
+```
+bin/demo docker build    ← build images (one-time)
+bin/demo docker start    ← start services
+bin/demo docker stop     ← stop services
+bin/demo docker status   ← check what is running
+```
+
 !!! note "Prerequisites"
     Docker Engine 24+ (or Docker Desktop) and Compose v2 (`docker compose`,
     not the legacy `docker-compose`). Confirm with:
@@ -25,11 +32,11 @@ The `docker-compose.yml` at the repo root references this Dockerfile via a
 build the image automatically on first use:
 
 ```bash
-# Build only (optional — useful to verify the image builds before the demo):
-docker compose build airflow-webserver
+# Build via the demo entry point (recommended):
+bin/demo docker build
 
-# Or let the first 'bin/demo airflow' trigger the build automatically:
-bin/demo airflow
+# Or build only the Airflow image directly:
+docker compose build airflow-webserver
 ```
 
 The image is built from the **repo root** (not from inside `05-airflow/`),
@@ -47,9 +54,11 @@ by a `build:` block), Docker will not build it automatically — it must be buil
 once manually before `bin/demo streaming` is called:
 
 ```bash
-docker build \
-  -t wxd-flink:1.20 \
-  04-confluent-streaming/confluent/flink
+# Build via the demo entry point (builds both images at once):
+bin/demo docker build
+
+# Or build the Flink image directly:
+docker build -t wxd-flink:1.20 04-confluent-streaming/confluent/flink
 ```
 
 The build downloads several JARs from Maven Central (~200 MB). Run it on a
@@ -60,18 +69,27 @@ fast connection; subsequent starts use the local image cache.
 ## Service stacks
 
 All four stacks are wired into the root `docker-compose.yml` via `include:`
-blocks. You can start individual stacks or all at once:
+blocks. Use `bin/demo docker` to manage them:
 
 ```bash
-# Start ALL four stacks (heavy — only do this on a machine with ≥ 16 GB RAM):
-docker compose up -d
+# Start individual services (recommended — start only what you need):
+bin/demo docker start metabase     # Metabase BI       → http://localhost:3000
+bin/demo docker start airflow      # Airflow scheduler → http://localhost:8082
+bin/demo docker start lineage      # Marquez lineage   → http://localhost:3001
+bin/demo docker start catalog      # OpenMetadata      → http://localhost:8585
 
-# Or start individual stacks with bin/demo:
-bin/demo metabase      # Metabase only
-bin/demo airflow       # Airflow only
-bin/demo lineage       # Marquez only
-bin/demo catalog       # OpenMetadata + runs ingestion
-bin/demo streaming     # Confluent/Flink/Iceberg (Flink image must be pre-built)
+# Start ALL at once (heavy — ≥ 16 GB RAM recommended):
+bin/demo docker start
+
+# Check running state:
+bin/demo docker status
+
+# Stop individual or all:
+bin/demo docker stop metabase
+bin/demo docker stop
+
+# Confluent/Flink is managed separately (its own orchestrator):
+bin/demo streaming     # Flink image must be pre-built via 'bin/demo docker build'
 ```
 
 ### Metabase — port 3000
@@ -164,26 +182,30 @@ docker compose -f 07-openmetadata/openmetadata/docker-compose.yml up -d
 
 ---
 
-## Minimal startup sequence (first time)
+## Startup sequence (first time)
 
 ```bash
-# 1. Prepare .env and Python virtual environment (see Environment setup):
-cp .env.example .env          # fill in WXD_* values
-python3 -m venv .venv && source .venv/bin/activate
+# 1. Python venv + .env (see Environment setup):
+python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env          # fill in WXD_* values
 bin/demo setup
 
-# 2. Build custom images (one-time):
-docker compose build airflow-webserver          # Airflow image (~1 min)
-docker build -t wxd-flink:1.20 \
-  04-confluent-streaming/confluent/flink        # Flink image (~3–5 min)
+# 2. Build custom images (one-time, ~3–5 min):
+bin/demo docker build
 
-# 3. Start whichever services you need:
-bin/demo metabase
-bin/demo airflow
-bin/demo streaming
-bin/demo lineage
-bin/demo catalog
+# 3. Run dbt — no Docker required:
+bin/demo dbt build
+
+# 4. Start whichever UI services you need:
+bin/demo docker start metabase    # Metabase for the Gold dashboard
+bin/demo docker start airflow     # Airflow DAG scheduler
+bin/demo docker start lineage     # Marquez runtime lineage
+bin/demo docker start catalog     # OpenMetadata catalog + ingestion
+bin/demo streaming                # Confluent/Flink/Iceberg streaming path
+
+# 5. Validate across all paths:
+bin/demo validate
 ```
 
 ---

@@ -108,24 +108,42 @@ runtime that provides `docker compose` (v2).
 
 ### Build the custom images (one-time)
 
-Two services require custom Docker images. Use `bin/demo docker` to build
-both at once, or build them individually:
+Two services require custom Docker images. Build both with:
 
 ```bash
-# Build both custom images (run once, from the repo root):
-bin/demo docker
-
-# Or build individually:
-docker compose build airflow-webserver          # ~1–2 min
-docker build -t wxd-flink:1.20 \
-  04-confluent-streaming/confluent/flink        # ~3–5 min, downloads ~200 MB of JARs
+bin/demo docker build
 ```
 
-You only need to rebuild when a Dockerfile or `requirements.txt` changes (e.g.
-after a `git pull` that touches those files).
+This runs in ~3–5 minutes on first use (downloads ~200 MB of Flink JARs).
+Re-run after any `git pull` that touches a `Dockerfile` or `requirements.txt`.
+
+!!! note "dbt and Spark do NOT need Docker"
+    `bin/demo dbt build` and `bin/demo spark` talk directly to the remote
+    watsonx.data Presto/Spark engines. Only the optional UI services
+    (Metabase, Airflow, Marquez, OpenMetadata) run in Docker.
+
+### Start and stop services
+
+```bash
+# Start a single service:
+bin/demo docker start metabase     # BI dashboard    → http://localhost:3000
+bin/demo docker start airflow      # DAG scheduler   → http://localhost:8082
+bin/demo docker start lineage      # Marquez lineage → http://localhost:3001
+bin/demo docker start catalog      # OpenMetadata    → http://localhost:8585
+
+# Start all services at once (heavy — ≥ 16 GB RAM recommended):
+bin/demo docker start
+
+# Check what is running:
+bin/demo docker status
+
+# Stop individual services or all at once:
+bin/demo docker stop metabase
+bin/demo docker stop
+```
 
 See [Docker services](docker-services.md) for the full list of what each image
-contains and which services use it.
+contains, port assignments, and direct `docker compose` commands.
 
 ---
 
@@ -172,16 +190,18 @@ open -a OrbStack                  # start OrbStack (macOS); skip if already runn
 docker compose version            # must print 'Docker Compose version v2.x'
 
 # ── 3. Build custom images (once) ─────────────────────────────────────────────
-bin/demo docker
+bin/demo docker build             # Airflow + Flink images (~3–5 min first time)
 
 # ── 4. Connect to watsonx.data ────────────────────────────────────────────────
 cp .env.example .env              # fill in WXD_OC_PASSWORD and paste the JSON
 bin/demo setup                    # login, derive endpoints, write cert + tokens
 
-# ── 5. Run the baseline demo ──────────────────────────────────────────────────
+# ── 5. Run dbt (no Docker required) ──────────────────────────────────────────
 bin/demo dbt build
-bin/demo metabase
-bin/demo validate
+
+# ── 6. Start UI services and validate ────────────────────────────────────────
+bin/demo docker start metabase    # Metabase dashboard → http://localhost:3000
+bin/demo validate                 # compare Gold across all paths
 ```
 
 At the start of every subsequent session, re-activate the venv and re-run
@@ -201,7 +221,7 @@ bin/demo setup
 | `command not found: docker` | Docker runtime not running | Start OrbStack or Docker Desktop |
 | `docker compose: command not found` | Compose v1 (`docker-compose`) installed instead of v2 | Install Docker Compose plugin or use OrbStack/Docker Desktop |
 | `dbt-watsonx-presto` install fails | Wrong Python version | Use Python 3.11 (see above) |
-| `Error: image wxd-flink:1.20 not found` | Flink image not built | Run `bin/demo docker` |
+| `Error: image wxd-flink:1.20 not found` | Flink image not built | Run `bin/demo docker build` |
 | `Connection refused` on Presto | Token or cert expired | Re-run `bin/demo setup` |
 | `bin/demo dbt debug` fails with TLS error | CA cert not written | Re-run `bin/demo setup` with the connection JSON in place |
 

@@ -9,55 +9,128 @@ usage() {
   cat <<'EOF'
 Usage: bin/demo <command> [args...]
 
-Commands:
-  docker                Build the two custom Docker images required before
-                        starting Airflow or the Confluent/Flink stack.
-                        Run once after cloning, and again after a git pull
+Docker lifecycle (run in order on first use):
+  docker build          Build the two custom images (Airflow + Flink).
+                        Run once after cloning; re-run after a git pull
                         that changes a Dockerfile or requirements.txt.
+  docker start [svc...] Start Docker services. With no arguments starts ALL
+                        services (metabase, airflow, lineage, catalog).
+                        Pass one or more names to start only those:
+                          metabase  airflow  lineage  catalog
+  docker stop  [svc...] Stop services (same names as start; default: all).
+  docker status         Show running state of all demo containers.
+
+  NOTE: dbt and spark talk directly to watsonx.data -- they do NOT need
+        Docker. Start Docker services only for the optional UIs.
+
+Demo commands:
   setup                Refresh .env: login, API key, bearer token, derived
-                        endpoints/certs. Safe to re-run any time — run it
-                        first, every session (credentials expire).
-  dbt <args...>         Run dbt (for example: dbt build, dbt seed)
-  spark [args...]       Upload + submit the Spark medallion job for real
-                        (submits, waits for FINISHED, builds gold views).
-                        Pass --dry-run or --validate-config to only preview.
+                        endpoints/certs. Run first, every session.
+  dbt <args...>         Run dbt (dbt build, dbt seed, dbt debug, ...)
+  spark [args...]       Upload + submit the Spark medallion job.
+                        Pass --dry-run or --validate-config to preview.
   ingest [args...]      Run the cpdctl native-ingestion path (raw only).
                         Add --wait to block until the batch finishes.
-  streaming [args...]   Confluent (Kafka/Flink/Iceberg) stack. No args starts
-                        everything (--all); pass --silver / --gold / --status
-                        / --reset / --stop to target one stage.
-  query [args...]       Read the dbt Gold marts (default: all reports).
-  validate [args...]    Compare Gold outputs across dbt/Spark/Confluent;
-                        skips (not fails) any path not built yet.
-  reset [args...]       Safely reset demo resources (use --dry-run first)
-  metabase              Start the Metabase BI stack
-  airflow               Start the Airflow stack
-  lineage               Start the Marquez stack
-  catalog                Start OpenMetadata and ingest catalog metadata
+  streaming [args...]   Confluent (Kafka/Flink/Iceberg) stack. No args
+                        starts everything (--all); pass --silver / --gold
+                        / --status / --reset / --stop for a single stage.
+  query [args...]       Read the dbt Gold marts.
+  validate [args...]    Compare Gold outputs across dbt/Spark/Confluent.
+  reset [args...]       Safely reset demo resources (use --dry-run first).
 
-Examples:
-  bin/demo docker
-  bin/demo setup
-  bin/demo dbt build
-  bin/demo spark
-  bin/demo ingest --wait
-  bin/demo streaming --silver
-  bin/demo streaming --gold --engine spark
-  bin/demo validate
+Typical session:
+  bin/demo setup                   # refresh credentials (every session)
+  bin/demo dbt build               # no Docker needed
+  bin/demo docker start metabase   # start only Metabase for the dashboard
+  bin/demo validate                # compare Gold across paths
 EOF
 }
 
+# ---------------------------------------------------------------------------
+# Helpers used by docker start/stop
+# ---------------------------------------------------------------------------
+_docker_start_metabase() {
+  echo "==> Starting Metabase (port 3000)..."
+  docker compose -f 02-metabase/compose.yaml up -d
+}
+_docker_start_airflow() {
+  echo "==> Starting Airflow (port 8082)..."
+  docker compose up -d airflow-init
+  docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor
+}
+_docker_start_lineage() {
+  echo "==> Starting Marquez / OpenLineage (ports 3001, 5010)..."
+  docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml up -d
+}
+_docker_start_catalog() {
+  echo "==> Starting OpenMetadata (port 8585) and running ingestion..."
+  docker compose -f 07-openmetadata/openmetadata/docker-compose.yml up -d
+  bash 07-openmetadata/openmetadata/ingestion/run-ingestion.sh
+}
+
+_docker_stop_metabase() { docker compose -f 02-metabase/compose.yaml stop; }
+_docker_stop_airflow()   { docker compose stop airflow-webserver airflow-scheduler airflow-dag-processor airflow-init; }
+_docker_stop_lineage()   { docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml stop; }
+_docker_stop_catalog()   { docker compose -f 07-openmetadata/openmetadata/docker-compose.yml stop; }
+
+# ---------------------------------------------------------------------------
 case "${1:-}" in
   docker)
-    echo "==> Building Airflow image (05-airflow/airflow/Dockerfile)..."
-    docker compose build airflow-webserver airflow-scheduler airflow-dag-processor airflow-init
-    echo "==> Building Flink image wxd-flink:1.20 (04-confluent-streaming/confluent/flink/Dockerfile)..."
-    docker build -t wxd-flink:1.20 04-confluent-streaming/confluent/flink
-    echo "==> Done. Both custom images are ready."
+    subcmd="${2:-}"
+    shift 2 || shift || true
+    case "$subcmd" in
+      build)
+        echo "==> Building Airflow image (05-airflow/airflow/Dockerfile)..."
+        docker compose build airflow-webserver airflow-scheduler airflow-dag-processor airflow-init
+        echo "==> Building Flink image wxd-flink:1.20 (04-confluent-streaming/confluent/flink/Dockerfile)..."
+        docker build -t wxd-flink:1.20 04-confluent-streaming/confluent/flink
+        echo "==> Done. Both custom images are ready."
+        ;;
+      start)
+        svcs=("$@")
+        [[ ${#svcs[@]} -eq 0 ]] && svcs=(metabase airflow lineage catalog)
+        for svc in "${svcs[@]}"; do
+          case "$svc" in
+            metabase) _docker_start_metabase ;;
+            airflow)  _docker_start_airflow  ;;
+            lineage)  _docker_start_lineage  ;;
+            catalog)  _docker_start_catalog  ;;
+            *) echo "Unknown service: $svc (valid: metabase airflow lineage catalog)" >&2; exit 2 ;;
+          esac
+        done
+        ;;
+      stop)
+        svcs=("$@")
+        [[ ${#svcs[@]} -eq 0 ]] && svcs=(metabase airflow lineage catalog)
+        for svc in "${svcs[@]}"; do
+          case "$svc" in
+            metabase) _docker_stop_metabase ;;
+            airflow)  _docker_stop_airflow  ;;
+            lineage)  _docker_stop_lineage  ;;
+            catalog)  _docker_stop_catalog  ;;
+            *) echo "Unknown service: $svc (valid: metabase airflow lineage catalog)" >&2; exit 2 ;;
+          esac
+        done
+        ;;
+      status)
+        echo "==> Demo container status:"
+        docker compose -f 02-metabase/compose.yaml ps 2>/dev/null || true
+        docker compose ps airflow-webserver airflow-scheduler airflow-dag-processor 2>/dev/null || true
+        docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml ps 2>/dev/null || true
+        docker compose -f 07-openmetadata/openmetadata/docker-compose.yml ps 2>/dev/null || true
+        ;;
+      '') echo "Usage: bin/demo docker <build|start|stop|status>" >&2; exit 2 ;;
+      *)  echo "Unknown docker subcommand: $subcmd" >&2
+          echo "Usage: bin/demo docker <build|start|stop|status>" >&2; exit 2 ;;
+    esac
     ;;
   setup) shift; exec python3 scripts/00a_prepare_watsonx_env.py "$@" ;;
   dbt) shift; exec bash scripts/02_dbt_env.sh "$@" ;;
-  metabase) docker compose -f 02-metabase/compose.yaml up -d ;;
+  # Legacy aliases kept so existing notes/muscle-memory still work:
+  metabase) _docker_start_metabase ;;
+  airflow)  _docker_start_airflow  ;;
+  lineage)  _docker_start_lineage  ;;
+  catalog)  _docker_start_catalog  ;;
   spark)
     shift
     python3 scripts/03a_upload_spark_assets.py
@@ -66,9 +139,6 @@ case "${1:-}" in
   ingest) shift; exec python3 scripts/04_ingest_with_cpdctl.py "$@" ;;
   query) shift; exec python3 scripts/05_query_gold.py "$@" ;;
   streaming) shift; exec bash 04-confluent-streaming/confluent/start.sh "$@" ;;
-  airflow) docker compose up -d airflow-init && docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor ;;
-  lineage) docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml up -d ;;
-  catalog) docker compose -f 07-openmetadata/openmetadata/docker-compose.yml up -d && bash 07-openmetadata/openmetadata/ingestion/run-ingestion.sh ;;
   validate) shift; exec python3 scripts/reconcile_gold.py "$@" ;;
   reset) shift; exec bash scripts/11_reset_demo.sh "$@" ;;
   -h|--help|help|'') usage ;;
