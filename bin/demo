@@ -10,6 +10,10 @@ usage() {
 Usage: bin/demo <command> [args...]
 
 Commands:
+  docker                Build the two custom Docker images required before
+                        starting Airflow or the Confluent/Flink stack.
+                        Run once after cloning, and again after a git pull
+                        that changes a Dockerfile or requirements.txt.
   setup                Refresh .env: login, API key, bearer token, derived
                         endpoints/certs. Safe to re-run any time — run it
                         first, every session (credentials expire).
@@ -32,6 +36,7 @@ Commands:
   catalog                Start OpenMetadata and ingest catalog metadata
 
 Examples:
+  bin/demo docker
   bin/demo setup
   bin/demo dbt build
   bin/demo spark
@@ -43,6 +48,13 @@ EOF
 }
 
 case "${1:-}" in
+  docker)
+    echo "==> Building Airflow image (05-airflow/airflow/Dockerfile)..."
+    docker compose build airflow-webserver airflow-scheduler airflow-dag-processor airflow-init
+    echo "==> Building Flink image wxd-flink:1.20 (04-confluent-streaming/confluent/flink/Dockerfile)..."
+    docker build -t wxd-flink:1.20 04-confluent-streaming/confluent/flink
+    echo "==> Done. Both custom images are ready."
+    ;;
   setup) shift; exec python3 scripts/00a_prepare_watsonx_env.py "$@" ;;
   dbt) shift; exec bash scripts/02_dbt_env.sh "$@" ;;
   metabase) docker compose -f 02-metabase/compose.yaml up -d ;;

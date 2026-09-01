@@ -109,5 +109,6 @@ nav:
   - Reference:
     - Access and interfaces: demo/access.md
     - Environment setup: demo/environment.md
+    - Docker services: demo/docker-services.md
     - Scripts and automation: demo/scripts.md
     - Glossary: demo/glossary.md
