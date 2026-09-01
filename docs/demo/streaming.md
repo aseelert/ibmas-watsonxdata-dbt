@@ -147,8 +147,8 @@ DataStage flows API only exists on a CP4D cluster with the DataStage
 cartridge installed. There is no way to validate the POST offline." Both
 engines write the same `confluent_gold_daily_sales`,
 `confluent_gold_category_performance`, and `confluent_gold_customer_360`
-marts, so `scripts/reconcile_gold.py --paths dbt,confluent` can compare either
-one against the dbt baseline.
+marts, so `bin/demo validate --paths dbt,confluent` can compare either one
+against the dbt baseline.
 
 ## 3. Confluent's pieces versus plain open-source Kafka
 
@@ -213,9 +213,9 @@ because they need a reachable MinIO endpoint first:
 ```bash
 bash 04-confluent-streaming/confluent/scripts/expose_minio_route.sh   # once: exposes MinIO via an OpenShift Route
 # paste the printed WXD_OBJECT_STORE_ENDPOINT into .env, then:
-bash 04-confluent-streaming/confluent/start.sh --silver               # Flink silver pipeline → confluent_demo_silver
-bash 04-confluent-streaming/confluent/start.sh --gold --engine spark  # or --engine datastage
-python3 scripts/reconcile_gold.py --paths dbt,confluent
+bin/demo streaming --silver               # Flink silver pipeline → confluent_demo_silver
+bin/demo streaming --gold --engine spark  # or --engine datastage
+bin/demo validate --paths dbt,confluent
 ```
 
 Other actions worth knowing: `--stack` starts only the containers (no topics,

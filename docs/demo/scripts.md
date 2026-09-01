@@ -109,7 +109,7 @@ application that reads assets from object storage and writes Iceberg tables.
 
 | Script | Purpose | Read-only or mutates? |
 | --- | --- | --- |
-| `scripts/04_ingest_with_cpdctl.py` | Demonstrates native watsonx.data ingestion through `cpdctl`; this lands data and does not replace downstream transformation | Mutates; writes raw data into Iceberg |
+| `scripts/04_ingest_with_cpdctl.py` (`bin/demo ingest`) | Demonstrates native watsonx.data ingestion through `cpdctl`; this lands data and does not replace downstream transformation — see [Ingest to Bronze](ingestion.md#a-path-that-stops-at-raw-on-purpose-cpdctl-native-ingestion) for the flow diagram | Mutates; writes raw data into Iceberg |
 | `scripts/05_query_gold.py` | Runs readable Gold-level verification queries | Read-only |
 | `scripts/06_demo_time_travel.py` | Demonstrates Iceberg snapshot/time-travel behavior where the target engine supports the query | Read-only |
 | `scripts/create_gold_views.py` | Creates the `gold_category_performance` and `gold_customer_360` marts as Presto **views** for the Spark or Confluent path, using the exact SQL from the dbt models, so all three paths agree on shape (table vs. view) as well as rows. It is idempotent: it `DROP`s whatever already exists at each name (table or view) before creating the view | Mutates; issues `DROP` and `CREATE VIEW` against the shared Iceberg catalog |

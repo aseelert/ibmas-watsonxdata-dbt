@@ -217,7 +217,7 @@ bin/demo spark        # validate-config only; never submits
 marts across paths:
 
 ```bash
-python3 scripts/reconcile_gold.py --paths dbt,spark
+bin/demo validate --paths dbt,spark
 ```
 
 This runs a symmetric `EXCEPT` in both directions between the dbt and Spark

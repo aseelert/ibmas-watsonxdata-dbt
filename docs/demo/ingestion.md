@@ -14,6 +14,42 @@ flowchart LR
   B -->|dbt Bronze SQL| C[iceberg_data.dbt_demo_bronze]
 ```
 
+This is deliberately the *shortest* diagram in the workshop: `dbt seed` is a
+teaching fixture, not a source-ingestion mechanism, and its only job is to
+hand a durable Raw table to the Bronze model. For what the platform's own
+native ingestion path looks like when it is the real subject rather than a
+setup step, see the next section.
+
+## A path that stops at Raw on purpose: cpdctl native ingestion
+
+This repository has a fourth path, next to dbt ([dbt.md](dbt.md)), Spark
+([spark.md](spark.md)), and Confluent ([streaming.md](streaming.md)):
+[`scripts/04_ingest_with_cpdctl.py`](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/scripts/04_ingest_with_cpdctl.py),
+run through `bin/demo ingest`. It uses `cpdctl`, IBM Cloud Pak for Data's own
+CLI, to submit the same four seed CSVs as native watsonx.data ingestion jobs —
+the platform's own connector-based load mechanism, not a SQL `INSERT` or a
+Spark job you authored.
+
+```mermaid
+flowchart LR
+  csv["4 seed CSVs\n01-dbt/seeds/"] --> cpdctl["cpdctl ingest\n(scripts/04_ingest_with_cpdctl.py)"]
+  cpdctl --> raw["iceberg_data.spark_demo_cpdctl_raw\n(WXD_INGEST_SCHEMA)"]
+  raw -.->|deliberately not built here| next["Bronze / Silver / Gold"]
+```
+
+This is the other side of the same distinction the table above draws: cpdctl
+lands data and nothing more — there is no Bronze model, no Silver model, no
+Gold mart, and it is intentionally excluded from `reconcile_gold.py` /
+`bin/demo validate`, because it produces no Gold contract to reconcile.
+Compare that to dbt seed, above, which is also "just ingestion" but exists
+purely to feed a transformation pipeline one step later. The two diagrams look
+almost identical up to the Raw table; what happens after Raw is the entire
+point of this page.
+
+```bash
+bin/demo ingest --wait   # submits + polls all four jobs to a terminal state
+```
+
 ## Loading is not transformation
 
 The distinction matters when presenting the demo. A load moves source-shaped
