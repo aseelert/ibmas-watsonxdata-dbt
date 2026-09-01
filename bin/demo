@@ -14,9 +14,9 @@ Docker lifecycle (run in order on first use):
                         Run once after cloning; re-run after a git pull
                         that changes a Dockerfile or requirements.txt.
   docker start [svc...] Start Docker services. With no arguments starts ALL
-                        services (metabase, airflow, lineage, catalog).
+                        services (metabase, airflow, lineage, catalog, streaming).
                         Pass one or more names to start only those:
-                          metabase  airflow  lineage  catalog
+                          metabase  airflow  lineage  catalog  streaming
   docker stop  [svc...] Stop services (same names as start; default: all).
   docker status         Show running state of all demo containers.
 
@@ -31,18 +31,23 @@ Demo commands:
                         Pass --dry-run or --validate-config to preview.
   ingest [args...]      Run the cpdctl native-ingestion path (raw only).
                         Add --wait to block until the batch finishes.
-  streaming [args...]   Confluent (Kafka/Flink/Iceberg) stack. No args
-                        starts everything (--all); pass --silver / --gold
-                        / --status / --reset / --stop for a single stage.
+  streaming [args...]   Confluent pipeline orchestrator (Kafka/Flink/Iceberg).
+                        No args = full bring-up; pass --silver / --gold /
+                        --status / --reset / --stop for one stage.
+                        NOTE: use 'docker start streaming' to start
+                        containers only; this command runs the full pipeline.
+  catalog               Run OpenMetadata ingestion (containers must be
+                        running; use 'docker start catalog' first).
   query [args...]       Read the dbt Gold marts.
   validate [args...]    Compare Gold outputs across dbt/Spark/Confluent.
   reset [args...]       Safely reset demo resources (use --dry-run first).
 
 Typical session:
-  bin/demo setup                   # refresh credentials (every session)
-  bin/demo dbt build               # no Docker needed
-  bin/demo docker start metabase   # start only Metabase for the dashboard
-  bin/demo validate                # compare Gold across paths
+  bin/demo setup                    # refresh credentials (every session)
+  bin/demo dbt build                # no Docker needed
+  bin/demo docker start             # start ALL services (or pick one)
+  bin/demo docker status            # verify all containers are running
+  bin/demo validate                 # compare Gold across paths
 EOF
 }
 
@@ -51,7 +56,7 @@ EOF
 # ---------------------------------------------------------------------------
 _docker_start_metabase() {
   echo "==> Starting Metabase (port 3000)..."
-  docker compose -f 02-metabase/compose.yaml up -d
+  docker compose up -d metabase-postgres metabase metabase-provision
 }
 _docker_start_airflow() {
   echo "==> Starting Airflow (port 8082)..."
@@ -60,18 +65,22 @@ _docker_start_airflow() {
 }
 _docker_start_lineage() {
   echo "==> Starting Marquez / OpenLineage (ports 3001, 5010)..."
-  docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml up -d
+  docker compose up -d marquez-db marquez-api marquez-web
 }
 _docker_start_catalog() {
-  echo "==> Starting OpenMetadata (port 8585) and running ingestion..."
-  docker compose -f 07-openmetadata/openmetadata/docker-compose.yml up -d
-  bash 07-openmetadata/openmetadata/ingestion/run-ingestion.sh
+  echo "==> Starting OpenMetadata (port 8585)..."
+  docker compose up -d mysql elasticsearch execute-migrate-all openmetadata-server ingestion
+}
+_docker_start_streaming() {
+  echo "==> Starting Confluent / Flink / Iceberg (ports 29092, 28080-28085, 28181)..."
+  docker compose up -d confluent-kafka confluent-schema-registry confluent-kafbat-ui confluent-iceberg-rest confluent-flink-jobmanager confluent-flink-taskmanager confluent-flink-sql-gateway
 }
 
-_docker_stop_metabase() { docker compose -f 02-metabase/compose.yaml stop; }
-_docker_stop_airflow()   { docker compose stop airflow-webserver airflow-scheduler airflow-dag-processor airflow-init; }
-_docker_stop_lineage()   { docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml stop; }
-_docker_stop_catalog()   { docker compose -f 07-openmetadata/openmetadata/docker-compose.yml stop; }
+_docker_stop_metabase()   { docker compose stop metabase metabase-postgres metabase-provision; }
+_docker_stop_airflow()    { docker compose stop airflow-webserver airflow-scheduler airflow-dag-processor airflow-init; }
+_docker_stop_lineage()    { docker compose stop marquez-web marquez-api marquez-db; }
+_docker_stop_catalog()    { docker compose stop ingestion openmetadata-server execute-migrate-all elasticsearch mysql; }
+_docker_stop_streaming()  { docker compose stop confluent-flink-sql-gateway confluent-flink-taskmanager confluent-flink-jobmanager confluent-iceberg-rest confluent-kafbat-ui confluent-schema-registry confluent-kafka; }
 
 # ---------------------------------------------------------------------------
 case "${1:-}" in
@@ -88,36 +97,37 @@ case "${1:-}" in
         ;;
       start)
         svcs=("$@")
-        [[ ${#svcs[@]} -eq 0 ]] && svcs=(metabase airflow lineage catalog)
+        [[ ${#svcs[@]} -eq 0 ]] && svcs=(metabase airflow lineage catalog streaming)
         for svc in "${svcs[@]}"; do
           case "$svc" in
-            metabase) _docker_start_metabase ;;
-            airflow)  _docker_start_airflow  ;;
-            lineage)  _docker_start_lineage  ;;
-            catalog)  _docker_start_catalog  ;;
-            *) echo "Unknown service: $svc (valid: metabase airflow lineage catalog)" >&2; exit 2 ;;
+            metabase)  _docker_start_metabase  ;;
+            airflow)   _docker_start_airflow   ;;
+            lineage)   _docker_start_lineage   ;;
+            catalog)   _docker_start_catalog   ;;
+            streaming) _docker_start_streaming ;;
+            *) echo "Unknown service: $svc (valid: metabase airflow lineage catalog streaming)" >&2; exit 2 ;;
           esac
         done
         ;;
       stop)
         svcs=("$@")
-        [[ ${#svcs[@]} -eq 0 ]] && svcs=(metabase airflow lineage catalog)
+        [[ ${#svcs[@]} -eq 0 ]] && svcs=(metabase airflow lineage catalog streaming)
         for svc in "${svcs[@]}"; do
           case "$svc" in
-            metabase) _docker_stop_metabase ;;
-            airflow)  _docker_stop_airflow  ;;
-            lineage)  _docker_stop_lineage  ;;
-            catalog)  _docker_stop_catalog  ;;
-            *) echo "Unknown service: $svc (valid: metabase airflow lineage catalog)" >&2; exit 2 ;;
+            metabase)  _docker_stop_metabase  ;;
+            airflow)   _docker_stop_airflow   ;;
+            lineage)   _docker_stop_lineage   ;;
+            catalog)   _docker_stop_catalog   ;;
+            streaming) _docker_stop_streaming ;;
+            *) echo "Unknown service: $svc (valid: metabase airflow lineage catalog streaming)" >&2; exit 2 ;;
           esac
         done
         ;;
       status)
-        echo "==> Demo container status:"
-        docker compose -f 02-metabase/compose.yaml ps 2>/dev/null || true
-        docker compose ps airflow-webserver airflow-scheduler airflow-dag-processor 2>/dev/null || true
-        docker compose -f 06-openlineage-marquez/openlineage-marquez/docker-compose.yml ps 2>/dev/null || true
-        docker compose -f 07-openmetadata/openmetadata/docker-compose.yml ps 2>/dev/null || true
+        # All stacks share the same project name (ibmas-watsonxdata-dbt) so
+        # one 'docker compose ps' from the root compose shows everything.
+        echo "==> Demo container status (project: ibmas-watsonxdata-dbt):"
+        docker compose ps 2>/dev/null || true
         ;;
       '') echo "Usage: bin/demo docker <build|start|stop|status>" >&2; exit 2 ;;
       *)  echo "Unknown docker subcommand: $subcmd" >&2
@@ -127,10 +137,14 @@ case "${1:-}" in
   setup) shift; exec python3 scripts/00a_prepare_watsonx_env.py "$@" ;;
   dbt) shift; exec bash scripts/02_dbt_env.sh "$@" ;;
   # Legacy aliases kept so existing notes/muscle-memory still work:
-  metabase) _docker_start_metabase ;;
-  airflow)  _docker_start_airflow  ;;
-  lineage)  _docker_start_lineage  ;;
-  catalog)  _docker_start_catalog  ;;
+  metabase)  _docker_start_metabase ;;
+  airflow)   _docker_start_airflow  ;;
+  lineage)   _docker_start_lineage  ;;
+  catalog)
+    # Legacy: start containers then run ingestion (same as old behaviour)
+    _docker_start_catalog
+    bash 07-openmetadata/openmetadata/ingestion/run-ingestion.sh
+    ;;
   spark)
     shift
     python3 scripts/03a_upload_spark_assets.py
