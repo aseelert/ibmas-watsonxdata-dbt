@@ -41,6 +41,8 @@ x-flink-common: &flink-common
     - ../../.env
   restart: unless-stopped
 
+name: ibmas-watsonxdata-dbt
+
 services:
   # ---------------------------------------------------------------------------
   # Kafka — KRaft mode, no Zookeeper

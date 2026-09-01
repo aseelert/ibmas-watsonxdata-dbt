@@ -65,6 +65,8 @@
 #          OpenMetadata 8585 · macOS AirPlay 5000 · OrbStack 5001/5011).
 # =============================================================================
 
+name: ibmas-watsonxdata-dbt
+
 services:
   marquez-db:
     image: postgres:16

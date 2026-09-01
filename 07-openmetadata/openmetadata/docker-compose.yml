@@ -42,6 +42,9 @@ volumes:
   ingestion-volume-dags:
   ingestion-volume-tmp:
   es-data:
+
+name: ibmas-watsonxdata-dbt
+
 services:
   mysql:
     container_name: openmetadata_mysql
