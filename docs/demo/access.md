@@ -3,14 +3,24 @@
 Use this page as the demo console index. Services are available only after the
 corresponding command has been started. All URLs are local unless noted.
 
+All Docker services share one project (`ibmas-watsonxdata-dbt`) and are managed
+with `bin/demo docker start|stop|status`. Start individual services or all at once:
+
+```bash
+bin/demo docker start              # all services
+bin/demo docker start metabase     # one service
+bin/demo docker status             # check what is running
+bin/demo docker stop               # stop all
+```
+
 | Audience | Service | URL / port | Start command | Purpose |
 | --- | --- | --- | --- | --- |
-| Business user | Metabase | [http://localhost:3000](http://localhost:3000) | `bin/demo metabase` | Gold dashboard and ad-hoc analysis |
-| Demo operator | Airflow | [http://localhost:8082](http://localhost:8082) | `bin/demo airflow` | DAG schedule, runs, and task logs |
-| Demo operator | Kafbat | [http://localhost:28080](http://localhost:28080) | `bin/demo streaming` | Kafka topics, consumers, and messages |
-| Demo operator | Flink | [http://localhost:28085](http://localhost:28085) | `bin/demo streaming` | Streaming jobs, checkpoints, and task state |
-| Data engineer | Marquez | [http://localhost:3001](http://localhost:3001) | `bin/demo lineage` | Runtime lineage graph |
-| Data steward | OpenMetadata | [http://localhost:8585](http://localhost:8585) | `bin/demo catalog` | Catalog, dbt lineage, glossary, and governance |
+| Business user | Metabase | [http://localhost:3000](http://localhost:3000) | `bin/demo docker start metabase` | Gold dashboard and ad-hoc analysis |
+| Demo operator | Airflow | [http://localhost:8082](http://localhost:8082) | `bin/demo docker start airflow` | DAG schedule, runs, and task logs |
+| Demo operator | Kafbat | [http://localhost:28080](http://localhost:28080) | `bin/demo docker start streaming` | Kafka topics, consumers, and messages |
+| Demo operator | Flink | [http://localhost:28085](http://localhost:28085) | `bin/demo docker start streaming` | Streaming jobs, checkpoints, and task state |
+| Data engineer | Marquez | [http://localhost:3001](http://localhost:3001) | `bin/demo docker start lineage` | Runtime lineage graph |
+| Data steward | OpenMetadata | [http://localhost:8585](http://localhost:8585) | `bin/demo docker start catalog` | Catalog, dbt lineage, glossary, and governance |
 | Platform user | watsonx.data | CPD URL configured for the environment | `bin/demo setup` | Iceberg catalog, Presto, Spark applications, and object storage |
 
 ## Service APIs and technical endpoints

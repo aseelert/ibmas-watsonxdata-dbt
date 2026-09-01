@@ -256,9 +256,21 @@ Spark DAG); nothing cluster-specific is hardcoded in the DAG files themselves.
 it is single-purpose plumbing for this stack) and the OCP installer below
 implement the runtime-lineage view described in [Lineage methods](lineage.md).
 
+!!! note "Why watsonx_presto needs a runtime patch for OpenLineage"
+    The `openlineage-dbt` library's internal `Adapter` enum only covers adapters
+    it explicitly supports — `trino`, `bigquery`, `snowflake`, etc. The
+    `watsonx_presto` dbt adapter is not in that list, so without intervention
+    every `dbt build` would silently skip OpenLineage emission with a
+    `NotImplementedError`. The fix is a runtime monkey-patch: the script adds
+    `WATSONX_PRESTO` to the `Adapter` enum and rewires `extract_adapter_type`
+    and `extract_namespace` to treat it as Trino, producing a `trino://` dataset
+    namespace in Marquez — which is correct because watsonx.data Presto is
+    API-compatible with Trino. The patch is applied before the `DbtLocalArtifactProcessor`
+    is instantiated and is invisible to the rest of the run.
+
 | Script | Purpose | Read-only or mutates? |
 | --- | --- | --- |
-| `scripts/emit_openlineage_events.py` | Patches the `openlineage-dbt` (`dbt-ol`) library at runtime to recognize the `watsonx_presto` adapter — which it does not natively support — by extending its adapter enum, mapping it to Trino, and building a `trino://` dataset namespace, then emits the OpenLineage events for a completed dbt run to Marquez | Mutates the external Marquez instance (posts run events); called automatically by `scripts/02_dbt_env.sh` after a successful dbt run, not normally run standalone |
+| `scripts/emit_openlineage_events.py` | Patches the `openlineage-dbt` library at runtime to add `WATSONX_PRESTO` to its `Adapter` enum (mapped to `TRINO`) and emits OpenLineage events for a completed dbt run to Marquez. Called automatically by `scripts/02_dbt_env.sh` after a successful dbt run; no-ops if `OPENLINEAGE_URL` is not set | Mutates the external Marquez instance (posts run events); not normally run standalone |
 | `06-openlineage-marquez/openlineage-marquez/ocp/install-marquez-ocp.sh` | Deploys Marquez (the OpenLineage metadata server) onto the shared OpenShift cluster: a dedicated EDB PostgreSQL 16 cluster, the Marquez Helm chart pulled from GitHub, and OpenShift Routes for ingress. `--uninstall` reverses it; `--dry-run` previews every command | Mutates the OpenShift cluster (creates a Postgres cluster, a Helm release, and Routes in `cpd-instance`). This is cluster infrastructure, not workshop data — treat it like the [cluster operations](#cluster-operations-outside-the-demo-lifecycle) scripts above |
 
 ## OpenMetadata

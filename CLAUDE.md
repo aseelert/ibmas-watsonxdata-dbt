@@ -100,8 +100,12 @@ bin/demo validate
 mkdocs serve                              # http://127.0.0.1:8000, live-reloads docs/
 mkdocs build --strict                     # fail on broken links — use in CI
 
-# Optional local services (Airflow, Metabase, OpenMetadata)
-docker compose up -d
+# Docker lifecycle (one project: ibmas-watsonxdata-dbt)
+bin/demo docker build          # build Airflow + Flink images (once after clone)
+bin/demo docker start          # start all services (metabase/airflow/lineage/catalog/streaming)
+bin/demo docker start metabase # start one service
+bin/demo docker stop           # stop all
+bin/demo docker status         # show all container states
 ```
 
 There is no application test suite — "tests" means `dbt test` (schema/data tests defined in
