@@ -24,6 +24,8 @@ Docker lifecycle (run in order on first use):
         Docker. Start Docker services only for the optional UIs.
 
 Demo commands:
+  doctor               Check .env, connection JSON, CA cert, token and Docker.
+                        Read-only; prints warnings with the exact fix.
   setup                Refresh .env: login, API key, bearer token, derived
                         endpoints/certs. Run first, every session.
   dbt <args...>         Run dbt (dbt build, dbt seed, dbt debug, ...)
@@ -83,7 +85,79 @@ _docker_stop_catalog()    { docker compose stop ingestion openmetadata-server ex
 _docker_stop_streaming()  { docker compose stop confluent-flink-sql-gateway confluent-flink-taskmanager confluent-flink-jobmanager confluent-iceberg-rest confluent-kafbat-ui confluent-schema-registry confluent-kafka; }
 
 # ---------------------------------------------------------------------------
+# Soft preflight: WARN (never fail) and pause 5 s so a person or an agent
+# notices. Silence with WXD_SKIP_PREFLIGHT=1. 'dbt' has its own in 02_dbt_env.sh.
+# ---------------------------------------------------------------------------
+PF_WARNINGS=0
+_pf_warn() { PF_WARNINGS=$((PF_WARNINGS+1)); echo "  ⚠  $*" >&2; }
+_env_val() {
+  grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2- \
+    | sed -E 's/[[:space:]]+#.*$//; s/^["'"'"']//; s/["'"'"']$//'
+}
+_is_unset() { [[ -z "$1" || "$1" =~ ^(replace-with-|your-|changeme|todo|placeholder|\<) ]]; }
+
+_pf_env() {   # $1 = "wait" to pause 5 s when something is wrong
+  local before=$PF_WARNINGS v
+  if [[ ! -f .env ]]; then
+    _pf_warn ".env is missing -> run: cp .env.example .env && bin/demo setup  (set WXD_OC_PASSWORD first)"
+  else
+    for v in WXD_HOST WXD_INSTANCE_ID WXD_API_KEY; do
+      if _is_unset "$(_env_val $v)"; then
+        _pf_warn "$v is empty or still a placeholder in .env -> run: bin/demo setup"
+      fi
+    done
+  fi
+  if [[ ! -f watsonx_data/instance_details.json ]]; then
+    _pf_warn "watsonx_data/instance_details.json missing -> 'bin/demo setup' builds it from the cluster if 'oc' is logged in; otherwise export it from the watsonx.data UI (Infrastructure > Engines > Presto > Connection info)"
+  elif [[ -f .env ]]; then
+    local jid jhost
+    jid=$(python3 - <<'PY' 2>/dev/null
+import json
+d={x["name"]:x["value"] for x in json.load(open("watsonx_data/instance_details.json"))["properties"]["connection"]}
+print(d.get("instance_id",""), d.get("engine_host",""))
+PY
+)
+    jhost=${jid#* }; jid=${jid%% *}
+    if [[ -n "$jid" && "$jid" != "$(_env_val WXD_INSTANCE_ID)" ]] || [[ -n "$jhost" && "$jhost" != "$(_env_val WXD_HOST)" ]]; then
+      _pf_warn ".env and watsonx_data/instance_details.json disagree (instance/host) -> run: bin/demo setup --overwrite"
+    fi
+  fi
+  [[ -f certs/watsonxdata-ca.pem ]] || _pf_warn "certs/watsonxdata-ca.pem missing (TLS will fail) -> run: bin/demo setup"
+  if [[ $PF_WARNINGS -gt $before && "${1:-}" == "wait" ]]; then
+    echo "  Continuing in 5 s (WXD_SKIP_PREFLIGHT=1 silences this)..." >&2; sleep 5
+  fi
+}
+
+_pf_docker() {
+  local before=$PF_WARNINGS
+  if ! command -v docker >/dev/null 2>&1; then
+    _pf_warn "no 'docker' CLI found. Needed ONLY for Metabase, lineage, Airflow, catalog, streaming (dbt/Spark/ingest do not need it)"
+  elif ! docker info >/dev/null 2>&1; then
+    _pf_warn "Docker is installed but not running. Needed ONLY for Metabase, lineage, Airflow, catalog, streaming -> start Docker Desktop / OrbStack / Podman"
+  fi
+  if [[ $PF_WARNINGS -gt $before && "${1:-}" == "wait" ]]; then
+    echo "  Continuing in 5 s (WXD_SKIP_PREFLIGHT=1 silences this)..." >&2; sleep 5
+  fi
+}
+
+if [[ "${WXD_SKIP_PREFLIGHT:-}" != "1" ]]; then
+  case "${1:-}" in
+    spark|ingest|query|validate|reset|streaming) _pf_env wait ;;
+  esac
+  case "${1:-}" in
+    streaming|metabase|airflow|lineage|catalog) _pf_docker wait ;;
+    docker) [[ "${2:-}" == "build" || "${2:-}" == "start" ]] && _pf_docker wait ;;
+  esac
+fi
+
+# ---------------------------------------------------------------------------
 case "${1:-}" in
+  doctor)
+    echo "==> bin/demo doctor (read-only)"
+    _pf_env; _pf_docker
+    if [[ -x .venv/bin/python3 && -f scripts/refresh_token.py ]]; then .venv/bin/python3 scripts/refresh_token.py --check 2>&1 | tail -2 || true; fi
+    if [[ $PF_WARNINGS -eq 0 ]]; then echo "  ✓ no problems found"; else echo "  $PF_WARNINGS warning(s) above; none are fatal by themselves."; fi
+    ;;
   docker)
     subcmd="${2:-}"
     shift 2 || shift || true

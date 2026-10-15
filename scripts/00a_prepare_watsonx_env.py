@@ -845,6 +845,153 @@ def _in_hosts_file(host: str) -> bool:
         return False
 
 
+def _generate_presto_json_from_cluster(path: Path, namespace: str) -> bool:
+    """Build watsonx_data/instance_details.json from the live cluster via ``oc``.
+
+    Used only when the file is missing and ``oc`` is already logged in, so a
+    first-time user is not blocked on the manual UI export.  Writes the same
+    ``properties.connection`` structure the UI export has.  Returns True on
+    success.  Re-export from the UI at any time to replace it.
+    """
+    import shutil
+
+    def _oc(*a: str) -> str:
+        try:
+            return subprocess.run(["oc", *a], capture_output=True, text=True, timeout=30).stdout
+        except (subprocess.TimeoutExpired, OSError):
+            return ""
+
+    routes = _oc("get", "route", "-n", namespace, "-o",
+                 "jsonpath={range .items[*]}{.spec.host}{\"\\n\"}{end}").split()
+    engines = [h for h in routes if "-presto-svc" in h]
+    cpd = [h for h in routes if h.startswith("cpd-")]
+    m = re.search(r'lhServiceInstanceId:\s*"?(\d+)"?', _oc("get", "wxd", "-n", namespace, "-o", "yaml"))
+    if not (engines and cpd and m):
+        log.warning("          Could not read engine route / CPD route / instance ID from the cluster.")
+        return False
+    if len(engines) > 1:
+        log.warning("          Several Presto engines found (%s); using %s.", ", ".join(e.split(".")[0] for e in engines), engines[0].split(".")[0])
+    engine_host = engines[0]
+    em = re.search(r"-(presto[\w-]*?)-presto-svc", engine_host)
+    pem = ""
+    if shutil.which("openssl"):
+        try:
+            out = subprocess.run(
+                ["openssl", "s_client", "-showcerts", "-servername", engine_host, "-connect", f"{engine_host}:443"],
+                input="", capture_output=True, text=True, timeout=20,
+            ).stdout
+            pem = "\n".join(re.findall(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", out, flags=re.DOTALL))
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+    conn = [
+        ("instance_id", m.group(1)), ("engine_host", engine_host),
+        ("engine_id", em.group(1) if em else "presto"), ("engine_port", "443"),
+        ("host", cpd[0]), ("deployment_type", "software_ent"),
+        ("ssl_certificate", pem), ("port", "443"), ("ssl", "true"), ("engine_type", "presto"),
+    ]
+    conn = [(k, v) for k, v in conn if v]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"connection_name": "generated-from-cluster",
+                                "properties": {"connection": [{"name": k, "value": v} for k, v in conn]}}, indent=2),
+                    encoding="utf-8")
+    log.warning("          Generated %s from the live cluster (no UI export was found).", _relative(path))
+    log.warning("          Optional: re-export it from the watsonx.data UI to replace this.")
+    return True
+
+
+def _live_drift_check(presto: dict, namespace: str, apply: bool = False) -> bool:
+    """Compare the connection JSON with the live cluster. Never fails.
+
+    After a cluster/instance rebuild an old export still parses fine but points
+    at a Presto engine and instance ID that no longer exist, which surfaces much
+    later as a confusing 503/401 in dbt.  The cluster is the source of truth:
+    with ``apply`` (= --overwrite) the live values replace the stale ones in
+    ``presto`` (in place); otherwise we warn, wait 5 s and print the exact fix.
+    Returns True when drift was found.
+    """
+    live: dict[str, str] = {}
+    try:
+        r = subprocess.run(
+            ["oc", "get", "route", "-n", namespace, "-o",
+             "jsonpath={range .items[*]}{.spec.host}{\"\\n\"}{end}"],
+            capture_output=True, text=True, timeout=30,
+        )
+        hosts = [h for h in r.stdout.split() if "-presto-svc" in h]
+        json_host = presto.get("engine_host", "")
+        if hosts and json_host and json_host not in hosts:
+            live["engine_host"] = hosts[0]
+            m = re.search(r"-(presto[\w-]*?)-presto-svc", hosts[0])
+            if m:
+                live["engine_id"] = m.group(1)
+        w = subprocess.run(["oc", "get", "wxd", "-n", namespace, "-o", "yaml"],
+                           capture_output=True, text=True, timeout=30)
+        m = re.search(r'lhServiceInstanceId:\s*"?(\d+)"?', w.stdout)
+        json_id = presto.get("instance_id", "")
+        if m and json_id and m.group(1) != json_id:
+            live["instance_id"] = m.group(1)
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    if not live:
+        log.info("          Connection JSON matches the live cluster.")
+        return False
+    log.warning("")
+    log.warning("  ⚠  watsonx_data/instance_details.json IS STALE (cluster or Presto engine was re-provisioned):")
+    for k, v in live.items():
+        log.warning("       - %-12s JSON: %-45s live cluster: %s", k, presto.get(k, "?"), v)
+    if apply:
+        presto.update(live)
+        log.warning("     --overwrite given: using the LIVE cluster values above instead of the stale JSON.")
+        log.warning("     (Re-export the JSON later to silence this: UI → Infrastructure → Engines → Presto → ⋮ → Connection info.)")
+        return True
+    log.warning("     FIX (pick one):")
+    log.warning("       a) bin/demo setup --overwrite     ← uses the live cluster values, no re-export needed")
+    log.warning("       b) re-export the JSON from the watsonx.data UI into watsonx_data/instance_details.json")
+    log.warning("     Continuing in 5 s -- without the fix dbt fails later with 503/401.")
+    time.sleep(5)
+    return True
+
+
+def _docker_check() -> None:
+    """Soft, non-fatal hint: is a container runtime up for the OPTIONAL stacks?
+
+    Metabase, Marquez lineage, Airflow, OpenMetadata and the Confluent/Flink
+    stack run in Docker locally. The core dbt/Spark paths do NOT need it, so
+    this only WARNs (never errors) and pauses 5 s so a human -- or an agent
+    reading the log -- notices. Set WXD_SKIP_DOCKER_CHECK=1 to silence it.
+    """
+    if os.environ.get("WXD_SKIP_DOCKER_CHECK") == "1":
+        return
+    import shutil
+
+    problem = None
+    if not shutil.which("docker"):
+        problem = "no 'docker' CLI found on PATH"
+    else:
+        try:
+            r = subprocess.run(["docker", "info"], capture_output=True, timeout=8)
+            if r.returncode != 0:
+                problem = "Docker is installed but the daemon is not running"
+        except (subprocess.TimeoutExpired, OSError):
+            problem = "Docker did not answer within 8 s (daemon starting or hung)"
+
+    if problem is None:
+        log.info("          Docker is running -- optional stacks (Metabase, lineage, Airflow) can be started.")
+        log.info("          Start them with: bin/demo docker build (once), then bin/demo docker start")
+        return
+
+    log.warning("")
+    log.warning("  ⚠  DOCKER NOT AVAILABLE: %s.", problem)
+    log.warning("     This is only a HINT -- dbt, Spark and ingestion work without Docker.")
+    log.warning("     You need Docker (Docker Desktop / OrbStack / Podman) running ONLY if you want:")
+    log.warning("       - Metabase dashboards        (bin/demo docker start metabase)")
+    log.warning("       - Marquez / OpenLineage      (bin/demo docker start lineage)")
+    log.warning("       - Airflow, OpenMetadata, Confluent streaming")
+    log.warning("     Note: with OPENLINEAGE_URL set, dbt will warn that lineage events could not be sent.")
+    log.warning("     Continuing in 5 s -- start Docker now if you need those, or ignore this.")
+    log.warning("     (Silence with WXD_SKIP_DOCKER_CHECK=1)")
+    time.sleep(5)
+
+
 def _reachability_check(cpd_host: str, engine_host: str) -> None:
     log.info("Reachability checks (non-fatal):")
     for host in [cpd_host, engine_host]:
@@ -875,6 +1022,10 @@ def _print_diff(
     for key in changed:
         old = current.get(key, "<missing>")
         new = proposed.get(key, "<removed>")
+        if re.search(r"PASSWORD|SECRET|TOKEN|API_KEY|ACCESS_KEY", key):
+            # never print credentials, not even in a dry run
+            old = "<missing>" if key not in current else ("<placeholder>" if _is_placeholder(old) else "****")
+            new = "<removed>" if key not in proposed else "****"
         # Truncate long values for readability
         old_disp = (old[:38] + "…") if len(old) > 40 else old
         new_disp = (new[:48] + "…") if len(new) > 50 else new
@@ -897,6 +1048,8 @@ def _print_summary(
         print("   " + "-" * (col + 60))
         for key, value in written.items():
             display = (value[:58] + "…") if len(value) > 60 else value
+            if re.search(r"PASSWORD|SECRET|TOKEN|API_KEY|ACCESS_KEY", key):
+                display = f"**** ({len(value)} chars)"   # never echo credentials
             print(f"   {key:<{col}}  {display}")
 
     if skipped:
@@ -1496,15 +1649,26 @@ def main() -> int:
     #  Step 1 — Load Presto JSON
     # ------------------------------------------------------------------
     log.info("Step 1/5  Reading Presto connection JSON: %s", _relative(presto_path))
+    if not presto_path.exists() and not args.no_oc and _oc_logged_in():
+        log.warning("          %s not found but 'oc' is logged in -- trying to build it from the cluster ...", _relative(presto_path))
+        _ns_gen = _read_env(env_path)[1].get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance"
+        _generate_presto_json_from_cluster(presto_path, _ns_gen)
     presto = _load_presto_json(presto_path)
     if presto is None:
         log.error(
-            "Cannot continue without a valid Presto JSON.\n"
-            "  Save the connection export to %s and re-run.",
+            "Cannot continue without a valid Presto JSON (your .env was NOT changed).\n"
+            "  1. watsonx.data UI → Infrastructure → Engines → your Presto engine → ⋮ → Connection info → Copy JSON\n"
+            "  2. Save it as %s\n"
+            "  3. Re-run: bin/demo setup   (in a terminal, an empty .env also starts a guided wizard)",
             _relative(presto_path),
         )
         return 1
     log.info("          Parsed %d connection field(s)", len(presto))
+    _drift_checked = False
+    if not args.no_oc and _oc_logged_in():
+        _ns0 = _read_env(env_path)[1].get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance"
+        _live_drift_check(presto, _ns0, apply=args.overwrite)
+        _drift_checked = True
 
     # Optional Spark JSON (same properties.connection structure).
     # Auto-detect the default path when --spark-json is not given.
@@ -1688,10 +1852,11 @@ def main() -> int:
                 "  [--oc-login] WXD_OPENSHIFT_API not set — cannot run oc login. "
                 "Run once without --oc-login so the API URL is derived from the Presto JSON."
             )
-        elif not oc_token and not oc_pass:
+        elif not oc_token and (not oc_pass or _is_placeholder(oc_pass)):
             log.warning(
-                "  [--oc-login] Neither WXD_OC_TOKEN nor WXD_OC_PASSWORD is set in .env — "
-                "set one of them (kubeadmin password cannot be auto-discovered)."
+                "  [--oc-login] WXD_OC_PASSWORD (or WXD_OC_TOKEN) is missing or still a placeholder in .env — "
+                "set it (the kubeadmin password cannot be auto-discovered). Skipping oc login; "
+                "OpenShift discovery (MinIO, PG, CPD password) will be skipped unless 'oc' is already logged in."
             )
         else:
             if oc_token:
@@ -1864,20 +2029,28 @@ def main() -> int:
                 # (updated when the CPD admin password changes).
                 # admin-user-details/initial_admin_password is the install-time value
                 # only — used as a last-resort fallback.
-                if not proposed.get("WXD_CPD_PASSWORD"):
+                # A "replace-with-..." placeholder counts as NOT set (it used to
+                # block this lookup and cause a 401 at token fetch).
+                _cur_pw = proposed.get("WXD_CPD_PASSWORD", "")
+                _pw_unset = not _cur_pw or _is_placeholder(_cur_pw)
+                cpd_pw = _oc_secret_value(
+                    "platform-auth-idp-credentials", "admin_password", namespace
+                )
+                if not cpd_pw and _pw_unset:
+                    # last resort: initial install password (may be stale)
                     cpd_pw = _oc_secret_value(
-                        "platform-auth-idp-credentials", "admin_password", namespace
+                        "admin-user-details", "initial_admin_password", namespace
                     )
-                    if not cpd_pw:
-                        # last resort: initial install password (may be stale)
-                        cpd_pw = _oc_secret_value(
-                            "admin-user-details", "initial_admin_password", namespace
-                        )
-                    if cpd_pw:
-                        S("WXD_CPD_PASSWORD", cpd_pw)
-                        log.info("          WXD_CPD_PASSWORD  [read from platform-auth-idp-credentials]")
-                    else:
-                        log.warning("          WXD_CPD_PASSWORD not found in OCP secrets — set manually")
+                if cpd_pw and (_pw_unset or ow):
+                    S("WXD_CPD_PASSWORD", cpd_pw)
+                    log.info("          WXD_CPD_PASSWORD  [read from platform-auth-idp-credentials]")
+                elif cpd_pw and cpd_pw != _cur_pw:
+                    log.warning(
+                        "          WXD_CPD_PASSWORD in .env differs from the cluster secret "
+                        "(password changed or cluster rebuilt?). Re-run with --overwrite to refresh it."
+                    )
+                elif _pw_unset:
+                    log.warning("          WXD_CPD_PASSWORD not found in OCP secrets — set manually")
 
     # ── Spark engine ID is now finalised — write dependent values ─────────
     if spark_engine_id:
@@ -1892,12 +2065,20 @@ def main() -> int:
     # ------------------------------------------------------------------
     #  Step 5 — Reachability (purely informational, non-fatal)
     # ------------------------------------------------------------------
+    if not _drift_checked and not args.no_oc and _oc_logged_in():
+        # oc login only happened during Step 3/4, too late to patch the derived
+        # values: advise only (re-running with --overwrite then applies the fix).
+        _live_drift_check(presto, proposed.get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance")
+
     log.info("Step 5/5  Reachability checks ...")
     engine_host = proposed.get("WXD_HOST", "")
     if cpd_host and engine_host:
         _reachability_check(cpd_host, engine_host)
     else:
         log.info("          Skipped (WXD_HOST or WXD_CPD_HOST not known yet).")
+
+    log.info("Step 5b    Docker availability (optional stacks) ...")
+    _docker_check()
 
     # ------------------------------------------------------------------
     #  Step 6 (optional) — Fetch WXD_API_KEY + WXD_SPARK_BEARER_TOKEN
@@ -1943,6 +2124,30 @@ def main() -> int:
                 cert_path=cert_path,
                 dry_run=args.dry_run,
             )
+            if not (_ft_api_key or _ft_bearer) and not args.dry_run:
+                _ns = proposed.get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance"
+                _live_pw = _oc_secret_value("platform-auth-idp-credentials", "admin_password", _ns) \
+                    if _oc_logged_in() else None
+                if _live_pw and _live_pw != ft_password:
+                    log.warning(
+                        "          %s could not log in with the password from .env, but the cluster "
+                        "secret holds a different one (password changed / cluster rebuilt). Retrying with it ...",
+                        ft_username,
+                    )
+                    _ft_api_key, _ft_bearer = _cpd_fetch_tokens(
+                        cpd_host=ft_host, auth_url=ft_auth_url, username=ft_username,
+                        password=_live_pw, cert_path=cert_path, dry_run=False,
+                    )
+                    if _ft_api_key or _ft_bearer:
+                        _set(proposed, "WXD_CPD_PASSWORD", _live_pw, ow, force=True)
+                        log.info("          Login OK with the cluster password -> WXD_CPD_PASSWORD refreshed in .env.")
+                if not (_ft_api_key or _ft_bearer):
+                    log.warning("  ⚠  %s CANNOT LOG IN to CPD. Likely causes:", ft_username)
+                    log.warning("       - password in .env is stale/placeholder -> run: bin/demo setup --overwrite")
+                    log.warning("         (needs a working 'oc' login: WXD_OC_PASSWORD in .env, so it can read the cluster secret)")
+                    log.warning("       - the Presto connection JSON is from another instance/cluster -> re-export it")
+                    log.warning("       - WXD_CPD_USERNAME is not the admin user (default: cpadmin)")
+                    time.sleep(5)
             # Only count as "fetched" when we actually obtained at least one token.
             # A full failure (both None) should still show the missing-secrets warning.
             if _ft_api_key or _ft_bearer:

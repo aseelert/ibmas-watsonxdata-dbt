@@ -37,6 +37,7 @@ and shields attendees from folder details until they need to inspect them.
 
 | Command | What it does | Changes data or services? |
 | --- | --- | --- |
+| `bin/demo doctor` | Read-only check of `.env`, connection JSON, CA cert, token expiry and Docker, with the exact fix for each problem | No; read-only. Run it when something fails or before an agent starts work |
 | `bin/demo setup` | Refreshes `.env`: CPD login, API key, bearer token, derived endpoints/certs | Yes; writes local configuration and may use `oc`. **Run this first, every session** — the bearer token and login are short-lived, so `setup` is designed to be safe and cheap to re-run before anything else |
 | `bin/demo dbt build` | Runs the dbt reference transformation and tests | Yes; creates/updates Iceberg relations |
 | `bin/demo spark` | Uploads assets, then submits the Spark medallion job, waits for `FINISHED`, and builds the two Gold Presto views | Yes, **if** `WXD_SPARK_DRY_RUN=false` in `.env` (the checked-in `.env.example` defaults it to `true`, i.e. preview-only, until you flip it). Pass `--dry-run` or `--validate-config` on the command to force a preview regardless of `.env` |
@@ -61,7 +62,7 @@ reach for `bin/demo` first.
 
 | Script | Purpose | When to use it |
 | --- | --- | --- |
-| `scripts/00a_prepare_watsonx_env.py` | Builds or refreshes the local `.env`, derives endpoints, manages certificate material, and can use `oc` for discovery | First setup and when cluster configuration changes |
+| `scripts/00a_prepare_watsonx_env.py` | Builds or refreshes the local `.env`, derives endpoints, manages certificate material, and can use `oc` for discovery. Also warns (non-fatally) about a stale connection JSON and about Docker not running; see [dbt run findings](dbt-run-findings.md) | First setup and when cluster configuration changes |
 | `scripts/00b_get_token.py` | Validates/refreshes the API-token path needed by services such as Spark | At the start of a working session or when a token expires |
 | `scripts/check_hosts.py` | Read-only check that every required cluster hostname is in `/etc/hosts`, resolves to the expected bastion IP, and is TCP-reachable | Whenever "connection refused" errors are hard to diagnose, or right after a new laptop is set up |
 | `scripts/refresh_token.py` | Fetches a fresh CPD bearer token (`WXD_SPARK_BEARER_TOKEN`, ~12-hour lifetime) using the already-stored username and API key, and writes it back to `.env`; `--check` only decodes and prints the current expiry | When a Spark submission starts failing with an auth error, or before a long working session |

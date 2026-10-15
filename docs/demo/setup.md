@@ -128,6 +128,13 @@ bin/demo setup
 `certs/watsonxdata-ca.pem`, and fetches the bearer token. Run it again at the
 start of every session — tokens expire in ~12 hours.
 
+Run `bin/demo doctor` at any time for a read-only health check of everything above.
+
+`bin/demo setup` also checks whether Docker is running. This is a soft hint: it
+warns and waits 5 seconds, but never fails. You only need Docker for Metabase,
+lineage and the other optional stacks. If setup or `dbt debug` fails after the
+cluster was rebuilt, see [dbt run findings](dbt-run-findings.md).
+
 Do not commit `.env`, certificates, tokens, or the connection JSON.
 
 ---
