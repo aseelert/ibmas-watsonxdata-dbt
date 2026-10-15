@@ -708,6 +708,10 @@ class IKCClient:
             offset += page
 
     def _category_names_via_terms(self) -> set[str] | None:
+        found = self.category_ids_via_walk()
+        return set(found) or None
+
+    def category_ids_via_walk(self) -> dict[str, str]:
         """Category names reachable from published terms (parent_category chain).
 
         GET /v3/categories (the list) is denied even for cpadmin on this
@@ -716,7 +720,7 @@ class IKCClient:
         which categories exist and are PUBLISHED. Categories that hold nothing
         (no term/classification/data class below them) cannot be seen this way (see LIST_INCOMPLETE).
         """
-        names: set[str] = set()
+        names: dict[str, str] = {}
         for base in ("/v3/glossary_terms", "/v3/classifications", "/v3/data_classes"):
             resp = self._request("GET", base, params={"limit": 200})
             if resp is None or resp.status_code >= 400:
@@ -737,8 +741,28 @@ class IKCClient:
                     if c is not None and c.status_code < 400:
                         cm = self._json(c).get("metadata", {}) or {}
                         if str(cm.get("state", "")).upper() == "PUBLISHED":
-                            names.add(cm.get("name") or "")
-        return names or None
+                            names[cm.get("name") or ""] = pid
+        return names
+
+    ALL_USERS_GROUP_ID = "10000"   # the built-in "all users" group
+
+    def share_category_with_all_users(self, category_id: str) -> str:
+        """Give ALLUSERS the viewer role on a category (what the UI does on create).
+
+        The CSV import only adds the importing user as owner, so every other user
+        sees none of the imported categories. Returns "added", "present" or an error text.
+        """
+        resp = self._request("GET", f"/v3/categories/{category_id}/collaborators")
+        if resp is not None and resp.status_code < 400:
+            for c in self._json(resp).get("collaborators", []) or []:
+                if str(c.get("principal_id")) == self.ALL_USERS_GROUP_ID:
+                    return "present"
+        resp = self._request("POST", f"/v3/categories/{category_id}/collaborators", write=True,
+                             json={"role": "viewer", "principal_id": self.ALL_USERS_GROUP_ID, "user_type": "GROUP"},
+                             headers={"Content-Type": "application/json"})
+        if resp is not None and resp.status_code < 400:
+            return "added"
+        return self.describe_error(resp) if resp is not None else "no response"
 
     # Types whose name set can be a subset of reality (not a full listing).
     LIST_INCOMPLETE = {"category"}
@@ -1467,7 +1491,30 @@ def main() -> int:
             native_path=Path(args.dpr_native).expanduser() if args.dpr_native else None,
         ))
 
+    if any(s.key == "categories" for s in stages) and not args.no_publish:
+        share_categories(client, args)
+
     return _print_summary(summaries, args)
+
+
+def share_categories(client: IKCClient, args) -> None:
+    """Give ALLUSERS the viewer role on every provisioned category.
+
+    The UI does this when a category is created; the CSV import does not, so
+    without it only the importing user can see the imported categories.
+    Needs the terms/classes stages to have run, because category IDs can only
+    be discovered through the artifacts that sit below them.
+    """
+    print("\n── share categories: ALLUSERS viewer (what the UI adds on create)")
+    wanted = [label for label, _ in split_csv_by_artifact(STAGE_BY_KEY["categories"].csv_path)]
+    ids = client.category_ids_via_walk()
+    for name in wanted:
+        cid = ids.get(name)
+        if not cid:
+            print(f"   {name:30s} skipped - category ID not discoverable (nothing below it yet)")
+            continue
+        result = client.share_category_with_all_users(cid)
+        print(f"   {name:30s} {result}")
 
 
 def _print_summary(summaries: list[dict], args) -> int:
