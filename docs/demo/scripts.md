@@ -38,6 +38,7 @@ and shields attendees from folder details until they need to inspect them.
 | Command | What it does | Changes data or services? |
 | --- | --- | --- |
 | `bin/demo doctor` | Read-only check of `.env`, connection JSON, CA cert, token expiry and Docker, with the exact fix for each problem | No; read-only. Run it when something fails or before an agent starts work |
+| `bin/demo governance` | Provisions the IKC governance model (categories, classifications, business terms, data classes, rules) in CPD, one artifact at a time in dependency order. Wraps `scripts/06b_provision_ikc_governance.py`; use `--verify-only` or `--dry-run` first | Yes; creates and publishes artifacts in IKC |
 | `bin/demo setup` | Refreshes `.env`: CPD login, API key, bearer token, derived endpoints/certs | Yes; writes local configuration and may use `oc`. **Run this first, every session** — the bearer token and login are short-lived, so `setup` is designed to be safe and cheap to re-run before anything else |
 | `bin/demo dbt build` | Runs the dbt reference transformation and tests | Yes; creates/updates Iceberg relations |
 | `bin/demo spark` | Uploads assets, then submits the Spark medallion job, waits for `FINISHED`, and builds the two Gold Presto views | Yes, **if** `WXD_SPARK_DRY_RUN=false` in `.env` (the checked-in `.env.example` defaults it to `true`, i.e. preview-only, until you flip it). Pass `--dry-run` or `--validate-config` on the command to force a preview regardless of `.env` |
