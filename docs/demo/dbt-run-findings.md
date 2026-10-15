@@ -97,3 +97,38 @@ If the UI stays empty while `bin/demo governance --verify-only` shows `published
 ### Why a category created in the UI behaved differently
 
 Creating a category in the UI also indexes it straight away (`PUT /v3/search/bulk_request`) and adds two access rules: the creator as owner and **all users as viewer**. The CSV import only adds the owner, so any other user sees none of the imported categories. `bin/demo governance` now finishes with a "share categories" step that adds the all-users viewer rule (`POST /v3/categories/{id}/collaborators` with `{"role": "viewer", "principal_id": "10000", "user_type": "GROUP"}`) to each category it provisioned. Re-running is safe: categories that already have the rule are left alone.
+
+## CPD fabric: project, connection, DSD, import and enrichment (`bin/demo ikc`)
+
+### Object names (all lower case, set in `.env`)
+
+| Object | Default name | `.env` variable |
+|---|---|---|
+| Project | `ibmas-dlh-medallion-project` | `WXD_CPD_PROJECT` |
+| Catalog | `ibmas-dlh-medallion-catalog` | `WXD_CPD_CATALOG` (not created yet, see below) |
+| Connection | `ibmas-watsonx-data-presto-con` | `WXD_CPD_CONNECTION` |
+| Data source definition | `ibmas-watsonx-data-presto-dsd` | `WXD_CPD_DSD` |
+| Metadata import | `ibmas-dlh-medallion-mdi` | `WXD_CPD_MDI` |
+| Metadata enrichment | `ibmas-dlh-medallion-mde` | `WXD_CPD_MDE` |
+| Postgres reporting connection / DSD | `ibmas-reporting-postgres-con` / `ibmas-reporting-postgres-dsd` | `WXD_CPD_PG_CONNECTION` / `WXD_CPD_PG_DSD` |
+
+### What the script had to get right (found by testing against a rebuilt cluster)
+
+| Finding | Detail |
+|---|---|
+| Connection needs `origin_country` at creation | Setting it afterwards does not satisfy the metadata-import service (it answers "No origin country value was specified for the connection"). The script creates connections with `origin_country: us` |
+| Saved credentials go stale | Every `bin/demo setup` fetches a new API key, so the key stored inside a connection stops working and any update to the connection fails with "Unauthorized". The script refreshes the key in the connection on every run |
+| Rename, never recreate | Recreating a connection orphans what was imported through it. Old names (`ibmas-ingest-demo`, `ibmas-presto`) are renamed in place: `PATCH /v2/projects/{id}`, `PATCH /v2/connections/{id}` (JSON Patch), and `PATCH /v2/assets/{id}` for DSDs |
+| One DSD per endpoint | CPD rejects a second DSD on the same host and port ("These endpoints already exist in another data source definition asset") |
+| Enrichment payload | The service rejects a minimal body with HTTP 400 and an empty error list. It needs the full default structure (sampling, data-quality checks, quality origins). The script sends it |
+| DataStage IDs | `scripts/datastage/create_medallion_flows_v2.py` hardcoded the old cluster's project and connection IDs. It now looks them up by name |
+
+### Tested
+
+A full create-from-nothing run in a throwaway namespace of test names created the project, both connections, the import (completed) and the enrichment (completed) in about 10 minutes. The test objects were deleted afterwards.
+
+### Open
+
+* **Data classes are not assigned yet.** The enrichment profiled the Gold tables but the `email` column shows `NoClassDetected`, so the `RML` data classes are not being applied. Not yet diagnosed.
+* **Catalog `ibmas-dlh-medallion-catalog`** is not created: the catalog API asks for a storage bucket and the two existing catalogs have none.
+* **Postgres connection** needs a Postgres. This cluster has only EDB CloudNativePG, not the Crunchy operator the PG script expects.

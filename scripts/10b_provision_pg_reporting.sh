@@ -31,7 +31,7 @@
 #                        asset). New _resolve_platform_catalog() resolves the
 #                        Platform assets catalog GUID by name (override via
 #                        --platform-catalog-id). New --platform-connection flag
-#                        (opt-in, off by default) registers 'ibmas-reporting' as
+#                        (opt-in, off by default) registers 'ibmas-reporting-postgres-con' as
 #                        a second, CATALOG-scoped connection in that same
 #                        Platform assets catalog — alongside, not instead of,
 #                        the project-scoped one from Step 4 — so other
@@ -165,7 +165,7 @@
 #                    connection in the target project via the CPD connections
 #                    REST API. The project is looked up by name and CREATED if
 #                    it does not exist (see --project-name).
-#   5. DSD (optional, --dsd) — creates an IBMAS-Reporting-Postgres-DSD entry.
+#   5. DSD (optional, --dsd) — creates an ibmas-reporting-postgres-dsd entry.
 #                    Pass --external-url to also register an external hostname
 #                    (e.g. for workstation port-forward access).
 #   6. Summary     — prints all connection details and next-step commands.
@@ -240,7 +240,7 @@
 #   --svc NAME           Override the RW Service   (default: auto-detect)
 #   --wait-minutes N     Primary-pod wait timeout  (default: 6)
 #   --project-id ID      CPD project GUID          (default: resolved by name)
-#   --project-name NAME  CPD project to use        (default: ibmas-ingest-demo)
+#   --project-name NAME  CPD project to use        (default: ibmas-dlh-medallion-project)
 #                        Looked up by name; CREATED automatically if it does not
 #                        exist. Override the default via WXD_CPD_PROJECT in .env.
 #   --no-create-project  Fail instead of creating a missing project
@@ -256,7 +256,7 @@
 #   --cpd-user USER      CPD username              (default: from WXD_CPD_USERNAME / cpadmin)
 #   --cpd-password PASS  CPD password              (default: from WXD_CPD_PASSWORD)
 #   --cpd-token TOKEN    CPD bearer token          (default: from WXD_SPARK_BEARER_TOKEN)
-#   --platform-connection Also register 'ibmas-reporting' as a CATALOG-scoped
+#   --platform-connection Also register 'ibmas-reporting-postgres-con' as a CATALOG-scoped
 #                        ("platform") connection in the Platform assets catalog,
 #                        in addition to the project-scoped one from Step 4. This
 #                        is what lets other projects/catalogs reuse it later via
@@ -318,7 +318,7 @@ STORAGE_CLASS=""       # empty → use the cluster default StorageClass
 PG_SVC_OVERRIDE=""     # empty → auto-detect the Crunchy RW Service
 WAIT_MINUTES="6"       # primary pod readiness timeout
 PROJECT_ID=""          # resolved at runtime if not set
-PROJECT_NAME="${WXD_CPD_PROJECT:-ibmas-ingest-demo}"   # looked up, created if absent
+PROJECT_NAME="${WXD_CPD_PROJECT:-ibmas-dlh-medallion-project}"   # looked up, created if absent
 NO_CREATE_PROJECT=false                                 # true → fail instead of creating
 CPD_HOST="${WXD_CPD_HOST:-}"
 CPD_USER="${WXD_CPD_USERNAME:-cpadmin}"
@@ -766,32 +766,38 @@ $DO_VERIFY && { _verify_deployment || true; }
 # namespaces. In both cases the PostgresCluster CR is accepted but never
 # reconciled, so no pods appear and the wait below would burn its whole timeout
 # for no reason. Catch that here with an actionable message instead.
-oc api-resources --api-group=postgres-operator.crunchydata.com 2>/dev/null \
-  | grep -q postgresclusters \
-  || die "CRD postgresclusters not found — Crunchy Postgres for Kubernetes operator not installed.\n\
-  Check for an EDB/CloudNativePG operator instead:\n\
-    oc api-resources | grep -i postgres\n\
-  CPD's own Postgres instances use clusters.postgresql.k8s.enterprisedb.io,\n\
-  which this script does NOT manage."
-ok "Crunchy operator CRD confirmed."
-
-PGO_PODS="$(oc get pods --all-namespaces \
-  -l postgres-operator.crunchydata.com/control-plane=postgres-operator \
-  --no-headers 2>/dev/null | grep -c Running || true)"
-if [[ "${PGO_PODS:-0}" -eq 0 ]]; then
-  # Second attempt: older/OLM installs label the controller differently.
-  PGO_PODS="$(oc get pods --all-namespaces --no-headers 2>/dev/null \
-    | grep -E 'pgo|postgres-operator' | grep -c Running || true)"
-fi
-if [[ "${PGO_PODS:-0}" -eq 0 ]]; then
-  warn "No running Crunchy operator pod found in any namespace."
-  warn "  The PostgresCluster CR will be accepted but never reconciled, so no"
-  warn "  Postgres pods will ever start. Verify the operator is installed and"
-  warn "  that '${NS}' is inside its watch scope:"
-  warn "    oc get pods -A | grep -Ei 'pgo|postgres-operator'"
-  warn "    oc get csv -A | grep -i postgres"
+if $SKIP_CLUSTER && $SKIP_PG; then
+  # CPD-only run (project / connection / DSD): no Postgres is created here, so the
+  # Crunchy operator is not needed. A cluster with only EDB CloudNativePG is fine.
+  info "--skip-cluster and --skip-postgres set: not checking for the Crunchy operator."
 else
-  ok "Crunchy operator controller running (${PGO_PODS} pod(s))."
+  oc api-resources --api-group=postgres-operator.crunchydata.com 2>/dev/null \
+    | grep -q postgresclusters \
+    || die "CRD postgresclusters not found — Crunchy Postgres for Kubernetes operator not installed.\n\
+    Check for an EDB/CloudNativePG operator instead:\n\
+      oc api-resources | grep -i postgres\n\
+    CPD's own Postgres instances use clusters.postgresql.k8s.enterprisedb.io,\n\
+    which this script does NOT manage."
+  ok "Crunchy operator CRD confirmed."
+
+  PGO_PODS="$(oc get pods --all-namespaces \
+    -l postgres-operator.crunchydata.com/control-plane=postgres-operator \
+    --no-headers 2>/dev/null | grep -c Running || true)"
+  if [[ "${PGO_PODS:-0}" -eq 0 ]]; then
+    # Second attempt: older/OLM installs label the controller differently.
+    PGO_PODS="$(oc get pods --all-namespaces --no-headers 2>/dev/null \
+      | grep -E 'pgo|postgres-operator' | grep -c Running || true)"
+  fi
+  if [[ "${PGO_PODS:-0}" -eq 0 ]]; then
+    warn "No running Crunchy operator pod found in any namespace."
+    warn "  The PostgresCluster CR will be accepted but never reconciled, so no"
+    warn "  Postgres pods will ever start. Verify the operator is installed and"
+    warn "  that '${NS}' is inside its watch scope:"
+    warn "    oc get pods -A | grep -Ei 'pgo|postgres-operator'"
+    warn "    oc get csv -A | grep -i postgres"
+  else
+    ok "Crunchy operator controller running (${PGO_PODS} pod(s))."
+  fi
 fi
 
 # ── Helper: run SQL inside the primary pod ────────────────────────────────────
@@ -1114,7 +1120,11 @@ fi
 # name here fails later and far away from its cause (v4.1 shipped '-rw', which
 # is CloudNativePG naming and does not exist on a Crunchy cluster). Verify the
 # Service actually exists, and read the port from it rather than assuming 5432.
-if ! $DRY_RUN; then
+if $SKIP_CLUSTER && $SKIP_PG; then
+  # CPD-only run: no Postgres is touched, so do not require its Service to exist.
+  # The connection will point at the default name until a Postgres is provisioned.
+  info "CPD-only run: using default Postgres host ${PG_HOST}:${PG_PORT} (not checked)."
+elif ! $DRY_RUN; then
   step "Resolving read-write Service for cluster '${CLUSTER_NAME}'"
 
   if [[ -n "${PG_SVC_OVERRIDE}" ]]; then
@@ -1435,7 +1445,7 @@ for p in d.get('resources', []):
     if name.lower() == want:
         exact = (name, guid)
         break
-    # Tolerate the historical naming spread: ibmas-ingest-demo, ingest-demo, …
+    # Tolerate the historical naming spread: ibmas-dlh-medallion-project, ingest-demo, …
     if fuzzy is None and ('ingest-demo' in name.lower() or 'ibmas-ingest' in name.lower()):
         fuzzy = (name, guid)
 if exact:
@@ -1956,7 +1966,7 @@ print(json.dumps({
         "query_timeout": "300",
     },
 }))' \
-    "ibmas-reporting" \
+    "ibmas-reporting-postgres-con" \
     "ibmas_reporting schema — Crunchy PostgresCluster '${CLUSTER_NAME}' in ${NS}, provisioned by provision_pg_reporting.sh" \
     "${PG_DATASOURCE_TYPE}" "${PG_HOST}" "${PG_PORT}" "${REPORT_DB}" \
     "${REPORT_USER}" "${REPORT_PASS}")"
@@ -2014,7 +2024,7 @@ _ensure_platform_catalog() {
 
 CONN_ID=""
 if ! $SKIP_CONN; then
-  step "Step 4/5 — CPD connection 'ibmas-reporting' in project ${PROJECT_ID}"
+  step "Step 4/5 — CPD connection 'ibmas-reporting-postgres-con' in project ${PROJECT_ID}"
 
   if $DRY_RUN; then
     PG_DATASOURCE_TYPE="${PG_DATASOURCE_NAME}"
@@ -2034,10 +2044,10 @@ if ! $SKIP_CONN; then
     # (cpdctl even ships a "found more than one connection with query" error), so
     # a second run of the old code — which only looked for an existing asset
     # *after* matching "already exist|duplicate|conflict" in an error message —
-    # quietly created a SECOND 'ibmas-reporting'. Look first instead.
+    # quietly created a SECOND 'ibmas-reporting-postgres-con'. Look first instead.
     # entity.name is a documented server-side filter; without it the default
     # limit of 100 plus token-based paging would eventually hide the match.
-    info "Checking for an existing 'ibmas-reporting' connection …"
+    info "Checking for an existing 'ibmas-reporting-postgres-con' connection …"
     cpd_curl GET "https://${CPD_HOST}/v2/connections?project_id=${PROJECT_ID}&entity.name=ibmas-reporting"
     if [[ "${_CURL_HTTP}" == "200" ]]; then
       CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c "
@@ -2047,7 +2057,7 @@ try:
 except Exception:
     sys.exit(1)
 hits = [r for r in d.get('resources', [])
-        if (r.get('entity', {}) or {}).get('name') == 'ibmas-reporting']
+        if (r.get('entity', {}) or {}).get('name') == 'ibmas-reporting-postgres-con']
 if len(hits) > 1:
     sys.stderr.write('MULTIPLE\n')
 if hits:
@@ -2056,14 +2066,14 @@ if hits:
     fi
 
     if [[ -n "${CONN_ID}" ]]; then
-      ok "Connection 'ibmas-reporting' already exists: ${CONN_ID}"
+      ok "Connection 'ibmas-reporting-postgres-con' already exists: ${CONN_ID}"
       info "  Not recreating it. To rotate the password in place:"
       info "    PATCH /v2/connections/${CONN_ID}?project_id=${PROJECT_ID}"
       info "    [{\"op\":\"replace\",\"path\":\"/properties/password\",\"value\":\"…\"}]"
     else
 
     # [ST-4] Use cpd_curl for --max-time and HTTP status capture
-    info "Registering connection 'ibmas-reporting' in CPD project …"
+    info "Registering connection 'ibmas-reporting-postgres-con' in CPD project …"
     cpd_curl POST "https://${CPD_HOST}/v2/connections?project_id=${PROJECT_ID}" "${CONN_PAYLOAD}"
 
     CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
@@ -2082,13 +2092,13 @@ if hits:
       # was there all along.
       if [[ "${_CURL_HTTP}" == "409" ]] \
          || echo "${MSG}" | grep -qi "already exist\|duplicate\|conflict"; then
-        warn "Connection 'ibmas-reporting' already exists — looking up existing asset ID."
+        warn "Connection 'ibmas-reporting-postgres-con' already exists — looking up existing asset ID."
         cpd_curl GET "https://${CPD_HOST}/v2/connections?project_id=${PROJECT_ID}"
         CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c "
 import sys,json
 d=json.load(sys.stdin)
 for r in d.get('resources',[]):
-    if r.get('entity',{}).get('name','') == 'ibmas-reporting':
+    if r.get('entity',{}).get('name','') == 'ibmas-reporting-postgres-con':
         print(r['metadata']['asset_id'])
         break
 " 2>/dev/null || true)"
@@ -2124,7 +2134,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 PLATFORM_CONN_ID=""
 if $DO_PLATFORM_CONN; then
-  step "Step 4b/5 — CPD platform connection 'ibmas-reporting' (Platform assets catalog)"
+  step "Step 4b/5 — CPD platform connection 'ibmas-reporting-postgres-con' (Platform assets catalog)"
 
   if $DRY_RUN; then
     dryrun "GET  https://${CPD_HOST}/v2/catalogs?limit=100  → Platform assets catalog GUID"
@@ -2138,7 +2148,7 @@ if $DO_PLATFORM_CONN; then
     [[ -z "${PG_DATASOURCE_TYPE}" ]] && { info "Resolving the PostgreSQL datasource type …"; _resolve_datasource_type || true; }
     [[ -z "${CONN_PAYLOAD:-}" ]] && _build_conn_payload
 
-    info "Checking for an existing 'ibmas-reporting' connection in the platform catalog …"
+    info "Checking for an existing 'ibmas-reporting-postgres-con' connection in the platform catalog …"
     cpd_curl GET "https://${CPD_HOST}/v2/connections?catalog_id=${PLATFORM_CATALOG_ID}&entity.name=ibmas-reporting"
     if [[ "${_CURL_HTTP}" == "200" ]]; then
       PLATFORM_CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c "
@@ -2148,19 +2158,19 @@ try:
 except Exception:
     sys.exit(1)
 hits = [r for r in d.get('resources', [])
-        if (r.get('entity', {}) or {}).get('name') == 'ibmas-reporting']
+        if (r.get('entity', {}) or {}).get('name') == 'ibmas-reporting-postgres-con']
 if hits:
     print((hits[0].get('metadata', {}) or {}).get('asset_id', ''))
 " 2>/dev/null || true)"
     fi
 
     if [[ -n "${PLATFORM_CONN_ID}" ]]; then
-      ok "Platform connection 'ibmas-reporting' already exists: ${PLATFORM_CONN_ID}"
+      ok "Platform connection 'ibmas-reporting-postgres-con' already exists: ${PLATFORM_CONN_ID}"
       info "  Not recreating it. To rotate the password in place:"
       info "    PATCH /v2/connections/${PLATFORM_CONN_ID}?catalog_id=${PLATFORM_CATALOG_ID}"
       info "    [{\"op\":\"replace\",\"path\":\"/properties/password\",\"value\":\"…\"}]"
     else
-      info "Registering platform connection 'ibmas-reporting' in catalog ${PLATFORM_CATALOG_ID} …"
+      info "Registering platform connection 'ibmas-reporting-postgres-con' in catalog ${PLATFORM_CATALOG_ID} …"
       cpd_curl POST "https://${CPD_HOST}/v2/connections?catalog_id=${PLATFORM_CATALOG_ID}" "${CONN_PAYLOAD}"
 
       PLATFORM_CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
@@ -2175,13 +2185,13 @@ if hits:
 
         if [[ "${_CURL_HTTP}" == "409" ]] \
            || echo "${MSG}" | grep -qi "already exist\|duplicate\|conflict"; then
-          warn "Platform connection 'ibmas-reporting' already exists — looking up existing asset ID."
+          warn "Platform connection 'ibmas-reporting-postgres-con' already exists — looking up existing asset ID."
           cpd_curl GET "https://${CPD_HOST}/v2/connections?catalog_id=${PLATFORM_CATALOG_ID}"
           PLATFORM_CONN_ID="$(echo "${_CURL_BODY}" | "${PY}" -c "
 import sys,json
 d=json.load(sys.stdin)
 for r in d.get('resources',[]):
-    if r.get('entity',{}).get('name','') == 'ibmas-reporting':
+    if r.get('entity',{}).get('name','') == 'ibmas-reporting-postgres-con':
         print(r['metadata']['asset_id'])
         break
 " 2>/dev/null || true)"
@@ -2216,13 +2226,13 @@ fi
 # project_id or an arbitrary catalog_id.
 DSD_ID=""
 if $DO_DSD; then
-  step "Step 5/5 — CPD Data Source Definition 'IBMAS-Reporting-Postgres-DSD'"
+  step "Step 5/5 — CPD Data Source Definition 'ibmas-reporting-postgres-dsd'"
 
   if $DRY_RUN; then
     dryrun "GET  https://${CPD_HOST}/v2/catalogs?limit=100  → Platform assets catalog GUID"
     [[ -z "${PG_DATASOURCE_TYPE}" ]] && PG_DATASOURCE_TYPE="${PG_DATASOURCE_NAME}"
     dryrun "POST https://${CPD_HOST}/v2/assets?catalog_id=<platform catalog>"
-    dryrun '{"metadata":{"name":"IBMAS-Reporting-Postgres-DSD","asset_type":"ibm_data_source",...},"entity":{"ibm_data_source":{"data_source_type_id":"'"${PG_DATASOURCE_TYPE}"'","data_source_endpoints":{"values":[{"host":"'"${PG_HOST}"'","port":'"${PG_PORT}"'}]}}}}'
+    dryrun '{"metadata":{"name":"ibmas-reporting-postgres-dsd","asset_type":"ibm_data_source",...},"entity":{"ibm_data_source":{"data_source_type_id":"'"${PG_DATASOURCE_TYPE}"'","data_source_endpoints":{"values":[{"host":"'"${PG_HOST}"'","port":'"${PG_PORT}"'}]}}}}'
     [[ -n "${EXTERNAL_URL}" ]] && \
       dryrun "Would also create external DSD with host=${EXTERNAL_URL%%:*} port=${EXTERNAL_URL##*:}"
   elif _ensure_platform_catalog; then
@@ -2281,25 +2291,25 @@ for r in d.get('resources', []) or []:
 " 2>/dev/null || true
     }
 
-    info "Checking for an existing 'IBMAS-Reporting-Postgres-DSD' asset …"
-    DSD_ID="$(_find_dsd_by_name "IBMAS-Reporting-Postgres-DSD")"
+    info "Checking for an existing 'ibmas-reporting-postgres-dsd' asset …"
+    DSD_ID="$(_find_dsd_by_name "ibmas-reporting-postgres-dsd")"
 
     if [[ -n "${DSD_ID}" ]]; then
-      ok "DSD 'IBMAS-Reporting-Postgres-DSD' already exists: ${DSD_ID}"
+      ok "DSD 'ibmas-reporting-postgres-dsd' already exists: ${DSD_ID}"
     else
       DSD_PAYLOAD="$(_build_dsd_payload \
-        "IBMAS-Reporting-Postgres-DSD" \
+        "ibmas-reporting-postgres-dsd" \
         "Standalone PostgreSQL reporting instance — ibmas_reporting database" \
         "${PG_DATASOURCE_TYPE}" "${PG_HOST}" "${PG_PORT}")"
 
-      info "Creating internal DSD 'IBMAS-Reporting-Postgres-DSD' …"
+      info "Creating internal DSD 'ibmas-reporting-postgres-dsd' …"
       cpd_curl POST "https://${CPD_HOST}/v2/assets?catalog_id=${PLATFORM_CATALOG_ID}" "${DSD_PAYLOAD}"
 
       DSD_ID="$(echo "${_CURL_BODY}" | "${PY}" -c \
         "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('asset_id',''))" 2>/dev/null || true)"
 
       if [[ -n "${DSD_ID}" ]] && [[ "${DSD_ID}" != "ERROR" ]]; then
-        ok "DSD registered: IBMAS-Reporting-Postgres-DSD (${DSD_ID})"
+        ok "DSD registered: ibmas-reporting-postgres-dsd (${DSD_ID})"
       else
         DSD_MSG="$(echo "${_CURL_BODY}" | "${PY}" -c \
           "import sys,json; d=json.load(sys.stdin); e=d.get('errors',[{}]); print(e[0].get('message','') if e else '')" 2>/dev/null || true)"
