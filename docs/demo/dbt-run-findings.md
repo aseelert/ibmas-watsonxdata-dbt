@@ -93,3 +93,7 @@ Every `bin/demo setup` run asks CPD for an API key. Running setup against a *dif
 | Edition | This cluster runs `wkc` 5.3.23 (Enterprise licence) plus both `ikc-premium` and `ikc-standard`. The `/v3` governance endpoints used here behave the same on it; the differences are in which list calls the user may make and in search indexing, not in the URL paths |
 
 If the UI stays empty while `bin/demo governance --verify-only` shows `published(api)` complete, the cluster's governance search indexing needs a repair or re-index. That is a cluster action, not a script fix.
+
+### Why a category created in the UI behaved differently
+
+Creating a category in the UI also indexes it straight away (`PUT /v3/search/bulk_request`) and adds two access rules: the creator as owner and **all users as viewer**. The CSV import only adds the owner, so any other user sees none of the imported categories. `bin/demo governance` now finishes with a "share categories" step that adds the all-users viewer rule (`POST /v3/categories/{id}/collaborators` with `{"role": "viewer", "principal_id": "10000", "user_type": "GROUP"}`) to each category it provisioned. Re-running is safe: categories that already have the rule are left alone.
