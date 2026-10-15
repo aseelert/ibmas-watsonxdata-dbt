@@ -112,3 +112,4 @@ nav:
     - Docker services: demo/docker-services.md
     - Scripts and automation: demo/scripts.md
     - Glossary: demo/glossary.md
+    - dbt run findings: demo/dbt-run-findings.md

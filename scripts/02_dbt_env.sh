@@ -110,6 +110,25 @@ if [[ "${DBT_PROFILES_DIR}" == "${project_dir}/profiles" && ! -f "${DBT_PROFILES
   echo "[dbt_env] created ${DBT_PROFILES_DIR}/profiles.yml from the tracked template" >&2
 fi
 
+# Preflight (soft): catch a missing / half-filled .env before dbt gives a cryptic error.
+case "${1:-}" in
+  debug|seed|run|test|build|snapshot|compile|docs)
+    _bad=()
+    for _v in WXD_HOST WXD_INSTANCE_ID WXD_API_KEY; do
+      _val="${!_v:-}"
+      if [[ -z "${_val}" || "${_val}" =~ ^(replace-with-|your-|changeme|<) ]]; then _bad+=("${_v}"); fi
+    done
+    if [[ ${#_bad[@]} -gt 0 ]]; then
+      echo "[dbt_env] WARNING: ${_bad[*]} missing or still a placeholder in .env." >&2
+      echo "[dbt_env]   Fix: save the Presto connection JSON as watsonx_data/instance_details.json, then run 'bin/demo setup'." >&2
+      sleep 5
+    elif [[ ! -f "${repo_root}/certs/watsonxdata-ca.pem" ]]; then
+      echo "[dbt_env] WARNING: certs/watsonxdata-ca.pem missing — run 'bin/demo setup' (TLS will fail)." >&2
+      sleep 5
+    fi
+    ;;
+esac
+
 if [[ -z "${DBT_TARGET_PATH:-}" ]]; then
   export DBT_TARGET_PATH="${repo_root}/target"
 fi
@@ -155,7 +174,11 @@ case "${1:-}" in
     # OpenLineage: emit events to Marquez after a successful dbt run.
     # Uses scripts/emit_openlineage_events.py which patches the Adapter enum
     # to recognise watsonx_presto (treated as trino for URI generation).
-    if [[ -n "${OPENLINEAGE_URL:-}" ]] && [[ "${dbt_exit}" -eq 0 ]]; then
+    if [[ -n "${OPENLINEAGE_URL:-}" ]] && [[ "${dbt_exit}" -eq 0 ]] \
+       && ! curl -s -o /dev/null --max-time 3 "${OPENLINEAGE_URL}"; then
+      # Marquez down: emitting would retry per event (~9 s each, ~7 min for a full build).
+      echo "[dbt_env] WARNING: ${OPENLINEAGE_URL} not reachable (is Docker / Marquez running? 'bin/demo docker start lineage') — skipping OpenLineage emit; dbt results are unaffected" >&2
+    elif [[ -n "${OPENLINEAGE_URL:-}" ]] && [[ "${dbt_exit}" -eq 0 ]]; then
       echo "[dbt_env] emitting OpenLineage events to ${OPENLINEAGE_URL}" >&2
       if ! "${python_bin}" "${repo_root}/scripts/emit_openlineage_events.py" --project-dir "${project_dir}" --target-path "${repo_root}/target"; then
         echo "[dbt_env] WARNING: OpenLineage event emission failed (non-fatal; dbt exit code preserved)" >&2
