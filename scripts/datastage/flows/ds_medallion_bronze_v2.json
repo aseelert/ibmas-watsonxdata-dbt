@@ -2,14 +2,14 @@
   "doc_type": "pipeline",
   "version": "3.0",
   "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
-  "primary_pipeline": "a2c918ad-f65f-4128-8774-2163ed7abb6c",
+  "primary_pipeline": "f9289032-9102-4aac-b4bc-435ef3c9a29c",
   "pipelines": [
     {
-      "id": "a2c918ad-f65f-4128-8774-2163ed7abb6c",
+      "id": "f9289032-9102-4aac-b4bc-435ef3c9a29c",
       "runtime_ref": "pxOsh",
       "nodes": [
         {
-          "id": "dd447bd7-e3f4-411f-9175-4669f6705b0d",
+          "id": "120883e2-8ff2-4c87-b859-1103ea911d98",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -22,11 +22,11 @@
           },
           "outputs": [
             {
-              "id": "c2435db5-017e-4d8b-892a-a6a9d1271a49",
-              "schema_ref": "ad801341-d7fa-4b9a-a9bf-9b6dc6683208",
+              "id": "e86603dd-4ca2-4e53-9114-c2a6f006e9ff",
+              "schema_ref": "fbba97a8-db0e-4678-8f13-118cc1a85a00",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "67c51d22-6eee-45be-a7d1-075704c46ba8"
+                  "is_source_of_link": "2fbcc61b-3dc2-4235-a5a1-79c25dab6f9e"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -144,12 +144,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "general",
@@ -164,13 +164,13 @@
           }
         },
         {
-          "id": "ff01a78d-8890-44af-9353-5b6795ba47b0",
+          "id": "8943e9b2-4237-4b20-b667-563a2b2fc287",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "20b9975e-ff5a-4c51-93e7-0e32dac3f682",
-              "outputs_order": "7e2f69cf-3c12-426a-b42a-343d63eff567"
+              "inputs_order": "0a94d0e5-d2c8-4ec4-8ae9-622d90f008a8",
+              "outputs_order": "bac1d7c6-0398-4549-bb9a-7f3adb994d8e"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -181,7 +181,7 @@
           },
           "inputs": [
             {
-              "id": "20b9975e-ff5a-4c51-93e7-0e32dac3f682",
+              "id": "0a94d0e5-d2c8-4ec4-8ae9-622d90f008a8",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -198,9 +198,9 @@
               },
               "links": [
                 {
-                  "id": "67c51d22-6eee-45be-a7d1-075704c46ba8",
-                  "node_id_ref": "dd447bd7-e3f4-411f-9175-4669f6705b0d",
-                  "port_id_ref": "c2435db5-017e-4d8b-892a-a6a9d1271a49",
+                  "id": "2fbcc61b-3dc2-4235-a5a1-79c25dab6f9e",
+                  "node_id_ref": "120883e2-8ff2-4c87-b859-1103ea911d98",
+                  "port_id_ref": "e86603dd-4ca2-4e53-9114-c2a6f006e9ff",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_raw_raw_customers",
                   "app_data": {
@@ -255,11 +255,11 @@
           ],
           "outputs": [
             {
-              "id": "7e2f69cf-3c12-426a-b42a-343d63eff567",
-              "schema_ref": "52d72f06-288c-480c-a98f-1d6e215c9c4f",
+              "id": "bac1d7c6-0398-4549-bb9a-7f3adb994d8e",
+              "schema_ref": "c172a28e-6b94-46bd-b3c8-3bfd28d0cfe5",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "aabc3fc4-977a-4dc0-84b8-0301514eb343"
+                  "is_source_of_link": "94547a43-5ecc-48dc-a10e-d423e5138e41"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -323,7 +323,7 @@
           }
         },
         {
-          "id": "7900762c-ef76-430a-a6c6-4eab952375ec",
+          "id": "90dec080-152e-492e-99a7-37223ba33060",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -336,8 +336,8 @@
           },
           "inputs": [
             {
-              "id": "3394b530-4db1-4c1b-8814-b4f5a2a39b63",
-              "schema_ref": "152520e7-18cb-4daa-b696-06d18c019620",
+              "id": "65b46793-fd1e-4727-95a7-a27bfd6bd770",
+              "schema_ref": "316bd2a7-d7ba-4337-8763-bb21c973f0ed",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -352,9 +352,9 @@
               },
               "links": [
                 {
-                  "id": "aabc3fc4-977a-4dc0-84b8-0301514eb343",
-                  "node_id_ref": "ff01a78d-8890-44af-9353-5b6795ba47b0",
-                  "port_id_ref": "7e2f69cf-3c12-426a-b42a-343d63eff567",
+                  "id": "94547a43-5ecc-48dc-a10e-d423e5138e41",
+                  "node_id_ref": "8943e9b2-4237-4b20-b667-563a2b2fc287",
+                  "port_id_ref": "bac1d7c6-0398-4549-bb9a-7f3adb994d8e",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_bronze_customers_out",
                   "app_data": {
@@ -568,12 +568,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -590,7 +590,7 @@
           }
         },
         {
-          "id": "8fb28bf2-757a-4e94-b081-644e4f88a1f3",
+          "id": "f8c81ae6-e437-4850-8d78-b80d79c7fdb9",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -603,11 +603,11 @@
           },
           "outputs": [
             {
-              "id": "bb23763f-23f3-4bcb-a7f7-1d2682e6d090",
-              "schema_ref": "a3af9b5b-4510-46ed-bbc7-67c395a04087",
+              "id": "bcf83a11-e76a-4558-9e1e-a7833c61a8cb",
+              "schema_ref": "e19a290d-9217-4994-8526-b53c616746c6",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "bccbc89f-796b-4735-b6ab-0b8ebf95a635"
+                  "is_source_of_link": "f09e7236-5721-48ea-befe-8fcb36d502ec"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -710,12 +710,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "general",
@@ -730,13 +730,13 @@
           }
         },
         {
-          "id": "51e758e7-c155-4988-a576-487570eb63f3",
+          "id": "c4591b40-2895-4088-80c4-d5c74ce317bb",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "1a110e65-b2e7-4633-87c3-5ffb99b9ebf0",
-              "outputs_order": "726df0e3-00be-4496-9664-c3e3a4bc8c40"
+              "inputs_order": "e2a7d7b1-3d9d-4586-b850-31bf7254ad27",
+              "outputs_order": "334d3de0-47e7-4c19-9305-6aae3e40a426"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -747,7 +747,7 @@
           },
           "inputs": [
             {
-              "id": "1a110e65-b2e7-4633-87c3-5ffb99b9ebf0",
+              "id": "e2a7d7b1-3d9d-4586-b850-31bf7254ad27",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -764,9 +764,9 @@
               },
               "links": [
                 {
-                  "id": "bccbc89f-796b-4735-b6ab-0b8ebf95a635",
-                  "node_id_ref": "8fb28bf2-757a-4e94-b081-644e4f88a1f3",
-                  "port_id_ref": "bb23763f-23f3-4bcb-a7f7-1d2682e6d090",
+                  "id": "f09e7236-5721-48ea-befe-8fcb36d502ec",
+                  "node_id_ref": "f8c81ae6-e437-4850-8d78-b80d79c7fdb9",
+                  "port_id_ref": "bcf83a11-e76a-4558-9e1e-a7833c61a8cb",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_raw_raw_orders",
                   "app_data": {
@@ -821,11 +821,11 @@
           ],
           "outputs": [
             {
-              "id": "726df0e3-00be-4496-9664-c3e3a4bc8c40",
-              "schema_ref": "99debbe0-3d17-4175-bffc-c05599bf68a3",
+              "id": "334d3de0-47e7-4c19-9305-6aae3e40a426",
+              "schema_ref": "31513a27-f110-4448-982d-763d25714974",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "70b10610-84d8-441e-a2f0-aa0e2c78332d"
+                  "is_source_of_link": "442d557e-a272-48fa-ba84-e8a97ee7b341"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -889,7 +889,7 @@
           }
         },
         {
-          "id": "ba57868a-2455-42e0-8f7b-e6daedffddbe",
+          "id": "79edef9a-1765-4bc0-981b-af1d1586b754",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -902,8 +902,8 @@
           },
           "inputs": [
             {
-              "id": "856fe3c1-b356-48f5-8d27-1d9ce9a4c596",
-              "schema_ref": "0bd04e7a-69ce-4746-8299-360c6d4abe11",
+              "id": "be648df4-bf8f-44ec-a378-edc00f2e1acb",
+              "schema_ref": "49aadd3c-4ccc-485c-ab83-7bdb0577f36b",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -918,9 +918,9 @@
               },
               "links": [
                 {
-                  "id": "70b10610-84d8-441e-a2f0-aa0e2c78332d",
-                  "node_id_ref": "51e758e7-c155-4988-a576-487570eb63f3",
-                  "port_id_ref": "726df0e3-00be-4496-9664-c3e3a4bc8c40",
+                  "id": "442d557e-a272-48fa-ba84-e8a97ee7b341",
+                  "node_id_ref": "c4591b40-2895-4088-80c4-d5c74ce317bb",
+                  "port_id_ref": "334d3de0-47e7-4c19-9305-6aae3e40a426",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_bronze_orders_out",
                   "app_data": {
@@ -1119,12 +1119,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -1141,7 +1141,7 @@
           }
         },
         {
-          "id": "2a9d78a0-5580-4092-98c1-eecd41ed1a58",
+          "id": "759d8bba-a914-4811-b977-0c8f16668093",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1154,11 +1154,11 @@
           },
           "outputs": [
             {
-              "id": "1ed7ee43-a77e-4d04-92a9-9ecba7cec0e1",
-              "schema_ref": "0d3e70cb-c3f4-41b4-8491-6f453d3b953b",
+              "id": "addb69d7-8368-4624-8737-306b5a68e2c2",
+              "schema_ref": "143ec9d9-5289-4583-9611-c15293bd43c3",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "4e826feb-7d91-4bfc-8ad0-ce5b7359da39"
+                  "is_source_of_link": "e34b538a-569d-4e84-b44d-e924b6d9ba9c"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1261,12 +1261,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "general",
@@ -1281,13 +1281,13 @@
           }
         },
         {
-          "id": "7f3bce4e-edef-4c9e-90ee-eb7b693a69f0",
+          "id": "249fa013-5e47-49ce-b510-e7daf7b773c6",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "bdee7d3c-344e-401d-b2db-1cb498aedbba",
-              "outputs_order": "a5161887-c9c7-42ea-9546-c79d0b3c6a18"
+              "inputs_order": "44547d9d-fd6c-4424-a7e6-e6d89adf6743",
+              "outputs_order": "f23ee8bc-48e2-4c47-a234-e3ab78fb44ef"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -1298,7 +1298,7 @@
           },
           "inputs": [
             {
-              "id": "bdee7d3c-344e-401d-b2db-1cb498aedbba",
+              "id": "44547d9d-fd6c-4424-a7e6-e6d89adf6743",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1315,9 +1315,9 @@
               },
               "links": [
                 {
-                  "id": "4e826feb-7d91-4bfc-8ad0-ce5b7359da39",
-                  "node_id_ref": "2a9d78a0-5580-4092-98c1-eecd41ed1a58",
-                  "port_id_ref": "1ed7ee43-a77e-4d04-92a9-9ecba7cec0e1",
+                  "id": "e34b538a-569d-4e84-b44d-e924b6d9ba9c",
+                  "node_id_ref": "759d8bba-a914-4811-b977-0c8f16668093",
+                  "port_id_ref": "addb69d7-8368-4624-8737-306b5a68e2c2",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_raw_raw_order_items",
                   "app_data": {
@@ -1372,11 +1372,11 @@
           ],
           "outputs": [
             {
-              "id": "a5161887-c9c7-42ea-9546-c79d0b3c6a18",
-              "schema_ref": "e39651b6-14f9-4f8d-baa5-f9beb2851429",
+              "id": "f23ee8bc-48e2-4c47-a234-e3ab78fb44ef",
+              "schema_ref": "e9881ba4-1d3d-44c7-ace3-2f126ddfc651",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "63e0e550-24b9-4f3c-907f-19b3e57b4685"
+                  "is_source_of_link": "618e02f3-75a7-4efb-a9dc-b8fc0cf28e92"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1440,7 +1440,7 @@
           }
         },
         {
-          "id": "aa48f1d2-fe6b-4319-94c8-6057fc485cae",
+          "id": "8aa07aac-094e-4850-8343-d8f82bc81c79",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1453,8 +1453,8 @@
           },
           "inputs": [
             {
-              "id": "2844e1af-90a4-4548-b1cf-86016c96663b",
-              "schema_ref": "78ce6d85-7293-4e59-a9f8-16e3c7e3795f",
+              "id": "90947650-e9d9-4525-9c19-54e29cec7fc0",
+              "schema_ref": "3af03b47-a4b1-458f-8998-a6e84a9c75d6",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1469,9 +1469,9 @@
               },
               "links": [
                 {
-                  "id": "63e0e550-24b9-4f3c-907f-19b3e57b4685",
-                  "node_id_ref": "7f3bce4e-edef-4c9e-90ee-eb7b693a69f0",
-                  "port_id_ref": "a5161887-c9c7-42ea-9546-c79d0b3c6a18",
+                  "id": "618e02f3-75a7-4efb-a9dc-b8fc0cf28e92",
+                  "node_id_ref": "249fa013-5e47-49ce-b510-e7daf7b773c6",
+                  "port_id_ref": "f23ee8bc-48e2-4c47-a234-e3ab78fb44ef",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_bronze_order_items_out",
                   "app_data": {
@@ -1670,12 +1670,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -1692,7 +1692,7 @@
           }
         },
         {
-          "id": "a202e911-21af-4f5e-a553-c90317388b30",
+          "id": "21827483-b5c9-418d-a4b5-7fd22da87056",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1705,11 +1705,11 @@
           },
           "outputs": [
             {
-              "id": "005f0ab5-9091-4a45-84c5-cd70da6ad91f",
-              "schema_ref": "3e215310-ed5c-453d-aea1-94d1f49faead",
+              "id": "f2194002-c97d-4c77-9b21-d2bbcc0ad264",
+              "schema_ref": "dd430808-225e-41bd-861d-3570fe2a9f60",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "c1e61b25-a0d0-45c7-b7b7-954b3d9b5949"
+                  "is_source_of_link": "f6a318a1-5c2e-4642-bb3b-54caf038ed0f"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1797,12 +1797,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "general",
@@ -1817,13 +1817,13 @@
           }
         },
         {
-          "id": "0d278784-5c74-4244-bfed-0c73f28424f0",
+          "id": "966b0aca-f997-4a2c-bb57-c3a23b0996d0",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "e58e2206-a096-4a48-a573-4af2e51678de",
-              "outputs_order": "32d3f50e-b5a9-4742-8ed5-9fb4397719a8"
+              "inputs_order": "aadf7305-434a-4a0c-acc2-0045a661611f",
+              "outputs_order": "f990a90f-ef1a-4873-8df4-84d85417562e"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -1834,7 +1834,7 @@
           },
           "inputs": [
             {
-              "id": "e58e2206-a096-4a48-a573-4af2e51678de",
+              "id": "aadf7305-434a-4a0c-acc2-0045a661611f",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1851,9 +1851,9 @@
               },
               "links": [
                 {
-                  "id": "c1e61b25-a0d0-45c7-b7b7-954b3d9b5949",
-                  "node_id_ref": "a202e911-21af-4f5e-a553-c90317388b30",
-                  "port_id_ref": "005f0ab5-9091-4a45-84c5-cd70da6ad91f",
+                  "id": "f6a318a1-5c2e-4642-bb3b-54caf038ed0f",
+                  "node_id_ref": "21827483-b5c9-418d-a4b5-7fd22da87056",
+                  "port_id_ref": "f2194002-c97d-4c77-9b21-d2bbcc0ad264",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_raw_raw_products",
                   "app_data": {
@@ -1908,11 +1908,11 @@
           ],
           "outputs": [
             {
-              "id": "32d3f50e-b5a9-4742-8ed5-9fb4397719a8",
-              "schema_ref": "55eb12d7-4b79-4fde-8e73-9979adabaf0e",
+              "id": "f990a90f-ef1a-4873-8df4-84d85417562e",
+              "schema_ref": "7b60cb91-5a68-4d8a-89d1-cbf9fab045e0",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "f75af5fd-d566-4996-84d8-3ccaf3466ca9"
+                  "is_source_of_link": "6234df63-68ab-4bec-bdab-98e9b6c355b4"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1976,7 +1976,7 @@
           }
         },
         {
-          "id": "96b6b4fa-8fdc-4f79-944f-226752417773",
+          "id": "916f651b-5a65-463b-ab47-9873e128dc1e",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1989,8 +1989,8 @@
           },
           "inputs": [
             {
-              "id": "34c0a0a3-f18a-41af-93cc-5458110f8a09",
-              "schema_ref": "d4d9de6d-b467-4045-a368-d9b712b9e533",
+              "id": "c4c475b9-a99f-484a-8255-f45043ea75ab",
+              "schema_ref": "2f76d8d2-5f63-4e18-8f1c-49faffeff04e",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -2005,9 +2005,9 @@
               },
               "links": [
                 {
-                  "id": "f75af5fd-d566-4996-84d8-3ccaf3466ca9",
-                  "node_id_ref": "0d278784-5c74-4244-bfed-0c73f28424f0",
-                  "port_id_ref": "32d3f50e-b5a9-4742-8ed5-9fb4397719a8",
+                  "id": "6234df63-68ab-4bec-bdab-98e9b6c355b4",
+                  "node_id_ref": "966b0aca-f997-4a2c-bb57-c3a23b0996d0",
+                  "port_id_ref": "f990a90f-ef1a-4873-8df4-84d85417562e",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_bronze_products_out",
                   "app_data": {
@@ -2191,12 +2191,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -2222,7 +2222,7 @@
   ],
   "schemas": [
     {
-      "id": "ad801341-d7fa-4b9a-a9bf-9b6dc6683208",
+      "id": "fbba97a8-db0e-4678-8f13-118cc1a85a00",
       "fields": [
         {
           "metadata": {
@@ -2377,7 +2377,7 @@
       ]
     },
     {
-      "id": "52d72f06-288c-480c-a98f-1d6e215c9c4f",
+      "id": "c172a28e-6b94-46bd-b3c8-3bfd28d0cfe5",
       "fields": [
         {
           "metadata": {
@@ -2485,7 +2485,7 @@
       ]
     },
     {
-      "id": "152520e7-18cb-4daa-b696-06d18c019620",
+      "id": "316bd2a7-d7ba-4337-8763-bb21c973f0ed",
       "fields": [
         {
           "metadata": {
@@ -2743,7 +2743,7 @@
       ]
     },
     {
-      "id": "a3af9b5b-4510-46ed-bbc7-67c395a04087",
+      "id": "e19a290d-9217-4994-8526-b53c616746c6",
       "fields": [
         {
           "metadata": {
@@ -2873,7 +2873,7 @@
       ]
     },
     {
-      "id": "99debbe0-3d17-4175-bffc-c05599bf68a3",
+      "id": "31513a27-f110-4448-982d-763d25714974",
       "fields": [
         {
           "metadata": {
@@ -2981,7 +2981,7 @@
       ]
     },
     {
-      "id": "0bd04e7a-69ce-4746-8299-360c6d4abe11",
+      "id": "49aadd3c-4ccc-485c-ab83-7bdb0577f36b",
       "fields": [
         {
           "metadata": {
@@ -3214,7 +3214,7 @@
       ]
     },
     {
-      "id": "0d3e70cb-c3f4-41b4-8491-6f453d3b953b",
+      "id": "143ec9d9-5289-4583-9611-c15293bd43c3",
       "fields": [
         {
           "metadata": {
@@ -3344,7 +3344,7 @@
       ]
     },
     {
-      "id": "e39651b6-14f9-4f8d-baa5-f9beb2851429",
+      "id": "e9881ba4-1d3d-44c7-ace3-2f126ddfc651",
       "fields": [
         {
           "metadata": {
@@ -3452,7 +3452,7 @@
       ]
     },
     {
-      "id": "78ce6d85-7293-4e59-a9f8-16e3c7e3795f",
+      "id": "3af03b47-a4b1-458f-8998-a6e84a9c75d6",
       "fields": [
         {
           "metadata": {
@@ -3685,7 +3685,7 @@
       ]
     },
     {
-      "id": "3e215310-ed5c-453d-aea1-94d1f49faead",
+      "id": "dd430808-225e-41bd-861d-3570fe2a9f60",
       "fields": [
         {
           "metadata": {
@@ -3790,7 +3790,7 @@
       ]
     },
     {
-      "id": "55eb12d7-4b79-4fde-8e73-9979adabaf0e",
+      "id": "7b60cb91-5a68-4d8a-89d1-cbf9fab045e0",
       "fields": [
         {
           "metadata": {
@@ -3898,7 +3898,7 @@
       ]
     },
     {
-      "id": "d4d9de6d-b467-4045-a368-d9b712b9e533",
+      "id": "2f76d8d2-5f63-4e18-8f1c-49faffeff04e",
       "fields": [
         {
           "metadata": {

@@ -48,8 +48,12 @@ ROOT      = Path(__file__).resolve().parents[2]
 FLOWS_DIR = Path(__file__).resolve().parent / "flows"
 load_dotenv(ROOT / ".env")
 
-PROJECT_ID  = "2d2415ea-71b5-4215-a7b6-b32a4889611e"
-PRESTO_CONN = "ed04ec2a-84a8-429b-8348-fc8517bb9fad"
+# Project and connection are looked up BY NAME at start-up (see _resolve_ids),
+# so a rebuilt cluster with new IDs works without editing this file.
+PROJECT_NAME = os.getenv("WXD_CPD_PROJECT", "ibmas-dlh-medallion-project")
+CONN_NAME    = os.getenv("WXD_CPD_CONNECTION", "ibmas-watsonx-data-presto-con")
+PROJECT_ID   = os.getenv("WXD_DATASTAGE_PROJECT_ID", "")     # optional override
+PRESTO_CONN  = os.getenv("WXD_DATASTAGE_CONNECTION_ID", "")  # optional override
 CATALOG     = "iceberg_data"
 RAW         = "dbt_demo_raw"
 BRONZE      = "datastage_demo_bronze_v2"
@@ -165,7 +169,7 @@ def _src_general(label: str, schema: str, table: str,
                        "outputcolProperties": colprops},
         "connection": {"ref": PRESTO_CONN, "project_ref": PROJECT_ID,
                        "connData": {"op": "existing-asset", "stageName": "lakehouse",
-                                    "connectionName": "ibmas-presto"},
+                                    "connectionName": CONN_NAME},
                        "properties": {"read_mode": "general", "catalog_name": CATALOG,
                                       "schema_name": schema, "table_name": table,
                                       "outputAcpShouldHide": True,
@@ -191,7 +195,7 @@ def _src_sql(label: str, sql: str,
                        "outputcolProperties": colprops},
         "connection": {"ref": PRESTO_CONN, "project_ref": PROJECT_ID,
                        "connData": {"op": "existing-asset", "stageName": "lakehouse",
-                                    "connectionName": "ibmas-presto"},
+                                    "connectionName": CONN_NAME},
                        "properties": {"read_mode": "select", "select_statement": sql,
                                       "outputAcpShouldHide": True,
                                       "enableFlowAcpControl": True,
@@ -319,7 +323,7 @@ def _tgt(label: str, schema: str, table: str,
                        "inputName": lnk_name, "inputcolProperties": colprops},
         "connection": {"ref": PRESTO_CONN, "project_ref": PROJECT_ID,
                        "connData": {"op": "existing-asset", "stageName": "lakehouse",
-                                    "connectionName": "ibmas-presto"},
+                                    "connectionName": CONN_NAME},
                        "properties": {"write_mode": "write", "table_action": "append",
                                       "catalog_name": CATALOG,
                                       "schema_name": schema, "table_name": table,
@@ -1012,6 +1016,28 @@ FLOW_DEFS = [
 ]
 
 
+def _resolve_ids():
+    """Fill PROJECT_ID / PRESTO_CONN from the cluster by name (unless overridden in .env)."""
+    global PROJECT_ID, PRESTO_CONN
+    if PROJECT_ID and PRESTO_CONN:
+        return
+    host, h = os.environ["WXD_CPD_HOST"], {"Authorization": "Bearer " + _token()}
+    base = f"https://{host}"
+    if not PROJECT_ID:
+        r = requests.get(f"{base}/v2/projects?limit=100", headers=h, verify=_ca()).json()
+        ids = [p["metadata"]["guid"] for p in r.get("resources", []) if p["entity"]["name"] == PROJECT_NAME]
+        if not ids:
+            sys.exit(f"project '{PROJECT_NAME}' not found - run: bin/demo ikc setup")
+        PROJECT_ID = ids[0]
+    if not PRESTO_CONN:
+        r = requests.get(f"{base}/v2/connections?project_id={PROJECT_ID}", headers=h, verify=_ca()).json()
+        ids = [c["metadata"]["asset_id"] for c in r.get("resources", []) if c["entity"]["name"] == CONN_NAME]
+        if not ids:
+            sys.exit(f"connection '{CONN_NAME}' not found in project '{PROJECT_NAME}' - run: bin/demo ikc setup")
+        PRESTO_CONN = ids[0]
+    print(f"Resolved project {PROJECT_NAME} = {PROJECT_ID}, connection {CONN_NAME} = {PRESTO_CONN}")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Build + run DataStage medallion flows (v2).")
     ap.add_argument("--build",  action="store_true")
@@ -1022,6 +1048,8 @@ def main():
     if not (args.build or args.create or args.verify):
         ap.error("pass at least one of --build / --create [--run] / --verify")
 
+    if args.build or args.create:
+        _resolve_ids()   # IDs are embedded in the generated flow JSON
     docs = {}
     if args.build or args.create:
         print("Building pipeline-flow JSON:")

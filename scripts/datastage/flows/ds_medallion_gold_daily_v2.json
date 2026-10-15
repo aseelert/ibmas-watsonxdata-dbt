@@ -2,14 +2,14 @@
   "doc_type": "pipeline",
   "version": "3.0",
   "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
-  "primary_pipeline": "fa2e17ea-1846-467e-8a74-49ab9f5eaa6e",
+  "primary_pipeline": "5ebd9c7f-5e29-4404-a649-f6e1f5aa55dd",
   "pipelines": [
     {
-      "id": "fa2e17ea-1846-467e-8a74-49ab9f5eaa6e",
+      "id": "5ebd9c7f-5e29-4404-a649-f6e1f5aa55dd",
       "runtime_ref": "pxOsh",
       "nodes": [
         {
-          "id": "197dec37-f1e8-4e4d-a996-00c07e8d5e06",
+          "id": "a5cc8777-7d75-4caa-9866-0f43168fefd1",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -22,11 +22,11 @@
           },
           "outputs": [
             {
-              "id": "ae5c75b7-49fd-4e7a-bdc5-317e1ba75c7b",
-              "schema_ref": "769ca1ae-0ec0-465c-a39d-dcbfa46359b3",
+              "id": "c247116d-2d77-4128-a7e4-cfd86686eae5",
+              "schema_ref": "fb6b0ecb-5774-435d-b15c-2c3adeb81aa0",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "8de6791f-b346-46b7-9fcf-2dc6a1bae1e1"
+                  "is_source_of_link": "73da4aaa-eab0-4b57-8fc8-3f611e6392ba"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -129,12 +129,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "select",
@@ -147,7 +147,7 @@
           }
         },
         {
-          "id": "fa50a550-a706-44fd-8522-1056c15220af",
+          "id": "cb4c733c-f99c-4e88-b471-92df7d1e069c",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -160,8 +160,8 @@
           },
           "inputs": [
             {
-              "id": "a3e31e25-e409-410b-8fc6-21121a41b819",
-              "schema_ref": "769ca1ae-0ec0-465c-a39d-dcbfa46359b3",
+              "id": "559ac15d-883f-4b50-996b-f063e5198e9c",
+              "schema_ref": "fb6b0ecb-5774-435d-b15c-2c3adeb81aa0",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -176,9 +176,9 @@
               },
               "links": [
                 {
-                  "id": "8de6791f-b346-46b7-9fcf-2dc6a1bae1e1",
-                  "node_id_ref": "197dec37-f1e8-4e4d-a996-00c07e8d5e06",
-                  "port_id_ref": "ae5c75b7-49fd-4e7a-bdc5-317e1ba75c7b",
+                  "id": "73da4aaa-eab0-4b57-8fc8-3f611e6392ba",
+                  "node_id_ref": "a5cc8777-7d75-4caa-9866-0f43168fefd1",
+                  "port_id_ref": "c247116d-2d77-4128-a7e4-cfd86686eae5",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_gold_daily_sales",
                   "app_data": {
@@ -317,12 +317,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -348,7 +348,7 @@
   ],
   "schemas": [
     {
-      "id": "769ca1ae-0ec0-465c-a39d-dcbfa46359b3",
+      "id": "fb6b0ecb-5774-435d-b15c-2c3adeb81aa0",
       "fields": [
         {
           "metadata": {

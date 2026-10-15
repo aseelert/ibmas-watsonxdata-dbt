@@ -2,14 +2,14 @@
   "doc_type": "pipeline",
   "version": "3.0",
   "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
-  "primary_pipeline": "99992e76-9ab6-437b-b750-8d4c84746ac9",
+  "primary_pipeline": "0ea18de2-95c6-477e-a3c2-3e0b3a4a26ed",
   "pipelines": [
     {
-      "id": "99992e76-9ab6-437b-b750-8d4c84746ac9",
+      "id": "0ea18de2-95c6-477e-a3c2-3e0b3a4a26ed",
       "runtime_ref": "pxOsh",
       "nodes": [
         {
-          "id": "0a44e5f5-c624-4d64-a724-224a6d272c56",
+          "id": "b34faad2-2e0b-4a05-b683-6b6f7a57b7c7",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -22,11 +22,11 @@
           },
           "outputs": [
             {
-              "id": "5acf984b-43c9-46a2-9869-037cfc6271a3",
-              "schema_ref": "51a0b722-9b66-4ad8-ba17-d3550de309ad",
+              "id": "e9e07a26-2231-4c86-9f26-0ecd37234f63",
+              "schema_ref": "dbfa33ba-fe40-4660-8528-0e9a6bffc4d6",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "bf2ef4c0-5cfb-42e9-9426-e5ac706c6bd6"
+                  "is_source_of_link": "75d82d8a-daea-4bec-b061-50eb7c8d3ca1"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -144,12 +144,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "select",
@@ -162,13 +162,13 @@
           }
         },
         {
-          "id": "4784ac28-7d5a-4a93-a088-cb21792bbb0d",
+          "id": "8083efe8-379c-4dd7-8b15-dd91a6dbbbbb",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "6077376c-2a91-4f9c-8c6f-abd3ef819d5b",
-              "outputs_order": "cfd11267-4c1e-4989-bf2d-297786a5c25f"
+              "inputs_order": "b37ea172-b57c-4610-ac49-cfde524df338",
+              "outputs_order": "4863d01d-f878-4d5c-85cd-4c20df2d0ffa"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -179,7 +179,7 @@
           },
           "inputs": [
             {
-              "id": "6077376c-2a91-4f9c-8c6f-abd3ef819d5b",
+              "id": "b37ea172-b57c-4610-ac49-cfde524df338",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -196,9 +196,9 @@
               },
               "links": [
                 {
-                  "id": "bf2ef4c0-5cfb-42e9-9426-e5ac706c6bd6",
-                  "node_id_ref": "0a44e5f5-c624-4d64-a724-224a6d272c56",
-                  "port_id_ref": "5acf984b-43c9-46a2-9869-037cfc6271a3",
+                  "id": "75d82d8a-daea-4bec-b061-50eb7c8d3ca1",
+                  "node_id_ref": "b34faad2-2e0b-4a05-b683-6b6f7a57b7c7",
+                  "port_id_ref": "e9e07a26-2231-4c86-9f26-0ecd37234f63",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_customers_in",
                   "app_data": {
@@ -249,16 +249,16 @@
                   }
                 }
               ],
-              "schema_ref": "51a0b722-9b66-4ad8-ba17-d3550de309ad"
+              "schema_ref": "dbfa33ba-fe40-4660-8528-0e9a6bffc4d6"
             }
           ],
           "outputs": [
             {
-              "id": "cfd11267-4c1e-4989-bf2d-297786a5c25f",
-              "schema_ref": "2b2f0ebd-431d-4f53-bbfb-9be348bbe63c",
+              "id": "4863d01d-f878-4d5c-85cd-4c20df2d0ffa",
+              "schema_ref": "b1a8e26e-e11d-4840-b0ce-ed775c93da5e",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "58cbc4db-f6fc-4c40-8e49-77a6db158cd0"
+                  "is_source_of_link": "e1e8dd75-d14d-4e37-9d25-94befe2c7705"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -334,7 +334,7 @@
           }
         },
         {
-          "id": "7a804e63-77c8-4bf8-8e2b-a7f8be9be568",
+          "id": "a116ff8b-41ec-419e-9a98-d8637405d19c",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -347,8 +347,8 @@
           },
           "inputs": [
             {
-              "id": "dd679e9d-9fad-4895-870f-2a3eb579d02d",
-              "schema_ref": "7f957bed-e01a-4b58-8353-abedd9ede127",
+              "id": "15ec21e7-7ef2-48a4-8d77-a39978db99a7",
+              "schema_ref": "91e65868-429b-4200-83f6-1a28d6f25eda",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -363,9 +363,9 @@
               },
               "links": [
                 {
-                  "id": "58cbc4db-f6fc-4c40-8e49-77a6db158cd0",
-                  "node_id_ref": "4784ac28-7d5a-4a93-a088-cb21792bbb0d",
-                  "port_id_ref": "cfd11267-4c1e-4989-bf2d-297786a5c25f",
+                  "id": "e1e8dd75-d14d-4e37-9d25-94befe2c7705",
+                  "node_id_ref": "8083efe8-379c-4dd7-8b15-dd91a6dbbbbb",
+                  "port_id_ref": "4863d01d-f878-4d5c-85cd-4c20df2d0ffa",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_customers_out",
                   "app_data": {
@@ -534,12 +534,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -556,7 +556,7 @@
           }
         },
         {
-          "id": "438b793c-a37b-42e7-b5ae-f02106ae60d2",
+          "id": "69cf974b-a69e-4251-8c59-d782cb6d5b09",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -569,11 +569,11 @@
           },
           "outputs": [
             {
-              "id": "e08047b5-bb05-47ea-973b-dce910ce92e4",
-              "schema_ref": "78c38399-381d-4c47-964d-f693978015db",
+              "id": "54cf9750-a7e6-41d7-97ab-e55457cd928b",
+              "schema_ref": "b09fa57e-fe6e-463b-9d96-b6c6c357dc07",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "ad4c76a6-f7a1-4251-9eda-c2faec048782"
+                  "is_source_of_link": "38f4e70f-a19c-43ae-af5c-a974aef2669c"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -691,12 +691,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "select",
@@ -709,13 +709,13 @@
           }
         },
         {
-          "id": "9e495ab8-d41e-4fe0-81c8-3b5021559336",
+          "id": "b3683fcc-6ccc-4523-80fd-a262f9da6a7b",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "9ddfe532-5a69-4519-9d46-bd6d790de2ef",
-              "outputs_order": "dcdba671-aae3-4bd9-aaa4-49af43080bb3"
+              "inputs_order": "a9b8d1fd-53ba-4ab0-8272-d9e74d680106",
+              "outputs_order": "208f2bec-0f62-43e4-b6a0-9e84107faca9"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -726,7 +726,7 @@
           },
           "inputs": [
             {
-              "id": "9ddfe532-5a69-4519-9d46-bd6d790de2ef",
+              "id": "a9b8d1fd-53ba-4ab0-8272-d9e74d680106",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -743,9 +743,9 @@
               },
               "links": [
                 {
-                  "id": "ad4c76a6-f7a1-4251-9eda-c2faec048782",
-                  "node_id_ref": "438b793c-a37b-42e7-b5ae-f02106ae60d2",
-                  "port_id_ref": "e08047b5-bb05-47ea-973b-dce910ce92e4",
+                  "id": "38f4e70f-a19c-43ae-af5c-a974aef2669c",
+                  "node_id_ref": "69cf974b-a69e-4251-8c59-d782cb6d5b09",
+                  "port_id_ref": "54cf9750-a7e6-41d7-97ab-e55457cd928b",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_orders_in",
                   "app_data": {
@@ -796,16 +796,16 @@
                   }
                 }
               ],
-              "schema_ref": "78c38399-381d-4c47-964d-f693978015db"
+              "schema_ref": "b09fa57e-fe6e-463b-9d96-b6c6c357dc07"
             }
           ],
           "outputs": [
             {
-              "id": "dcdba671-aae3-4bd9-aaa4-49af43080bb3",
-              "schema_ref": "48d611f9-9799-4e85-bb9f-3a0c0f4d3e74",
+              "id": "208f2bec-0f62-43e4-b6a0-9e84107faca9",
+              "schema_ref": "87e92c2a-3212-4c90-971a-605ba78cd71a",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "8a48af40-6c07-4fe4-bace-9231ca0c59fa"
+                  "is_source_of_link": "71b0107d-48ed-45fe-ad4d-80c58a97b717"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -881,7 +881,7 @@
           }
         },
         {
-          "id": "611135e8-742c-436c-9e3f-b6772df93385",
+          "id": "205dd91c-8c13-4393-aafe-1326876c8929",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -894,8 +894,8 @@
           },
           "inputs": [
             {
-              "id": "1b10efdd-35b4-4925-b781-6cb6d0049549",
-              "schema_ref": "a5ba4987-952c-408c-84fb-a4407ae85bb2",
+              "id": "0cbf1a03-2ea1-4fbd-ac19-5052d32175bc",
+              "schema_ref": "3be1a0b0-6abc-46e4-a4ee-d2679906c8ba",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -910,9 +910,9 @@
               },
               "links": [
                 {
-                  "id": "8a48af40-6c07-4fe4-bace-9231ca0c59fa",
-                  "node_id_ref": "9e495ab8-d41e-4fe0-81c8-3b5021559336",
-                  "port_id_ref": "dcdba671-aae3-4bd9-aaa4-49af43080bb3",
+                  "id": "71b0107d-48ed-45fe-ad4d-80c58a97b717",
+                  "node_id_ref": "b3683fcc-6ccc-4523-80fd-a262f9da6a7b",
+                  "port_id_ref": "208f2bec-0f62-43e4-b6a0-9e84107faca9",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_orders_out",
                   "app_data": {
@@ -1081,12 +1081,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -1103,7 +1103,7 @@
           }
         },
         {
-          "id": "6e1d97ab-ed74-47c6-bce6-feadb1bd26d6",
+          "id": "019906c0-befa-4eeb-a8ac-82a78a9c5d2b",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1116,11 +1116,11 @@
           },
           "outputs": [
             {
-              "id": "fda8fa0c-2413-4806-b19f-dcfe910a326f",
-              "schema_ref": "03219810-aa89-4530-ac6a-8e8823e1d51e",
+              "id": "9aebeb0d-10f3-4f9c-84db-22fce58946e9",
+              "schema_ref": "b7b9e67a-daca-4ef3-bb13-28e6b4a690e9",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "3a69c0f4-7b56-44a7-8de4-5e24ee29d127"
+                  "is_source_of_link": "401a26c0-8765-4ec8-a2d3-88a6926b2fa3"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1223,12 +1223,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "select",
@@ -1241,13 +1241,13 @@
           }
         },
         {
-          "id": "6c1b1fd5-0591-411b-969d-b2266739ba38",
+          "id": "19c11f04-2ae7-4902-8219-62239877c45d",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "edeef93a-42ba-4045-9d33-c5e3fa304ccd",
-              "outputs_order": "c9b1e8d0-9894-4d2e-bd0a-0601da5541e9"
+              "inputs_order": "00a7f90e-8a48-49d3-a5aa-dc935d166bf1",
+              "outputs_order": "9c591ce2-a7b0-41ad-a019-e80346d9da4b"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -1258,7 +1258,7 @@
           },
           "inputs": [
             {
-              "id": "edeef93a-42ba-4045-9d33-c5e3fa304ccd",
+              "id": "00a7f90e-8a48-49d3-a5aa-dc935d166bf1",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1275,9 +1275,9 @@
               },
               "links": [
                 {
-                  "id": "3a69c0f4-7b56-44a7-8de4-5e24ee29d127",
-                  "node_id_ref": "6e1d97ab-ed74-47c6-bce6-feadb1bd26d6",
-                  "port_id_ref": "fda8fa0c-2413-4806-b19f-dcfe910a326f",
+                  "id": "401a26c0-8765-4ec8-a2d3-88a6926b2fa3",
+                  "node_id_ref": "019906c0-befa-4eeb-a8ac-82a78a9c5d2b",
+                  "port_id_ref": "9aebeb0d-10f3-4f9c-84db-22fce58946e9",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_order_items_in",
                   "app_data": {
@@ -1328,16 +1328,16 @@
                   }
                 }
               ],
-              "schema_ref": "03219810-aa89-4530-ac6a-8e8823e1d51e"
+              "schema_ref": "b7b9e67a-daca-4ef3-bb13-28e6b4a690e9"
             }
           ],
           "outputs": [
             {
-              "id": "c9b1e8d0-9894-4d2e-bd0a-0601da5541e9",
-              "schema_ref": "7bac01ac-8bef-4f2c-8224-0bb776f3a705",
+              "id": "9c591ce2-a7b0-41ad-a019-e80346d9da4b",
+              "schema_ref": "7cadb3ae-0686-41a2-80b3-83f8e1f3d1a1",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "aa1ffcd5-d7be-4cda-94ec-2d3d0cbc961b"
+                  "is_source_of_link": "1d05f7d0-ba17-493a-849d-ed1594128feb"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1409,7 +1409,7 @@
           }
         },
         {
-          "id": "5ccf7504-eaa4-4e4e-999a-69260d190907",
+          "id": "261cbb92-0986-4264-9d9d-b6c3fa1fc44b",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1422,8 +1422,8 @@
           },
           "inputs": [
             {
-              "id": "57e4a30f-f88e-400a-9eb2-e001faf11fca",
-              "schema_ref": "702c25e2-00db-4dd4-9c9d-42066e9a6870",
+              "id": "2b21320d-407e-45e5-af5d-c3a59d1a5ca2",
+              "schema_ref": "bdd15bfa-bea6-4775-a3f2-e49f6d77e828",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1438,9 +1438,9 @@
               },
               "links": [
                 {
-                  "id": "aa1ffcd5-d7be-4cda-94ec-2d3d0cbc961b",
-                  "node_id_ref": "6c1b1fd5-0591-411b-969d-b2266739ba38",
-                  "port_id_ref": "c9b1e8d0-9894-4d2e-bd0a-0601da5541e9",
+                  "id": "1d05f7d0-ba17-493a-849d-ed1594128feb",
+                  "node_id_ref": "19c11f04-2ae7-4902-8219-62239877c45d",
+                  "port_id_ref": "9c591ce2-a7b0-41ad-a019-e80346d9da4b",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_order_items_out",
                   "app_data": {
@@ -1594,12 +1594,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -1616,7 +1616,7 @@
           }
         },
         {
-          "id": "28ede711-dcb0-4b94-843d-923c740b869c",
+          "id": "73244926-e120-4042-b63d-e6edd54a5723",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1629,11 +1629,11 @@
           },
           "outputs": [
             {
-              "id": "d95b9533-b996-47c3-99fd-3eec3b328411",
-              "schema_ref": "b6d841e7-e2af-406c-905e-62f7f75bfdb4",
+              "id": "1737c801-ffff-4969-a9b7-1cd42b2e7445",
+              "schema_ref": "018baf43-a364-468a-ad8d-0b6a9520ae9e",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "71bd8840-8524-4f4d-b685-96f4b5874425"
+                  "is_source_of_link": "fc21b285-4f7b-4ba4-91b3-f73973998dcf"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1721,12 +1721,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "read_mode": "select",
@@ -1739,13 +1739,13 @@
           }
         },
         {
-          "id": "b10fffc8-f194-44ee-94b0-8106d358156a",
+          "id": "8890f1bb-6037-4349-b1c4-8cdef745d45b",
           "type": "execution_node",
           "op": "CTransformerStage",
           "app_data": {
             "datastage": {
-              "inputs_order": "fdcdf4f7-e01b-4249-b4fb-52408bd5f9ed",
-              "outputs_order": "67a9cc35-51a4-4e3e-b2d2-4653944d4ef5"
+              "inputs_order": "846daf86-f941-4149-9555-c9a32b023dcf",
+              "outputs_order": "9063a513-a73f-4689-8ebb-547af30600a9"
             },
             "ui_data": {
               "image": "/data-intg/flows/graphics/palette/CTransformerStage.svg",
@@ -1756,7 +1756,7 @@
           },
           "inputs": [
             {
-              "id": "fdcdf4f7-e01b-4249-b4fb-52408bd5f9ed",
+              "id": "846daf86-f941-4149-9555-c9a32b023dcf",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1773,9 +1773,9 @@
               },
               "links": [
                 {
-                  "id": "71bd8840-8524-4f4d-b685-96f4b5874425",
-                  "node_id_ref": "28ede711-dcb0-4b94-843d-923c740b869c",
-                  "port_id_ref": "d95b9533-b996-47c3-99fd-3eec3b328411",
+                  "id": "fc21b285-4f7b-4ba4-91b3-f73973998dcf",
+                  "node_id_ref": "73244926-e120-4042-b63d-e6edd54a5723",
+                  "port_id_ref": "1737c801-ffff-4969-a9b7-1cd42b2e7445",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_products_in",
                   "app_data": {
@@ -1826,16 +1826,16 @@
                   }
                 }
               ],
-              "schema_ref": "b6d841e7-e2af-406c-905e-62f7f75bfdb4"
+              "schema_ref": "018baf43-a364-468a-ad8d-0b6a9520ae9e"
             }
           ],
           "outputs": [
             {
-              "id": "67a9cc35-51a4-4e3e-b2d2-4653944d4ef5",
-              "schema_ref": "143deb1d-2e94-4f38-8d2e-9a49d0e59555",
+              "id": "9063a513-a73f-4689-8ebb-547af30600a9",
+              "schema_ref": "07e9ca18-dcbf-4334-8111-104becbebe3a",
               "app_data": {
                 "datastage": {
-                  "is_source_of_link": "c72162a3-89f7-4baa-9633-25be2ead9388"
+                  "is_source_of_link": "b1773b9f-fe35-4209-ae09-4e70a946a0de"
                 },
                 "ui_data": {
                   "label": "outPort",
@@ -1903,7 +1903,7 @@
           }
         },
         {
-          "id": "d1a64ddf-33f8-42ae-88e7-fb87527562d1",
+          "id": "5ea94c40-1144-4ad3-a5dc-e9969a952b3a",
           "type": "binding",
           "op": "lakehouse",
           "app_data": {
@@ -1916,8 +1916,8 @@
           },
           "inputs": [
             {
-              "id": "71db380a-6f9c-40bf-98ae-54c8fb6670a0",
-              "schema_ref": "108520d7-82ca-4db3-8391-83acfcd0cd8c",
+              "id": "56150fc2-3d74-41e8-ba87-db54dbfa8fb7",
+              "schema_ref": "4fe3ec1f-4080-4a61-b843-16453fd346ad",
               "app_data": {
                 "ui_data": {
                   "label": "inPort",
@@ -1932,9 +1932,9 @@
               },
               "links": [
                 {
-                  "id": "c72162a3-89f7-4baa-9633-25be2ead9388",
-                  "node_id_ref": "b10fffc8-f194-44ee-94b0-8106d358156a",
-                  "port_id_ref": "67a9cc35-51a4-4e3e-b2d2-4653944d4ef5",
+                  "id": "b1773b9f-fe35-4209-ae09-4e70a946a0de",
+                  "node_id_ref": "8890f1bb-6037-4349-b1c4-8cdef745d45b",
+                  "port_id_ref": "9063a513-a73f-4689-8ebb-547af30600a9",
                   "type_attr": "PRIMARY",
                   "link_name": "Lnk_silver_products_out",
                   "app_data": {
@@ -2073,12 +2073,12 @@
             ]
           },
           "connection": {
-            "ref": "ed04ec2a-84a8-429b-8348-fc8517bb9fad",
-            "project_ref": "2d2415ea-71b5-4215-a7b6-b32a4889611e",
+            "ref": "2161dc98-e4a4-4195-8ca6-971b1172554c",
+            "project_ref": "6bff8367-7001-4c9c-923b-58d815283d2f",
             "connData": {
               "op": "existing-asset",
               "stageName": "lakehouse",
-              "connectionName": "ibmas-presto"
+              "connectionName": "ibmas-watsonx-data-presto-con"
             },
             "properties": {
               "write_mode": "write",
@@ -2104,7 +2104,7 @@
   ],
   "schemas": [
     {
-      "id": "51a0b722-9b66-4ad8-ba17-d3550de309ad",
+      "id": "dbfa33ba-fe40-4660-8528-0e9a6bffc4d6",
       "fields": [
         {
           "metadata": {
@@ -2259,187 +2259,7 @@
       ]
     },
     {
-      "id": "2b2f0ebd-431d-4f53-bbfb-9be348bbe63c",
-      "fields": [
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": true
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "customer_id",
-          "isSelected": false,
-          "type": "integer",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "INTEGER",
-            "is_unicode_string": false,
-            "type_code": "INT32"
-          },
-          "LastSchemaColumnName": "customer_id"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 255,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "first_name",
-          "isSelected": false,
-          "type": "string",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "VARCHAR",
-            "is_unicode_string": false,
-            "type_code": "STRING"
-          },
-          "LastSchemaColumnName": "first_name"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 255,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "last_name",
-          "isSelected": false,
-          "type": "string",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "VARCHAR",
-            "is_unicode_string": false,
-            "type_code": "STRING"
-          },
-          "LastSchemaColumnName": "last_name"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 255,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "email",
-          "isSelected": false,
-          "type": "string",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "VARCHAR",
-            "is_unicode_string": false,
-            "type_code": "STRING"
-          },
-          "LastSchemaColumnName": "email"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "signup_date",
-          "isSelected": false,
-          "type": "date",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "DATE",
-            "is_unicode_string": false,
-            "type_code": "DATE"
-          },
-          "LastSchemaColumnName": "signup_date"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "country",
-          "isSelected": false,
-          "type": "string",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "VARCHAR",
-            "is_unicode_string": false,
-            "type_code": "STRING"
-          },
-          "LastSchemaColumnName": "country"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 26,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "transformed_at",
-          "isSelected": false,
-          "type": "timestamp",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "TIMESTAMP",
-            "is_unicode_string": false,
-            "type_code": "DATETIME"
-          },
-          "LastSchemaColumnName": "transformed_at"
-        }
-      ]
-    },
-    {
-      "id": "7f957bed-e01a-4b58-8353-abedd9ede127",
+      "id": "b1a8e26e-e11d-4840-b0ce-ed775c93da5e",
       "fields": [
         {
           "metadata": {
@@ -2619,7 +2439,187 @@
       ]
     },
     {
-      "id": "78c38399-381d-4c47-964d-f693978015db",
+      "id": "91e65868-429b-4200-83f6-1a28d6f25eda",
+      "fields": [
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": true
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "customer_id",
+          "isSelected": false,
+          "type": "integer",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          },
+          "LastSchemaColumnName": "customer_id"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 255,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "first_name",
+          "isSelected": false,
+          "type": "string",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          },
+          "LastSchemaColumnName": "first_name"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 255,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "last_name",
+          "isSelected": false,
+          "type": "string",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          },
+          "LastSchemaColumnName": "last_name"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 255,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "email",
+          "isSelected": false,
+          "type": "string",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          },
+          "LastSchemaColumnName": "email"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "signup_date",
+          "isSelected": false,
+          "type": "date",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "DATE",
+            "is_unicode_string": false,
+            "type_code": "DATE"
+          },
+          "LastSchemaColumnName": "signup_date"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "country",
+          "isSelected": false,
+          "type": "string",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "VARCHAR",
+            "is_unicode_string": false,
+            "type_code": "STRING"
+          },
+          "LastSchemaColumnName": "country"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 26,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "transformed_at",
+          "isSelected": false,
+          "type": "timestamp",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          },
+          "LastSchemaColumnName": "transformed_at"
+        }
+      ]
+    },
+    {
+      "id": "b09fa57e-fe6e-463b-9d96-b6c6c357dc07",
       "fields": [
         {
           "metadata": {
@@ -2774,7 +2774,7 @@
       ]
     },
     {
-      "id": "48d611f9-9799-4e85-bb9f-3a0c0f4d3e74",
+      "id": "87e92c2a-3212-4c90-971a-605ba78cd71a",
       "fields": [
         {
           "metadata": {
@@ -2954,7 +2954,7 @@
       ]
     },
     {
-      "id": "a5ba4987-952c-408c-84fb-a4407ae85bb2",
+      "id": "3be1a0b0-6abc-46e4-a4ee-d2679906c8ba",
       "fields": [
         {
           "metadata": {
@@ -3134,7 +3134,7 @@
       ]
     },
     {
-      "id": "03219810-aa89-4530-ac6a-8e8823e1d51e",
+      "id": "b7b9e67a-daca-4ef3-bb13-28e6b4a690e9",
       "fields": [
         {
           "metadata": {
@@ -3264,162 +3264,7 @@
       ]
     },
     {
-      "id": "7bac01ac-8bef-4f2c-8224-0bb776f3a705",
-      "fields": [
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": true
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "order_item_id",
-          "isSelected": false,
-          "type": "integer",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "INTEGER",
-            "is_unicode_string": false,
-            "type_code": "INT32"
-          },
-          "LastSchemaColumnName": "order_item_id"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": true
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "order_id",
-          "isSelected": false,
-          "type": "integer",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "INTEGER",
-            "is_unicode_string": false,
-            "type_code": "INT32"
-          },
-          "LastSchemaColumnName": "order_id"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": true
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "product_id",
-          "isSelected": false,
-          "type": "integer",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "INTEGER",
-            "is_unicode_string": false,
-            "type_code": "INT32"
-          },
-          "LastSchemaColumnName": "product_id"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 10,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": true
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "quantity",
-          "isSelected": false,
-          "type": "integer",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "INTEGER",
-            "is_unicode_string": false,
-            "type_code": "INT32"
-          },
-          "LastSchemaColumnName": "quantity"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 5,
-            "decimal_scale": 2,
-            "decimal_precision": 5,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": true
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "discount_pct",
-          "isSelected": false,
-          "type": "decimal(5,2)",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "DECIMAL",
-            "is_unicode_string": false,
-            "type_code": "DECIMAL"
-          },
-          "LastSchemaColumnName": "discount_pct"
-        },
-        {
-          "metadata": {
-            "item_index": 0,
-            "is_key": false,
-            "min_length": 0,
-            "max_length": 26,
-            "decimal_scale": 0,
-            "decimal_precision": 0,
-            "description": " ",
-            "TimeScale": 0,
-            "is_signed": false
-          },
-          "nullable": true,
-          "MisFieldProperties": "",
-          "name": "transformed_at",
-          "isSelected": false,
-          "type": "timestamp",
-          "app_data": {
-            "time_scale": 0,
-            "odbc_type": "TIMESTAMP",
-            "is_unicode_string": false,
-            "type_code": "DATETIME"
-          },
-          "LastSchemaColumnName": "transformed_at"
-        }
-      ]
-    },
-    {
-      "id": "702c25e2-00db-4dd4-9c9d-42066e9a6870",
+      "id": "7cadb3ae-0686-41a2-80b3-83f8e1f3d1a1",
       "fields": [
         {
           "metadata": {
@@ -3574,7 +3419,162 @@
       ]
     },
     {
-      "id": "b6d841e7-e2af-406c-905e-62f7f75bfdb4",
+      "id": "bdd15bfa-bea6-4775-a3f2-e49f6d77e828",
+      "fields": [
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": true
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "order_item_id",
+          "isSelected": false,
+          "type": "integer",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          },
+          "LastSchemaColumnName": "order_item_id"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": true
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "order_id",
+          "isSelected": false,
+          "type": "integer",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          },
+          "LastSchemaColumnName": "order_id"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": true
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "product_id",
+          "isSelected": false,
+          "type": "integer",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          },
+          "LastSchemaColumnName": "product_id"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 10,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": true
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "quantity",
+          "isSelected": false,
+          "type": "integer",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "INTEGER",
+            "is_unicode_string": false,
+            "type_code": "INT32"
+          },
+          "LastSchemaColumnName": "quantity"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 5,
+            "decimal_scale": 2,
+            "decimal_precision": 5,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": true
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "discount_pct",
+          "isSelected": false,
+          "type": "decimal(5,2)",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "DECIMAL",
+            "is_unicode_string": false,
+            "type_code": "DECIMAL"
+          },
+          "LastSchemaColumnName": "discount_pct"
+        },
+        {
+          "metadata": {
+            "item_index": 0,
+            "is_key": false,
+            "min_length": 0,
+            "max_length": 26,
+            "decimal_scale": 0,
+            "decimal_precision": 0,
+            "description": " ",
+            "TimeScale": 0,
+            "is_signed": false
+          },
+          "nullable": true,
+          "MisFieldProperties": "",
+          "name": "transformed_at",
+          "isSelected": false,
+          "type": "timestamp",
+          "app_data": {
+            "time_scale": 0,
+            "odbc_type": "TIMESTAMP",
+            "is_unicode_string": false,
+            "type_code": "DATETIME"
+          },
+          "LastSchemaColumnName": "transformed_at"
+        }
+      ]
+    },
+    {
+      "id": "018baf43-a364-468a-ad8d-0b6a9520ae9e",
       "fields": [
         {
           "metadata": {
@@ -3679,7 +3679,7 @@
       ]
     },
     {
-      "id": "143deb1d-2e94-4f38-8d2e-9a49d0e59555",
+      "id": "07e9ca18-dcbf-4334-8111-104becbebe3a",
       "fields": [
         {
           "metadata": {
@@ -3809,7 +3809,7 @@
       ]
     },
     {
-      "id": "108520d7-82ca-4db3-8391-83acfcd0cd8c",
+      "id": "4fe3ec1f-4080-4a61-b843-16453fd346ad",
       "fields": [
         {
           "metadata": {

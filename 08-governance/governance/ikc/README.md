@@ -2,7 +2,7 @@
 
 Business glossary, classifications, data classes, reference data and rules for the
 watsonx.data medallion demo, authored for **IBM Knowledge Catalog (watsonx.data Intelligence)**
-and applied to the **`ibmas-catalog`** catalog (`d742df95-bfe8-4402-a4f3-ce2d18b1c7fb`).
+and applied to the **`ibmas-dlh-medallion-catalog`** catalog.
 
 The four datasets (customers, products, orders, order_items) flow Bronze → Silver → Gold in the
 dbt / Spark / Confluent paths, so each business term describes a concept identical in every layer.
@@ -161,8 +161,8 @@ Each of the 15 data classes maps 1-to-1 with a business term and contains:
 
 ## After publishing — govern the Gold assets
 
-Run metadata enrichment on the Gold tables in project `ibmas-ingest-demo`
-(`2d2415ea-71b5-4215-a7b6-b32a4889611e`) so the column-name filters automatically assign
+Run metadata enrichment on the Gold tables in project `ibmas-dlh-medallion-project`
+(created by `bin/demo ikc setup`) so the column-name filters automatically assign
 data classes to columns:
 
 - `gold_daily_sales`

@@ -40,6 +40,9 @@ Demo commands:
                         containers only; this command runs the full pipeline.
   catalog               Run OpenMetadata ingestion (containers must be
                         running; use 'docker start catalog' first).
+  ikc [setup|verify]    Create/adopt the CPD project, Presto connection, DSD,
+                        metadata import and enrichment (idempotent). Use
+                        --dry-run first; --run re-runs the import/enrichment.
   governance [args...]  Provision the IBM Knowledge Catalog governance model
                         (categories, terms, data classes, rules) in CPD.
                         Try --verify-only or --dry-run first; --stage X for one.
@@ -145,7 +148,7 @@ _pf_docker() {
 
 if [[ "${WXD_SKIP_PREFLIGHT:-}" != "1" ]]; then
   case "${1:-}" in
-    spark|ingest|query|validate|reset|streaming|governance) _pf_env wait ;;
+    spark|ingest|query|validate|reset|streaming|governance|ikc) _pf_env wait ;;
   esac
   case "${1:-}" in
     streaming|metabase|airflow|lineage|catalog) _pf_docker wait ;;
@@ -228,6 +231,7 @@ case "${1:-}" in
     exec python3 scripts/03b_submit_spark_application.py "$@"
     ;;
   ingest) shift; exec python3 scripts/04_ingest_with_cpdctl.py "$@" ;;
+  ikc) shift; exec .venv/bin/python scripts/06c_provision_cpd_fabric.py "$@" ;;
   governance) shift; exec python3 scripts/06b_provision_ikc_governance.py "$@" ;;
   query) shift; exec python3 scripts/05_query_gold.py "$@" ;;
   streaming) shift; exec bash 04-confluent-streaming/confluent/start.sh "$@" ;;
