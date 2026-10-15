@@ -26,7 +26,7 @@ bin/demo docker status   ← check what is running
 ### Airflow — `05-airflow/airflow/Dockerfile`
 
 The Airflow stack uses a custom image that extends the official
-`apache/airflow:3.2.2` base with the demo's Python dependencies.  
+`apache/airflow:3.3.2` base with the demo's Python dependencies.  
 The `docker-compose.yml` at the repo root references this Dockerfile via a
 `build:` block, so running `docker compose up` for the airflow services will
 build the image automatically on first use:
@@ -46,7 +46,7 @@ resolves correctly.
 ### Flink — `04-confluent-streaming/confluent/flink/Dockerfile`
 
 The Confluent streaming stack requires a custom Flink image tagged
-`wxd-flink:1.20`. It extends `flink:1.20-scala_2.12` with the Kafka SQL
+`wxd-flink:2.3`. It extends `flink:2.3.0-scala_2.12` with the Kafka SQL
 connector, Iceberg runtime, Hadoop S3A JARs, and the Confluent Avro format.
 
 Because the `confluent/docker-compose.yml` references the image **by tag** (not
@@ -58,7 +58,7 @@ once manually before `bin/demo streaming` is called:
 bin/demo docker build
 
 # Or build the Flink image directly:
-docker build -t wxd-flink:1.20 04-confluent-streaming/confluent/flink
+docker build -t wxd-flink:2.3 04-confluent-streaming/confluent/flink
 ```
 
 The build downloads several JARs from Maven Central (~200 MB). Run it on a
@@ -95,12 +95,12 @@ bin/demo streaming     # Flink image must be pre-built via 'bin/demo docker buil
 ### Metabase — port 3000
 
 Defined in [`02-metabase/compose.yaml`](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/02-metabase/compose.yaml).
-Pulls `metabase/metabase:latest` and `postgres:16` — no custom build needed.
+Pulls `metabase/metabase:v0.64.2.5` and `postgres:18.6` — no custom build needed.
 
 | Service | Image | Role |
 | --- | --- | --- |
-| `metabase-postgres` | `postgres:16` | Metabase app database |
-| `metabase` | `metabase/metabase:latest` | BI front-end |
+| `metabase-postgres` | `postgres:18.6` | Metabase app database |
+| `metabase` | `metabase/metabase:v0.64.2.5` | BI front-end |
 | `metabase-provision` | `python:3.12-slim` | One-shot setup (admin user + Presto connection) |
 
 ```bash
@@ -116,7 +116,7 @@ Defined in [`docker-compose.yml`](https://github.com/aseelert/ibmas-watsonxdata-
 
 | Service | Image | Role |
 | --- | --- | --- |
-| `airflow-postgres` | `postgres:16` | Airflow metadata database |
+| `airflow-postgres` | `postgres:18.6` | Airflow metadata database |
 | `airflow-init` | Built from `05-airflow/airflow/Dockerfile` | One-shot DB migration |
 | `airflow-webserver` | Built from `05-airflow/airflow/Dockerfile` | API server and UI |
 | `airflow-scheduler` | Built from `05-airflow/airflow/Dockerfile` | DAG scheduler |
@@ -133,21 +133,21 @@ docker compose up -d airflow-webserver airflow-scheduler airflow-dag-processor
 
 Defined in
 [`04-confluent-streaming/confluent/docker-compose.yml`](https://github.com/aseelert/ibmas-watsonxdata-dbt/blob/main/04-confluent-streaming/confluent/docker-compose.yml).
-**Requires `wxd-flink:1.20` to be pre-built** (see [above](#flink-04-confluent-streamingconfluentflinkdockerfile)).
+**Requires `wxd-flink:2.3` to be pre-built** (see [above](#flink-04-confluent-streamingconfluentflinkdockerfile)).
 
 | Service | Image | Role |
 | --- | --- | --- |
-| `confluent-kafka` | `confluentinc/cp-kafka:7.7.1` | Kafka broker (KRaft, no ZooKeeper) |
-| `confluent-schema-registry` | `confluentinc/cp-schema-registry:7.7.1` | Avro Schema Registry |
-| `confluent-kafbat` | `ghcr.io/kafbat/kafka-ui:latest` | Kafka web UI (port 28080) |
-| `confluent-iceberg-rest` | `tabulario/iceberg-rest:*` | Local Iceberg REST catalog for Flink |
-| `flink-jobmanager` | `wxd-flink:1.20` (custom) | Flink cluster coordinator (port 28085) |
-| `flink-taskmanager` | `wxd-flink:1.20` (custom) | Flink task execution |
-| `flink-sql-gateway` | `wxd-flink:1.20` (custom) | Flink SQL Gateway (port 28083) |
+| `confluent-kafka` | `confluentinc/cp-kafka:8.3.2` | Kafka broker (KRaft, no ZooKeeper) |
+| `confluent-schema-registry` | `confluentinc/cp-schema-registry:8.3.2` | Avro Schema Registry |
+| `confluent-kafbat` | `ghcr.io/kafbat/kafka-ui:v1.5.0` | Kafka web UI (port 28080) |
+| `confluent-iceberg-rest` | `apache/iceberg-rest-fixture@sha256:db8de90b5b7693d4ac334c336f91d9bbe320d7b19f4f514d26de84cdfbcbfe8d` | Local Iceberg REST catalog for Flink |
+| `flink-jobmanager` | `wxd-flink:2.3` (custom) | Flink cluster coordinator (port 28085) |
+| `flink-taskmanager` | `wxd-flink:2.3` (custom) | Flink task execution |
+| `flink-sql-gateway` | `wxd-flink:2.3` (custom) | Flink SQL Gateway (port 28083) |
 
 ```bash
 # Pre-build the Flink image (once):
-docker build -t wxd-flink:1.20 04-confluent-streaming/confluent/flink
+docker build -t wxd-flink:2.3 04-confluent-streaming/confluent/flink
 
 # Then start the stack:
 bin/demo streaming

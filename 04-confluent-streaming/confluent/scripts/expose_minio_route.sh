@@ -213,6 +213,8 @@ if [[ -z "$BASTION_IP" ]]; then
   warn "  echo '${EXAMPLE_BASTION_IP} ${MINIO_HOST}' | sudo tee -a /etc/hosts"
 elif grep -qF "${MINIO_HOST}" /etc/hosts 2>/dev/null; then
   info "/etc/hosts already contains ${MINIO_HOST} — skipping."
+elif python3 -c "import socket,sys; socket.gethostbyname(sys.argv[1])" "${MINIO_HOST}" 2>/dev/null; then
+  info "${MINIO_HOST} already resolves via DNS — no /etc/hosts entry (and no sudo) needed."
 else
   info "Adding to /etc/hosts: ${BASTION_IP} ${MINIO_HOST} (requires sudo)..."
   echo "${BASTION_IP} ${MINIO_HOST}" | sudo tee -a /etc/hosts >/dev/null
@@ -238,12 +240,12 @@ fi
 # ---------------------------------------------------------------------------
 step "Step 6 — Test Route connectivity"
 
-HTTP_CODE=$(curl -sk "${MINIO_URL}/minio/health/live" -o /dev/null -w "%{http_code}" 2>/dev/null || echo "000")
+HTTP_CODE=$(curl -s "${MINIO_URL}/minio/health/live" -o /dev/null -w "%{http_code}" 2>/dev/null || echo "000")
 if [[ "$HTTP_CODE" == "200" ]]; then
   success "MinIO Route reachable — HTTP ${HTTP_CODE}"
 else
   warn "MinIO Route returned HTTP ${HTTP_CODE} — may need a moment or an /etc/hosts entry."
-  warn "Retry with:  curl -sk ${MINIO_URL}/minio/health/live -o /dev/null -w '%{http_code}'"
+  warn "Retry with:  curl -s ${MINIO_URL}/minio/health/live -o /dev/null -w '%{http_code}'"
 fi
 
 echo ""

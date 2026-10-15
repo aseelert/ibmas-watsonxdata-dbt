@@ -187,19 +187,43 @@ ensure_venv() {
 
 # build_image — build the custom Flink image, skipping if it already exists.
 build_image() {
-  step "Custom Flink image (wxd-flink:1.20)"
-  if docker image inspect wxd-flink:1.20 > /dev/null 2>&1; then
-    success "wxd-flink:1.20 already built — skipping (docker rmi wxd-flink:1.20 to force a rebuild)"
+  step "Custom Flink image (wxd-flink:2.3)"
+  if docker image inspect wxd-flink:2.3 > /dev/null 2>&1; then
+    success "wxd-flink:2.3 already built — skipping (docker rmi wxd-flink:2.3 to force a rebuild)"
   else
     info "Building confluent/flink/Dockerfile ..."
-    run docker build -t wxd-flink:1.20 -f "${CONFLUENT_DIR}/flink/Dockerfile" "${CONFLUENT_DIR}/flink/"
-    success "wxd-flink:1.20 built"
+    run docker build -t wxd-flink:2.3 -f "${CONFLUENT_DIR}/flink/Dockerfile" "${CONFLUENT_DIR}/flink/"
+    success "wxd-flink:2.3 built"
   fi
+}
+
+# ensure_truststore — make the Docker JVMs trust the cluster ingress CA, so the
+#   MinIO Route can stay HTTPS-only (no insecure http:// fallback). Idempotent.
+ensure_truststore() {
+  step "Java truststore for the MinIO Route (cluster ingress CA)"
+  run bash "${CONFLUENT_DIR}/scripts/build_truststore.sh"
+}
+
+# ensure_minio_route — create/verify the MinIO Route and record its HTTPS URL
+#   in .env. Needs an `oc` session; skipped when the endpoint is already HTTPS
+#   and healthy. Non-interactive (no sudo unless the hostname truly can't resolve).
+ensure_minio_route() {
+  step "MinIO Route (WXD_OBJECT_STORE_ENDPOINT)"
+  if [[ "${WXD_OBJECT_STORE_ENDPOINT:-}" == https://* ]] && \
+     [[ "$(curl -s -o /dev/null -w '%{http_code}' "${WXD_OBJECT_STORE_ENDPOINT%% *}/minio/health/live" 2>/dev/null)" == "200" ]]; then
+    success "Route already HTTPS and healthy: ${WXD_OBJECT_STORE_ENDPOINT%% *}"
+    return
+  fi
+  info "Endpoint missing / not HTTPS / unreachable — running expose_minio_route.sh ..."
+  run bash "${CONFLUENT_DIR}/scripts/expose_minio_route.sh"
+  load_env
 }
 
 # start_services — bring up the 7 long-running containers.
 start_services() {
   step "Start services (Kafka, Schema Registry, Kafbat UI, Iceberg REST, Flink JM/TM/Gateway)"
+  ensure_minio_route
+  ensure_truststore
   compose up -d "${COMPOSE_SERVICES[@]}"
   success "Service containers requested"
 }

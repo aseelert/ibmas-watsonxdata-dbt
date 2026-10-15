@@ -69,14 +69,14 @@ name: ibmas-watsonxdata-dbt
 
 services:
   marquez-db:
-    image: postgres:16
+    image: postgres:18.6
     platform: linux/arm64
     environment:
       POSTGRES_USER: marquez
       POSTGRES_PASSWORD: marquez
       POSTGRES_DB: marquez
     volumes:
-      - marquez-db-data:/var/lib/postgresql/data
+      - marquez-db-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "marquez"]
       interval: 10s
@@ -86,7 +86,7 @@ services:
     restart: unless-stopped
 
   marquez-api:
-    image: marquezproject/marquez:latest
+    image: marquezproject/marquez:0.51.1
     platform: linux/amd64
     depends_on:
       marquez-db:
@@ -111,7 +111,7 @@ services:
     restart: unless-stopped
 
   marquez-web:
-    image: marquezproject/marquez-web:latest
+    image: marquezproject/marquez-web:0.51.1
     platform: linux/amd64
     depends_on:
       marquez-api:

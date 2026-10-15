@@ -169,6 +169,17 @@ from the JSON, writes the CA certificate to `certs/watsonxdata-ca.pem`, and
 fetches the API key and Spark bearer token. It is safe and cheap to re-run at
 the start of every session — credentials expire, so run it first.
 
+!!! info "Running containers pick up new values automatically"
+    Containers only read `.env` when they are created, so after a re-provisioned
+    engine or a new API key they would keep the old values. After every
+    `bin/demo setup`, the demo compares the values each stack depends on and
+    refreshes only what changed: the **Metabase** Presto data source is always
+    re-provisioned, **Airflow** is recreated when the Presto/API values changed,
+    and the **Iceberg REST + Flink** containers are recreated when the MinIO
+    endpoint or keys changed (resubmit the Flink jobs afterwards with
+    `bin/demo streaming --silver`). Engine IDs (Presto, Spark) are re-discovered
+    from the live cluster on every run, with timeouts and retries.
+
 **Manual:**  
 Edit `.env` directly. The required fields are marked `# SECRET` or `# MANUAL`
 in `.env.example`; everything marked `# AUTO` is written by `bin/demo setup`.
@@ -221,7 +232,7 @@ bin/demo setup
 | `command not found: docker` | Docker runtime not running | Start OrbStack or Docker Desktop |
 | `docker compose: command not found` | Compose v1 (`docker-compose`) installed instead of v2 | Install Docker Compose plugin or use OrbStack/Docker Desktop |
 | `dbt-watsonx-presto` install fails | Wrong Python version | Use Python 3.11 (see above) |
-| `Error: image wxd-flink:1.20 not found` | Flink image not built | Run `bin/demo docker build` |
+| `Error: image wxd-flink:2.3 not found` | Flink image not built | Run `bin/demo docker build` |
 | `Connection refused` on Presto | Token or cert expired | Re-run `bin/demo setup` |
 | `bin/demo dbt debug` fails with TLS error | CA cert not written | Re-run `bin/demo setup` with the connection JSON in place |
 

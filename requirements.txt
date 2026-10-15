@@ -1,4 +1,4 @@
-dbt-core>=1.8,<2.0
+dbt-core>=1.12,<2.0
 dbt-watsonx-presto==0.1.2
 boto3>=1.34,<2.0
 presto-python-client==0.8.4
@@ -7,12 +7,12 @@ requests>=2.31,<3.0
 mkdocs>=1.6,<2.0
 mkdocs-material>=9.5,<10.0
 mkdocs-glightbox>=0.4,<1.0
-confluent-kafka>=2.3,<3.0
+confluent-kafka>=2.16,<3.0
 # Avro governance for the Confluent path: confluent-kafka's AvroSerializer/
 # AvroDeserializer encode/decode Avro using fastavro, and the SchemaRegistryClient
 # talks to Schema Registry over HTTP via httpx. Both are required so the producer
 # can register one Avro subject (<topic>-value) per Kafka topic.
-fastavro>=1.9,<2.0
+fastavro>=1.13,<2.0
 httpx>=0.26,<1.0
 psycopg2-binary>=2.9,<3.0
 
@@ -23,7 +23,7 @@ psycopg2-binary>=2.9,<3.0
 # Marquez collector (OPENLINEAGE_URL).  No-ops unless OPENLINEAGE_URL is set.
 # NOTE: the dbt-ol CLI wrapper is NOT used (it doesn't support watsonx_presto).
 # Pin to the same major as dbt-core (<2.0) to avoid adapter breakage.
-openlineage-dbt>=1.18,<2.0
+openlineage-dbt>=1.54,<2.0
 
 # Optional: Databand (IBM Data Observability) dbt-run tracking, see
 # scripts/report_dbt_to_databand.py and airflow/README.md "Optional: Databand

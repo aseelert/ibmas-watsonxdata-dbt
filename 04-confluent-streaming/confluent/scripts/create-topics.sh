@@ -21,7 +21,7 @@
 #      raw_*    — the producer lands the seed CSV rows here as Avro (4 topics)
 #      silver_* — Flink writes the cleaned/typed rows here as Avro (4 topics)
 #    The Iceberg "sales_enriched" table is built by a join and is NOT a topic.
-#    Runs as a one-shot container: confluentinc/cp-kafka:7.7.1
+#    Runs as a one-shot container: confluentinc/cp-kafka:8.3.2
 # =============================================================================
 set -euo pipefail
 trap 'rc=$?; echo "  [ERROR] create-topics.sh failed (exit ${rc}) on line ${LINENO}" >&2' ERR

@@ -67,7 +67,7 @@ Confluent or IBM ownership.
 
 | Concern | Self-managed Apache Flink (this workshop) | Confluent Platform's Flink integration (self-managed, IBM/Confluent-supported) | Confluent Cloud for Apache Flink (fully managed, IBM/Confluent) |
 | --- | --- | --- | --- |
-| Who installs/operates it | This repository — a custom `wxd-flink:1.20` image, started, checkpointed, and restarted as ordinary containers (`04-confluent-streaming/confluent/flink/Dockerfile`) | You, packaged and supported as part of a Confluent Platform license | Confluent — described as a "fully managed, serverless" service with elastic autoscaling |
+| Who installs/operates it | This repository — a custom `wxd-flink:2.3` image, started, checkpointed, and restarted as ordinary containers (`04-confluent-streaming/confluent/flink/Dockerfile`) | You, packaged and supported as part of a Confluent Platform license | Confluent — described as a "fully managed, serverless" service with elastic autoscaling |
 | APIs available | Full Flink SQL, Table API, and DataStream/ProcessFunction Java APIs — whatever upstream Flink ships | Broader source flexibility than the cloud offering — Confluent states Confluent Platform "enables use of Flink with a variety of sources outside Apache Kafka" | SQL and Table API (Python, Java) via browser workspaces, CLI, or a VS Code extension; the DataStream API is not exposed |
 | Kafka integration | Manual — this workshop's Flink jobs declare Kafka source/sink connectors and Avro schemas by hand | Configured by the platform operator | "Zero-config" — Kafka topics become queryable Flink tables automatically |
 | Schema Registry | Manual `format = 'avro-confluent'` wiring per job (see [Event alternative](../streaming.md)) | Integrated | Integrated |

@@ -239,7 +239,7 @@ _KEY_COMMENTS: dict[str, str] = {
     "WXD_SPARK_APPLICATION":           "auto-derived: s3a://<bucket>/<prefix>/app/load_medallion_demo.py",
     "WXD_SPARK_INPUT_BASE":            "auto-derived: s3a://<bucket>/<prefix>/raw",
     # MinIO
-    "WXD_OBJECT_STORE_ENDPOINT":       "auto-derived: http://ibm-lh-minio-route-<ns>.<app_domain>",
+    "WXD_OBJECT_STORE_ENDPOINT":       "auto-derived: https://ibm-lh-minio-route-<ns>.<app_domain>",
     "WXD_OBJECT_STORE_INTERNAL_ENDPOINT": "cluster-internal: http://ibm-lh-lakehouse-minio-svc.<ns>.svc:9000",
     "WXD_OBJECT_STORE_ACCESS_KEY":     "read from ibm-lh-minio-secret/LH_S3_ACCESS_KEY via oc",
     "WXD_OBJECT_STORE_SECRET_KEY":     "read from ibm-lh-minio-secret/LH_S3_SECRET_KEY via oc",
@@ -727,7 +727,26 @@ def _discover_openshift_api() -> str | None:
     return _oc_run(["whoami", "--show-server"])
 
 
-def _discover_spark_engine_id(
+# Engine discovery is network-bound: every call gets a hard timeout and a few
+# retries with back-off, so one slow/restarting API pod never aborts the setup.
+# Tunable without code edits: WXD_DISCOVERY_TIMEOUT (s, per request) and
+# WXD_DISCOVERY_RETRIES (attempts per URL/auth variant).
+_DISCOVERY_TIMEOUT = float(os.environ.get("WXD_DISCOVERY_TIMEOUT", "20"))
+_DISCOVERY_RETRIES = max(1, int(os.environ.get("WXD_DISCOVERY_RETRIES", "3")))
+
+
+def _discover_spark_engine_id(*args, **kwargs) -> str | None:
+    """Live Spark engine id (see _discover_engine_id)."""
+    return _discover_engine_id("spark_engines", *args, **kwargs)
+
+
+def _discover_presto_engine_id(*args, **kwargs) -> str | None:
+    """Live Presto engine id (see _discover_engine_id)."""
+    return _discover_engine_id("presto_engines", *args, **kwargs)
+
+
+def _discover_engine_id(
+    kind: str,
     cpd_host: str,
     bearer_token: str,
     verify: "bool | str" = False,
@@ -735,7 +754,11 @@ def _discover_spark_engine_id(
     api_key: "str | None" = None,
     instance_id: "str | None" = None,
 ) -> str | None:
-    """Return the first Spark engine ID from the lakehouse REST API.
+    """Return a live engine ID for ``kind`` ("spark_engines" | "presto_engines").
+
+    Engines get a NEW id whenever they are re-created (spark588 -> spark27,
+    presto651 -> presto83), so ids are never trusted from a stale file: this asks
+    the cluster. A RUNNING engine is preferred over the first one listed.
 
     Per the watsonx.data v3 OpenAPI spec (watsonxdata-v3.json):
       GET /lakehouse/api/v3/spark_engines
@@ -769,8 +792,8 @@ def _discover_spark_engine_id(
 
     # Try both known URL paths (v3 is current; v2 seen on older CPD 5.x installs)
     url_candidates = [
-        f"https://{cpd_host}/lakehouse/api/v3/spark_engines",
-        f"https://{cpd_host}/lakehouse/api/v2/spark_engines",
+        f"https://{cpd_host}/lakehouse/api/v3/{kind}",
+        f"https://{cpd_host}/lakehouse/api/v2/{kind}",
     ]
 
     for url in url_candidates:
@@ -786,34 +809,48 @@ def _discover_spark_engine_id(
                 (auth_label, {"Authorization": auth_value}),
             )
             for variant_label, headers in header_variants:
-                try:
-                    r = _req.get(url, headers=headers, verify=verify, timeout=20)
-                    log.info(
-                        "  [spark-discovery] GET %s (%s) → %s",
-                        url, variant_label, r.status_code,
-                    )
-                    if r.status_code == 200:
+                r = None
+                for attempt in range(1, _DISCOVERY_RETRIES + 1):
+                    try:
+                        r = _req.get(url, headers=headers, verify=verify,
+                                     timeout=_DISCOVERY_TIMEOUT)
+                        log.info(
+                            "  [%s-discovery] GET %s (%s) → %s",
+                            kind, url, variant_label, r.status_code,
+                        )
+                        if r.status_code < 500:          # 2xx/4xx are final; 5xx may be transient
+                            break
+                    except Exception as exc:             # timeout / connection reset / DNS
+                        log.warning(
+                            "  [%s-discovery] attempt %d/%d failed (%s %s): %s",
+                            kind, attempt, _DISCOVERY_RETRIES, variant_label, url, exc,
+                        )
+                        r = None
+                    if attempt < _DISCOVERY_RETRIES:
+                        time.sleep(2 * attempt)          # 2 s, 4 s, ... back-off
+                if r is not None and r.status_code == 200:
+                    try:
                         data = r.json()
-                        # Response shape: {"spark_engines": [{"id": "spark588", ...}, ...]}
-                        engines = data.get("spark_engines") or data.get("engines") or []
-                        if not engines:
-                            log.warning("  [spark-discovery] No Spark engines found in response.")
-                            return None
-                        # Spec field name is "id"; older exports may use "engine_id"
-                        engine_id = engines[0].get("id") or engines[0].get("engine_id")
-                        if engine_id:
-                            log.info("  [spark-discovery] Found Spark engine: %s", engine_id)
-                        return engine_id
-                    # 401 → try next variant; 404 → try next URL
-                except Exception as exc:
-                    log.warning(
-                        "  [spark-discovery] Request failed (%s %s): %s",
-                        variant_label, url, exc,
-                    )
+                    except ValueError:
+                        continue
+                    # Response shape: {"<kind>": [{"id": "spark27", "status": ...}, ...]}
+                    engines = data.get(kind) or data.get("engines") or []
+                    if not engines:
+                        log.warning("  [%s-discovery] No engines found in response.", kind)
+                        return None
+                    running = [e for e in engines
+                               if str(e.get("status", "")).lower() == "running"]
+                    pick = (running or engines)[0]
+                    # Spec field name is "id"; older exports may use "engine_id"
+                    engine_id = pick.get("id") or pick.get("engine_id")
+                    if engine_id:
+                        log.info("  [%s-discovery] Found engine: %s", kind, engine_id)
+                    return engine_id
+                # 401 → try next variant; 404 → try next URL
 
     log.warning(
-        "  [spark-discovery] All URL/auth combinations returned non-200 — "
-        "cannot auto-discover Spark engine ID. Set WXD_SPARK_ENGINE_ID manually in .env."
+        "  [engine-discovery] All URL/auth combinations returned non-200 — "
+        "cannot auto-discover the engine ID. Set it manually in .env."
     )
     return None
 
@@ -940,7 +977,7 @@ def _live_drift_check(presto: dict, namespace: str, apply: bool = False) -> bool
         log.warning("       - %-12s JSON: %-45s live cluster: %s", k, presto.get(k, "?"), v)
     if apply:
         presto.update(live)
-        log.warning("     --overwrite given: using the LIVE cluster values above instead of the stale JSON.")
+        log.warning("     Using the LIVE cluster values above instead of the stale JSON (cluster = source of truth).")
         log.warning("     (Re-export the JSON later to silence this: UI → Infrastructure → Engines → Presto → ⋮ → Connection info.)")
         return True
     log.warning("     FIX (pick one):")
@@ -1667,7 +1704,7 @@ def main() -> int:
     _drift_checked = False
     if not args.no_oc and _oc_logged_in():
         _ns0 = _read_env(env_path)[1].get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance"
-        _live_drift_check(presto, _ns0, apply=args.overwrite)
+        _live_drift_check(presto, _ns0, apply=True)
         _drift_checked = True
 
     # Optional Spark JSON (same properties.connection structure).
@@ -1774,7 +1811,7 @@ def main() -> int:
     # Use the external MinIO route when app_domain is known (CPD on-prem).
     # The port-forward default (127.0.0.1:19000) is only a fallback.
     if app_domain:
-        minio_external = f"http://ibm-lh-minio-route-{namespace}.{app_domain}"
+        minio_external = f"https://ibm-lh-minio-route-{namespace}.{app_domain}"
         S("WXD_OBJECT_STORE_ENDPOINT", minio_external)
     else:
         S("WXD_OBJECT_STORE_ENDPOINT", "http://127.0.0.1:19000")
@@ -2068,7 +2105,7 @@ def main() -> int:
     if not _drift_checked and not args.no_oc and _oc_logged_in():
         # oc login only happened during Step 3/4, too late to patch the derived
         # values: advise only (re-running with --overwrite then applies the fix).
-        _live_drift_check(presto, proposed.get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance")
+        _live_drift_check(presto, proposed.get("WXD_OPENSHIFT_NAMESPACE") or "cpd-instance", apply=True)
 
     log.info("Step 5/5  Reachability checks ...")
     engine_host = proposed.get("WXD_HOST", "")
@@ -2165,7 +2202,10 @@ def main() -> int:
             # Retry Spark engine discovery now that we have a fresh bearer token.
             # Only a bearer token can authenticate the lakehouse REST API — the raw
             # API key string cannot be used here directly.
-            if not proposed.get("WXD_SPARK_ENGINE_ID"):
+            # ALWAYS re-check (not only when empty): a re-provisioned Spark engine gets a
+            # NEW id (e.g. spark588 -> spark27) and a stale id makes every submit fail
+            # with "Engine does not exist". The live id overrides the stale one below.
+            if True:
                 _retry_bearer = _ft_bearer  # must be a bearer, not an API key
                 if _retry_bearer and ft_host:
                     log.info("          Retrying Spark engine ID discovery with fresh token ...")
@@ -2181,11 +2221,35 @@ def main() -> int:
                         instance_id=proposed.get("WXD_INSTANCE_ID") or env.get("WXD_INSTANCE_ID"),
                     )
                     if _found_id:
-                        S("WXD_SPARK_ENGINE_ID", _found_id)
+                        if proposed.get("WXD_SPARK_ENGINE_ID") not in (None, "", _found_id):
+                            log.warning("          WXD_SPARK_ENGINE_ID %s is stale -> %s",
+                                        proposed.get("WXD_SPARK_ENGINE_ID"), _found_id)
+                        _set(proposed, "WXD_SPARK_ENGINE_ID", _found_id, True)
                         base = f"https://{ft_host}/lakehouse/api/v3/spark_engines/{_found_id}"
-                        S("WXD_SPARK_ENGINE_ENDPOINT",       base)
-                        S("WXD_SPARK_APPLICATIONS_ENDPOINT", f"{base}/applications")
+                        _set(proposed, "WXD_SPARK_ENGINE_ENDPOINT",       base, True)
+                        _set(proposed, "WXD_SPARK_APPLICATIONS_ENDPOINT", f"{base}/applications", True)
                         log.info("          WXD_SPARK_ENGINE_ID = %s  [discovered post-token-fetch]", _found_id)
+
+                    # Same for the Presto engine: a re-created engine gets a NEW id (and a
+                    # new route host). The oc drift check covers sessions with `oc`; this
+                    # REST check covers everything else and double-checks the result.
+                    _live_presto = _discover_presto_engine_id(
+                        ft_host, _retry_bearer, verify=_sv2,
+                        username=ft_username,
+                        api_key=_ft_api_key or proposed.get("WXD_API_KEY") or env.get("WXD_API_KEY"),
+                        instance_id=proposed.get("WXD_INSTANCE_ID") or env.get("WXD_INSTANCE_ID"),
+                    )
+                    _cur_presto = proposed.get("WXD_PRESTO_ENGINE_ID", "")
+                    if _live_presto and _live_presto != _cur_presto:
+                        log.warning("          WXD_PRESTO_ENGINE_ID %s is stale -> %s",
+                                    _cur_presto or "(unset)", _live_presto)
+                        _set(proposed, "WXD_PRESTO_ENGINE_ID", _live_presto, True)
+                        _old_host = proposed.get("WXD_HOST", "")
+                        if _cur_presto and _cur_presto in _old_host:
+                            _set(proposed, "WXD_HOST", _old_host.replace(_cur_presto, _live_presto), True)
+                            log.warning("          WXD_HOST -> %s", proposed.get("WXD_HOST"))
+                    elif _live_presto:
+                        log.info("          WXD_PRESTO_ENGINE_ID = %s  [verified live]", _live_presto)
 
     # ------------------------------------------------------------------
     #  Dry-run: show diff and exit without writing.
