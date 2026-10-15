@@ -66,6 +66,64 @@ _docker_start_metabase() {
   echo "==> Starting Metabase (port 3000)..."
   docker compose up -d metabase-postgres metabase metabase-provision
 }
+# ---------------------------------------------------------------------------
+# After `bin/demo setup` rewrote .env: containers only read .env when they are
+# CREATED, so a changed Presto host / API key / instance id / MinIO endpoint /
+# MinIO keys leaves running containers on the OLD values. We fingerprint the
+# values each stack really depends on before and after setup and recreate only
+# what is affected (NOT on every run: the Spark bearer token changes each time
+# but nothing running uses it, so a plain re-run restarts nothing).
+#   presto group  -> Metabase data source (re-provisioned) + Airflow
+#   s3 group      -> Iceberg REST + Flink JobManager/TaskManager/SQL gateway
+# ---------------------------------------------------------------------------
+_PRESTO_KEYS="WXD_HOST WXD_PORT WXD_USER WXD_API_KEY WXD_INSTANCE_ID WXD_CATALOG WXD_PRESTO_ENGINE_ID WXD_SPARK_ENGINE_ID WXD_CPD_HOST"
+_S3_KEYS="WXD_OBJECT_STORE_ENDPOINT WXD_OBJECT_STORE_ACCESS_KEY WXD_OBJECT_STORE_SECRET_KEY WXD_OBJECT_STORE_REGION CONFLUENT_SILVER_SCHEMA"
+
+_env_fp() {  # _env_fp KEY... -> hash of the KEY=VALUE lines currently in .env
+  local k
+  for k in "$@"; do grep -E "^${k}=" .env 2>/dev/null | head -1 | sed -E 's/[[:space:]]+#.*$//'; done | shasum | cut -d' ' -f1
+}
+
+_running_svcs() {  # _running_svcs name... -> those of the names that are running
+  local want="$*" r s out=""
+  r=$(docker compose ps --services --status running 2>/dev/null)
+  for s in $want; do echo "$r" | grep -qx "$s" && out="$out $s"; done
+  echo "$out"
+}
+
+_refresh_after_setup() {  # args: <presto-fp-before> <s3-fp-before>
+  command -v docker >/dev/null 2>&1 || return 0
+  local p_before="$1" s_before="$2" svcs
+  local p_after s_after; p_after=$(_env_fp $_PRESTO_KEYS); s_after=$(_env_fp $_S3_KEYS)
+
+  # Metabase: always re-run the provisioner (cheap, idempotent) so the Presto
+  # data source can never keep a stale host/key.
+  if [ -n "$(_running_svcs metabase)" ]; then
+    echo "==> Refreshing the Metabase Presto data source from .env..."
+    docker compose up -d --force-recreate metabase-provision >/dev/null 2>&1 \
+      && docker wait ibmas-watsonxdata-dbt-metabase-provision-1 >/dev/null 2>&1 \
+      && docker logs --tail 3 ibmas-watsonxdata-dbt-metabase-provision-1 2>&1 | sed 's/^/    /' \
+      || echo "    (could not refresh Metabase — run: bin/demo docker start metabase)"
+  fi
+
+  if [ "$p_before" != "$p_after" ]; then
+    svcs=$(_running_svcs airflow-webserver airflow-scheduler airflow-dag-processor)
+    if [ -n "$svcs" ]; then
+      echo "==> Presto/API values changed — recreating:$svcs"
+      docker compose up -d --force-recreate --no-deps $svcs 2>&1 | grep -v level=warning | sed 's/^/    /' | tail -3
+    fi
+  fi
+
+  if [ "$s_before" != "$s_after" ]; then
+    svcs=$(_running_svcs confluent-iceberg-rest confluent-flink-jobmanager confluent-flink-taskmanager confluent-flink-sql-gateway)
+    if [ -n "$svcs" ]; then
+      echo "==> Object-store values changed — recreating:$svcs"
+      docker compose up -d --force-recreate --no-deps $svcs 2>&1 | grep -v level=warning | sed 's/^/    /' | tail -4
+      echo "    NOTE: Flink jobs were restarted with the container — resubmit them: bin/demo streaming --silver"
+    fi
+  fi
+  return 0
+}
 _docker_start_airflow() {
   echo "==> Starting Airflow (port 8082)..."
   docker compose up -d airflow-init
@@ -75,13 +133,30 @@ _docker_start_lineage() {
   echo "==> Starting Marquez / OpenLineage (ports 3001, 5010)..."
   docker compose up -d marquez-db marquez-api marquez-web
 }
+# OpenMetadata encrypts stored connection secrets with a Fernet key. We never
+# commit one: it is generated once per machine into the git-ignored .env.
+# Existing catalog DB + no key => refuse (a new key could not decrypt it).
+_ensure_om_secrets() {
+  [ -f .env ] || return 0
+  grep -qE '^OM_FERNET_KEY=.+' .env && return 0
+  if [ -n "$(ls -A 07-openmetadata/openmetadata/docker-volume/db-data 2>/dev/null)" ]; then
+    echo "!! An OpenMetadata database already exists but OM_FERNET_KEY is not in .env." >&2
+    echo "   Set OM_FERNET_KEY=<the key it was created with> in .env, or reset the catalog:" >&2
+    echo "   bin/demo docker stop catalog && rm -rf 07-openmetadata/openmetadata/docker-volume/db-data" >&2
+    return 1
+  fi
+  echo "OM_FERNET_KEY=$(python3 -c 'import base64,os;print(base64.urlsafe_b64encode(os.urandom(32)).decode())')" >> .env
+  echo "==> Generated OM_FERNET_KEY in .env (OpenMetadata secret-encryption key)."
+}
 _docker_start_catalog() {
   echo "==> Starting OpenMetadata (port 8585)..."
+  _ensure_om_secrets || exit 1
   docker compose up -d mysql elasticsearch execute-migrate-all openmetadata-server ingestion
 }
 _docker_start_streaming() {
   echo "==> Starting Confluent / Flink / Iceberg (ports 29092, 28080-28085, 28181)..."
-  docker compose up -d confluent-kafka confluent-schema-registry confluent-kafbat-ui confluent-iceberg-rest confluent-flink-jobmanager confluent-flink-taskmanager confluent-flink-sql-gateway
+  # start.sh --stack = MinIO HTTPS route + Java truststore (cluster CA) + the 7 services.
+  bash 04-confluent-streaming/confluent/start.sh --stack
 }
 
 _docker_stop_metabase()   { docker compose stop metabase metabase-postgres metabase-provision; }
@@ -214,7 +289,14 @@ case "${1:-}" in
           echo "Usage: bin/demo docker <build|start|stop|status>" >&2; exit 2 ;;
     esac
     ;;
-  setup) shift; exec python3 scripts/00a_prepare_watsonx_env.py "$@" ;;
+  setup)
+    shift
+    _fp_p=$(_env_fp $_PRESTO_KEYS); _fp_s=$(_env_fp $_S3_KEYS)
+    python3 scripts/00a_prepare_watsonx_env.py "$@" || exit $?
+    # .env just changed (new API key, Presto host/engine id, ...). Anything that
+    # copied those values at start-up is now stale — refresh it automatically.
+    case " $* " in *" --dry-run "*|*" -h "*|*" --help "*) ;; *) _refresh_after_setup "$_fp_p" "$_fp_s" ;; esac
+    ;;
   dbt) shift; exec bash scripts/02_dbt_env.sh "$@" ;;
   # Legacy aliases kept so existing notes/muscle-memory still work:
   metabase)  _docker_start_metabase ;;

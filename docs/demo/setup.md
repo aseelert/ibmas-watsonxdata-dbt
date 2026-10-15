@@ -93,7 +93,7 @@ Two services need custom images built locally before they can start:
 | Image | Used by | Build time |
 | --- | --- | --- |
 | Airflow (`05-airflow/airflow/Dockerfile`) | `bin/demo docker start airflow` | ~1–2 min |
-| Flink `wxd-flink:1.20` (`04-confluent-streaming/confluent/flink/Dockerfile`) | `bin/demo streaming` | ~3–5 min (downloads ~200 MB of JARs) |
+| Flink `wxd-flink:2.3` (`04-confluent-streaming/confluent/flink/Dockerfile`) | `bin/demo streaming` | ~3–5 min (downloads ~200 MB of JARs) |
 
 Build both at once:
 

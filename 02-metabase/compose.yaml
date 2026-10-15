@@ -51,13 +51,13 @@ services:
   # Metabase's own application database (its saved questions, users, settings).
   # Kept separate from the Airflow metadata DB so the two stacks are independent.
   metabase-postgres:
-    image: postgres:16
+    image: postgres:18.6
     environment:
       POSTGRES_USER: metabase
       POSTGRES_PASSWORD: metabase
       POSTGRES_DB: metabase
     volumes:
-      - metabase-postgres-data:/var/lib/postgresql/data
+      - metabase-postgres-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "metabase"]
       interval: 10s
@@ -67,7 +67,7 @@ services:
     restart: unless-stopped
 
   metabase:
-    image: metabase/metabase:latest
+    image: metabase/metabase:v0.64.2.5
     # All WXD_* values (Presto host, user, API key, catalog, instance id, the
     # CA cert path) come from .env — once. Nothing is duplicated below.
     env_file:

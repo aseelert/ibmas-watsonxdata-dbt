@@ -10,10 +10,10 @@
 #  limitations under the License.
 
 # ===========================================================================
-# VENDORED — OpenMetadata 1.13.0 (do NOT hand-edit this file)
+# VENDORED — OpenMetadata 2.0.5 (do NOT hand-edit this file)
 # ===========================================================================
 # This is the stock single-host Docker Compose published by OpenMetadata
-# (Collate) at version 1.13.0, copied into the repo verbatim so the demo
+# (Collate) at version 2.0.5, copied into the repo verbatim so the demo
 # pins an exact, reproducible catalog stack. Treat it as upstream: re-vendor
 # from a newer OpenMetadata release rather than editing the body below.
 #
@@ -48,7 +48,7 @@ name: ibmas-watsonxdata-dbt
 services:
   mysql:
     container_name: openmetadata_mysql
-    image: docker.getcollate.io/openmetadata/db:1.13.0
+    image: docker.getcollate.io/openmetadata/db:2.0.5
     command: "--sort_buffer_size=10M"
     restart: always
     environment:
@@ -89,7 +89,7 @@ services:
 
   execute-migrate-all:
     container_name: execute_migrate_all
-    image: docker.getcollate.io/openmetadata/server:1.13.0
+    image: docker.getcollate.io/openmetadata/server:2.0.5
     command: "./bootstrap/openmetadata-ops.sh migrate"
     environment:
       OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
@@ -120,6 +120,8 @@ services:
       AUTHENTICATION_JWT_PRINCIPAL_CLAIMS: ${AUTHENTICATION_JWT_PRINCIPAL_CLAIMS:-[email,preferred_username,sub]}
       AUTHENTICATION_JWT_PRINCIPAL_CLAIMS_MAPPING: ${AUTHENTICATION_JWT_PRINCIPAL_CLAIMS_MAPPING:-[]}
       AUTHENTICATION_ENABLE_SELF_SIGNUP: ${AUTHENTICATION_ENABLE_SELF_SIGNUP:-true}
+      AUTHENTICATION_SESSION_EXPIRY: ${AUTHENTICATION_SESSION_EXPIRY:-"604800"}
+      AUTHENTICATION_MAX_ACTIVE_SESSIONS_PER_USER: ${AUTHENTICATION_MAX_ACTIVE_SESSIONS_PER_USER:-5}
       AUTHENTICATION_CLIENT_TYPE: ${AUTHENTICATION_CLIENT_TYPE:-public}
       #For OIDC Authentication, when client is confidential
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-""}
@@ -242,7 +244,7 @@ services:
       AIRFLOW_TIMEOUT: ${AIRFLOW_TIMEOUT:-10}
       AIRFLOW_TRUST_STORE_PATH: ${AIRFLOW_TRUST_STORE_PATH:-""}
       AIRFLOW_TRUST_STORE_PASSWORD: ${AIRFLOW_TRUST_STORE_PASSWORD:-""}
-      FERNET_KEY: ${FERNET_KEY:-jJ/9sz0g0OHxsfxOoSfdFdmk3ysNmPRnH3TUAbz3IHA=}
+      FERNET_KEY: ${OM_FERNET_KEY:-}
 
       #secretsManagerConfiguration
       SECRET_MANAGER: ${SECRET_MANAGER:-db}
@@ -265,7 +267,6 @@ services:
       SMTP_SERVER_ENDPOINT: ${SMTP_SERVER_ENDPOINT:-""}
       SMTP_SERVER_PORT: ${SMTP_SERVER_PORT:-""}
       SMTP_SERVER_USERNAME: ${SMTP_SERVER_USERNAME:-""}
-      SMTP_SERVER_PWD: ${SMTP_SERVER_PWD:-""}
       SMTP_SERVER_STRATEGY: ${SMTP_SERVER_STRATEGY:-"SMTP_TLS"}
 
       # Heap OPTS Configurations
@@ -314,7 +315,7 @@ services:
   openmetadata-server:
     container_name: openmetadata_server
     restart: always
-    image: docker.getcollate.io/openmetadata/server:1.13.0
+    image: docker.getcollate.io/openmetadata/server:2.0.5
     environment:
       OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
       SERVER_PORT: ${SERVER_PORT:-8585}
@@ -341,6 +342,8 @@ services:
       AUTHENTICATION_JWT_PRINCIPAL_CLAIMS: ${AUTHENTICATION_JWT_PRINCIPAL_CLAIMS:-[email,preferred_username,sub]}
       AUTHENTICATION_JWT_PRINCIPAL_CLAIMS_MAPPING: ${AUTHENTICATION_JWT_PRINCIPAL_CLAIMS_MAPPING:-[]}
       AUTHENTICATION_ENABLE_SELF_SIGNUP: ${AUTHENTICATION_ENABLE_SELF_SIGNUP:-true}
+      AUTHENTICATION_SESSION_EXPIRY: ${AUTHENTICATION_SESSION_EXPIRY:-"604800"}
+      AUTHENTICATION_MAX_ACTIVE_SESSIONS_PER_USER: ${AUTHENTICATION_MAX_ACTIVE_SESSIONS_PER_USER:-5}
       AUTHENTICATION_CLIENT_TYPE: ${AUTHENTICATION_CLIENT_TYPE:-public}
       #For OIDC Authentication, when client is confidential
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-""}
@@ -463,7 +466,7 @@ services:
       AIRFLOW_TIMEOUT: ${AIRFLOW_TIMEOUT:-10}
       AIRFLOW_TRUST_STORE_PATH: ${AIRFLOW_TRUST_STORE_PATH:-""}
       AIRFLOW_TRUST_STORE_PASSWORD: ${AIRFLOW_TRUST_STORE_PASSWORD:-""}
-      FERNET_KEY: ${FERNET_KEY:-jJ/9sz0g0OHxsfxOoSfdFdmk3ysNmPRnH3TUAbz3IHA=}
+      FERNET_KEY: ${OM_FERNET_KEY:-}
 
       #secretsManagerConfiguration
       SECRET_MANAGER: ${SECRET_MANAGER:-db}
@@ -481,7 +484,6 @@ services:
       SMTP_SERVER_ENDPOINT: ${SMTP_SERVER_ENDPOINT:-""}
       SMTP_SERVER_PORT: ${SMTP_SERVER_PORT:-""}
       SMTP_SERVER_USERNAME: ${SMTP_SERVER_USERNAME:-""}
-      SMTP_SERVER_PWD: ${SMTP_SERVER_PWD:-""}
       SMTP_SERVER_STRATEGY: ${SMTP_SERVER_STRATEGY:-"SMTP_TLS"}
 
       # Heap OPTS Configurations
@@ -534,7 +536,7 @@ services:
 
   ingestion:
     container_name: openmetadata_ingestion
-    image: docker.getcollate.io/openmetadata/ingestion:1.13.0
+    image: docker.getcollate.io/openmetadata/ingestion:2.0.5
     depends_on:
       elasticsearch:
         condition: service_started

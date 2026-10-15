@@ -107,7 +107,7 @@ if [[ -n "${WXD_SSL_VERIFY:-}" ]]; then
 fi
 
 echo "[ingest] installing openmetadata-ingestion[dbt,presto,pii-processor]..."
-if ! pip install "openmetadata-ingestion[dbt,presto,pii-processor]==1.13.0.0" -q 2>&1 | tail -3; then
+if ! pip install "openmetadata-ingestion[dbt,presto,pii-processor]==2.0.5.0" -q 2>&1 | tail -3; then
     echo "[ingest] pinned version failed, trying latest..." >&2
     pip install "openmetadata-ingestion[dbt,presto,pii-processor]" -q
 fi

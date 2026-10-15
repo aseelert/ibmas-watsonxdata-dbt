@@ -117,7 +117,7 @@ curl -s -X POST http://localhost:8082/api/v2/dags/dbt_medallion_hourly/dagRuns \
 
 [IBM Data Observability by Databand](https://www.ibm.com/products/databand)
 was investigated as an Airflow-DAG-level integration here and found broken on
-Airflow 3.2.2 — all three of IBM's officially documented package names
+Airflow 3.3.2 — all three of IBM's officially documented package names
 (`dbnd-airflow`, `dbnd-airflow-monitor`, `dbnd-airflow-auto-tracking`, all
 pinned to `1.0.34.1` as of this writing) resolve to the same code, which
 hard-imports Airflow-1.x-only paths (`airflow.hooks.base_hook`,

@@ -1,15 +1,15 @@
 # =============================================================================
-#  Flink 1.20 — custom image for the confluent streaming demo
+#  Flink 2.3 — custom image for the confluent streaming demo
 #  Adds: Kafka SQL connector, Iceberg runtime, S3A / Hadoop-AWS JARs
 # =============================================================================
-FROM flink:1.20-scala_2.12
+FROM flink:2.3.0-scala_2.12
 
 # Maven Central / Apache release base URLs
 ARG MAVEN=https://repo1.maven.org/maven2
-ARG FLINK_VER=1.20.5
-ARG ICEBERG_VER=1.9.1
-ARG KAFKA_CONNECTOR_VER=3.3.0-1.20
-ARG HADOOP_AWS_VER=3.3.4
+ARG FLINK_VER=2.3.0
+ARG ICEBERG_VER=1.12.0
+ARG KAFKA_CONNECTOR_VER=5.0.0-2.2
+ARG HADOOP_AWS_VER=3.5.0
 ARG AWS_SDK_VER=1.12.367
 
 # ---------------------------------------------------------------------------
@@ -23,8 +23,8 @@ RUN curl -fsSL \
 # 2. Iceberg Flink runtime (includes Iceberg REST catalog + S3FileIO client)
 # ---------------------------------------------------------------------------
 RUN curl -fsSL \
-  "${MAVEN}/org/apache/iceberg/iceberg-flink-runtime-1.20/${ICEBERG_VER}/iceberg-flink-runtime-1.20-${ICEBERG_VER}.jar" \
-  -o /opt/flink/lib/iceberg-flink-runtime-1.20-${ICEBERG_VER}.jar
+  "${MAVEN}/org/apache/iceberg/iceberg-flink-runtime-2.2/${ICEBERG_VER}/iceberg-flink-runtime-2.2-${ICEBERG_VER}.jar" \
+  -o /opt/flink/lib/iceberg-flink-runtime-2.2-${ICEBERG_VER}.jar
 
 # ---------------------------------------------------------------------------
 # 3. S3A file system — ships bundled in Flink opt/, just needs activating

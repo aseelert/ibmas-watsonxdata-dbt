@@ -29,7 +29,7 @@ volumes:
 # Re-usable fragments
 # ---------------------------------------------------------------------------
 x-flink-common: &flink-common
-  image: wxd-flink:1.20
+  image: wxd-flink:2.3
   build:
     context: ./flink
     dockerfile: Dockerfile
@@ -39,6 +39,8 @@ x-flink-common: &flink-common
     - "host.docker.internal:host-gateway"
   env_file:
     - ../../.env
+  volumes:
+    - ./certs:/certs:ro
   restart: unless-stopped
 
 name: ibmas-watsonxdata-dbt
@@ -48,7 +50,7 @@ services:
   # Kafka — KRaft mode, no Zookeeper
   # ---------------------------------------------------------------------------
   confluent-kafka:
-    image: confluentinc/cp-kafka:7.7.1
+    image: confluentinc/cp-kafka:8.3.2
     container_name: confluent-kafka
     hostname: confluent-kafka
     networks:
@@ -90,7 +92,7 @@ services:
   # http://localhost:28081 from the host (SCHEMA_REGISTRY_URL in .env).
   # ---------------------------------------------------------------------------
   confluent-schema-registry:
-    image: confluentinc/cp-schema-registry:7.7.1
+    image: confluentinc/cp-schema-registry:8.3.2
     container_name: confluent-schema-registry
     hostname: confluent-schema-registry
     networks:
@@ -105,7 +107,8 @@ services:
       confluent-kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      # cp-schema-registry 8.x no longer ships curl — probe over a raw TCP socket.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8081 && printf 'GET /subjects HTTP/1.0\\r\\n\\r\\n' >&3 && head -1 <&3 | grep -q ' 200 '"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -114,7 +117,7 @@ services:
   # Kafbat UI
   # ---------------------------------------------------------------------------
   confluent-kafbat-ui:
-    image: ghcr.io/kafbat/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
     container_name: confluent-kafbat-ui
     hostname: confluent-kafbat-ui
     networks:
@@ -134,7 +137,7 @@ services:
   # Iceberg REST catalog — SQLite-backed, writes data to real iceberg-bucket via Route
   # ---------------------------------------------------------------------------
   confluent-iceberg-rest:
-    image: apache/iceberg-rest-fixture:1.9.1
+    image: apache/iceberg-rest-fixture@sha256:db8de90b5b7693d4ac334c336f91d9bbe320d7b19f4f514d26de84cdfbcbfe8d
     container_name: confluent-iceberg-rest
     hostname: confluent-iceberg-rest
     networks:
@@ -145,7 +148,12 @@ services:
       - "28181:8181"
     env_file:
       - ../../.env
+    volumes:
+      - ./certs:/certs:ro
     environment:
+      # Trust the cluster ingress CA (built by scripts/build_truststore.sh) so the
+      # MinIO route can stay HTTPS-only — no insecure http:// fallback.
+      JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=/certs/truststore.jks -Djavax.net.ssl.trustStorePassword=changeit"
       # Warehouse on the real iceberg-bucket via the OpenShift Route.
       # Schema name comes from .env (CONFLUENT_SILVER_SCHEMA) — nothing hardcoded;
       # must stay in sync with the warehouse path in silver_jobs.sql.
@@ -182,6 +190,9 @@ services:
       - "28085:8081"
     command: jobmanager
     environment:
+      # Trust the cluster ingress CA (built by scripts/build_truststore.sh) so the
+      # MinIO route can stay HTTPS-only — no insecure http:// fallback.
+      JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=/certs/truststore.jks -Djavax.net.ssl.trustStorePassword=changeit"
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
         rest.bind-address: 0.0.0.0
@@ -208,6 +219,9 @@ services:
     hostname: confluent-flink-taskmanager
     command: taskmanager
     environment:
+      # Trust the cluster ingress CA (built by scripts/build_truststore.sh) so the
+      # MinIO route can stay HTTPS-only — no insecure http:// fallback.
+      JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=/certs/truststore.jks -Djavax.net.ssl.trustStorePassword=changeit"
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
         taskmanager.numberOfTaskSlots: 16
@@ -235,6 +249,9 @@ services:
       - "28083:8083"
     command: sql-gateway.sh start-foreground
     environment:
+      # Trust the cluster ingress CA (built by scripts/build_truststore.sh) so the
+      # MinIO route can stay HTTPS-only — no insecure http:// fallback.
+      JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=/certs/truststore.jks -Djavax.net.ssl.trustStorePassword=changeit"
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
         rest.address: confluent-flink-jobmanager
@@ -254,7 +271,7 @@ services:
   # One-shot: create Kafka topics
   # ---------------------------------------------------------------------------
   confluent-kafka-init:
-    image: confluentinc/cp-kafka:7.7.1
+    image: confluentinc/cp-kafka:8.3.2
     container_name: confluent-kafka-init
     networks:
       - confluent-network
@@ -314,6 +331,7 @@ services:
     profiles: [watsonxdata]
     hostname: confluent-flink-runner
     volumes:
+      - ./certs:/certs:ro
       - ./flink/sql/silver_jobs.sql:/opt/sql/silver_jobs.sql:ro
       - ./scripts/submit-flink.sh:/opt/submit-flink.sh:ro
       # Shared bash helper library so submit-flink.sh gets the standard
@@ -321,6 +339,9 @@ services:
       - ../scripts/lib/log.sh:/opt/lib/log.sh:ro
     entrypoint: ["/bin/bash", "/opt/submit-flink.sh"]
     environment:
+      # Trust the cluster ingress CA (built by scripts/build_truststore.sh) so the
+      # MinIO route can stay HTTPS-only — no insecure http:// fallback.
+      JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=/certs/truststore.jks -Djavax.net.ssl.trustStorePassword=changeit"
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: confluent-flink-jobmanager
         s3.endpoint: ${WXD_OBJECT_STORE_ENDPOINT}

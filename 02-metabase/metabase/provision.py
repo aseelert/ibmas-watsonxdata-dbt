@@ -277,11 +277,6 @@ def main():
     wait_for_metabase()
     session = get_session()
 
-    if database_exists(session):
-        print(f"[provision] data source '{DB_NAME}' already exists — checking demo content.")
-        ensure_demo_content(session, get_database_id(session))
-        return
-
     # Build the Presto connection straight from the WXD_* env values.
     instance_id = os.environ.get("WXD_INSTANCE_ID", "").strip()
     details = {
@@ -307,6 +302,24 @@ def main():
         "details": details,
         "is_full_sync": True,
     }
+
+    if database_exists(session):
+        # Credentials are short-lived/refreshable (`bin/demo setup` can mint a new
+        # API key, and the Presto host/instance id change when the engine is
+        # re-created). A data source created on an earlier run would keep the OLD
+        # values and every chart would fail with "AMS_CANNOT_GET_TOKEN" — so on
+        # every run push the CURRENT .env values into the existing data source.
+        db_id = get_database_id(session)
+        try:
+            req(f"/api/database/{db_id}", {"details": details},
+                headers={"X-Metabase-Session": session}, method="PUT")
+            print(f"[provision] data source '{DB_NAME}' (id={db_id}) credentials refreshed from .env. [OK]")
+        except urllib.error.HTTPError as exc:
+            print(f"[provision] WARNING: could not refresh data-source credentials: {exc.read().decode()[:300]}")
+        print(f"[provision] data source '{DB_NAME}' already exists — checking demo content.")
+        ensure_demo_content(session, db_id)
+        return
+        return
 
     # Metabase validates the connection synchronously when adding it, so this
     # call only succeeds once the watsonx.data Presto engine can actually answer

@@ -153,8 +153,8 @@ against the dbt baseline.
 ## 3. Confluent's pieces versus plain open-source Kafka
 
 The containers this repository runs are Confluent Platform's
-community-licensed images (`confluentinc/cp-kafka:7.7.1`,
-`confluentinc/cp-schema-registry:7.7.1` — see
+community-licensed images (`confluentinc/cp-kafka:8.3.2`,
+`confluentinc/cp-schema-registry:8.3.2` — see
 `04-confluent-streaming/confluent/docker-compose.yml`), not the plain Apache
 Kafka distribution, and not Confluent Cloud. The two pieces that make this
 meaningfully different from a bare Apache Kafka broker:
@@ -175,7 +175,7 @@ meaningfully different from a bare Apache Kafka broker:
 
 What this repository does **not** run: Confluent Cloud, Confluent's managed
 Flink service, or Tableflow. The Flink here is self-managed — a custom image
-(`wxd-flink:1.20`, built from plain `flink:1.20-scala_2.12` plus the Kafka,
+(`wxd-flink:2.3`, built from plain `flink:2.3.0-scala_2.12` plus the Kafka,
 Iceberg, and S3A connector jars, see
 `04-confluent-streaming/confluent/flink/Dockerfile`) running as ordinary
 containers this workshop starts, checkpoints, and restarts by hand. See
@@ -203,7 +203,7 @@ bin/demo streaming
 ```
 
 That single command is `bash 04-confluent-streaming/confluent/start.sh --all`
-— it creates the Python virtualenv if missing, builds the `wxd-flink:1.20`
+— it creates the Python virtualenv if missing, builds the `wxd-flink:2.3`
 image if it isn't already built, starts the seven long-running containers,
 waits for Kafka to report healthy, creates the eight topics, and produces the
 1,704 seed rows (50 + 20 + 500 + 1,134) into the four `raw_*` topics. It does

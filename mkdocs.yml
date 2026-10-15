@@ -110,6 +110,7 @@ nav:
     - Access and interfaces: demo/access.md
     - Environment setup: demo/environment.md
     - Docker services: demo/docker-services.md
+    - Image versions: demo/image-versions.md
     - Scripts and automation: demo/scripts.md
-    - Glossary: demo/glossary.md
     - dbt run findings: demo/dbt-run-findings.md
+    - Glossary: demo/glossary.md
