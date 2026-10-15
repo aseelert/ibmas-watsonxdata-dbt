@@ -78,3 +78,17 @@ It checks `.env` values, the connection JSON (present, and consistent with `.env
 ## One more thing to know
 
 Every `bin/demo setup` run asks CPD for an API key. Running setup against a *different* env file (for example a test copy) can invalidate the key in your real `.env`, and `dbt debug` then fails with a 401. Run `bin/demo setup` again on the real `.env` to fix it.
+
+## Governance provisioning: "nothing shows up" (2026-10-15)
+
+`bin/demo governance` imported and published everything (15 terms, 15 data classes, 2 classifications, 6 categories, 1 masking rule), yet the CPD UI and `--verify-only` showed 0 artifacts.
+
+| Finding | Detail |
+|---------|--------|
+| Not an API change | The import and publish calls return success and the artifacts are `PUBLISHED` when read from `/v3/glossary_terms`, `/v3/data_classes` and `/v3/classifications` |
+| Search index is missing them | `/v3/search` returns only the data protection rule. Even the 165 built-in data classes that this repo never touched are missing. The index that feeds search and the UI lists is not being populated for glossary artifacts, which is a cluster-side indexing problem |
+| The script hid it | Its verify step and its draft detector both read the index, so a count of 0 still ended in "imported, published and verified" |
+| Fixed | Verify now reads the direct artifact endpoints and fails when an expected artifact is not published. When the artifact API and the search index disagree, it prints a `WARNING` and a different final message. `--verify-only` shows both counts |
+| Limits | `/v3/categories` answers 403 for this user, so categories can only be verified through the index |
+
+If the UI stays empty while `bin/demo governance --verify-only` shows `published(api)` complete, the cluster's governance search indexing needs a repair or re-index. That is a cluster action, not a script fix.

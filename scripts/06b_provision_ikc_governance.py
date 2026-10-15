@@ -671,6 +671,40 @@ class IKCClient:
             or (isinstance(draft_mode, str) and draft_mode.casefold() == "draft")
         )
 
+    # Direct (database-backed) list endpoints. /v3/governance_artifact_types/{type}
+    # and /v3/search are both served from the search index, so they look empty
+    # whenever indexing lags; these are the independent source of truth.
+    DIRECT_LIST_PATHS = {
+        "glossary_term": "/v3/glossary_terms",
+        "data_class": "/v3/data_classes",
+        "classification": "/v3/classifications",
+    }
+
+    def published_names_via_api(self, artifact_type: str) -> set[str] | None:
+        """Names of PUBLISHED artifacts per the direct artifact API (not the search index).
+
+        Returns None when this type has no readable list endpoint for the current
+        user (e.g. /v3/categories answers 403 for non-admin roles), so callers can
+        tell "nothing there" apart from "cannot check".
+        """
+        path = self.DIRECT_LIST_PATHS.get(artifact_type)
+        if not path:
+            return None
+        names: set[str] = set()
+        offset, page = 0, 200
+        while True:
+            resp = self._request("GET", path, params={"limit": page, "offset": offset})
+            if resp is None or resp.status_code >= 400:
+                return None
+            items = self._json(resp).get("resources", []) or []
+            for i in items:
+                meta = i.get("metadata", {}) or {}
+                if str(meta.get("state", "PUBLISHED")).upper() == "PUBLISHED":
+                    names.add(meta.get("name") or self.name_of(i))
+            if len(items) < page:
+                return names
+            offset += page
+
     def search_published(self, artifact_type: str, limit: int = 200) -> list[dict]:
         """POST /v3/search — returns PUBLISHED artifacts only, so it is the
         independent confirmation that a publish actually took effect."""
@@ -1114,7 +1148,26 @@ def run_stage(client: IKCClient, stage: Stage, *, do_import: bool, do_publish: b
     # --- verify ---
     published_rows = client.search_published(stage.artifact_type)
     summary["published_total"] = len(published_rows)
-    print(f"   verify: {len(published_rows)} published '{stage.artifact_type}' artifact(s) found")
+    expected = [label for label, _ in split_csv_by_artifact(stage.csv_path)]
+    api_names = client.published_names_via_api(stage.artifact_type)
+    if api_names is None:
+        print(f"   verify: artifact API cannot list '{stage.artifact_type}'; search index shows {len(published_rows)}")
+    else:
+        missing = [n for n in expected if n not in api_names]
+        if missing:
+            msg = (f"{len(missing)} of {len(expected)} '{stage.artifact_type}' artifact(s) are NOT published "
+                   f"per the artifact API: {', '.join(missing[:5])}")
+            print(f"   verify: FAILED - {msg}")
+            summary["failures"].append(msg)
+        else:
+            print(f"   verify: all {len(expected)} expected '{stage.artifact_type}' artifact(s) are PUBLISHED (artifact API)")
+        if len(published_rows) < len(expected) and not missing:
+            note = (f"warn: '{stage.artifact_type}': {len(expected)} PUBLISHED per the artifact API but only "
+                    f"{len(published_rows)} in the search index (/v3/search). The artifacts exist, but UI lists "
+                    f"and search are built from that index and will look empty until the cluster's "
+                    f"governance search indexing is repaired / re-indexed")
+            print(f"   verify: WARNING - {note[6:]}")
+            summary["failures"].append(note)
 
     return summary
 
@@ -1328,7 +1381,11 @@ def main() -> int:
         for stage in stages:
             rows = client.search_published(stage.artifact_type)
             drafts = [i for i in client.list_artifacts(stage.artifact_type) if client.is_draft(i)]
-            print(f"   {stage.artifact_type:20s} published={len(rows):3d}  draft={len(drafts):3d}")
+            expected = [label for label, _ in split_csv_by_artifact(stage.csv_path)]
+            api_names = client.published_names_via_api(stage.artifact_type)
+            via_api = "n/a" if api_names is None else f"{sum(1 for n in expected if n in api_names)}/{len(expected)}"
+            hint = "  <-- search index lags the artifact API" if api_names and len(rows) < len(expected) and via_api.split("/")[0] == str(len(expected)) else ""
+            print(f"   {stage.artifact_type:20s} published(api)={via_api:>6s}  in-search-index={len(rows):3d}  draft={len(drafts):3d}{hint}")
         dprs = client.dpr_list()
         print(f"   {'data_protection_rule':20s} defined={len(dprs):3d}")
         for rule in dprs:
@@ -1383,8 +1440,9 @@ def _print_summary(summaries: list[dict], args) -> int:
         print(f"  {s['stage']:16s} {imported:>8s} {published:>9s} {left:>10s} {live:>5s}")
         if s["failures"]:
             failed = True
+    warnings = [f for s in summaries for f in s["failures"] if f.startswith("warn:")]
     hard_failures = [f for s in summaries for f in s["failures"]
-                     if not f.startswith("skipped:")]
+                     if not f.startswith(("skipped:", "warn:"))]
     if hard_failures:
         print("\n  Problems:")
         for f in hard_failures:
@@ -1395,6 +1453,11 @@ def _print_summary(summaries: list[dict], args) -> int:
         for f in skipped:
             print(f"    - {f[9:]}")
 
+    if warnings:
+        print("\n  Warnings:")
+        for f in warnings:
+            print(f"    - {f[6:]}")
+
     if args.dry_run:
         print("\nDry run — nothing was written.")
         return 0
@@ -1402,7 +1465,11 @@ def _print_summary(summaries: list[dict], args) -> int:
         print("\nFinished with problems — see above. Re-running is safe "
               "(merge_option=all overwrites in place).")
         return 1
-    print("\nAll requested stages imported, published and verified.")
+    if warnings:
+        print("\nImported and published (confirmed via the artifact API), BUT the search index "
+              "does not show them - see Warnings above.")
+    else:
+        print("\nAll requested stages imported, published and verified.")
     print("Next: run metadata enrichment on the Gold tables so the data-class "
           "column filters get applied:")
     print("  gold_daily_sales · gold_category_performance · gold_customer_360")
