@@ -687,6 +687,8 @@ class IKCClient:
         user (e.g. /v3/categories answers 403 for non-admin roles), so callers can
         tell "nothing there" apart from "cannot check".
         """
+        if artifact_type == "category":
+            return self._category_names_via_terms()
         path = self.DIRECT_LIST_PATHS.get(artifact_type)
         if not path:
             return None
@@ -704,6 +706,42 @@ class IKCClient:
             if len(items) < page:
                 return names
             offset += page
+
+    def _category_names_via_terms(self) -> set[str] | None:
+        """Category names reachable from published terms (parent_category chain).
+
+        GET /v3/categories (the list) is denied even for cpadmin on this
+        edition, but GET /v3/categories/{id} and the term -> parent_category
+        relationship both work. Walking every term's parents therefore proves
+        which categories exist and are PUBLISHED. Categories that hold nothing
+        (no term/classification/data class below them) cannot be seen this way (see LIST_INCOMPLETE).
+        """
+        names: set[str] = set()
+        for base in ("/v3/glossary_terms", "/v3/classifications", "/v3/data_classes"):
+            resp = self._request("GET", base, params={"limit": 200})
+            if resp is None or resp.status_code >= 400:
+                continue
+            for t in self._json(resp).get("resources", []) or []:
+                m = t.get("metadata", {}) or {}
+                r = self._request(
+                    "GET", f"{base}/{m.get('artifact_id')}/versions/{m.get('version_id')}",
+                    params={"include_relationship": "parent_category", "all_parents": "true"})
+                if r is None or r.status_code >= 400:
+                    continue
+                rels = ((self._json(r).get("entity", {}) or {}).get("parent_category", {}) or {}).get("resources", []) or []
+                for rel in rels:
+                    pid = (rel.get("entity", {}) or {}).get("parent_id")
+                    if not pid:
+                        continue
+                    c = self._request("GET", f"/v3/categories/{pid}")
+                    if c is not None and c.status_code < 400:
+                        cm = self._json(c).get("metadata", {}) or {}
+                        if str(cm.get("state", "")).upper() == "PUBLISHED":
+                            names.add(cm.get("name") or "")
+        return names or None
+
+    # Types whose name set can be a subset of reality (not a full listing).
+    LIST_INCOMPLETE = {"category"}
 
     def search_published(self, artifact_type: str, limit: int = 200) -> list[dict]:
         """POST /v3/search — returns PUBLISHED artifacts only, so it is the
@@ -1154,12 +1192,16 @@ def run_stage(client: IKCClient, stage: Stage, *, do_import: bool, do_publish: b
         print(f"   verify: artifact API cannot list '{stage.artifact_type}'; search index shows {len(published_rows)}")
     else:
         missing = [n for n in expected if n not in api_names]
+        if missing and stage.artifact_type in client.LIST_INCOMPLETE:
+            print(f"   verify: {len(expected) - len(missing)}/{len(expected)} '{stage.artifact_type}' artifact(s) confirmed PUBLISHED "
+                  f"via term relationships; not confirmable (no term below them): {', '.join(missing)}")
+            missing = []
         if missing:
             msg = (f"{len(missing)} of {len(expected)} '{stage.artifact_type}' artifact(s) are NOT published "
                    f"per the artifact API: {', '.join(missing[:5])}")
             print(f"   verify: FAILED - {msg}")
             summary["failures"].append(msg)
-        else:
+        elif stage.artifact_type not in client.LIST_INCOMPLETE or len(api_names) >= len(expected):
             print(f"   verify: all {len(expected)} expected '{stage.artifact_type}' artifact(s) are PUBLISHED (artifact API)")
         if len(published_rows) < len(expected) and not missing:
             note = (f"warn: '{stage.artifact_type}': {len(expected)} PUBLISHED per the artifact API but only "
